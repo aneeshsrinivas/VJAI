@@ -1,0 +1,63 @@
+/* src/components/ui/Button.css */
+.btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 12px 24px;
+    border-radius: var(--radius-sm);
+    font-family: var(--font-primary);
+    font-weight: 600;
+    font-size: 14px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    border: 2px solid transparent;
+}
+
+.btn:hover {
+    transform: translateY(-2px);
+}
+
+.btn:active {
+    transform: scale(0.95);
+}
+
+.btn-primary {
+    background-color: var(--color-warm-orange);
+    color: var(--color-white);
+}
+
+.btn-primary:hover {
+    filter: brightness(0.9);
+}
+
+.btn-secondary {
+    background-color: transparent;
+    border-color: var(--color-deep-blue);
+    color: var(--color-deep-blue);
+}
+
+.btn-secondary:hover {
+    background-color: var(--color-deep-blue);
+    color: var(--color-white);
+}
+
+.btn-ghost {
+    background-color: transparent;
+    color: var(--color-deep-blue);
+    text-transform: none;
+    /* Ghost often not uppercase in some designs, but brief says Button: Uppercase. I'll stick to brief */
+}
+
+.btn-ghost:hover {
+    background-color: rgba(0, 51, 102, 0.1);
+}
+
+.btn:disabled {
+    background-color: var(--color-disabled);
+    color: #fff;
+    cursor: not-allowed;
+    transform: none;
+    border-color: transparent;
+}

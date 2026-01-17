@@ -1,0 +1,228 @@
+/* Sidebar Logic handled in component */
+
+:root {
+  /* Brand Color System */
+  --color-deep-blue: #003366;
+  --color-warm-orange: #FC8A24;
+  --color-ivory: #FFFEF3;
+  --color-olive-green: #6B8E23;
+
+  /* Secondary & Functional */
+  --color-neutral-brown: #B49885;
+  --color-light-sand: #EBD6C3;
+  --color-dark-brown: #68300B;
+
+  --color-error: #D32F2F;
+  --color-warning: #F9A825;
+  --color-info: #1976D2;
+  --color-disabled: #BDBDBD;
+  --color-text-primary: #003366;
+  /* Deep blue is primary text */
+  --color-white: #FFFFFF;
+
+  /* Fonts */
+  --font-primary: 'Figtree', sans-serif;
+  --font-display: 'Bodoni Moda', serif;
+
+  /* Spacing */
+  --spacing-xs: 8px;
+  --spacing-sm: 16px;
+  --spacing-md: 24px;
+  --spacing-lg: 32px;
+  --spacing-xl: 48px;
+
+  /* UI Tokens */
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+  --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.08);
+  --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.12);
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: var(--font-primary);
+  background-color: var(--color-ivory);
+  color: var(--color-text-primary);
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  font-family: var(--font-display);
+  color: var(--color-deep-blue);
+  margin-bottom: var(--spacing-sm);
+}
+
+h1 {
+  font-size: 48px;
+  line-height: 56px;
+  font-weight: 700;
+}
+
+h2 {
+  font-size: 36px;
+  line-height: 44px;
+  font-weight: 600;
+}
+
+h3 {
+  font-size: 24px;
+  line-height: 32px;
+  font-weight: 600;
+  font-family: var(--font-primary);
+}
+
+/* H3 is Figtree per brief */
+h4 {
+  font-size: 18px;
+  line-height: 24px;
+  font-weight: 600;
+  font-family: var(--font-primary);
+}
+
+p {
+  margin-bottom: 1em;
+  font-size: 14px;
+}
+
+button {
+  font-family: var(--font-primary);
+  cursor: pointer;
+  border: none;
+  transition: all 0.2s ease;
+}
+
+/* Utilities */
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 var(--spacing-sm);
+}
+
+.text-center {
+  text-align: center;
+}
+
+.flex {
+  display: flex;
+}
+
+.flex-col {
+  display: flex;
+  flex-direction: column;
+}
+
+.items-center {
+  align-items: center;
+}
+
+.justify-center {
+  justify-content: center;
+}
+
+.justify-between {
+  justify-content: space-between;
+}
+
+.gap-sm {
+  gap: var(--spacing-sm);
+}
+
+.gap-md {
+  gap: var(--spacing-md);
+}
+
+/* Chess Pattern Background Utility - 8x8 Grid 5% Opacity */
+.bg-chess-pattern {
+  background-image:
+    linear-gradient(45deg, #00000008 25%, transparent 25%),
+    linear-gradient(-45deg, #00000008 25%, transparent 25%),
+    linear-gradient(45deg, transparent 75%, #00000008 75%),
+    linear-gradient(-45deg, transparent 75%, #00000008 75%);
+  background-size: 40px 40px;
+  /* Larger squares for better grid feel */
+  background-position: 0 0, 0 20px, 20px -20px, -20px 0px;
+}
+
+/* Indian Heritage Motifs */
+.rangoli-border-top {
+  position: relative;
+}
+
+.rangoli-border-top::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: repeating-linear-gradient(90deg,
+      var(--color-warm-orange),
+      var(--color-warm-orange) 10px,
+      var(--color-deep-blue) 10px,
+      var(--color-deep-blue) 20px,
+      var(--color-olive-green) 20px,
+      var(--color-olive-green) 30px);
+}
+
+/* Animations */
+@keyframes knightMove {
+  0% {
+    transform: translate(0, 0);
+    opacity: 0;
+  }
+
+  33% {
+    transform: translate(0, -10px);
+    opacity: 1;
+  }
+
+  /* 2 squares forward */
+  66% {
+    transform: translate(10px, -10px);
+  }
+
+  /* 1 square right (L-shape start) */
+  100% {
+    transform: translate(10px, -10px);
+    opacity: 1;
+  }
+
+  /* Completed L */
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.4s ease-out forwards;
+}
+
+.hover-lift {
+  transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.hover-lift:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
