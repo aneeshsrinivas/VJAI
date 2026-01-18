@@ -101,7 +101,7 @@ const ParentDashboard = () => {
                                 onClick={() => setReviewModalOpen(true)}
                                 className="action-btn secondary-btn"
                             >
-                                <ClockIcon size={18} color="#003366" />
+                                <ClockIcon size={18} color="#1361afff" />
                                 <span>Request Review</span>
                             </Button>
                         </div>
