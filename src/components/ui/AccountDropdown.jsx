@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 
-const AccountDropdown = ({ userName = 'User', userRole = 'Customer', avatarEmoji = '👤' }) => {
+const AccountDropdown = ({ userName = 'User', userRole = 'Customer', avatarEmoji = '👤', customIcon = null }) => {
     const navigate = useNavigate();
     const [isOpen, setIsOpen] = useState(false);
     const dropdownRef = useRef(null);
@@ -60,7 +60,7 @@ const AccountDropdown = ({ userName = 'User', userRole = 'Customer', avatarEmoji
                     justifyContent: 'center',
                     fontSize: '18px',
                 }}>
-                    {avatarEmoji}
+                    {customIcon ? customIcon : avatarEmoji}
                 </div>
                 <div style={{ textAlign: 'left' }}>
                     <div style={{ fontWeight: '600', fontSize: '14px' }}>{userName}</div>
