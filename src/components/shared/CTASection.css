@@ -1,0 +1,133 @@
+/* Import Figtree font */
+@import url('https://fonts.googleapis.com/css2?family=Figtree:wght@300;400;500;600;700;800;900&display=swap');
+
+.cta-section-shared {
+    padding: 80px 48px;
+    background: transparent;
+}
+
+.cta-container-shared {
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.cta-card-shared {
+    background: linear-gradient(135deg, #E8E8E8 0%, #D0D0D0 100%);
+    border: 4px solid #8B6F47;
+    border-radius: 20px;
+    padding: 60px 80px;
+    position: relative;
+    overflow: hidden;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+    transition: all 0.3s ease;
+    min-height: 280px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.cta-card-shared::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 35%;
+    background-image: url('/chess-overlay.png');
+    background-size: cover;
+    background-position: left center;
+    background-repeat: no-repeat;
+    opacity: 0.3;
+    pointer-events: none;
+}
+
+.cta-card-shared:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 12px 32px rgba(0, 0, 0, 0.2);
+}
+
+.cta-content-wrapper {
+    position: relative;
+    z-index: 1;
+    text-align: center;
+    max-width: 800px;
+}
+
+.cta-content-wrapper h2 {
+    font-family: 'Figtree', sans-serif;
+    font-size: 42px;
+    font-weight: 800;
+    color: #000000;
+    margin: 0 0 20px 0;
+}
+
+.cta-content-wrapper p {
+    font-family: 'Figtree', sans-serif;
+    font-size: 18px;
+    color: #68300B;
+    margin: 0 0 32px 0;
+    line-height: 1.6;
+}
+
+.cta-button-shared {
+    padding: 16px 40px !important;
+    font-size: 18px !important;
+    font-weight: 700 !important;
+    background: #FC8A24 !important;
+}
+
+.cta-button-shared:hover {
+    transform: translateY(-2px) !important;
+    box-shadow: 0 8px 24px rgba(252, 138, 36, 0.4) !important;
+}
+
+/* RESPONSIVE */
+@media (max-width: 1024px) {
+    .cta-card-shared {
+        padding: 50px 60px;
+        min-height: 240px;
+    }
+
+    .cta-card-shared::before {
+        width: 30%;
+        opacity: 0.25;
+    }
+
+    .cta-content-wrapper h2 {
+        font-size: 36px;
+    }
+
+    .cta-content-wrapper p {
+        font-size: 16px;
+    }
+}
+
+@media (max-width: 768px) {
+    .cta-section-shared {
+        padding: 60px 24px;
+    }
+
+    .cta-card-shared {
+        padding: 40px 32px;
+        min-height: 200px;
+    }
+
+    .cta-card-shared::before {
+        width: 25%;
+        opacity: 0.2;
+    }
+
+    .cta-content-wrapper h2 {
+        font-size: 28px;
+    }
+
+    .cta-content-wrapper p {
+        font-size: 15px;
+        margin-bottom: 24px;
+    }
+
+    .cta-button-shared {
+        padding: 14px 32px !important;
+        font-size: 16px !important;
+    }
+}

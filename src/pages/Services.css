@@ -1,0 +1,135 @@
+/* Import Figtree font */
+@import url('https://fonts.googleapis.com/css2?family=Figtree:wght@300;400;500;600;700;800;900&display=swap');
+
+.services-page {
+    font-family: 'Figtree', sans-serif;
+    background: #FFFEF3;
+    animation: pageEnter 0.4s ease-out;
+}
+
+@keyframes pageEnter {
+    from {
+        opacity: 0.85;
+    }
+
+    to {
+        opacity: 1;
+    }
+}
+
+/* HERO SECTION */
+.services-hero {
+    padding: 180px 48px 100px;
+    background: linear-gradient(135deg, #003366 0%, #004080 100%);
+    text-align: center;
+}
+
+.services-hero-content h1 {
+    font-family: 'Figtree', sans-serif;
+    font-size: 56px;
+    font-weight: 800;
+    color: white;
+    margin-bottom: 20px;
+}
+
+.services-hero-content p {
+    font-size: 20px;
+    color: #EBD6C3;
+}
+
+/* SERVICES GRID */
+.services-grid-section {
+    padding: 100px 0;
+    background: white;
+}
+
+.services-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 48px;
+}
+
+.services-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 32px;
+}
+
+.service-card {
+    background: linear-gradient(135deg, #FFFEF3 0%, #EBD6C3 100%);
+    border: 3px solid #FC8A24;
+    border-radius: 20px;
+    padding: 32px;
+    transition: all 0.3s ease;
+}
+
+.service-card:hover {
+    transform: translateY(-8px);
+    box-shadow: 0 16px 40px rgba(0, 51, 102, 0.2);
+    border-color: #003366;
+}
+
+.service-card h3 {
+    font-family: 'Figtree', sans-serif;
+    font-size: 24px;
+    font-weight: 800;
+    color: #003366;
+    margin-bottom: 16px;
+}
+
+.service-description {
+    font-size: 16px;
+    color: #68300B;
+    line-height: 1.7;
+    margin-bottom: 20px;
+}
+
+.service-features {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.service-features li {
+    font-size: 15px;
+    color: #003366;
+    line-height: 1.8;
+    padding-left: 24px;
+    position: relative;
+    margin-bottom: 8px;
+    font-weight: 500;
+}
+
+.service-features li::before {
+    content: '✓';
+    position: absolute;
+    left: 0;
+    color: #FC8A24;
+    font-weight: bold;
+    font-size: 18px;
+}
+
+/* RESPONSIVE */
+@media (max-width: 1024px) {
+    .services-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (max-width: 768px) {
+    .services-hero {
+        padding: 140px 24px 80px;
+    }
+
+    .services-hero-content h1 {
+        font-size: 36px;
+    }
+
+    .services-container {
+        padding: 0 24px;
+    }
+
+    .services-grid {
+        grid-template-columns: 1fr;
+    }
+}

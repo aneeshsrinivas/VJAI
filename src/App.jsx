@@ -26,6 +26,16 @@ import AccountsPage from './pages/admin/AccountsPage';
 import AnalyticsPage from './pages/admin/AnalyticsPage';
 import ChatPage from './pages/common/ChatPage';
 import BatchChat from './pages/BatchChat';
+import PlanSelection from './pages/PlanSelection';
+import PaymentCheckout from './pages/PaymentCheckout';
+import PaymentSuccess from './pages/PaymentSuccess';
+import DemoBooking from './pages/DemoBooking';
+import AboutUs from './pages/AboutUs';
+import Services from './pages/Services';
+import ContactUs from './pages/ContactUs';
+import FAQ from './pages/FAQ';
+import TermsAndConditions from './pages/TermsAndConditions';
+import PrivacyPolicy from './pages/PrivacyPolicy';
 import Header from './components/layout/Header';
 import Sidebar from './components/layout/Sidebar';
 import ErrorBoundary from './components/ui/ErrorBoundary';
@@ -56,11 +66,23 @@ const App = () => {
         <Routes>
           {/* Onboarding Routes */}
           <Route path="/" element={<LandingPage />} />
+          <Route path="/about" element={<AboutUs />} />
+          <Route path="/services" element={<Services />} />
+          <Route path="/contact" element={<ContactUs />} />
+          <Route path="/faq" element={<FAQ />} />
+          <Route path="/terms" element={<TermsAndConditions />} />
+          <Route path="/privacy" element={<PrivacyPolicy />} />
           <Route path="/select-role" element={<RoleSelectionPage />} />
           <Route path="/register" element={<RegistrationPage />} />
           <Route path="/registration-success" element={<RegistrationSuccessPage />} />
           <Route path="/login" element={<Login />} />
+          <Route path="/demo-booking" element={<DemoBooking />} />
           <Route path="/book-demo" element={<PlaceholderPage title="Book a Free Demo" />} />
+
+          {/* Payment Routes */}
+          <Route path="/pricing" element={<PlanSelection />} />
+          <Route path="/payment/checkout" element={<PaymentCheckout />} />
+          <Route path="/payment/success" element={<PaymentSuccess />} />
 
           {/* Parent Routes */}
           <Route element={<ParentLayout />}>
