@@ -1,5 +1,5 @@
 import React from 'react';
-import { BrowserRouter as Router, Routes, Route, Outlet } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Outlet, useLocation } from 'react-router-dom';
 import LandingPage from './pages/LandingPage';
 import RoleSelectionPage from './pages/RoleSelectionPage';
 import RegistrationPage from './pages/RegistrationPage';
@@ -41,14 +41,19 @@ import Sidebar from './components/layout/Sidebar';
 import ErrorBoundary from './components/ui/ErrorBoundary';
 
 // Layout Wrappers
-const ParentLayout = () => (
-  <div className="layout-parent">
-    <Header />
-    <main className="main-content">
-      <Outlet />
-    </main>
-  </div>
-);
+const ParentLayout = () => {
+  const location = useLocation();
+  const isDashboard = location.pathname === '/parent';
+
+  return (
+    <div className="layout-parent">
+      {!isDashboard && <Header />}
+      <main className="main-content" style={isDashboard ? { padding: 0, marginTop: 0 } : {}}>
+        <Outlet />
+      </main>
+    </div>
+  );
+};
 
 const StaffLayout = ({ role }) => (
   <div className="layout-staff" style={{ display: 'flex' }}>

@@ -70,7 +70,7 @@ const ParentDashboard = () => {
         <div className="parent-dashboard">
             {/* Stunning Dashboard Navbar */}
             <nav className="dashboard-navbar">
-                <div className="navbar-brand" onClick={() => navigate('/')}>
+                <div className="navbar-brand">
                     <img src="/logo.png" alt="ICA" className="navbar-logo" />
                     <span className="navbar-title">ICA Student Portal</span>
                 </div>
