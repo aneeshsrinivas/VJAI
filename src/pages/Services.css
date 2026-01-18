@@ -19,7 +19,7 @@
 
 /* HERO SECTION */
 .services-hero {
-    padding: 180px 48px 100px;
+    padding: 180px 48px 60px;
     background: linear-gradient(135deg, #003366 0%, #004080 100%);
     text-align: center;
 }
@@ -37,9 +37,9 @@
     color: #EBD6C3;
 }
 
-/* SERVICES GRID */
-.services-grid-section {
-    padding: 100px 0;
+/* SERVICES CONTENT */
+.services-content {
+    padding: 60px 0 100px;
     background: white;
 }
 
@@ -47,6 +47,27 @@
     max-width: 1200px;
     margin: 0 auto;
     padding: 0 48px;
+}
+
+.services-intro {
+    text-align: center;
+    margin-bottom: 48px;
+}
+
+.services-intro h2 {
+    font-family: 'Figtree', sans-serif;
+    font-size: 42px;
+    font-weight: 800;
+    color: #003366;
+    margin-bottom: 16px;
+}
+
+.services-intro p {
+    font-size: 18px;
+    color: #68300B;
+    line-height: 1.8;
+    max-width: 800px;
+    margin: 0 auto;
 }
 
 .services-grid {
