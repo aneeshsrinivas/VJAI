@@ -68,24 +68,7 @@ const ParentDashboard = () => {
 
     return (
         <div className="parent-dashboard">
-            {/* Stunning Dashboard Navbar */}
-            <nav className="dashboard-navbar">
-                <div className="navbar-brand">
-                    <img src="/logo.png" alt="ICA" className="navbar-logo" />
-                    <span className="navbar-title">ICA Student Portal</span>
-                </div>
-                <div className="navbar-links">
-                    <a href="/parent" className="nav-link active">Dashboard</a>
-                    <a href="/parent/schedule" className="nav-link">Schedule</a>
-                    <a href="/parent/assignments" className="nav-link">Assignments</a>
-                    <a href="/parent/payments" className="nav-link">Payments</a>
-                </div>
-                <AccountDropdown
-                    userName="Sharma Family"
-                    userRole="Parent Account"
-                    customIcon={<UserGroupIcon size={20} color="white" />}
-                />
-            </nav>
+            {/* Navbar handled by ParentLayout */}
 
             {/* Hero Welcome Section with Unsplash Background */}
             <section className="welcome-hero">

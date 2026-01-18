@@ -40,15 +40,14 @@ import Header from './components/layout/Header';
 import Sidebar from './components/layout/Sidebar';
 import ErrorBoundary from './components/ui/ErrorBoundary';
 
+import ParentNavbar from './components/layout/ParentNavbar';
+
 // Layout Wrappers
 const ParentLayout = () => {
-  const location = useLocation();
-  const isDashboard = location.pathname === '/parent';
-
   return (
     <div className="layout-parent">
-      {!isDashboard && <Header />}
-      <main className="main-content" style={isDashboard ? { padding: 0, marginTop: 0 } : {}}>
+      <ParentNavbar />
+      <main className="main-content" style={{ padding: 0, marginTop: 0 }}>
         <Outlet />
       </main>
     </div>
