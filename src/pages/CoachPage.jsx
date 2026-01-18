@@ -15,7 +15,9 @@ const CoachPage = () => {
                     <p style={{ margin: '4px 0 0', color: '#666' }}>Manage your classes and students.</p>
                 </div>
                 <div style={{ display: 'flex', gap: '12px' }}>
+                    <Button variant="ghost" onClick={() => navigate('/')}>← Back to Home</Button>
                     <Button onClick={() => navigate('/admin/calendar')}>View Full Calendar</Button>
+                    <Button variant="secondary" onClick={() => navigate('/login')}>Logout</Button>
                 </div>
             </div>
 

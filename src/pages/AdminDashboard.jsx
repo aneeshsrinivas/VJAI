@@ -13,9 +13,15 @@ const AdminDashboard = () => {
     const [showDemoModal, setShowDemoModal] = useState(false);
     return (
         <div className="dashboard-container">
-            <div className="dashboard-header">
-                <h1 className="welcome-text">Command Center</h1>
-                <p className="sub-text">Academy Operations Overview</p>
+            <div className="dashboard-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                <div>
+                    <h1 className="welcome-text">Command Center</h1>
+                    <p className="sub-text">Academy Operations Overview</p>
+                </div>
+                <div style={{ display: 'flex', gap: '12px' }}>
+                    <Button variant="ghost" onClick={() => navigate('/')}>← Back to Home</Button>
+                    <Button variant="secondary" onClick={() => navigate('/login')}>Logout</Button>
+                </div>
             </div>
 
             <div className="dashboard-grid">

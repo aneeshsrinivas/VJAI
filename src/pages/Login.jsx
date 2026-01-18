@@ -51,6 +51,12 @@ const Login = () => {
             <div className="login-right">
                 <div className="login-right-pattern"></div>
                 <div className="login-card">
+                    <button
+                        className="back-to-home-btn"
+                        onClick={() => navigate('/')}
+                    >
+                        ← Back to Home
+                    </button>
                     <div className="login-header">
                         <div className="login-icon">♔</div>
                         <h1>Welcome Back</h1>

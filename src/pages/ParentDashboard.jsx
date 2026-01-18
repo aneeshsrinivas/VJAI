@@ -39,11 +39,17 @@ const ParentDashboard = () => {
                 </div>
                 {/* My Buttons injected here for easy access */}
                 <div style={{ display: 'flex', gap: '12px', marginTop: '16px' }}>
+                    <Button variant="ghost" onClick={() => navigate('/')} style={{ color: 'white', borderColor: 'rgba(255,255,255,0.3)' }}>
+                        ← Back to Home
+                    </Button>
                     <Button variant="secondary" onClick={() => navigate('/parent/chat')} className="btn-chat-mobile">
                         <span style={{ marginRight: '8px' }}>💬</span> Batch Chat
                     </Button>
                     <Button onClick={() => setReviewModalOpen(true)} className="btn-review-mobile">
                         Request 15-min Review
+                    </Button>
+                    <Button variant="secondary" onClick={() => navigate('/login')} style={{ borderColor: 'rgba(255,255,255,0.3)' }}>
+                        Logout
                     </Button>
                 </div>
             </div>
