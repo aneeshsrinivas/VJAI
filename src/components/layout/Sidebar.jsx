@@ -5,11 +5,14 @@ import './Sidebar.css';
 const Sidebar = ({ role = 'admin', activePath = '/dashboard' }) => {
     const navigate = useNavigate();
     const links = role === 'admin' ? [
-        { label: 'Dashboard', icon: '♛', path: '/admin' },
-        { label: 'Demos', icon: '♟️', path: '/admin/demos' },
+        { label: 'Command Center', icon: '♛', path: '/admin' },
+        { label: 'Demo Pipeline', icon: '♟️', path: '/admin/demos' },
         { label: 'Students', icon: '♝', path: '/admin/students' },
-        { label: 'Coaches', icon: '♞', path: '/admin/coaches' },
+        { label: 'Coach Roster', icon: '♞', path: '/admin/coaches' },
         { label: 'Finances', icon: '♜', path: '/admin/finances' },
+        { label: 'Broadcast', icon: '📢', path: '/admin/broadcast' },
+        { label: 'Messages', icon: '💬', path: '/admin/messages' },
+        { label: 'Subscriptions', icon: '💳', path: '/admin/subscriptions' },
     ] : [
         { label: 'Dashboard', icon: '♞', path: '/coach' },
         { label: 'My Students', icon: '♟️', path: '/coach/students' },

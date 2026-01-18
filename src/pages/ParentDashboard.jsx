@@ -2,85 +2,138 @@ import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import Card from '../components/ui/Card';
 import Button from '../components/ui/Button';
-import './Dashboard.css';
 
 const ParentDashboard = () => {
     const navigate = useNavigate();
+
     return (
-        <div className="dashboard-container">
-            <div className="dashboard-header">
-                <h1 className="welcome-text">Welcome, Sharma Family</h1>
-                <p className="sub-text">Your child's progress is on track. Next milestone: Bishop Rank (85%)</p>
-            </div>
-
-            <div className="dashboard-grid">
-                <div className="col-4">
-                    <Card title="Your Coach">
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '16px', marginTop: '16px' }}>
-                            <div style={{ fontSize: '48px', color: 'var(--color-deep-blue)' }}>♞</div>
-                            <div>
-                                <h3 style={{ margin: 0, fontSize: '18px' }}>Coach Ramesh</h3>
-                                <p style={{ margin: 0, fontSize: '14px', color: '#666' }}>FIDE Master • 4.9/5</p>
-                            </div>
-                        </div>
-                        <div style={{ marginTop: '16px', paddingTop: '16px', borderTop: '1px solid #eee' }}>
-                            <p style={{ fontSize: '12px', color: '#999', margin: 0 }}>Contact details are hidden for privacy.</p>
-                        </div>
-                    </Card>
+        <div style={{ padding: '24px', maxWidth: '1200px', margin: '0 auto' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '32px' }}>
+                <div>
+                    <h1 style={{ margin: 0, color: 'var(--color-deep-blue)' }}>Welcome, Sharma Family</h1>
+                    <p style={{ margin: '4px 0 0', color: '#666' }}>Student: <strong>Arjun Sharma</strong> (Intermediate Level)</p>
                 </div>
-
-                <div className="col-4">
-                    <Card title="Batch Info">
-                        <div style={{ marginTop: '16px' }}>
-                            <h3 style={{ margin: '0 0 8px 0' }}>Intermediate B2</h3>
-                            <p className="stat-label">8 Students • Tue/Thu/Sat</p>
-                            <div style={{ marginTop: '16px' }}>
-                                <Button
-                                    variant="secondary"
-                                    style={{ width: '100%' }}
-                                    onClick={() => navigate('/parent/assignments')} // Using Assignments as proxy for now or create a Chat placeholder
-                                >
-                                    View Batch Chat
-                                </Button>
-                            </div>
-                        </div>
-                    </Card>
-                </div>
-
-                <div className="col-4">
-                    <Card variant="chess" title="Next Class">
-                        <div style={{ textAlign: 'center', padding: '16px 0' }}>
-                            <div style={{ fontSize: '24px', fontWeight: 'bold', color: 'var(--color-deep-blue)' }}>Today, 5:00 PM</div>
-                            <p style={{ color: 'var(--color-olive-green)', fontWeight: '600' }}>Starting in 45 mins</p>
-                            <Button
-                                className="btn-primary"
-                                style={{ width: '100%', marginTop: '8px' }}
-                                onClick={() => window.open('https://meet.google.com', '_blank')}
-                            >
-                                Join Class
-                            </Button>
-                        </div>
-                    </Card>
+                <div style={{ display: 'flex', gap: '12px' }}>
+                    <Button variant="secondary" onClick={() => navigate('/parent/chat')}>
+                        <span style={{ marginRight: '8px' }}>💬</span> Open Batch Chat
+                    </Button>
+                    <Button onClick={() => alert('Review Request Sent! Admin will contact you.')}>
+                        Request 15-min Review
+                    </Button>
                 </div>
             </div>
 
-            <div className="dashboard-grid">
-                <div className="col-8">
-                    <Card title="Weekly Schedule">
-                        <div className="schedule-row">
-                            {['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map((day, i) => (
-                                <div key={day} className="day-slot">
-                                    <span className="day-name">{day}</span>
-                                    <div className={`chess-dot ${[1, 3, 5].includes(i) ? 'active' : ''}`}></div>
+            <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '24px' }}>
+                {/* Left Column */}
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+
+                    {/* Weekly Schedule */}
+                    <Card title="Weekly Class Schedule">
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                            {[
+                                { day: 'Monday', time: '5:00 PM IST', status: 'UPCOMING' },
+                                { day: 'Wednesday', time: '5:00 PM IST', status: 'COMPLETED' },
+                                { day: 'Friday', time: '5:00 PM IST', status: 'PENDING' }
+                            ].map((slot, i) => (
+                                <div key={i} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '16px', backgroundColor: '#f9f9f9', borderRadius: '8px', borderLeft: i === 0 ? '4px solid var(--color-warm-orange)' : '4px solid transparent' }}>
+                                    <div>
+                                        <div style={{ fontWeight: 'bold', color: 'var(--color-deep-blue)' }}>{slot.day}</div>
+                                        <div style={{ fontSize: '14px', color: '#666' }}>{slot.time}</div>
+                                    </div>
+                                    {i === 0 ? (
+                                        <Button size="sm">Join Class</Button>
+                                    ) : (
+                                        <span style={{ fontSize: '12px', fontWeight: 'bold', color: '#999' }}>{slot.status}</span>
+                                    )}
                                 </div>
                             ))}
                         </div>
                     </Card>
+
+                    {/* Progress Report */}
+                    <Card title="Student Progress Report">
+                        <div style={{ display: 'flex', gap: '24px', alignItems: 'center', marginBottom: '16px' }}>
+                            <div style={{ flex: 1, textAlign: 'center', padding: '16px', backgroundColor: '#F0F9FF', borderRadius: '8px' }}>
+                                <div style={{ fontSize: '24px', fontWeight: 'bold', color: 'var(--color-deep-blue)' }}>1450</div>
+                                <div style={{ fontSize: '12px', color: '#666' }}>Current Rating</div>
+                            </div>
+                            <div style={{ flex: 1, textAlign: 'center', padding: '16px', backgroundColor: '#FFF7ED', borderRadius: '8px' }}>
+                                <div style={{ fontSize: '24px', fontWeight: 'bold', color: 'var(--color-warm-orange)' }}>24/36</div>
+                                <div style={{ fontSize: '12px', color: '#666' }}>Lessons Completed</div>
+                            </div>
+                            <div style={{ flex: 1, textAlign: 'center', padding: '16px', backgroundColor: '#F0FDF4', borderRadius: '8px' }}>
+                                <div style={{ fontSize: '24px', fontWeight: 'bold', color: 'var(--color-olive-green)' }}>92%</div>
+                                <div style={{ fontSize: '12px', color: '#666' }}>Attendance</div>
+                            </div>
+                        </div>
+
+                        <h4 style={{ fontSize: '16px', marginBottom: '8px' }}>Coach Feedback (Areas of Improvement)</h4>
+                        <ul style={{ paddingLeft: '20px', color: '#555', lineHeight: '1.6' }}>
+                            <li><strong>Opening:</strong> Needs more work on e4 defenses.</li>
+                            <li><strong>Middlegame:</strong> Good tactical vision, keep solving puzzles!</li>
+                            <li style={{ color: 'var(--color-error)' }}><strong>Endgame:</strong> Weak pawn structures (Focus Area).</li>
+                        </ul>
+                    </Card>
+
+                    {/* Homework */}
+                    <Card title="Homework Assignments">
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '16px', border: '1px solid #eee', borderRadius: '8px' }}>
+                            <div>
+                                <div style={{ fontWeight: 'bold' }}>Endgame Pawn Structures</div>
+                                <div style={{ fontSize: '12px', color: '#d32f2f' }}>Due: Jan 25, 2026</div>
+                            </div>
+                            <Button variant="secondary" size="sm">View & Submit</Button>
+                        </div>
+                    </Card>
                 </div>
-                <div className="col-4">
-                    <Card title="Monthly Review">
-                        <p style={{ fontSize: '14px', marginBottom: '16px' }}>Request a 1:1 progress review with Coach Ramesh.</p>
-                        <Button disabled style={{ width: '100%' }}>Next Available: Feb 1</Button>
+
+                {/* Right Column */}
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+                    {/* Assigned Coach */}
+                    <Card title="Assigned Coach">
+                        <div style={{ textAlign: 'center', padding: '16px' }}>
+                            <div style={{ width: '80px', height: '80px', borderRadius: '50%', backgroundColor: '#eee', margin: '0 auto 16px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '32px' }}>
+                                ♞
+                            </div>
+                            <h3 style={{ margin: '0 0 4px 0' }}>Ramesh Babu</h3>
+                            <div style={{ color: 'var(--color-warm-orange)', fontWeight: 'bold', fontSize: '14px' }}>International Master (IM)</div>
+                            <div style={{ fontSize: '14px', color: '#666', marginTop: '4px' }}>Rating: 2450</div>
+
+                            <div style={{ marginTop: '24px', padding: '12px', backgroundColor: '#FFF7ED', borderRadius: '8px', fontSize: '12px', color: '#9A3412', textAlign: 'left' }}>
+                                <strong>⚠️ Privacy Notice:</strong><br />
+                                Direct contact with coaches is not permitted. Please use the Batch Group Chat for all communication.
+                            </div>
+                        </div>
+                    </Card>
+
+                    {/* Batch Details */}
+                    <Card title="Batch Details">
+                        <div style={{ marginBottom: '12px' }}>
+                            <div style={{ fontSize: '12px', color: '#666' }}>Batch Name</div>
+                            <div style={{ fontWeight: 'bold' }}>Intermediate B2</div>
+                        </div>
+                        <div style={{ marginBottom: '12px' }}>
+                            <div style={{ fontSize: '12px', color: '#666' }}>Classmates</div>
+                            <div>7 other students</div>
+                        </div>
+                        <div>
+                            <div style={{ fontSize: '12px', color: '#666' }}>Level</div>
+                            <div style={{ display: 'inline-block', padding: '2px 8px', borderRadius: '4px', backgroundColor: '#E0E7FF', color: '#3730A3', fontSize: '12px', fontWeight: 'bold' }}>Intermediate</div>
+                        </div>
+                    </Card>
+
+                    {/* Payment History Mock */}
+                    <Card title="Recent Invoice">
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                            <div>
+                                <div style={{ fontWeight: 'bold' }}>Jan 2026 Fee</div>
+                                <div style={{ fontSize: '12px', color: '#666' }}>Paid on Jan 2</div>
+                            </div>
+                            <div style={{ fontWeight: 'bold', color: 'var(--color-deep-blue)' }}>₹4,500</div>
+                        </div>
+                        <div style={{ textAlign: 'right', marginTop: '12px' }}>
+                            <a href="#" style={{ fontSize: '12px', color: 'var(--color-warm-orange)' }}>Download Receipt</a>
+                        </div>
                     </Card>
                 </div>
             </div>

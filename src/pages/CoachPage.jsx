@@ -3,7 +3,7 @@ import Card from '../components/ui/Card';
 import Button from '../components/ui/Button';
 import { useNavigate } from 'react-router-dom';
 
-const CoachDashboard = () => {
+const CoachPage = () => {
     const navigate = useNavigate();
 
     return (
@@ -121,4 +121,4 @@ const CoachDashboard = () => {
     );
 };
 
-export default CoachDashboard;
+export default CoachPage;
