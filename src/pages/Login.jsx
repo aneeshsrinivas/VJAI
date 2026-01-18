@@ -10,10 +10,16 @@ const Login = () => {
 
     const handleLogin = (e) => {
         e.preventDefault();
-        // Mock Login Logic
+        // Mock Login Logic based on Core Data Entities
+        // 2.1 Account (Authentication Only) - Role: ADMIN | COACH | CUSTOMER
         if (email.includes('admin')) navigate('/admin');
         else if (email.includes('coach')) navigate('/coach');
-        else navigate('/parent');
+        else {
+            // "Pre-existing student and parent as customer"
+            // For now, CUSTOMER role views the ParentDashboard
+            console.log('Logging in as CUSTOMER role');
+            navigate('/parent');
+        }
     };
 
     return (
@@ -37,8 +43,8 @@ const Login = () => {
                         Log in to VJAI, the strategic operations platform for the Indian Chess Academy.
                     </p>
                 </div>
-                {/* Decorative Elements */}
-                <div style={{ position: 'absolute', bottom: '-50px', right: '-50px', fontSize: '300px', opacity: 0.1, color: '#fff' }}>♞</div>
+                {/* Decorative Elements - Reduced Opacity */}
+                <div style={{ position: 'absolute', bottom: '-50px', right: '-50px', fontSize: '300px', opacity: 0.05, color: '#fff' }}>♞</div>
             </div>
 
             {/* Right Side - Form */}

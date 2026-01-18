@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import Card from '../components/ui/Card';
 import Button from '../components/ui/Button';
 import { useNavigate } from 'react-router-dom';
+import { Lock, FileText, MessageSquare, Upload } from 'lucide-react';
 
 const CoachPage = () => {
     const navigate = useNavigate();
@@ -30,8 +31,8 @@ const CoachPage = () => {
                                 <div style={{ fontSize: '14px', color: '#666' }}>8 Students • Group Class</div>
                             </div>
                             <div style={{ display: 'flex', gap: '8px' }}>
-                                <Button size="sm">Start Class</Button>
-                                <Button size="sm" variant="secondary">Attendance</Button>
+                                <Button size="sm" onClick={() => alert('Starting Live Class Session...')}>Start Class</Button>
+                                <Button size="sm" variant="secondary" onClick={() => alert('Opening Attendance Sheet...')}>Attendance</Button>
                             </div>
                         </div>
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '16px', backgroundColor: '#F9FAFB', borderRadius: '8px', borderLeft: '4px solid #9CA3AF' }}>
@@ -66,8 +67,8 @@ const CoachPage = () => {
                                             <td style={{ padding: '12px' }}>{student.level}</td>
                                             <td style={{ padding: '12px' }}>{student.batch}</td>
                                             <td style={{ padding: '12px' }}>
-                                                <span style={{ fontSize: '12px', padding: '4px 8px', backgroundColor: '#F3F4F6', borderRadius: '12px', color: '#6B7280' }}>
-                                                    🔒 Hidden (Use Batch Chat)
+                                                <span style={{ fontSize: '12px', padding: '4px 8px', backgroundColor: '#F3F4F6', borderRadius: '12px', color: '#6B7280', display: 'flex', alignItems: 'center', gap: '4px', width: 'fit-content' }}>
+                                                    <Lock size={12} /> Hidden (Use Batch Chat)
                                                 </span>
                                             </td>
                                         </tr>
@@ -80,9 +81,15 @@ const CoachPage = () => {
                     {/* Material Upload */}
                     <Card title="Upload Learning Materials">
                         <div style={{ border: '2px dashed #ccc', borderRadius: '8px', padding: '32px', textAlign: 'center', backgroundColor: '#FAFAFA' }}>
-                            <div style={{ fontSize: '32px', marginBottom: '8px' }}>📂</div>
+                            <div style={{ marginBottom: '8px', color: '#888' }}><Upload size={32} /></div>
                             <p style={{ margin: '0 0 16px', fontWeight: '500' }}>Drag & drop PDF/PGN files here</p>
-                            <Button variant="secondary" size="sm">Select Files</Button>
+                            <input
+                                type="file"
+                                id="file-upload"
+                                style={{ display: 'none' }}
+                                onChange={(e) => alert(`Selected file: ${e.target.files[0]?.name}`)}
+                            />
+                            <Button variant="secondary" size="sm" onClick={() => document.getElementById('file-upload').click()}>Select Files</Button>
                         </div>
                         <div style={{ marginTop: '16px' }}>
                             <label style={{ display: 'block', fontSize: '14px', marginBottom: '8px' }}>Select Batch</label>
@@ -110,9 +117,9 @@ const CoachPage = () => {
                     {/* Quick Chats */}
                     <Card title="Batch Chats">
                         <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                            <Button variant="ghost" style={{ justifyContent: 'flex-start' }}>💬 Intermediate B2 (3 new)</Button>
-                            <Button variant="ghost" style={{ justifyContent: 'flex-start' }}>💬 Advanced C1</Button>
-                            <Button variant="ghost" style={{ justifyContent: 'flex-start' }}>💬 Beginner A1</Button>
+                            <Button variant="ghost" style={{ justifyContent: 'flex-start', gap: '8px' }}><MessageSquare size={16} /> Intermediate B2 (3 new)</Button>
+                            <Button variant="ghost" style={{ justifyContent: 'flex-start', gap: '8px' }}><MessageSquare size={16} /> Advanced C1</Button>
+                            <Button variant="ghost" style={{ justifyContent: 'flex-start', gap: '8px' }}><MessageSquare size={16} /> Beginner A1</Button>
                         </div>
                     </Card>
                 </div>

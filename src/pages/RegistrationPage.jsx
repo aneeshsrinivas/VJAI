@@ -19,10 +19,14 @@ const RegistrationPage = () => {
     const renderFields = () => {
         switch (role) {
             case 'parent':
+            case 'customer': // Treat parent/student as CUSTOMER
                 return (
                     <>
+                        <div style={{ padding: '12px', backgroundColor: '#e3f2fd', borderRadius: '8px', marginBottom: '16px', fontSize: '14px', color: '#0d47a1' }}>
+                            <strong>Core Principle:</strong> A single account is used for authentication. Parent details are stored inside the Student record.
+                        </div>
                         <Input label="Parent Name" required />
-                        <Input label="Parent Email" type="email" required />
+                        <Input label="Parent Email (Login ID)" type="email" required />
                         <Input label="Student Name" required />
                         <div style={{ display: 'flex', gap: '16px' }}>
                             <Input label="Student Age" type="number" style={{ flex: 1 }} required />
@@ -35,11 +39,36 @@ const RegistrationPage = () => {
                                 </select>
                             </div>
                         </div>
+
+                        <div style={{ display: 'flex', gap: '16px' }}>
+                            <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '8px', marginBottom: '16px' }}>
+                                <label style={{ fontSize: '12px', fontWeight: '500', color: '#68300B' }}>Student Type (Mandatory)</label>
+                                <select style={{ padding: '12px', borderRadius: '8px', border: '1px solid #BDBDBD' }}>
+                                    <option>Group Class</option>
+                                    <option>1-on-1 Tutoring</option>
+                                </select>
+                            </div>
+                            <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '8px', marginBottom: '16px' }}>
+                                <label style={{ fontSize: '12px', fontWeight: '500', color: '#68300B' }}>Timezone</label>
+                                <select style={{ padding: '12px', borderRadius: '8px', border: '1px solid #BDBDBD' }}>
+                                    <option>India (IST)</option>
+                                    <option>USA (EST)</option>
+                                    <option>USA (PST)</option>
+                                    <option>UK (GMT)</option>
+                                    <option>Australia (AEST)</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div style={{ display: 'flex', gap: '16px' }}>
+                            <Input label="Country" placeholder="e.g. India" style={{ flex: 1 }} required />
+                            <Input label="Chess.com/Lichess Username (Optional)" placeholder="e.g. magnus_c" style={{ flex: 1 }} />
+                        </div>
                         <Input label="Password" type="password" required />
                         <Input label="Confirm Password" type="password" required />
                         <div style={{ marginBottom: '16px' }}>
                             <label style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '14px' }}>
-                                <input type="checkbox" required /> I agree to create a single family account.
+                                <input type="checkbox" required /> I agree to create a single family account (Role: CUSTOMER).
                             </label>
                         </div>
                     </>

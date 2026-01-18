@@ -27,19 +27,53 @@ const BroadcastPage = () => {
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
 
                     {/* Audience Selection */}
-                    <div>
-                        <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500' }}>Target Audience</label>
-                        <select
-                            value={audience}
-                            onChange={(e) => setAudience(e.target.value)}
-                            style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid #ccc' }}
-                        >
-                            <option value="ALL_PARENTS">All Parents</option>
-                            <option value="ALL_STUDENTS">All Students</option>
-                            <option value="ALL_COACHES">All Coaches</option>
-                            <option value="BATCH_B2">Batch: Intermediate B2</option>
-                            <option value="BATCH_C1">Batch: Advanced C1</option>
-                        </select>
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+                        <div>
+                            <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500' }}>Student Type</label>
+                            <select
+                                style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid #ccc' }}
+                            >
+                                <option value="ALL">All Types</option>
+                                <option value="1:1">1:1 Students</option>
+                                <option value="GROUP">Group Batch Students</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500' }}>Level</label>
+                            <select
+                                style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid #ccc' }}
+                            >
+                                <option value="ALL">All Levels</option>
+                                <option value="BEGINNER">Beginner</option>
+                                <option value="INTERMEDIATE">Intermediate</option>
+                                <option value="ADVANCED">Advanced</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500' }}>Timezone</label>
+                            <select
+                                style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid #ccc' }}
+                            >
+                                <option value="ALL">All Timezones</option>
+                                <option value="IST">India (IST)</option>
+                                <option value="EST">USA (EST)</option>
+                                <option value="PST">USA (PST)</option>
+                                <option value="GMT">Europe (GMT)</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500' }}>Specific Batch</label>
+                            <select
+                                value={audience}
+                                onChange={(e) => setAudience(e.target.value)}
+                                style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid #ccc' }}
+                            >
+                                <option value="ALL_PARENTS">All Active Batches</option>
+                                <option value="BATCH_B2">Intermediate B2</option>
+                                <option value="BATCH_C1">Advanced C1</option>
+                                <option value="BATCH_A1">Beginner A1</option>
+                            </select>
+                        </div>
                     </div>
 
                     {/* Message Title */}

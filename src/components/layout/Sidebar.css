@@ -37,7 +37,8 @@
 .nav-item {
     padding: 12px 16px;
     border-radius: var(--radius-sm);
-    color: rgba(255, 255, 255, 0.7);
+    color: var(--color-white);
+    /* 100% opacity for better visibility */
     text-decoration: none;
     font-family: var(--font-primary);
     font-weight: 500;
@@ -46,17 +47,23 @@
     gap: 12px;
     transition: all 0.2s ease;
     cursor: pointer;
+    border-left: 3px solid transparent;
+    /* Clean indicator instead of full bg sometimes works better, but keeping simple solid for now */
+    opacity: 0.9;
 }
 
 .nav-item:hover {
     background-color: rgba(255, 255, 255, 0.1);
-    color: var(--color-white);
+    opacity: 1;
 }
 
 .nav-item.active {
     background-color: var(--color-warm-orange);
     color: var(--color-white);
-    box-shadow: 0 4px 12px rgba(252, 138, 36, 0.3);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+    /* Reduced glow */
+    opacity: 1;
+    font-weight: 600;
 }
 
 .nav-icon {

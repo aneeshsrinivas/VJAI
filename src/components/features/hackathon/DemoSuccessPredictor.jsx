@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import Card from '../../ui/Card';
+import { Bot, CheckCircle, AlertTriangle, Radio } from 'lucide-react';
 
 const DemoSuccessPredictor = () => {
     const [prob, setProb] = useState(78);
@@ -21,9 +22,11 @@ const DemoSuccessPredictor = () => {
     }, []);
 
     return (
-        <Card className="rangoli-border-top animate-fade-in">
+        <Card className="animate-fade-in">
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
-                <h3 style={{ margin: 0, fontSize: '16px', color: 'var(--color-deep-blue)' }}>🤖 Live Demo Success Meter</h3>
+                <h3 style={{ margin: 0, fontSize: '16px', color: 'var(--color-deep-blue)', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <Bot size={20} /> Live Demo Success Meter
+                </h3>
                 <span style={{ fontSize: '12px', padding: '2px 8px', backgroundColor: '#E3F2FD', color: '#1565C0', borderRadius: '12px', fontWeight: 'bold' }}>AI ACTIVE</span>
             </div>
 
@@ -38,10 +41,12 @@ const DemoSuccessPredictor = () => {
             </div>
 
             <div style={{ fontSize: '12px', color: '#666', marginBottom: '16px' }}>
-                <p style={{ fontWeight: '600', marginBottom: '8px' }}>📡 Live Signals Detected:</p>
+                <p style={{ fontWeight: '600', marginBottom: '8px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                    <Radio size={14} /> Live Signals Detected:
+                </p>
                 {signals.map((s, i) => (
                     <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '4px' }}>
-                        <span>{s.type === 'positive' ? '✅' : '⚠️'}</span>
+                        <span>{s.type === 'positive' ? <CheckCircle size={14} color="var(--color-olive-green)" /> : <AlertTriangle size={14} color="var(--color-warning)" />}</span>
                         <span>{s.text}</span>
                     </div>
                 ))}

@@ -15,11 +15,14 @@
 
 .input-field {
     background-color: var(--color-white);
-    border: 1px solid var(--color-disabled);
+    border: 1px solid #757575;
+    /* Darker grey for better visibility */
     border-radius: var(--radius-sm);
     padding: 12px 16px;
     font-family: var(--font-primary);
     font-size: 14px;
+    color: #1a1a1a;
+    /* Explicit near-black for high contrast */
     transition: all 0.2s ease;
     width: 100%;
 }

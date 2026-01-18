@@ -6,7 +6,12 @@ import RegistrationPage from './pages/RegistrationPage';
 import RegistrationSuccessPage from './pages/RegistrationSuccessPage';
 import Login from './pages/Login';
 import ParentDashboard from './pages/ParentDashboard';
+import ParentSchedule from './pages/parent/ParentSchedule';
+import ParentAssignments from './pages/parent/ParentAssignments';
+import ParentPayments from './pages/parent/ParentPayments';
 import CoachPage from './pages/CoachPage';
+import CoachBatches from './pages/coach/CoachBatches';
+import CoachSchedule from './pages/coach/CoachSchedule';
 import StudentPage from './pages/StudentPage';
 import AdminDashboard from './pages/AdminDashboard';
 import PlaceholderPage from './pages/PlaceholderPage';
@@ -17,6 +22,9 @@ import DemosPage from './pages/admin/DemosPage';
 import BroadcastPage from './pages/admin/BroadcastPage';
 import DirectChatPage from './pages/admin/DirectChatPage';
 import SubscriptionPage from './pages/admin/SubscriptionPage';
+import AccountsPage from './pages/admin/AccountsPage';
+import AnalyticsPage from './pages/admin/AnalyticsPage';
+import ChatPage from './pages/common/ChatPage';
 import BatchChat from './pages/BatchChat';
 import Header from './components/layout/Header';
 import Sidebar from './components/layout/Sidebar';
@@ -57,10 +65,10 @@ const App = () => {
           {/* Parent Routes */}
           <Route element={<ParentLayout />}>
             <Route path="/parent" element={<ParentDashboard />} />
-            <Route path="/parent/chat" element={<BatchChat />} />
-            <Route path="/parent/schedule" element={<PlaceholderPage title="My Schedule" />} />
-            <Route path="/parent/assignments" element={<PlaceholderPage title="Assignments" />} />
-            <Route path="/parent/payments" element={<PlaceholderPage title="Payment History" />} />
+            <Route path="/parent/chat" element={<ChatPage userRole="CUSTOMER" />} />
+            <Route path="/parent/schedule" element={<ParentSchedule />} />
+            <Route path="/parent/assignments" element={<ParentAssignments />} />
+            <Route path="/parent/payments" element={<ParentPayments />} />
           </Route>
 
           {/* Student Routes */}
@@ -70,20 +78,25 @@ const App = () => {
           <Route element={<StaffLayout role="coach" />}>
             <Route path="/coach" element={<CoachPage />} />
             <Route path="/coach/students" element={<PlaceholderPage title="My Students" />} />
-            <Route path="/coach/classes" element={<PlaceholderPage title="Live Classes" />} />
+            <Route path="/coach/batches" element={<CoachBatches />} />
+            <Route path="/coach/schedule" element={<CoachSchedule />} />
+            <Route path="/coach/chat" element={<ChatPage userRole="COACH" />} />
           </Route>
 
           {/* Admin Routes */}
           <Route element={<StaffLayout role="admin" />}>
             <Route path="/admin" element={<AdminDashboard />} />
+            <Route path="/chat" element={<ChatPage userRole="ADMIN" />} />
             <Route path="/admin/students" element={<StudentDatabase />} />
             <Route path="/admin/coaches" element={<CoachRoster />} />
             <Route path="/admin/demos" element={<DemosPage />} />
             <Route path="/admin/calendar" element={<PlaceholderPage title="Calendar Management" />} />
             <Route path="/admin/finances" element={<FinanceReports />} />
             <Route path="/admin/broadcast" element={<BroadcastPage />} />
-            <Route path="/admin/messages" element={<DirectChatPage />} />
+            <Route path="/admin/messages" element={<ChatPage userRole="ADMIN" />} />
             <Route path="/admin/subscriptions" element={<SubscriptionPage />} />
+            <Route path="/admin/accounts" element={<AccountsPage />} />
+            <Route path="/admin/analytics" element={<AnalyticsPage />} />
           </Route>
 
         </Routes>

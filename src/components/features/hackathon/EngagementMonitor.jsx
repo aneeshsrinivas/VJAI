@@ -1,12 +1,15 @@
 import React from 'react';
 import Card from '../../ui/Card';
 import Button from '../../ui/Button';
+import { AlertOctagon, Circle, Zap } from 'lucide-react';
 
 const EngagementMonitor = () => {
     return (
         <Card className="animate-fade-in" style={{ borderColor: '#D32F2F', borderWidth: '1px', borderStyle: 'solid' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
-                <h3 style={{ margin: 0, fontSize: '16px', color: '#D32F2F' }}>🚨 High Risk Alert: Sharma Family</h3>
+                <h3 style={{ margin: 0, fontSize: '16px', color: '#D32F2F', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <AlertOctagon size={20} /> High Risk Alert: Sharma Family
+                </h3>
             </div>
 
             <div style={{ display: 'flex', alignItems: 'center', gap: '16px', marginBottom: '16px' }}>
@@ -25,18 +28,20 @@ const EngagementMonitor = () => {
 
             <div style={{ fontSize: '12px', marginBottom: '16px' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px', color: '#D32F2F' }}>
-                    <span>🔴</span> Missed last 2 classes
+                    <Circle size={10} fill="#D32F2F" /> Missed last 2 classes
                 </div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px', color: '#D32F2F' }}>
-                    <span>🔴</span> No chat activity (14d)
+                    <Circle size={10} fill="#D32F2F" /> No chat activity (14d)
                 </div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px', color: '#F9A825' }}>
-                    <span>🟡</span> Payment delayed (3d)
+                    <Circle size={10} fill="#F9A825" /> Payment delayed (3d)
                 </div>
             </div>
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                <Button size="sm" style={{ width: '100%', backgroundColor: '#D32F2F' }}>⚡ Schedule Coach Check-in</Button>
+                <Button size="sm" style={{ width: '100%', backgroundColor: '#D32F2F' }}>
+                    <Zap size={14} style={{ marginRight: '6px' }} /> Schedule Coach Check-in
+                </Button>
                 <Button variant="secondary" size="sm" style={{ width: '100%' }}>Send "Missed You" Email</Button>
             </div>
         </Card>

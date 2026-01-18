@@ -1,10 +1,12 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Card from '../components/ui/Card';
 import Button from '../components/ui/Button';
+import ReviewRequestModal from '../components/features/ReviewRequestModal';
 
 const ParentDashboard = () => {
     const navigate = useNavigate();
+    const [isReviewModalOpen, setReviewModalOpen] = useState(false);
 
     return (
         <div style={{ padding: '24px', maxWidth: '1200px', margin: '0 auto' }}>
@@ -17,7 +19,7 @@ const ParentDashboard = () => {
                     <Button variant="secondary" onClick={() => navigate('/parent/chat')}>
                         <span style={{ marginRight: '8px' }}>💬</span> Open Batch Chat
                     </Button>
-                    <Button onClick={() => alert('Review Request Sent! Admin will contact you.')}>
+                    <Button onClick={() => setReviewModalOpen(true)}>
                         Request 15-min Review
                     </Button>
                 </div>
@@ -31,17 +33,19 @@ const ParentDashboard = () => {
                     <Card title="Weekly Class Schedule">
                         <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
                             {[
-                                { day: 'Monday', time: '5:00 PM IST', status: 'UPCOMING' },
-                                { day: 'Wednesday', time: '5:00 PM IST', status: 'COMPLETED' },
-                                { day: 'Friday', time: '5:00 PM IST', status: 'PENDING' }
+                                { day: 'Monday', time: '5:00 PM IST', status: 'UPCOMING', isToday: true },
+                                { day: 'Wednesday', time: '5:00 PM IST', status: 'COMPLETED', isToday: false },
+                                { day: 'Friday', time: '5:00 PM IST', status: 'PENDING', isToday: false }
                             ].map((slot, i) => (
-                                <div key={i} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '16px', backgroundColor: '#f9f9f9', borderRadius: '8px', borderLeft: i === 0 ? '4px solid var(--color-warm-orange)' : '4px solid transparent' }}>
+                                <div key={i} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '16px', backgroundColor: '#f9f9f9', borderRadius: '8px', borderLeft: slot.isToday ? '4px solid var(--color-warm-orange)' : '4px solid transparent' }}>
                                     <div>
-                                        <div style={{ fontWeight: 'bold', color: 'var(--color-deep-blue)' }}>{slot.day}</div>
+                                        <div style={{ fontWeight: 'bold', color: 'var(--color-deep-blue)' }}>
+                                            {slot.day} {slot.isToday && <span style={{ fontSize: '10px', backgroundColor: '#FEF3C7', color: '#B45309', padding: '2px 6px', borderRadius: '4px', marginLeft: '8px' }}>TODAY</span>}
+                                        </div>
                                         <div style={{ fontSize: '14px', color: '#666' }}>{slot.time}</div>
                                     </div>
-                                    {i === 0 ? (
-                                        <Button size="sm">Join Class</Button>
+                                    {slot.isToday ? (
+                                        <Button size="sm" onClick={() => window.open('https://meet.google.com/abc-defg', '_blank')}>Join Class</Button>
                                     ) : (
                                         <span style={{ fontSize: '12px', fontWeight: 'bold', color: '#999' }}>{slot.status}</span>
                                     )}
@@ -132,11 +136,16 @@ const ParentDashboard = () => {
                             <div style={{ fontWeight: 'bold', color: 'var(--color-deep-blue)' }}>₹4,500</div>
                         </div>
                         <div style={{ textAlign: 'right', marginTop: '12px' }}>
-                            <a href="#" style={{ fontSize: '12px', color: 'var(--color-warm-orange)' }}>Download Receipt</a>
+                            <a href="#" style={{ fontSize: '12px', color: 'var(--color-warm-orange)' }} onClick={(e) => { e.preventDefault(); navigate('/parent/payments'); }}>View History</a>
                         </div>
                     </Card>
                 </div>
             </div>
+
+            <ReviewRequestModal
+                isOpen={isReviewModalOpen}
+                onClose={() => setReviewModalOpen(false)}
+            />
         </div>
     );
 };

@@ -36,6 +36,7 @@ const AdminDashboard = () => {
                                 <div style={{ height: '4px', backgroundColor: '#eee', borderRadius: '2px', marginTop: '8px' }}>
                                     <div style={{ height: '100%', width: '68%', backgroundColor: 'var(--color-deep-blue)', borderRadius: '2px' }}></div>
                                 </div>
+                                <Button variant="ghost" size="sm" onClick={() => navigate('/admin/analytics')} style={{ marginTop: '8px', width: '100%' }}>View Detailed Report →</Button>
                             </div>
                         </Card>
                     </div>
@@ -45,19 +46,47 @@ const AdminDashboard = () => {
                 <div className="col-4">
                     <EngagementMonitor />
                     <div style={{ marginTop: '24px' }}>
-                        <BatchOptimizer />
+                        <Card title="Coach Performance Leaderboard">
+                            <ul style={{ listStyle: 'none', padding: 0, margin: 0 }}>
+                                <li style={{ display: 'flex', justifyContent: 'space-between', padding: '8px 0', borderBottom: '1px solid #eee' }}>
+                                    <span>Ramesh Babu</span>
+                                    <span style={{ color: 'var(--color-olive-green)', fontWeight: 'bold' }}>4.9 ★</span>
+                                </li>
+                                <li style={{ display: 'flex', justifyContent: 'space-between', padding: '8px 0', borderBottom: '1px solid #eee' }}>
+                                    <span>Sarah Jones</span>
+                                    <span style={{ color: 'var(--color-olive-green)', fontWeight: 'bold' }}>4.8 ★</span>
+                                </li>
+                                <li style={{ display: 'flex', justifyContent: 'space-between', padding: '8px 0' }}>
+                                    <span>Vikram Singh</span>
+                                    <span style={{ color: '#EAB308', fontWeight: 'bold' }}>4.5 ★</span>
+                                </li>
+                            </ul>
+                        </Card>
                     </div>
                 </div>
 
                 {/* Column 3: Quick Actions & Health */}
                 <div className="col-4">
-                    <Card title="Quick Actions">
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', marginTop: '16px' }}>
-                            <Button onClick={() => setShowDemoModal(true)}>Create New Demo</Button>
-                            <Button variant="secondary" onClick={() => navigate('/admin/students')}>Broadcast Message UI</Button>
-                            <Button variant="ghost" onClick={() => navigate('/admin/finances')}>Generate Finance Report</Button>
+                    <Card title="Admin Efficiency">
+                        <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '14px', marginBottom: '8px' }}>
+                            <span>Avg Response Time</span>
+                            <strong>14 mins</strong>
+                        </div>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '14px' }}>
+                            <span>Demo Conversion Rate</span>
+                            <strong style={{ color: 'var(--color-olive-green)' }}>68%</strong>
                         </div>
                     </Card>
+
+                    <div style={{ marginTop: '24px' }}>
+                        <Card title="Quick Actions">
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', marginTop: '16px' }}>
+                                <Button onClick={() => setShowDemoModal(true)}>Create New Demo</Button>
+                                <Button variant="secondary" onClick={() => navigate('/admin/broadcast')}>Broadcast Message</Button>
+                                <Button variant="ghost" onClick={() => alert('Exporting Data to CSV...')}>Export All Data</Button>
+                            </div>
+                        </Card>
+                    </div>
 
                     <div style={{ marginTop: '24px' }}>
                         <Card title="System Health" className="bg-chess-pattern">

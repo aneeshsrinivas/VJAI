@@ -1,5 +1,6 @@
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
+import { Bell, Crown } from 'lucide-react';
 import './Header.css';
 import Button from '../ui/Button';
 
@@ -8,10 +9,10 @@ const Header = () => {
     const isActive = (path) => location.pathname === path ? 'active' : '';
 
     return (
-        <header className="header">
-            <div className="header-logo">
-                <span style={{ fontSize: '28px' }}>♟️</span>
-                ICA Student
+        <header className="header" style={{ borderBottom: '1px solid #eee' }}>
+            <div className="header-logo" style={{ color: 'var(--color-deep-blue)', gap: '12px' }}>
+                <Crown size={24} color="var(--color-warm-orange)" />
+                <span style={{ fontFamily: 'var(--font-display)', fontWeight: 'bold' }}>ICA Student</span>
             </div>
 
             <nav className="header-nav">
@@ -22,7 +23,7 @@ const Header = () => {
             </nav>
 
             <div className="header-actions">
-                <Button variant="ghost">🔔</Button>
+                <Button variant="ghost"><Bell size={20} /></Button>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
                     <span style={{ fontSize: '14px', fontWeight: '600', color: 'var(--color-deep-blue)' }}>Sharma Family</span>
                     <div style={{ width: '36px', height: '36px', borderRadius: '50%', backgroundColor: '#eee', border: '1px solid var(--color-deep-blue)' }}></div>
