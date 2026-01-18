@@ -1,0 +1,35 @@
+.assign-coach-modal {
+    max-width: 500px;
+}
+
+.demo-info {
+    background: #f8f9fa;
+    padding: 16px;
+    border-radius: 8px;
+    margin-bottom: 20px;
+}
+
+.demo-info p {
+    margin: 8px 0;
+    font-size: 14px;
+}
+
+.demo-info strong {
+    color: var(--color-deep-blue, #1E3A8A);
+}
+
+.error-message {
+    background: #fee2e2;
+    color: #dc2626;
+    padding: 12px;
+    border-radius: 8px;
+    margin-bottom: 16px;
+    font-size: 14px;
+}
+
+.modal-actions {
+    display: flex;
+    gap: 12px;
+    justify-content: flex-end;
+    margin-top: 24px;
+}

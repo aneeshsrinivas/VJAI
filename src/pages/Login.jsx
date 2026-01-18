@@ -2,21 +2,34 @@ import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import './Login.css';
 
+import { useAuth } from '../context/AuthContext';
+
 const Login = () => {
     const navigate = useNavigate();
+    const { login, userRole } = useAuth();
     const [email, setEmail] = useState('');
+    const [password, setPassword] = useState('');
+    const [error, setError] = useState('');
+    const [loading, setLoading] = useState(false);
 
-    const handleLogin = (e) => {
+    // Effect to redirect based on role if already logged in (or after successful login)
+    React.useEffect(() => {
+        if (userRole === 'admin') navigate('/admin');
+        if (userRole === 'coach') navigate('/coach');
+        if (userRole === 'customer') navigate('/parent');
+    }, [userRole, navigate]);
+
+    const handleLogin = async (e) => {
         e.preventDefault();
-        // Mock Login Logic based on Core Data Entities
-        // 2.1 Account (Authentication Only) - Role: ADMIN | COACH | CUSTOMER
-        if (email.includes('admin')) navigate('/admin');
-        else if (email.includes('coach')) navigate('/coach');
-        else {
-            // "Pre-existing student and parent as customer"
-            // For now, CUSTOMER role views the ParentDashboard
-            console.log('Logging in as CUSTOMER role');
-            navigate('/parent');
+        setError('');
+        setLoading(true);
+        try {
+            await login(email, password);
+            // Navigation handled by useEffect
+        } catch (err) {
+            console.error(err);
+            setError('Failed to login. Please check your credentials.');
+            setLoading(false);
         }
     };
 
@@ -57,6 +70,8 @@ const Login = () => {
                         <p>Log in to access your VJAI dashboard</p>
                     </div>
 
+                    {error && <div className="error-message" style={{ color: 'red', marginBottom: '1rem', textAlign: 'center' }}>{error}</div>}
+
                     <form onSubmit={handleLogin} className="login-form">
                         <div className="form-group">
                             <label>Email Address</label>
@@ -73,6 +88,8 @@ const Login = () => {
                             <input
                                 type="password"
                                 placeholder="••••••••"
+                                value={password}
+                                onChange={(e) => setPassword(e.target.value)}
                                 required
                             />
                         </div>
@@ -84,8 +101,8 @@ const Login = () => {
                             <a href="#" className="forgot-password">Forgot Password?</a>
                         </div>
 
-                        <button type="submit" className="login-btn">
-                            Login
+                        <button type="submit" className="login-btn" disabled={loading}>
+                            {loading ? 'Logging in...' : 'Login'}
                         </button>
                     </form>
 
