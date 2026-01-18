@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Card from '../components/ui/Card';
 import Button from '../components/ui/Button';
+import AccountDropdown from '../components/ui/AccountDropdown';
 import ReviewRequestModal from '../components/features/ReviewRequestModal';
 import './ParentDashboard.css';
 
@@ -30,29 +31,31 @@ const ParentDashboard = () => {
         <div className="parent-dashboard">
             {/* Animated Welcome Banner (Merged) */}
             <div className="welcome-banner">
-                <div className="welcome-content">
-                    <div className="welcome-icon">👋</div>
-                    <div className="welcome-text-section">
-                        <h1 className="welcome-title">Welcome, Sharma Family</h1>
-                        <p className="welcome-subtitle">Your child's chess journey is progressing excellently!</p>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', width: '100%' }}>
+                    <div className="welcome-content">
+                        <div className="welcome-icon">👋</div>
+                        <div className="welcome-text-section">
+                            <h1 className="welcome-title">Welcome, Sharma Family</h1>
+                            <p className="welcome-subtitle">Your child's chess journey is progressing excellently!</p>
+                        </div>
                     </div>
+                    <AccountDropdown
+                        userName="Sharma Family"
+                        userRole="Parent Account"
+                        avatarEmoji="👨‍👩‍👧"
+                    />
                 </div>
-                {/* My Buttons injected here for easy access */}
+                {/* Action Buttons */}
                 <div style={{ display: 'flex', gap: '12px', marginTop: '16px' }}>
-                    <Button variant="ghost" onClick={() => navigate('/')} style={{ color: 'white', borderColor: 'rgba(255,255,255,0.3)' }}>
-                        ← Back to Home
-                    </Button>
                     <Button variant="secondary" onClick={() => navigate('/parent/chat')} className="btn-chat-mobile">
                         <span style={{ marginRight: '8px' }}>💬</span> Batch Chat
                     </Button>
                     <Button onClick={() => setReviewModalOpen(true)} className="btn-review-mobile">
                         Request 15-min Review
                     </Button>
-                    <Button variant="secondary" onClick={() => navigate('/login')} style={{ borderColor: 'rgba(255,255,255,0.3)' }}>
-                        Logout
-                    </Button>
                 </div>
             </div>
+
 
             <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '24px' }}>
                 {/* Left Column - Progress & Schedule */}
