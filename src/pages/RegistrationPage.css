@@ -1,0 +1,222 @@
+/* Registration Page Styles */
+@import url('https://fonts.googleapis.com/css2?family=Figtree:wght@300;400;500;600;700;800;900&display=swap');
+
+/* Animations */
+@keyframes kenBurns {
+    0% {
+        transform: scale(1);
+    }
+
+    100% {
+        transform: scale(1.1);
+    }
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+
+    to {
+        opacity: 1;
+    }
+}
+
+.registration-page {
+    min-height: 100vh;
+    font-family: 'Figtree', sans-serif;
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 40px 20px;
+    background-color: #000;
+    overflow-x: hidden;
+    animation: fadeIn 0.8s ease-out;
+}
+
+/* Background Image Container */
+.registration-page::before {
+    content: '';
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-image: url('/chess-background.png');
+    background-size: cover;
+    background-position: center;
+    z-index: 0;
+    animation: kenBurns 25s ease-in-out infinite alternate;
+}
+
+.registration-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(135deg, rgba(0, 51, 102, 0.5) 0%, rgba(0, 20, 40, 0.6) 100%);
+    z-index: 1;
+    pointer-events: none;
+}
+
+/* Back Button */
+.registration-back-button {
+    position: absolute;
+    top: 40px;
+    left: 40px;
+    background: rgba(255, 255, 255, 0.15);
+    backdrop-filter: blur(10px);
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    color: white;
+    font-family: 'Figtree', sans-serif;
+    font-size: 16px;
+    font-weight: 600;
+    padding: 12px 24px;
+    border-radius: 12px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    z-index: 10;
+}
+
+.registration-back-button:hover {
+    background: rgba(255, 255, 255, 0.25);
+    transform: translateX(-4px);
+}
+
+/* Glass Card */
+.registration-card {
+    position: relative;
+    z-index: 2;
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(20px);
+    width: 100%;
+    max-width: 650px;
+    border-radius: 24px;
+    padding: 48px;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+    border: 1px solid rgba(255, 255, 255, 0.5);
+}
+
+/* Header */
+.registration-header {
+    text-align: center;
+    margin-bottom: 32px;
+}
+
+.registration-header h1 {
+    font-family: 'Figtree', sans-serif;
+    font-size: 36px;
+    font-weight: 800;
+    color: #003366;
+    margin-bottom: 12px;
+}
+
+.registration-header p {
+    color: #68300B;
+    font-size: 16px;
+    line-height: 1.6;
+}
+
+/* Form Elements */
+.form-group {
+    margin-bottom: 20px;
+}
+
+.registration-form input,
+.registration-form select {
+    width: 100%;
+    padding: 14px 16px;
+    border: 2px solid #EBD6C3;
+    border-radius: 12px;
+    font-size: 16px;
+    font-family: 'Figtree', sans-serif;
+    transition: all 0.3s ease;
+    background: #FFFEF3;
+}
+
+.registration-form input:focus,
+.registration-form select:focus {
+    border-color: #FC8A24;
+    outline: none;
+    box-shadow: 0 0 0 4px rgba(252, 138, 36, 0.1);
+    background: white;
+}
+
+.registration-form label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: 600;
+    color: #003366;
+    font-size: 14px;
+}
+
+/* Checkbox */
+.checkbox-group {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 24px;
+    cursor: pointer;
+    font-size: 14px;
+    color: #555;
+}
+
+.checkbox-group input[type="checkbox"] {
+    width: 20px;
+    height: 20px;
+    accent-color: #FC8A24;
+}
+
+/* Submit Button */
+.submit-btn {
+    width: 100%;
+    padding: 16px;
+    background: linear-gradient(135deg, #FC8A24 0%, #ff9f4d 100%);
+    color: white;
+    border: none;
+    border-radius: 12px;
+    font-size: 18px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 8px 20px rgba(252, 138, 36, 0.3);
+}
+
+.submit-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 12px 24px rgba(252, 138, 36, 0.4);
+}
+
+/* Login Link */
+.login-link {
+    text-align: center;
+    margin-top: 24px;
+    padding-top: 24px;
+    border-top: 1px solid #EBD6C3;
+    color: #666;
+    font-size: 15px;
+}
+
+.login-link a {
+    color: #003366;
+    font-weight: 700;
+    text-decoration: none;
+    transition: color 0.2s;
+}
+
+.login-link a:hover {
+    color: #FC8A24;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .registration-card {
+        padding: 32px 24px;
+    }
+
+    .registration-header h1 {
+        font-size: 28px;
+    }
+}

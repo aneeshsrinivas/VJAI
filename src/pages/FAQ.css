@@ -4,6 +4,17 @@
 .faq-page {
     font-family: 'Figtree', sans-serif;
     background: #FFFEF3;
+    animation: pageEnter 0.4s ease-out;
+}
+
+@keyframes pageEnter {
+    from {
+        opacity: 0.85;
+    }
+
+    to {
+        opacity: 1;
+    }
 }
 
 /* HERO SECTION */

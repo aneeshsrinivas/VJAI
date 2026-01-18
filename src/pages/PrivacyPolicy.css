@@ -1,0 +1,101 @@
+/* Import Figtree font */
+@import url('https://fonts.googleapis.com/css2?family=Figtree:wght@300;400;500;600;700;800;900&display=swap');
+
+.privacy-page {
+    font-family: 'Figtree', sans-serif;
+    background: #FFFEF3;
+}
+
+/* HERO SECTION */
+.privacy-hero {
+    padding: 180px 48px 100px;
+    background: linear-gradient(135deg, #003366 0%, #004080 100%);
+    text-align: center;
+}
+
+.privacy-hero-content h1 {
+    font-family: 'Figtree', sans-serif;
+    font-size: 56px;
+    font-weight: 800;
+    color: white;
+    margin-bottom: 20px;
+}
+
+.privacy-hero-content p {
+    font-size: 20px;
+    color: #EBD6C3;
+}
+
+/* CONTENT */
+.privacy-content {
+    padding: 100px 0;
+    background: white;
+}
+
+.privacy-container {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 0 48px;
+}
+
+.privacy-section {
+    margin-bottom: 48px;
+}
+
+.privacy-section h2 {
+    font-family: 'Figtree', sans-serif;
+    font-size: 28px;
+    font-weight: 800;
+    color: #003366;
+    margin-bottom: 20px;
+}
+
+.privacy-section p {
+    font-size: 16px;
+    color: #68300B;
+    line-height: 1.8;
+    margin-bottom: 16px;
+}
+
+.privacy-section ul {
+    margin: 16px 0;
+    padding-left: 24px;
+}
+
+.privacy-section li {
+    font-size: 16px;
+    color: #68300B;
+    line-height: 1.8;
+    margin-bottom: 8px;
+}
+
+.privacy-footer-note {
+    margin-top: 64px;
+    padding-top: 32px;
+    border-top: 2px solid #EBD6C3;
+    text-align: center;
+}
+
+.privacy-footer-note p {
+    color: #B49885;
+    font-size: 14px;
+}
+
+/* RESPONSIVE */
+@media (max-width: 768px) {
+    .privacy-hero {
+        padding: 140px 24px 80px;
+    }
+
+    .privacy-hero-content h1 {
+        font-size: 36px;
+    }
+
+    .privacy-container {
+        padding: 0 24px;
+    }
+
+    .privacy-section h2 {
+        font-size: 24px;
+    }
+}

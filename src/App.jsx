@@ -26,6 +26,8 @@ import AboutUs from './pages/AboutUs';
 import Services from './pages/Services';
 import ContactUs from './pages/ContactUs';
 import FAQ from './pages/FAQ';
+import TermsAndConditions from './pages/TermsAndConditions';
+import PrivacyPolicy from './pages/PrivacyPolicy';
 import Header from './components/layout/Header';
 import Sidebar from './components/layout/Sidebar';
 import ErrorBoundary from './components/ui/ErrorBoundary';
@@ -60,6 +62,8 @@ const App = () => {
           <Route path="/services" element={<Services />} />
           <Route path="/contact" element={<ContactUs />} />
           <Route path="/faq" element={<FAQ />} />
+          <Route path="/terms" element={<TermsAndConditions />} />
+          <Route path="/privacy" element={<PrivacyPolicy />} />
           <Route path="/select-role" element={<RoleSelectionPage />} />
           <Route path="/register" element={<RegistrationPage />} />
           <Route path="/registration-success" element={<RegistrationSuccessPage />} />

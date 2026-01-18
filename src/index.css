@@ -45,12 +45,42 @@
   padding: 0;
 }
 
+/* Prevent white flash on page load */
+html,
+body {
+  background-color: #001a33;
+  min-height: 100vh;
+}
+
 body {
   font-family: var(--font-primary);
-  background-color: var(--color-ivory);
   color: var(--color-text-primary);
   line-height: 1.5;
   -webkit-font-smoothing: antialiased;
+}
+
+/* Smooth page transitions - apply to all main page containers */
+.page-transition,
+.landing-page-home,
+.login-page,
+.registration-page,
+.demo-booking-page,
+.role-selection-page,
+.about-page,
+.services-page,
+.contact-page,
+.faq-page {
+  animation: pageEnter 0.4s ease-out;
+}
+
+@keyframes pageEnter {
+  from {
+    opacity: 0.85;
+  }
+
+  to {
+    opacity: 1;
+  }
 }
 
 h1,

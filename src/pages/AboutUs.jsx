@@ -1,6 +1,11 @@
 import React from 'react';
 import Navbar from '../components/layout/Navbar';
 import Footer from '../components/layout/Footer';
+import CTASection from '../components/shared/CTASection';
+import TargetIcon from '../components/icons/TargetIcon';
+import LightbulbIcon from '../components/icons/LightbulbIcon';
+import HandshakeIcon from '../components/icons/HandshakeIcon';
+import TrophyIcon from '../components/icons/TrophyIcon';
 import './AboutUs.css';
 
 const AboutUs = () => {
@@ -36,16 +41,72 @@ const AboutUs = () => {
                     <h2>Meet Our Founders</h2>
                     <div className="team-grid">
                         <div className="team-card">
-                            <div className="team-image-placeholder">VP</div>
-                            <h3>Viraj Pandit</h3>
-                            <p className="team-role">Co-Founder & Lead Coach</p>
-                            <p>Computer science engineer with a passion for chess education. Viraj brings technical expertise and innovative teaching methods to create engaging learning experiences.</p>
+                            <div className="team-image-wrapper">
+                                <img src="/team/viraj-pandit.jpg" alt="Viraj Pandit" className="team-image" />
+                                <div className="team-overlay">
+                                    <h3>Viraj Pandit</h3>
+                                    <p className="team-role">Co-Founder & Head Coach</p>
+                                    <p className="team-description">FIDE coach, sharp tactician, transforms raw talent into tournament-ready champions.</p>
+                                </div>
+                            </div>
                         </div>
                         <div className="team-card">
-                            <div className="team-image-placeholder">NC</div>
-                            <h3>Nachiket Chitre</h3>
-                            <p className="team-role">Co-Founder & Curriculum Director</p>
-                            <p>Structured approach and deep chess knowledge. Nachiket designs comprehensive curricula that adapt to each student's learning style and pace.</p>
+                            <div className="team-image-wrapper">
+                                <img src="/team/nachiket-chitre.jpg" alt="Nachiket Chitre" className="team-image" />
+                                <div className="team-overlay">
+                                    <h3>Nachiket Chitre</h3>
+                                    <p className="team-role">FIDE Master & Co-Founder</p>
+                                    <p className="team-description">Patient mentor and ICA Co-Founder, brings chess alive for curious young minds.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <section className="about-coaches">
+                <div className="about-container">
+                    <h2>Our Coaches</h2>
+                    <div className="coaches-grid">
+                        <div className="coach-card">
+                            <div className="coach-image-wrapper">
+                                <img src="/coaches/viraj-pandit.jpg" alt="Viraj Pandit" className="coach-image" />
+                                <div className="coach-overlay">
+                                    <h3>Viraj Pandit</h3>
+                                    <p className="coach-role">FIDE-Rated Coach</p>
+                                    <p className="coach-description">FIDE-rated coach and ICA co-founder with 5+ years of experience. Trains all ages with a strategic, real-world approach.</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div className="coach-card">
+                            <div className="coach-image-wrapper">
+                                <img src="/coaches/aum-vyas.jpg" alt="Aum Vyas" className="coach-image" />
+                                <div className="coach-overlay">
+                                    <h3>Aum Vyas</h3>
+                                    <p className="coach-role">Chess Instructor</p>
+                                    <p className="coach-description">Passionate chess player for over 5 years. Shares the beauty of chess with students in an inspiring way.</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div className="coach-card">
+                            <div className="coach-image-wrapper">
+                                <img src="/coaches/tushar-deshpande.jpg" alt="Tushar Deshpande" className="coach-image" />
+                                <div className="coach-overlay">
+                                    <h3>Tushar Deshpande</h3>
+                                    <p className="coach-role">Senior Instructor</p>
+                                    <p className="coach-description">9 years of coaching experience with 15 internationally rated students. Certified Senior Instructor.</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div className="coach-card">
+                            <div className="coach-image-wrapper">
+                                <img src="/coaches/aryan-chitale.jpg" alt="Aryan Chitale" className="coach-image" />
+                                <div className="coach-overlay">
+                                    <h3>Aryan Chitale</h3>
+                                    <p className="coach-role">FIDE-Rated Player</p>
+                                    <p className="coach-description">FIDE-rated player and inter-university gold medallist. Combines playing experience with analytical mind.</p>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -56,22 +117,22 @@ const AboutUs = () => {
                     <h2>Our Values</h2>
                     <div className="values-grid">
                         <div className="value-card">
-                            <div className="value-icon">🎯</div>
+                            <TargetIcon size={56} color="#D4AF37" />
                             <h3>Personalized Learning</h3>
                             <p>Every student receives tailored instruction that adapts to their unique pace and style.</p>
                         </div>
                         <div className="value-card">
-                            <div className="value-icon">💡</div>
+                            <LightbulbIcon size={56} color="#D4AF37" />
                             <h3>Strategic Thinking</h3>
                             <p>We teach chess as a tool for developing critical thinking and problem-solving skills.</p>
                         </div>
                         <div className="value-card">
-                            <div className="value-icon">🤝</div>
+                            <HandshakeIcon size={56} color="#D4AF37" />
                             <h3>Supportive Community</h3>
                             <p>Building confidence through encouragement, mentorship, and a positive learning environment.</p>
                         </div>
                         <div className="value-card">
-                            <div className="value-icon">🏆</div>
+                            <TrophyIcon size={56} color="#D4AF37" />
                             <h3>Excellence</h3>
                             <p>Committed to helping every student reach their full potential, from beginner to tournament level.</p>
                         </div>
@@ -79,6 +140,7 @@ const AboutUs = () => {
                 </div>
             </section>
 
+            <CTASection />
             <Footer />
         </div>
     );

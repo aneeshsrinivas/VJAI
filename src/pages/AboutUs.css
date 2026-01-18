@@ -4,6 +4,17 @@
 .about-us-page {
     font-family: 'Figtree', sans-serif;
     background: #FFFEF3;
+    animation: pageEnter 0.4s ease-out;
+}
+
+@keyframes pageEnter {
+    from {
+        opacity: 0.85;
+    }
+
+    to {
+        opacity: 1;
+    }
 }
 
 /* HERO SECTION */
@@ -35,6 +46,7 @@
 
 .about-story,
 .about-team,
+.about-coaches,
 .about-values {
     padding: 100px 0;
 }
@@ -45,6 +57,7 @@
 
 .about-story h2,
 .about-team h2,
+.about-coaches h2,
 .about-values h2 {
     font-family: 'Figtree', sans-serif;
     font-size: 42px;
@@ -64,7 +77,7 @@
     margin-right: auto;
 }
 
-/* TEAM SECTION */
+/* TEAM SECTION - FOUNDERS */
 .about-team {
     background: linear-gradient(135deg, #FFFEF3 0%, #EBD6C3 100%);
 }
@@ -77,54 +90,169 @@
 }
 
 .team-card {
-    background: white;
-    border: 3px solid #FC8A24;
     border-radius: 20px;
-    padding: 40px;
-    text-align: center;
+    overflow: hidden;
     transition: all 0.3s ease;
 }
 
 .team-card:hover {
     transform: translateY(-8px);
-    box-shadow: 0 16px 40px rgba(0, 51, 102, 0.2);
-    border-color: #003366;
+    box-shadow: 0 16px 40px rgba(0, 51, 102, 0.3);
 }
 
-.team-image-placeholder {
-    width: 120px;
-    height: 120px;
-    border-radius: 50%;
-    background: linear-gradient(135deg, #FC8A24, #e67a14);
-    color: white;
+.team-image-wrapper {
+    position: relative;
+    width: 100%;
+    padding-top: 120%;
+    /* 5:6 aspect ratio */
+    overflow: hidden;
+    border-radius: 20px;
+    border: 3px solid #FC8A24;
+}
+
+.team-image {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.3s ease;
+}
+
+.team-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(to top, rgba(0, 51, 102, 0.95) 0%, rgba(0, 51, 102, 0.85) 100%);
     display: flex;
-    align-items: center;
+    flex-direction: column;
     justify-content: center;
-    font-size: 48px;
-    font-weight: 800;
-    margin: 0 auto 24px;
-    border: 4px solid #6B8E23;
+    align-items: center;
+    padding: 32px;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    text-align: center;
 }
 
-.team-card h3 {
+.team-image-wrapper:hover .team-overlay {
+    opacity: 1;
+}
+
+.team-image-wrapper:hover .team-image {
+    transform: scale(1.05);
+}
+
+.team-overlay h3 {
     font-family: 'Figtree', sans-serif;
     font-size: 28px;
     font-weight: 800;
-    color: #003366;
+    color: white;
     margin-bottom: 8px;
 }
 
-.team-role {
+.team-overlay .team-role {
     font-size: 16px;
     color: #FC8A24;
     font-weight: 700;
-    margin-bottom: 16px !important;
+    margin-bottom: 16px;
 }
 
-.team-card p {
-    font-size: 16px;
-    color: #68300B;
+.team-overlay .team-description {
+    font-size: 15px;
+    color: #EBD6C3;
     line-height: 1.7;
+}
+
+/* COACHES SECTION */
+.about-coaches {
+    background: white;
+}
+
+.coaches-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 24px;
+    margin-top: 48px;
+}
+
+.coach-card {
+    border-radius: 20px;
+    overflow: hidden;
+    transition: all 0.3s ease;
+}
+
+.coach-card:hover {
+    transform: translateY(-8px);
+    box-shadow: 0 16px 40px rgba(0, 51, 102, 0.3);
+}
+
+.coach-image-wrapper {
+    position: relative;
+    width: 100%;
+    padding-top: 120%;
+    /* 5:6 aspect ratio */
+    overflow: hidden;
+    border-radius: 20px;
+    border: 3px solid #FC8A24;
+}
+
+.coach-image {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.3s ease;
+}
+
+.coach-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(to top, rgba(0, 51, 102, 0.95) 0%, rgba(0, 51, 102, 0.85) 100%);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    padding: 24px;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    text-align: center;
+}
+
+.coach-image-wrapper:hover .coach-overlay {
+    opacity: 1;
+}
+
+.coach-image-wrapper:hover .coach-image {
+    transform: scale(1.05);
+}
+
+.coach-overlay h3 {
+    font-family: 'Figtree', sans-serif;
+    font-size: 22px;
+    font-weight: 800;
+    color: white;
+    margin-bottom: 6px;
+}
+
+.coach-overlay .coach-role {
+    font-size: 14px;
+    color: #FC8A24;
+    font-weight: 700;
+    margin-bottom: 12px;
+}
+
+.coach-overlay .coach-description {
+    font-size: 13px;
+    color: #EBD6C3;
+    line-height: 1.6;
 }
 
 /* VALUES SECTION */
@@ -154,8 +282,7 @@
     border-color: #003366;
 }
 
-.value-icon {
-    font-size: 56px;
+.value-card svg {
     margin-bottom: 20px;
 }
 
@@ -177,6 +304,7 @@
 @media (max-width: 1024px) {
 
     .team-grid,
+    .coaches-grid,
     .values-grid {
         grid-template-columns: 1fr;
     }
