@@ -1,7 +1,11 @@
 import React, { useState } from 'react';
 import Navbar from '../components/layout/Navbar';
 import Footer from '../components/layout/Footer';
+import CTASection from '../components/shared/CTASection';
 import Button from '../components/ui/Button';
+import EmailIcon from '../components/icons/EmailIcon';
+import PhoneIcon from '../components/icons/PhoneIcon';
+import ClockIcon from '../components/icons/ClockIcon';
 import './ContactUs.css';
 
 const ContactUs = () => {
@@ -93,28 +97,26 @@ const ContactUs = () => {
                             <h2>Get in Touch</h2>
                             <div className="contact-info-cards">
                                 <div className="contact-info-card">
-                                    <div className="contact-icon">📧</div>
+                                    <EmailIcon size={40} color="#D4AF37" />
                                     <h3>Email</h3>
                                     <p>info@indianchessacad.com</p>
                                 </div>
                                 <div className="contact-info-card">
-                                    <div className="contact-icon">📞</div>
+                                    <PhoneIcon size={40} color="#D4AF37" />
                                     <h3>Phone</h3>
                                     <p>+91 77381 73864</p>
                                 </div>
                                 <div className="contact-info-card">
-                                    <div className="contact-icon">⏰</div>
+                                    <ClockIcon size={40} color="#D4AF37" />
                                     <h3>Office Hours</h3>
                                     <p>Mon-Sat: 9 AM - 7 PM</p>
                                     <p>Sunday: Closed</p>
                                 </div>
                                 <div className="contact-info-card">
-                                    <div className="contact-icon">🌐</div>
-                                    <h3>Social Media</h3>
-                                    <div className="social-links">
-                                        <a href="https://www.linkedin.com/company/106137887/" target="_blank" rel="noopener noreferrer">LinkedIn</a>
+                                    <div className="social-icons-contact">
+                                        <a href="https://www.linkedin.com/company/indian-chess-academy/" target="_blank" rel="noopener noreferrer">LinkedIn</a>
                                         <a href="https://www.instagram.com/indianchessacademy/" target="_blank" rel="noopener noreferrer">Instagram</a>
-                                        <a href="https://www.facebook.com/profile.php?id=61555847004612" target="_blank" rel="noopener noreferrer">Facebook</a>
+                                        <a href="https://www.facebook.com/people/Indian-Chess-Academy/61555847004612/" target="_blank" rel="noopener noreferrer">Facebook</a>
                                     </div>
                                 </div>
                             </div>
@@ -123,6 +125,7 @@ const ContactUs = () => {
                 </div>
             </section>
 
+            <CTASection />
             <Footer />
         </div>
     );

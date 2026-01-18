@@ -1,6 +1,11 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import Button from '../components/ui/Button';
+import ParentIcon from '../components/icons/ParentIcon';
+import CoachIcon from '../components/icons/CoachIcon';
+import AdminIcon from '../components/icons/AdminIcon';
+import DemoIcon from '../components/icons/DemoIcon';
+import './RoleSelectionPage.css';
 
 const RoleSelectionPage = () => {
     const navigate = useNavigate();
@@ -9,87 +14,128 @@ const RoleSelectionPage = () => {
         {
             id: 'parent',
             title: 'Parent & Student',
-            icon: '♟',
-            desc: 'For enrolled families. Access schedule, chat, and progress.',
+            icon: ParentIcon,
+            desc: 'For enrolled families and students',
+            features: [
+                'Access class schedules',
+                'Track student progress',
+                'Direct chat with coaches',
+                'View performance reports'
+            ],
             action: 'Register as Parent',
-            color: 'var(--color-olive-green)'
+            color: '#6B8E23'
         },
         {
             id: 'coach',
             title: 'Coach',
-            icon: '♞',
-            desc: 'For instructors. Manage students, classes, and content.',
+            icon: CoachIcon,
+            desc: 'For chess instructors and mentors',
+            features: [
+                'Manage student roster',
+                'Schedule classes',
+                'Upload course content',
+                'Track student performance'
+            ],
             action: 'Register as Coach',
-            color: 'var(--color-olive-green)'
+            color: '#6B8E23'
         },
         {
             id: 'admin',
             title: 'Admin',
-            icon: '♚',
-            desc: 'For operations team. Manage entire academy workflow.',
+            icon: AdminIcon,
+            desc: 'For operations and management team',
+            features: [
+                'Full academy oversight',
+                'Manage all users',
+                'Analytics dashboard',
+                'System configuration'
+            ],
             action: 'Register as Admin',
-            color: 'var(--color-deep-blue)'
+            color: '#003366'
         },
         {
             id: 'demo',
             title: 'Book Free Demo',
-            icon: '👑',
-            desc: 'New here? Schedule a free trial class with us.',
+            icon: DemoIcon,
+            desc: 'New to Indian Chess Academy?',
+            features: [
+                'Free trial class',
+                'Meet our coaches',
+                'Personalized assessment',
+                'No commitment required'
+            ],
             action: 'Book Free Demo',
-            color: 'var(--color-warm-orange)'
+            color: '#FC8A24',
+            highlight: true
         }
     ];
 
     return (
-        <div style={{ backgroundColor: '#FFFEF3', minHeight: '100vh', padding: '40px 20px', fontFamily: 'var(--font-primary)' }}>
-            <button onClick={() => navigate('/')} style={{ background: 'none', border: 'none', fontSize: '24px', cursor: 'pointer', marginBottom: '24px', color: 'var(--color-deep-blue)' }}>
-                ← Back
-            </button>
+        <div className="role-selection-page">
+            <div className="role-background-overlay"></div>
 
-            <div style={{ textAlign: 'center', marginBottom: '64px' }}>
-                <h1 style={{ fontFamily: 'var(--font-display)', fontSize: '48px', color: 'var(--color-deep-blue)', marginBottom: '16px' }}>Select Your Role</h1>
-                <p style={{ fontSize: '18px', color: '#68300B' }}>Choose the portal that matches your relationship with VJAI</p>
-            </div>
+            <div className="role-content">
+                <button
+                    onClick={() => navigate('/')}
+                    className="role-back-button"
+                >
+                    ← Back to Home
+                </button>
 
-            <div style={{
-                display: 'grid',
-                gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))',
-                gap: '32px',
-                maxWidth: '1000px',
-                margin: '0 auto'
-            }}>
-                {roles.map(role => (
-                    <div key={role.id} className="hover-lift" style={{
-                        backgroundColor: '#fff',
-                        padding: '40px',
-                        borderRadius: '12px',
-                        border: '2px solid #EBD6C3',
-                        textAlign: 'center',
-                        display: 'flex',
-                        flexDirection: 'column',
-                        justifyContent: 'space-between',
-                        minHeight: '400px'
-                    }}>
-                        <div>
-                            <div style={{ fontSize: '80px', color: 'var(--color-warm-orange)', marginBottom: '24px' }}>{role.icon}</div>
-                            <h2 style={{ fontFamily: 'var(--font-display)', fontSize: '28px', color: 'var(--color-deep-blue)', marginBottom: '16px' }}>{role.title}</h2>
-                            <p style={{ color: '#666', lineHeight: '1.6', marginBottom: '32px' }}>{role.desc}</p>
-                        </div>
-                        <Button
-                            onClick={() => role.id === 'demo' ? navigate('/book-demo') : navigate(`/register?role=${role.id}`)}
-                            style={{ backgroundColor: role.color, width: '100%' }}
-                        >
-                            {role.action}
-                        </Button>
+                <div className="role-header">
+                    <h1>Welcome to Indian Chess Academy</h1>
+                    <p>Select your role to access the appropriate portal</p>
+                </div>
+
+                <div className="role-cards-grid">
+                    {roles.map(role => {
+                        const IconComponent = role.icon;
+                        return (
+                            <div
+                                key={role.id}
+                                className={`role-card ${role.highlight ? 'role-card-highlight' : ''}`}
+                            >
+                                <div className="role-card-icon">
+                                    <IconComponent size={72} color="#D4AF37" />
+                                </div>
+
+                                <h2 className="role-card-title">{role.title}</h2>
+                                <p className="role-card-desc">{role.desc}</p>
+
+                                <ul className="role-card-features">
+                                    {role.features.map((feature, index) => (
+                                        <li key={index}>
+                                            <span className="feature-check">✓</span>
+                                            {feature}
+                                        </li>
+                                    ))}
+                                </ul>
+
+                                <Button
+                                    onClick={() => role.id === 'demo' ? navigate('/demo-booking') : navigate(`/register?role=${role.id}`)}
+                                    style={{
+                                        backgroundColor: role.color,
+                                        width: '100%',
+                                        marginTop: 'auto'
+                                    }}
+                                >
+                                    {role.action}
+                                </Button>
+                            </div>
+                        );
+                    })}
+                </div>
+
+                <div className="role-note">
+                    <div className="role-note-icon">🔒</div>
+                    <div className="role-note-content">
+                        <h4>Privacy & Security</h4>
+                        <p>
+                            Strict privacy protocols are enforced. Coaches do not have access to parent contact details.
+                            Each family has a single unified account for all students.
+                        </p>
                     </div>
-                ))}
-            </div>
-
-            <div style={{ maxWidth: '800px', margin: '48px auto', padding: '24px', backgroundColor: '#F9F5FF', borderLeft: '4px solid var(--color-deep-blue)', borderRadius: '4px' }}>
-                <h4 style={{ margin: '0 0 8px 0', color: 'var(--color-deep-blue)' }}>Note on Access Protocols</h4>
-                <p style={{ margin: 0, fontSize: '14px', color: '#555' }}>
-                    Strict privacy is enforced. Coaches do not have access to parent contact details. Parents have a single family account.
-                </p>
+                </div>
             </div>
         </div>
     );

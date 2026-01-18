@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import Navbar from '../components/layout/Navbar';
 import Footer from '../components/layout/Footer';
+import CTASection from '../components/shared/CTASection';
 import './FAQ.css';
 
 const FAQ = () => {
@@ -125,6 +126,7 @@ const FAQ = () => {
                 </div>
             </section>
 
+            <CTASection />
             <Footer />
         </div>
     );

@@ -1,85 +1,105 @@
-/* Import Figtree font */
+/* Demo Booking Page Styles */
 @import url('https://fonts.googleapis.com/css2?family=Figtree:wght@300;400;500;600;700;800;900&display=swap');
+
+/* Animations */
+@keyframes kenBurns {
+    0% {
+        transform: scale(1);
+    }
+
+    100% {
+        transform: scale(1.1);
+    }
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+
+    to {
+        opacity: 1;
+    }
+}
 
 .demo-booking-page {
     font-family: 'Figtree', sans-serif;
-    background: #FFFEF3;
     min-height: 100vh;
+    background-color: #000;
+    position: relative;
+    overflow-x: hidden;
+    animation: fadeIn 0.8s ease-out;
 }
 
-/* HEADER */
-.demo-header {
+/* Background Image Container */
+.demo-booking-page::before {
+    content: '';
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-image: url('/chess-background.png');
+    background-size: cover;
+    background-position: center;
+    z-index: 0;
+    animation: kenBurns 25s ease-in-out infinite alternate;
+}
+
+.demo-background-overlay {
     position: fixed;
     top: 0;
     left: 0;
     right: 0;
-    background: rgba(0, 0, 0, 0.9);
+    bottom: 0;
+    background: linear-gradient(135deg, rgba(0, 51, 102, 0.5) 0%, rgba(0, 20, 40, 0.6) 100%);
+    z-index: 1;
+    pointer-events: none;
+}
+
+/* BACK BUTTON */
+.demo-back-button {
+    background: rgba(255, 255, 255, 0.15);
     backdrop-filter: blur(10px);
-    padding: 20px 0;
-    z-index: 1000;
-    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
-}
-
-.header-container-demo {
-    max-width: 1400px;
-    margin: 0 auto;
-    padding: 0 48px;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-}
-
-.logo-demo {
-    display: flex;
-    align-items: center;
-}
-
-.logo-image-demo {
-    height: 60px;
-    width: auto;
-    transition: transform 0.3s ease;
-}
-
-.logo-image-demo:hover {
-    transform: scale(1.05);
-}
-
-.nav-menu-demo {
-    display: flex;
-    gap: 40px;
-}
-
-.nav-menu-demo a {
-    font-size: 15px;
-    font-weight: 600;
+    border: 2px solid rgba(255, 255, 255, 0.3);
     color: white;
-    text-decoration: none;
-    transition: color 0.3s ease;
+    font-family: 'Figtree', sans-serif;
+    font-size: 16px;
+    font-weight: 600;
+    padding: 12px 24px;
+    border-radius: 12px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    margin: 48px 0 0 48px;
+    position: relative;
+    z-index: 10;
 }
 
-.nav-menu-demo a:hover {
-    color: #FC8A24;
-}
-
-.header-btn-demo {
-    padding: 10px 28px !important;
-    font-weight: 600 !important;
+.demo-back-button:hover {
+    background: rgba(255, 255, 255, 0.25);
+    transform: translateX(-4px);
 }
 
 /* FORM SECTION */
 .form-section-demo {
-    padding: 140px 48px 80px;
-    min-height: 100vh;
+    padding: 60px 48px 80px;
+    min-height: calc(100vh - 100px);
+    position: relative;
+    z-index: 1;
+    display: flex;
+    justify-content: center;
+    align-items: center;
 }
 
 .form-container-demo {
+    width: 100%;
     max-width: 900px;
-    margin: 0 auto;
-    background: white;
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(20px);
     border-radius: 24px;
     padding: 48px;
-    box-shadow: 0 8px 32px rgba(0, 51, 102, 0.1);
-    border: 2px solid #FC8A24;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+    border: 1px solid rgba(255, 255, 255, 0.5);
 }
 
 .form-header-demo {
@@ -195,63 +215,10 @@
     transform: translateY(-2px);
 }
 
-/* FOOTER */
-.footer-demo {
-    background: #003366;
-    padding: 64px 0 32px;
-    color: white;
-}
-
-.footer-container-demo {
-    max-width: 1400px;
-    margin: 0 auto;
-    padding: 0 48px;
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 64px;
-    margin-bottom: 48px;
-}
-
-.footer-column-demo h4 {
-    font-family: 'Figtree', sans-serif;
-    font-size: 18px;
-    font-weight: 700;
-    margin-bottom: 20px;
-    color: #FC8A24;
-}
-
-.footer-column-demo a {
-    display: block;
-    color: #EBD6C3;
-    text-decoration: none;
-    margin-bottom: 12px;
-    font-size: 14px;
-    transition: color 0.3s ease;
-}
-
-.footer-column-demo a:hover {
-    color: #FC8A24;
-}
-
-.footer-bottom-demo {
-    text-align: center;
-    padding-top: 32px;
-    border-top: 1px solid rgba(255, 255, 255, 0.1);
-}
-
-.footer-bottom-demo p {
-    color: #B49885;
-    font-size: 14px;
-    margin: 0;
-    max-width: 1400px;
-    margin: 0 auto;
-    padding: 0 48px;
-}
-
 /* RESPONSIVE */
 @media (max-width: 768px) {
     .form-section-demo {
-        padding: 100px 24px 60px;
+        padding: 40px 24px 60px;
     }
 
     .form-container-demo {
@@ -268,9 +235,5 @@
 
     .form-actions {
         flex-direction: column;
-    }
-
-    .nav-menu-demo {
-        display: none;
     }
 }

@@ -1,42 +1,10 @@
 import React from 'react';
 import Navbar from '../components/layout/Navbar';
 import Footer from '../components/layout/Footer';
+import CTASection from '../components/shared/CTASection';
 import './Services.css';
 
 const Services = () => {
-    const services = [
-        {
-            title: 'Group Classes',
-            description: 'Small group sessions with personalized attention. Learn alongside peers while receiving individual coaching.',
-            features: ['Max 6 students per class', 'Age-grouped batches', 'Interactive learning', 'Twice weekly sessions']
-        },
-        {
-            title: '1v1 Tutoring',
-            description: 'One-on-one coaching tailored to your specific needs and goals. Perfect for rapid improvement.',
-            features: ['Personalized curriculum', 'Flexible scheduling', 'Focused attention', 'Custom pace']
-        },
-        {
-            title: 'Tournament Preparation',
-            description: 'Specialized training for competitive chess. Develop tournament strategies and mental toughness.',
-            features: ['Opening preparation', 'Game analysis', 'Time management', 'Psychological training']
-        },
-        {
-            title: 'Beginner Programs',
-            description: 'Start your chess journey with our structured beginner curriculum. Learn fundamentals in a fun environment.',
-            features: ['Basic rules & tactics', 'Pattern recognition', 'Simple strategies', 'Confidence building']
-        },
-        {
-            title: 'Advanced Training',
-            description: 'Elite coaching for serious players. Master complex strategies and refine your game.',
-            features: ['Deep analysis', 'Advanced tactics', 'Endgame mastery', 'Opening repertoire']
-        },
-        {
-            title: 'Parent Support',
-            description: 'Regular updates and guidance for parents. Stay involved in your child\'s chess journey.',
-            features: ['Progress reports', 'Parent-coach meetings', 'Learning resources', 'Tournament guidance']
-        }
-    ];
-
     return (
         <div className="services-page">
             <Navbar />
@@ -48,24 +16,74 @@ const Services = () => {
                 </div>
             </section>
 
-            <section className="services-grid-section">
+            <section className="services-content">
                 <div className="services-container">
                     <div className="services-grid">
-                        {services.map((service, index) => (
-                            <div key={index} className="service-card">
-                                <h3>{service.title}</h3>
-                                <p className="service-description">{service.description}</p>
-                                <ul className="service-features">
-                                    {service.features.map((feature, idx) => (
-                                        <li key={idx}>{feature}</li>
-                                    ))}
-                                </ul>
-                            </div>
-                        ))}
+                        <div className="service-card">
+                            <h3>Group Classes</h3>
+                            <p>Small group sessions with maximum 6 students per class for personalized attention and interactive learning.</p>
+                            <ul>
+                                <li>✓ Max 6 students per class</li>
+                                <li>✓ Age-grouped batches</li>
+                                <li>✓ Interactive sessions</li>
+                                <li>✓ Twice weekly classes</li>
+                            </ul>
+                        </div>
+                        <div className="service-card">
+                            <h3>1v1 Tutoring</h3>
+                            <p>One-on-one coaching tailored to your specific needs and goals. Perfect for focused attention and rapid improvement.</p>
+                            <ul>
+                                <li>✓ Personalized curriculum</li>
+                                <li>✓ Flexible scheduling</li>
+                                <li>✓ Focused attention</li>
+                                <li>✓ Custom pace</li>
+                            </ul>
+                        </div>
+                        <div className="service-card">
+                            <h3>Tournament Preparation</h3>
+                            <p>Specialized training for competitive chess. Develop tournament skills, opening preparation, and game analysis.</p>
+                            <ul>
+                                <li>✓ Opening preparation</li>
+                                <li>✓ Game analysis</li>
+                                <li>✓ Time management</li>
+                                <li>✓ Psychological training</li>
+                            </ul>
+                        </div>
+                        <div className="service-card">
+                            <h3>Beginner Programs</h3>
+                            <p>Perfect introduction to chess for young learners. Build strong foundations with fun and engaging lessons.</p>
+                            <ul>
+                                <li>✓ Basic rules & tactics</li>
+                                <li>✓ Pattern recognition</li>
+                                <li>✓ Simple strategies</li>
+                                <li>✓ Confidence building</li>
+                            </ul>
+                        </div>
+                        <div className="service-card">
+                            <h3>Advanced Training</h3>
+                            <p>For serious players aiming for mastery. Deep analysis, advanced tactics, and strategic understanding.</p>
+                            <ul>
+                                <li>✓ Deep analysis</li>
+                                <li>✓ Advanced tactics</li>
+                                <li>✓ Endgame mastery</li>
+                                <li>✓ Opening repertoire</li>
+                            </ul>
+                        </div>
+                        <div className="service-card">
+                            <h3>Parent Support</h3>
+                            <p>Regular updates and guidance for parents. Stay informed about your child's progress and development.</p>
+                            <ul>
+                                <li>✓ Progress reports</li>
+                                <li>✓ Parent-coach meetings</li>
+                                <li>✓ Learning resources</li>
+                                <li>✓ Tournament guidance</li>
+                            </ul>
+                        </div>
                     </div>
                 </div>
             </section>
 
+            <CTASection />
             <Footer />
         </div>
     );

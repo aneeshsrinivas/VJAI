@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import Button from '../components/ui/Button';
 import Navbar from '../components/layout/Navbar';
 import Footer from '../components/layout/Footer';
+import CTASection from '../components/shared/CTASection';
 import CoursewareIcon from '../components/icons/CoursewareIcon';
 import OnlineClassesIcon from '../components/icons/OnlineClassesIcon';
 import './LandingPage.css';
@@ -140,11 +141,6 @@ const LandingPage = () => {
                         {testimonials.map((testimonial, index) => (
                             <div key={index} className="testimonial-card">
                                 <div className="testimonial-header">
-                                    <img
-                                        src={testimonial.image}
-                                        alt={testimonial.name}
-                                        className="testimonial-image"
-                                    />
                                     <div className="testimonial-info">
                                         <h4>{testimonial.name}</h4>
                                         <p className="testimonial-role">{testimonial.role}</p>
@@ -189,15 +185,7 @@ const LandingPage = () => {
             </section>
 
             {/* CTA Section */}
-            <section className="cta-home">
-                <div className="cta-content-home">
-                    <h2>Ready to Start Your Chess Journey?</h2>
-                    <p>Join 117+ students learning from FIDE Masters in our premium online chess academy</p>
-                    <Button onClick={() => navigate('/demo-booking')} className="cta-btn-home">
-                        Book a Free Demo Class
-                    </Button>
-                </div>
-            </section>
+            <CTASection />
 
             {/* Footer */}
             <Footer />

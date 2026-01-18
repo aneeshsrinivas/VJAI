@@ -34,22 +34,14 @@ const DemoBooking = () => {
 
     return (
         <div className="demo-booking-page">
-            {/* Navigation Header */}
-            <header className="demo-header">
-                <div className="header-container-demo">
-                    <div className="logo-demo" onClick={() => navigate('/')} style={{ cursor: 'pointer' }}>
-                        <img src="/logo.png" alt="Indian Chess Academy" className="logo-image-demo" />
-                    </div>
-                    <nav className="nav-menu-demo">
-                        <a href="/">Home</a>
-                        <a href="/about">About Us</a>
-                        <a href="/services">Services</a>
-                        <a href="/contact">Contact Us</a>
-                        <a href="/faq">FAQs</a>
-                    </nav>
-                    <Button onClick={() => navigate('/login')} className="header-btn-demo">Login</Button>
-                </div>
-            </header>
+            <div className="demo-background-overlay"></div>
+
+            <button
+                onClick={() => navigate('/')}
+                className="demo-back-button"
+            >
+                ← Back to Home
+            </button>
 
             {/* Form Section */}
             <section className="form-section-demo">
@@ -199,35 +191,6 @@ const DemoBooking = () => {
                     </form>
                 </div>
             </section>
-
-            {/* Footer */}
-            <footer className="footer-demo">
-                <div className="footer-container-demo">
-                    <div className="footer-column-demo">
-                        <h4>Our Courses</h4>
-                        <a href="/pricing">All Courses</a>
-                        <a href="/pricing">Beginner</a>
-                        <a href="/pricing">Intermediate</a>
-                        <a href="/pricing">Advanced</a>
-                    </div>
-                    <div className="footer-column-demo">
-                        <h4>Academy</h4>
-                        <a href="/">Home</a>
-                        <a href="/about">About Us</a>
-                        <a href="/services">Services</a>
-                        <a href="/contact">Contact Us</a>
-                    </div>
-                    <div className="footer-column-demo">
-                        <h4>Connect with us</h4>
-                        <a href="https://www.linkedin.com/company/106137887/" target="_blank" rel="noopener noreferrer">LinkedIn</a>
-                        <a href="https://www.instagram.com/indianchessacademy/" target="_blank" rel="noopener noreferrer">Instagram</a>
-                        <a href="https://www.facebook.com/profile.php?id=61555847004612" target="_blank" rel="noopener noreferrer">Facebook</a>
-                    </div>
-                </div>
-                <div className="footer-bottom-demo">
-                    <p>Copyright 2026 © Indian Chess Academy | Built with strategic elegance</p>
-                </div>
-            </footer>
         </div>
     );
 };
