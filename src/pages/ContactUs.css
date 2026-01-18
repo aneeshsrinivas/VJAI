@@ -1,0 +1,190 @@
+/* Import Figtree font */
+@import url('https://fonts.googleapis.com/css2?family=Figtree:wght@300;400;500;600;700;800;900&display=swap');
+
+.contact-us-page {
+    font-family: 'Figtree', sans-serif;
+    background: #FFFEF3;
+}
+
+/* HERO SECTION */
+.contact-hero {
+    padding: 180px 48px 100px;
+    background: linear-gradient(135deg, #003366 0%, #004080 100%);
+    text-align: center;
+}
+
+.contact-hero-content h1 {
+    font-family: 'Figtree', sans-serif;
+    font-size: 56px;
+    font-weight: 800;
+    color: white;
+    margin-bottom: 20px;
+}
+
+.contact-hero-content p {
+    font-size: 20px;
+    color: #EBD6C3;
+}
+
+/* CONTACT CONTENT */
+.contact-content {
+    padding: 100px 0;
+    background: white;
+}
+
+.contact-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 48px;
+}
+
+.contact-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 64px;
+}
+
+.contact-form-section h2,
+.contact-info-section h2 {
+    font-family: 'Figtree', sans-serif;
+    font-size: 32px;
+    font-weight: 800;
+    color: #003366;
+    margin-bottom: 32px;
+}
+
+/* FORM */
+.contact-form {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+}
+
+.contact-form .form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.contact-form label {
+    font-family: 'Figtree', sans-serif;
+    font-size: 15px;
+    font-weight: 700;
+    color: #003366;
+}
+
+.contact-form input,
+.contact-form textarea {
+    padding: 14px 16px;
+    border: 2px solid #EBD6C3;
+    border-radius: 8px;
+    font-family: 'Figtree', sans-serif;
+    font-size: 15px;
+    background: #FFFEF3;
+    color: #003366;
+    transition: all 0.3s ease;
+}
+
+.contact-form input:focus,
+.contact-form textarea:focus {
+    outline: none;
+    border-color: #FC8A24;
+    box-shadow: 0 0 0 3px rgba(252, 138, 36, 0.1);
+}
+
+.contact-form textarea {
+    resize: vertical;
+    min-height: 120px;
+}
+
+.submit-contact-btn {
+    padding: 16px !important;
+    font-size: 18px !important;
+    font-weight: 700 !important;
+    background: #FC8A24 !important;
+    margin-top: 8px;
+}
+
+.submit-contact-btn:hover {
+    transform: translateY(-2px) !important;
+    box-shadow: 0 8px 24px rgba(252, 138, 36, 0.3) !important;
+}
+
+/* CONTACT INFO */
+.contact-info-cards {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+}
+
+.contact-info-card {
+    background: linear-gradient(135deg, #FFFEF3 0%, #EBD6C3 100%);
+    border: 2px solid #FC8A24;
+    border-radius: 12px;
+    padding: 24px;
+    transition: all 0.3s ease;
+}
+
+.contact-info-card:hover {
+    transform: translateX(8px);
+    box-shadow: 0 8px 24px rgba(252, 138, 36, 0.2);
+    border-color: #003366;
+}
+
+.contact-icon {
+    font-size: 36px;
+    margin-bottom: 12px;
+}
+
+.contact-info-card h3 {
+    font-family: 'Figtree', sans-serif;
+    font-size: 20px;
+    font-weight: 700;
+    color: #003366;
+    margin-bottom: 8px;
+}
+
+.contact-info-card p {
+    font-size: 15px;
+    color: #68300B;
+    margin: 4px 0;
+}
+
+.social-links {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.social-links a {
+    color: #FC8A24;
+    text-decoration: none;
+    font-weight: 600;
+    transition: color 0.3s ease;
+}
+
+.social-links a:hover {
+    color: #003366;
+}
+
+/* RESPONSIVE */
+@media (max-width: 1024px) {
+    .contact-grid {
+        grid-template-columns: 1fr;
+        gap: 48px;
+    }
+}
+
+@media (max-width: 768px) {
+    .contact-hero {
+        padding: 140px 24px 80px;
+    }
+
+    .contact-hero-content h1 {
+        font-size: 36px;
+    }
+
+    .contact-container {
+        padding: 0 24px;
+    }
+}
