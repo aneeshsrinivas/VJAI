@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import './PlanSelection.css';
 import PricingCard from '../components/ui/PricingCard';
@@ -10,18 +10,6 @@ const PlanSelection = () => {
     const [selectedPlan, setSelectedPlan] = useState(null);
     const [filterType, setFilterType] = useState('all'); // 'all', '1-on-1', 'Group'
     const [filterLevel, setFilterLevel] = useState('all'); // 'all', 'Beginner', 'Intermediate'
-    const [showRecommendation, setShowRecommendation] = useState(true);
-
-    // Simulated AI recommendation based on "student level"
-    const [recommendedPlan, setRecommendedPlan] = useState(null);
-
-    useEffect(() => {
-        // Simulate AI recommendation
-        setTimeout(() => {
-            const intermediate1on1 = mockPlans.find(p => p.id === 'one-on-one-intermediate');
-            setRecommendedPlan(intermediate1on1);
-        }, 500);
-    }, []);
 
     const filteredPlans = mockPlans.filter(plan => {
         if (filterType !== 'all' && plan.type !== filterType) return false;
@@ -52,27 +40,6 @@ const PlanSelection = () => {
                 </div>
                 <div className="plan-hero-pattern"></div>
             </div>
-
-            {/* AI Recommendation Banner */}
-            {showRecommendation && recommendedPlan && (
-                <div className="recommendation-banner">
-                    <div className="recommendation-content">
-                        <div className="recommendation-icon">🤖</div>
-                        <div className="recommendation-text">
-                            <div className="recommendation-label">AI Recommendation</div>
-                            <div className="recommendation-message">
-                                Based on your skill level, we recommend <strong>{recommendedPlan.name}</strong>
-                            </div>
-                        </div>
-                        <button
-                            className="recommendation-close"
-                            onClick={() => setShowRecommendation(false)}
-                        >
-                            ×
-                        </button>
-                    </div>
-                </div>
-            )}
 
             {/* Filters */}
             <div className="plan-filters">

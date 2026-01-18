@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import Card from '../components/ui/Card';
 import Button from '../components/ui/Button';
+import AccountDropdown from '../components/ui/AccountDropdown';
 import { useNavigate } from 'react-router-dom';
 import { Lock, FileText, MessageSquare, Upload } from 'lucide-react';
 
@@ -14,10 +15,16 @@ const CoachPage = () => {
                     <h1 style={{ margin: 0 }}>Coach Dashboard</h1>
                     <p style={{ margin: '4px 0 0', color: '#666' }}>Manage your classes and students.</p>
                 </div>
-                <div style={{ display: 'flex', gap: '12px' }}>
+                <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
                     <Button onClick={() => navigate('/admin/calendar')}>View Full Calendar</Button>
+                    <AccountDropdown
+                        userName="Coach Ramesh"
+                        userRole="FIDE Master"
+                        avatarEmoji="♞"
+                    />
                 </div>
             </div>
+
 
             <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '24px' }}>
                 {/* Left Column */}

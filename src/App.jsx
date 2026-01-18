@@ -2,6 +2,8 @@ import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Outlet } from 'react-router-dom';
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+
+// Page imports
 import LandingPage from './pages/LandingPage';
 import RoleSelectionPage from './pages/RoleSelectionPage';
 import RegistrationPage from './pages/RegistrationPage';
@@ -22,12 +24,10 @@ import CoachRoster from './pages/admin/CoachRoster';
 import FinanceReports from './pages/admin/FinanceReports';
 import DemosPage from './pages/admin/DemosPage';
 import BroadcastPage from './pages/admin/BroadcastPage';
-import DirectChatPage from './pages/admin/DirectChatPage';
 import SubscriptionPage from './pages/admin/SubscriptionPage';
 import AccountsPage from './pages/admin/AccountsPage';
 import AnalyticsPage from './pages/admin/AnalyticsPage';
 import ChatPage from './pages/common/ChatPage';
-import BatchChat from './pages/BatchChat';
 import PlanSelection from './pages/PlanSelection';
 import PaymentCheckout from './pages/PaymentCheckout';
 import PaymentSuccess from './pages/PaymentSuccess';
@@ -38,19 +38,24 @@ import ContactUs from './pages/ContactUs';
 import FAQ from './pages/FAQ';
 import TermsAndConditions from './pages/TermsAndConditions';
 import PrivacyPolicy from './pages/PrivacyPolicy';
-import Header from './components/layout/Header';
+
+// Component imports
 import Sidebar from './components/layout/Sidebar';
 import ErrorBoundary from './components/ui/ErrorBoundary';
+import ParentNavbar from './components/layout/ParentNavbar';
+import { AuthProvider } from './context/AuthContext';
 
 // Layout Wrappers
-const ParentLayout = () => (
-  <div className="layout-parent">
-    <Header />
-    <main className="main-content">
-      <Outlet />
-    </main>
-  </div>
-);
+const ParentLayout = () => {
+  return (
+    <div className="layout-parent">
+      <ParentNavbar />
+      <main className="main-content" style={{ padding: 0, marginTop: 0 }}>
+        <Outlet />
+      </main>
+    </div>
+  );
+};
 
 const StaffLayout = ({ role }) => (
   <div className="layout-staff" style={{ display: 'flex' }}>
@@ -60,8 +65,6 @@ const StaffLayout = ({ role }) => (
     </main>
   </div>
 );
-
-import { AuthProvider } from './context/AuthContext';
 
 const App = () => {
   return (

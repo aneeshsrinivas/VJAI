@@ -264,6 +264,28 @@
     animation: slideInRight 0.8s ease-out 0.2s both;
 }
 
+/* Back to Home Button */
+.back-to-home-btn {
+    background: none;
+    border: none;
+    color: #003366;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    padding: 0;
+    margin-bottom: 24px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-family: 'Figtree', sans-serif;
+    transition: all 0.3s ease;
+}
+
+.back-to-home-btn:hover {
+    color: #FC8A24;
+    transform: translateX(-4px);
+}
+
 /* Header */
 .login-header {
     text-align: center;

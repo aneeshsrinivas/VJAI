@@ -24,7 +24,7 @@
 }
 
 .footer-logo-large {
-    width: 150px;
+    width: 280px;
     height: auto;
     transition: transform 0.3s ease;
 }
@@ -122,6 +122,6 @@
     }
 
     .footer-logo-large {
-        width: 120px;
+        width: 140px;
     }
 }

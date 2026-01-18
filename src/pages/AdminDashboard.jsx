@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Card from '../components/ui/Card';
 import Button from '../components/ui/Button';
+import AccountDropdown from '../components/ui/AccountDropdown';
 import DemoOutcomeModal from '../components/features/DemoOutcomeModal';
 import DemoSuccessPredictor from '../components/features/hackathon/DemoSuccessPredictor';
 import BatchOptimizer from '../components/features/hackathon/BatchOptimizer';
@@ -13,10 +14,18 @@ const AdminDashboard = () => {
     const [showDemoModal, setShowDemoModal] = useState(false);
     return (
         <div className="dashboard-container">
-            <div className="dashboard-header">
-                <h1 className="welcome-text">Command Center</h1>
-                <p className="sub-text">Academy Operations Overview</p>
+            <div className="dashboard-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                <div>
+                    <h1 className="welcome-text">Command Center</h1>
+                    <p className="sub-text">Academy Operations Overview</p>
+                </div>
+                <AccountDropdown
+                    userName="System Admin"
+                    userRole="Administrator"
+                    avatarEmoji="👑"
+                />
             </div>
+
 
             <div className="dashboard-grid">
                 {/* Column 1: Live Operations & Predictions */}

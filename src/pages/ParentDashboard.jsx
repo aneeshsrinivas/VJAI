@@ -4,8 +4,20 @@ import { useAuth } from '../context/AuthContext';
 import { getStudentByAccountId, getSubscriptionByAccountId } from '../services/firestoreService';
 import Card from '../components/ui/Card';
 import Button from '../components/ui/Button';
+import AccountDropdown from '../components/ui/AccountDropdown';
 import ReviewRequestModal from '../components/features/ReviewRequestModal';
-import { Calendar, MessageSquare, CreditCard, Star, Clock, User, BookOpen } from 'lucide-react';
+// Icons from friend's UI
+import CalendarIcon from '../components/icons/CalendarIcon';
+import AssignmentIcon from '../components/icons/AssignmentIcon';
+import PaymentIcon from '../components/icons/PaymentIcon';
+import StarIcon from '../components/icons/StarIcon';
+import ChatIcon from '../components/icons/ChatIcon';
+import LockIcon from '../components/icons/LockIcon';
+import VideoIcon from '../components/icons/VideoIcon';
+import GreetingIcon from '../components/icons/GreetingIcon';
+import ChessBishopIcon from '../components/icons/ChessBishopIcon';
+import UserGroupIcon from '../components/icons/UserGroupIcon';
+import ClockIcon from '../components/icons/ClockIcon';
 import './ParentDashboard.css';
 
 const ParentDashboard = () => {
@@ -16,11 +28,16 @@ const ParentDashboard = () => {
     const [subscription, setSubscription] = useState(null);
     const [loading, setLoading] = useState(true);
     const [cardsVisible, setCardsVisible] = useState(false);
+    const [progress, setProgress] = useState(0);
 
+    // Fetch real data from Firestore
     useEffect(() => {
         if (currentUser) {
             fetchStudentData();
+        } else {
+            setLoading(false);
         }
+        setTimeout(() => setProgress(85), 300);
         setTimeout(() => setCardsVisible(true), 100);
     }, [currentUser]);
 
@@ -50,179 +67,275 @@ const ParentDashboard = () => {
         return 'Parent';
     };
 
+    const getGreeting = () => {
+        const hour = new Date().getHours();
+        if (hour < 12) return 'Good Morning';
+        if (hour < 17) return 'Good Afternoon';
+        return 'Good Evening';
+    };
+
+    const scheduleItems = [
+        { day: 'Monday', time: '5:00 PM IST', status: 'UPCOMING', isToday: true },
+        { day: 'Wednesday', time: '5:00 PM IST', status: 'COMPLETED', isToday: false },
+        { day: 'Friday', time: '5:00 PM IST', status: 'PENDING', isToday: false }
+    ];
+
+    const quickActions = [
+        {
+            icon: CalendarIcon,
+            label: 'Schedule',
+            description: 'View your classes',
+            path: '/parent/schedule',
+            gradient: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)'
+        },
+        {
+            icon: AssignmentIcon,
+            label: 'Assignments',
+            description: 'Check homework',
+            path: '/parent/assignments',
+            gradient: 'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)'
+        },
+        {
+            icon: PaymentIcon,
+            label: 'Payments',
+            description: 'Billing & invoices',
+            path: '/parent/payments',
+            gradient: 'linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)'
+        },
+        {
+            icon: StarIcon,
+            label: 'Upgrade',
+            description: 'Premium plans',
+            path: '/pricing',
+            gradient: 'linear-gradient(135deg, #fa709a 0%, #fee140 100%)'
+        }
+    ];
+
     return (
         <div className="parent-dashboard">
-            {/* Welcome Banner */}
-            <div className="welcome-banner">
-                <div className="welcome-content">
-                    <div className="welcome-icon-box">
-                        <User size={24} />
-                    </div>
-                    <div className="welcome-text-section">
-                        <h1 className="welcome-title">Welcome, {getDisplayName()}</h1>
+            {/* Hero Welcome Section with Unsplash Background */}
+            <section className="welcome-hero">
+                <div className="welcome-hero-bg">
+                    <img
+                        src="https://images.unsplash.com/photo-1529699211952-734e80c4d42b?w=1200&q=80"
+                        alt=""
+                        className="hero-bg-image"
+                    />
+                    <div className="hero-overlay"></div>
+                </div>
+                <div className="welcome-hero-content">
+                    <div className="welcome-left">
+                        <div className="greeting-badge">
+                            <GreetingIcon size={20} color="#FC8A24" />
+                            <span>{getGreeting()}</span>
+                        </div>
+                        <h1 className="welcome-title">Welcome back, {getDisplayName()}!</h1>
                         <p className="welcome-subtitle">
-                            {student ? `Tracking ${student.studentName}'s chess progress` : 'Your dashboard is loading...'}
+                            {student ? `${student.studentName}'s chess journey is progressing excellently.` : 'Your chess journey awaits!'}
                         </p>
+                        <div className="welcome-actions">
+                            <Button
+                                onClick={() => navigate('/parent/chat')}
+                                className="action-btn primary-btn"
+                            >
+                                <ChatIcon size={18} color="white" />
+                                <span>Batch Chat</span>
+                            </Button>
+                            <Button
+                                variant="secondary"
+                                onClick={() => setReviewModalOpen(true)}
+                                className="action-btn secondary-btn"
+                            >
+                                <ClockIcon size={18} color="#1361afff" />
+                                <span>Request Review</span>
+                            </Button>
+                        </div>
+                    </div>
+                    <div className="welcome-right">
+                        {/* Progress Card */}
+                        <div className="progress-card-floating">
+                            <div className="progress-header">
+                                <div className="progress-info">
+                                    <span className="progress-label">Current Rank</span>
+                                    <span className="milestone-name">{student?.level || 'Beginner'}</span>
+                                </div>
+                                <div className="progress-percentage">{progress}%</div>
+                            </div>
+                            <div className="progress-bar-container">
+                                <div className="progress-bar-fill" style={{ width: `${progress}%` }}></div>
+                            </div>
+                            <div className="progress-next">
+                                Next milestone: <strong>Intermediate</strong>
+                            </div>
+                        </div>
                     </div>
                 </div>
-                <div style={{ display: 'flex', gap: '12px', marginTop: '16px' }}>
-                    <Button variant="secondary" onClick={() => navigate('/parent/chat')} className="btn-chat-mobile">
-                        <MessageSquare size={16} style={{ marginRight: 8 }} />
-                        Batch Chat
-                    </Button>
-                    <Button onClick={() => setReviewModalOpen(true)} className="btn-review-mobile">
-                        Request 15-min Review
-                    </Button>
+            </section>
+
+            {/* Main Content Grid */}
+            <div className="dashboard-content">
+                <div className="content-grid">
+                    {/* Left Column */}
+                    <div className="main-column">
+                        {/* Weekly Schedule Card */}
+                        <div className={`content-card schedule-card ${cardsVisible ? 'visible' : ''}`}>
+                            <div className="card-header-row">
+                                <div className="card-title-group">
+                                    <CalendarIcon size={22} color="#003366" />
+                                    <h3>Weekly Schedule</h3>
+                                </div>
+                                <a href="/parent/schedule" className="view-all-link">View All</a>
+                            </div>
+                            <div className="schedule-list">
+                                {scheduleItems.map((slot, i) => (
+                                    <div
+                                        key={i}
+                                        className={`schedule-item ${slot.isToday ? 'today' : ''}`}
+                                    >
+                                        <div className="schedule-left">
+                                            <div className="day-indicator">
+                                                <span className="day-abbr">{slot.day.substring(0, 3)}</span>
+                                                {slot.isToday && <span className="today-dot"></span>}
+                                            </div>
+                                            <div className="schedule-details">
+                                                <span className="day-name">
+                                                    {slot.day}
+                                                    {slot.isToday && <span className="today-badge">TODAY</span>}
+                                                </span>
+                                                <span className="schedule-time">{slot.time}</span>
+                                            </div>
+                                        </div>
+                                        <div className="schedule-right">
+                                            {slot.isToday ? (
+                                                <button
+                                                    className="join-class-btn-sm"
+                                                    onClick={() => window.open('https://meet.google.com', '_blank')}
+                                                >
+                                                    <VideoIcon size={14} color="white" />
+                                                    Join Now
+                                                </button>
+                                            ) : (
+                                                <span className={`status-badge ${slot.status.toLowerCase()}`}>
+                                                    {slot.status}
+                                                </span>
+                                            )}
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+
+                        {/* Quick Actions Grid */}
+                        <div className={`quick-actions-grid ${cardsVisible ? 'visible' : ''}`}>
+                            {quickActions.map((action, index) => {
+                                const IconComponent = action.icon;
+                                return (
+                                    <button
+                                        key={index}
+                                        className="quick-action-card"
+                                        onClick={() => navigate(action.path)}
+                                        style={{ '--card-gradient': action.gradient }}
+                                    >
+                                        <div className="action-icon-circle">
+                                            <IconComponent size={24} color="white" />
+                                        </div>
+                                        <div className="action-text">
+                                            <span className="action-title">{action.label}</span>
+                                            <span className="action-desc">{action.description}</span>
+                                        </div>
+                                        <span className="action-arrow">→</span>
+                                    </button>
+                                );
+                            })}
+                        </div>
+                    </div>
+
+                    {/* Right Sidebar */}
+                    <div className="sidebar-column">
+                        {/* Coach Card */}
+                        <div className={`content-card coach-card ${cardsVisible ? 'visible' : ''}`}>
+                            <div className="card-header-row">
+                                <h3>Your Coach</h3>
+                            </div>
+                            <div className="coach-profile">
+                                <div className="coach-avatar-large">
+                                    <ChessBishopIcon size={40} color="#003366" />
+                                </div>
+                                <div className="coach-info">
+                                    <h4 className="coach-name">{student?.assignedCoachId ? 'Coach Assigned' : 'Coach Ramesh Kumar'}</h4>
+                                    <div className="coach-badges">
+                                        <span className="badge fide">FIDE Master</span>
+                                        <span className="badge rating">
+                                            <StarIcon size={12} color="#D4AF37" filled />
+                                            4.9
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div className="coach-stats-row">
+                                <div className="coach-stat">
+                                    <span className="stat-value">12</span>
+                                    <span className="stat-label">Sessions</span>
+                                </div>
+                                <div className="coach-stat">
+                                    <span className="stat-value">5+</span>
+                                    <span className="stat-label">Years Exp</span>
+                                </div>
+                                <div className="coach-stat">
+                                    <span className="stat-value">50+</span>
+                                    <span className="stat-label">Students</span>
+                                </div>
+                            </div>
+                            <div className="privacy-notice">
+                                <LockIcon size={14} color="#999" />
+                                <span>Contact info kept private for safety</span>
+                            </div>
+                        </div>
+
+                        {/* Next Class Card */}
+                        <div className={`content-card next-class-card ${cardsVisible ? 'visible' : ''}`}>
+                            <div className="live-badge">
+                                <span className="live-dot"></span>
+                                LIVE SOON
+                            </div>
+                            <div className="next-class-content">
+                                <div className="class-time-big">
+                                    <span className="time-prefix">Today at</span>
+                                    <span className="time-main">5:00 PM</span>
+                                </div>
+                                <div className="countdown-pill">
+                                    <ClockIcon size={14} color="#6B8E23" />
+                                    Starting in 45 mins
+                                </div>
+                                <div className="class-topic-box">
+                                    <span className="topic-pre">Topic:</span>
+                                    <span className="topic-main">Sicilian Defense</span>
+                                </div>
+                                <button
+                                    className="join-now-btn"
+                                    onClick={() => window.open('https://meet.google.com', '_blank')}
+                                >
+                                    <VideoIcon size={20} color="white" />
+                                    Join Class Now
+                                </button>
+                            </div>
+                        </div>
+
+                        {/* Motivational Card with Image */}
+                        <div className={`content-card motivation-card ${cardsVisible ? 'visible' : ''}`}>
+                            <img
+                                src="https://images.unsplash.com/photo-1560174038-da43ac74f01b?w=400&q=80"
+                                alt="Chess"
+                                className="motivation-img"
+                            />
+                            <div className="motivation-overlay">
+                                <p className="motivation-quote">"Every chess master was once a beginner."</p>
+                                <span className="motivation-author">— Irving Chernev</span>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
-
-            {loading ? (
-                <div style={{ padding: '40px', textAlign: 'center', color: '#666' }}>Loading your dashboard...</div>
-            ) : (
-                <>
-                    <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '24px' }}>
-                        {/* Left Column */}
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
-
-                            {/* Student Info Card */}
-                            {student && (
-                                <div className={`dashboard-card ${cardsVisible ? 'card-visible' : ''}`}>
-                                    <Card title="Student Profile">
-                                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginTop: '12px' }}>
-                                            <div>
-                                                <div style={{ fontSize: '12px', color: '#666', marginBottom: '4px' }}>Name</div>
-                                                <div style={{ fontWeight: '600' }}>{student.studentName}</div>
-                                            </div>
-                                            <div>
-                                                <div style={{ fontSize: '12px', color: '#666', marginBottom: '4px' }}>Level</div>
-                                                <div style={{ fontWeight: '600', textTransform: 'capitalize' }}>{student.level || 'Beginner'}</div>
-                                            </div>
-                                            <div>
-                                                <div style={{ fontSize: '12px', color: '#666', marginBottom: '4px' }}>Type</div>
-                                                <div style={{ fontWeight: '600', textTransform: 'capitalize' }}>{student.studentType || 'Group'}</div>
-                                            </div>
-                                            <div>
-                                                <div style={{ fontSize: '12px', color: '#666', marginBottom: '4px' }}>Status</div>
-                                                <span style={{
-                                                    padding: '4px 12px',
-                                                    borderRadius: '12px',
-                                                    fontSize: '11px',
-                                                    fontWeight: '700',
-                                                    backgroundColor: student.status === 'ACTIVE' ? '#DCFCE7' : '#FEF3C7',
-                                                    color: student.status === 'ACTIVE' ? '#166534' : '#92400E'
-                                                }}>
-                                                    {student.status || 'ACTIVE'}
-                                                </span>
-                                            </div>
-                                        </div>
-                                    </Card>
-                                </div>
-                            )}
-
-                            {/* Subscription Card */}
-                            {subscription && (
-                                <div className={`dashboard-card ${cardsVisible ? 'card-visible' : ''}`} style={{ animationDelay: '0.1s' }}>
-                                    <Card title="Subscription">
-                                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '12px' }}>
-                                            <div>
-                                                <div style={{ fontSize: '12px', color: '#666' }}>Plan</div>
-                                                <div style={{ fontWeight: '600' }}>{subscription.planId || 'Standard Plan'}</div>
-                                            </div>
-                                            <div>
-                                                <div style={{ fontSize: '12px', color: '#666' }}>Amount</div>
-                                                <div style={{ fontWeight: '700', color: 'var(--color-deep-blue)' }}>
-                                                    Rs. {subscription.amount || 0}/month
-                                                </div>
-                                            </div>
-                                            <div>
-                                                <div style={{ fontSize: '12px', color: '#666' }}>Status</div>
-                                                <span style={{
-                                                    padding: '4px 12px',
-                                                    borderRadius: '12px',
-                                                    fontSize: '11px',
-                                                    fontWeight: '700',
-                                                    backgroundColor: subscription.status === 'ACTIVE' ? '#DCFCE7' : '#FEE2E2',
-                                                    color: subscription.status === 'ACTIVE' ? '#166534' : '#991B1B'
-                                                }}>
-                                                    {subscription.status}
-                                                </span>
-                                            </div>
-                                        </div>
-                                    </Card>
-                                </div>
-                            )}
-                        </div>
-
-                        {/* Right Column */}
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
-                            {/* Coach Card */}
-                            <div className={`dashboard-card ${cardsVisible ? 'card-visible' : ''}`} style={{ animationDelay: '0.2s' }}>
-                                <Card title="Your Coach">
-                                    <div className="coach-info">
-                                        <div className="coach-avatar-box">
-                                            <User size={24} />
-                                        </div>
-                                        <div className="coach-details">
-                                            <h3 className="coach-name">{student?.assignedCoachId ? 'Coach Assigned' : 'Pending Assignment'}</h3>
-                                            <div className="coach-meta">
-                                                <span className="coach-title">Chess Trainer</span>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div className="privacy-note">
-                                        <span className="privacy-icon"><Clock size={14} /></span>
-                                        <span className="privacy-text">Contact details are private for your safety</span>
-                                    </div>
-                                </Card>
-                            </div>
-
-                            {/* Next Class Card */}
-                            <div className={`dashboard-card ${cardsVisible ? 'card-visible' : ''}`} style={{ animationDelay: '0.3s' }}>
-                                <Card variant="chess" title="Next Class">
-                                    <div className="next-class-info">
-                                        <div className="class-time">
-                                            <div className="time-display">Check Schedule</div>
-                                            <div className="time-countdown">
-                                                <span className="countdown-badge">View full schedule for timings</span>
-                                            </div>
-                                        </div>
-                                        <Button
-                                            className="join-class-btn"
-                                            onClick={() => navigate('/parent/schedule')}
-                                        >
-                                            <Calendar size={16} style={{ marginRight: 8 }} />
-                                            View Schedule
-                                        </Button>
-                                    </div>
-                                </Card>
-                            </div>
-                        </div>
-                    </div>
-
-                    {/* Quick Actions */}
-                    <div className={`quick-actions ${cardsVisible ? 'card-visible' : ''}`} style={{ animationDelay: '0.4s' }}>
-                        <h3 className="section-title">Quick Actions</h3>
-                        <div className="actions-grid">
-                            <button className="action-card" onClick={() => navigate('/parent/schedule')}>
-                                <span className="action-icon"><Calendar size={20} /></span>
-                                <span className="action-label">Schedule</span>
-                            </button>
-                            <button className="action-card" onClick={() => navigate('/parent/assignments')}>
-                                <span className="action-icon"><BookOpen size={20} /></span>
-                                <span className="action-label">Assignments</span>
-                            </button>
-                            <button className="action-card" onClick={() => navigate('/parent/payments')}>
-                                <span className="action-icon"><CreditCard size={20} /></span>
-                                <span className="action-label">Payments</span>
-                            </button>
-                            <button className="action-card" onClick={() => navigate('/pricing')}>
-                                <span className="action-icon"><Star size={20} /></span>
-                                <span className="action-label">Upgrade</span>
-                            </button>
-                        </div>
-                    </div>
-                </>
-            )}
 
             <ReviewRequestModal
                 isOpen={isReviewModalOpen}
