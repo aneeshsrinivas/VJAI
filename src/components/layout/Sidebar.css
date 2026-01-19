@@ -1,7 +1,8 @@
 /* src/components/layout/Sidebar.css */
 .sidebar {
     width: 250px;
-    background-color: var(--color-deep-blue);
+    background: linear-gradient(180deg, #0f172a 0%, #1e293b 100%);
+    /* Premium Deep Dark Blue Gradient */
     color: var(--color-white);
     height: 100vh;
     position: fixed;
@@ -11,20 +12,24 @@
     flex-direction: column;
     padding: 24px;
     z-index: 100;
+    box-shadow: 4px 0 24px rgba(0, 0, 0, 0.1);
+    /* Subtle depth */
 }
 
 .sidebar-brand {
     font-family: var(--font-display);
     font-size: 24px;
-    font-weight: 700;
+    font-weight: 800;
     margin-bottom: 48px;
     display: flex;
     align-items: center;
     gap: 12px;
+    letter-spacing: -0.02em;
 }
 
 .sidebar-brand span {
-    color: var(--color-ivory);
+    color: var(--color-white);
+    text-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
 }
 
 .sidebar-nav {
@@ -36,34 +41,38 @@
 
 .nav-item {
     padding: 12px 16px;
-    border-radius: var(--radius-sm);
-    color: var(--color-white);
-    /* 100% opacity for better visibility */
+    border-radius: 12px;
+    /* Softer roundness */
+    color: #94a3b8;
+    /* Muted text for inactive */
     text-decoration: none;
     font-family: var(--font-primary);
     font-weight: 500;
     display: flex;
     align-items: center;
     gap: 12px;
-    transition: all 0.2s ease;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
     cursor: pointer;
     border-left: 3px solid transparent;
-    /* Clean indicator instead of full bg sometimes works better, but keeping simple solid for now */
-    opacity: 0.9;
+    border: 1px solid transparent;
+    /* Prepare for border hover */
 }
 
 .nav-item:hover {
-    background-color: rgba(255, 255, 255, 0.1);
-    opacity: 1;
+    background-color: rgba(255, 255, 255, 0.05);
+    color: var(--color-white);
+    transform: translateX(4px);
+    /* Subtle nudging */
 }
 
 .nav-item.active {
-    background-color: var(--color-warm-orange);
-    color: var(--color-white);
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
-    /* Reduced glow */
-    opacity: 1;
+    background: linear-gradient(90deg, rgba(59, 130, 246, 0.15) 0%, rgba(59, 130, 246, 0.05) 100%);
+    /* Subtle glowing active back */
+    color: #3b82f6;
+    /* Bright Blue text */
+    border-left: 3px solid #3b82f6;
     font-weight: 600;
+    box-shadow: none;
 }
 
 .nav-icon {
