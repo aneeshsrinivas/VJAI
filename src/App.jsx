@@ -1,5 +1,9 @@
 import React from 'react';
-import { BrowserRouter as Router, Routes, Route, Outlet, useLocation } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Outlet } from 'react-router-dom';
+import { ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
+
+// Page imports
 import LandingPage from './pages/LandingPage';
 import RoleSelectionPage from './pages/RoleSelectionPage';
 import RegistrationPage from './pages/RegistrationPage';
@@ -20,12 +24,10 @@ import CoachRoster from './pages/admin/CoachRoster';
 import FinanceReports from './pages/admin/FinanceReports';
 import DemosPage from './pages/admin/DemosPage';
 import BroadcastPage from './pages/admin/BroadcastPage';
-import DirectChatPage from './pages/admin/DirectChatPage';
 import SubscriptionPage from './pages/admin/SubscriptionPage';
 import AccountsPage from './pages/admin/AccountsPage';
 import AnalyticsPage from './pages/admin/AnalyticsPage';
 import ChatPage from './pages/common/ChatPage';
-import BatchChat from './pages/BatchChat';
 import PlanSelection from './pages/PlanSelection';
 import PaymentCheckout from './pages/PaymentCheckout';
 import PaymentSuccess from './pages/PaymentSuccess';
@@ -36,11 +38,12 @@ import ContactUs from './pages/ContactUs';
 import FAQ from './pages/FAQ';
 import TermsAndConditions from './pages/TermsAndConditions';
 import PrivacyPolicy from './pages/PrivacyPolicy';
-import Header from './components/layout/Header';
+
+// Component imports
 import Sidebar from './components/layout/Sidebar';
 import ErrorBoundary from './components/ui/ErrorBoundary';
-
 import ParentNavbar from './components/layout/ParentNavbar';
+import { AuthProvider } from './context/AuthContext';
 
 // Layout Wrappers
 const ParentLayout = () => {
@@ -66,67 +69,71 @@ const StaffLayout = ({ role }) => (
 const App = () => {
   return (
     <Router>
-      <ErrorBoundary>
-        <Routes>
-          {/* Onboarding Routes */}
-          <Route path="/" element={<LandingPage />} />
-          <Route path="/about" element={<AboutUs />} />
-          <Route path="/services" element={<Services />} />
-          <Route path="/contact" element={<ContactUs />} />
-          <Route path="/faq" element={<FAQ />} />
-          <Route path="/terms" element={<TermsAndConditions />} />
-          <Route path="/privacy" element={<PrivacyPolicy />} />
-          <Route path="/select-role" element={<RoleSelectionPage />} />
-          <Route path="/register" element={<RegistrationPage />} />
-          <Route path="/registration-success" element={<RegistrationSuccessPage />} />
-          <Route path="/login" element={<Login />} />
-          <Route path="/demo-booking" element={<DemoBooking />} />
-          <Route path="/book-demo" element={<PlaceholderPage title="Book a Free Demo" />} />
+      <AuthProvider>
+        <ErrorBoundary>
+          <ToastContainer position="top-right" autoClose={3000} hideProgressBar={false} />
+          <Routes>
+            {/* Onboarding Routes */}
+            <Route path="/" element={<LandingPage />} />
+            <Route path="/about" element={<AboutUs />} />
+            <Route path="/demo-confirmation" element={<PlaceholderPage title="Demo Request Submitted!" message="Thank you! Our team will contact you within 24 hours to schedule your free demo class." />} />
+            <Route path="/services" element={<Services />} />
+            <Route path="/contact" element={<ContactUs />} />
+            <Route path="/faq" element={<FAQ />} />
+            <Route path="/terms" element={<TermsAndConditions />} />
+            <Route path="/privacy" element={<PrivacyPolicy />} />
+            <Route path="/select-role" element={<RoleSelectionPage />} />
+            <Route path="/register" element={<RegistrationPage />} />
+            <Route path="/registration-success" element={<RegistrationSuccessPage />} />
+            <Route path="/login" element={<Login />} />
+            <Route path="/demo-booking" element={<DemoBooking />} />
+            <Route path="/book-demo" element={<PlaceholderPage title="Book a Free Demo" />} />
 
-          {/* Payment Routes */}
-          <Route path="/pricing" element={<PlanSelection />} />
-          <Route path="/payment/checkout" element={<PaymentCheckout />} />
-          <Route path="/payment/success" element={<PaymentSuccess />} />
+            {/* Payment Routes */}
+            <Route path="/pricing" element={<PlanSelection />} />
+            <Route path="/payment/checkout" element={<PaymentCheckout />} />
+            <Route path="/payment/success" element={<PaymentSuccess />} />
 
-          {/* Parent Routes */}
-          <Route element={<ParentLayout />}>
-            <Route path="/parent" element={<ParentDashboard />} />
-            <Route path="/parent/chat" element={<ChatPage userRole="CUSTOMER" />} />
-            <Route path="/parent/schedule" element={<ParentSchedule />} />
-            <Route path="/parent/assignments" element={<ParentAssignments />} />
-            <Route path="/parent/payments" element={<ParentPayments />} />
-          </Route>
+            {/* Parent Routes */}
+            <Route element={<ParentLayout />}>
+              <Route path="/parent" element={<ParentDashboard />} />
+              <Route path="/parent/chat" element={<ChatPage userRole="CUSTOMER" />} />
+              <Route path="/parent/schedule" element={<ParentSchedule />} />
+              <Route path="/parent/assignments" element={<ParentAssignments />} />
+              <Route path="/parent/payments" element={<ParentPayments />} />
+            </Route>
 
-          {/* Student Routes */}
-          <Route path="/student" element={<StudentPage />} />
+            {/* Student Routes */}
+            <Route path="/student" element={<StudentPage />} />
 
-          {/* Coach Routes */}
-          <Route element={<StaffLayout role="coach" />}>
-            <Route path="/coach" element={<CoachPage />} />
-            <Route path="/coach/students" element={<PlaceholderPage title="My Students" />} />
-            <Route path="/coach/batches" element={<CoachBatches />} />
-            <Route path="/coach/schedule" element={<CoachSchedule />} />
-            <Route path="/coach/chat" element={<ChatPage userRole="COACH" />} />
-          </Route>
+            {/* Coach Routes */}
+            <Route element={<StaffLayout role="coach" />}>
+              <Route path="/coach" element={<CoachPage />} />
+              <Route path="/coach/students" element={<PlaceholderPage title="My Students" />} />
+              <Route path="/coach/batches" element={<CoachBatches />} />
+              <Route path="/coach/schedule" element={<CoachSchedule />} />
+              <Route path="/coach/chat" element={<ChatPage userRole="COACH" />} />
+            </Route>
 
-          {/* Admin Routes */}
-          <Route element={<StaffLayout role="admin" />}>
-            <Route path="/admin" element={<AdminDashboard />} />
-            <Route path="/chat" element={<ChatPage userRole="ADMIN" />} />
-            <Route path="/admin/students" element={<StudentDatabase />} />
-            <Route path="/admin/coaches" element={<CoachRoster />} />
-            <Route path="/admin/demos" element={<DemosPage />} />
-            <Route path="/admin/calendar" element={<PlaceholderPage title="Calendar Management" />} />
-            <Route path="/admin/finances" element={<FinanceReports />} />
-            <Route path="/admin/broadcast" element={<BroadcastPage />} />
-            <Route path="/admin/messages" element={<ChatPage userRole="ADMIN" />} />
-            <Route path="/admin/subscriptions" element={<SubscriptionPage />} />
-            <Route path="/admin/accounts" element={<AccountsPage />} />
-            <Route path="/admin/analytics" element={<AnalyticsPage />} />
-          </Route>
+            {/* Admin Routes */}
+            <Route element={<StaffLayout role="admin" />}>
+              <Route path="/admin" element={<AdminDashboard />} />
+              <Route path="/chat" element={<ChatPage userRole="ADMIN" />} />
+              <Route path="/admin/students" element={<StudentDatabase />} />
+              <Route path="/admin/coaches" element={<CoachRoster />} />
+              <Route path="/admin/demos" element={<DemosPage />} />
+              <Route path="/admin/calendar" element={<PlaceholderPage title="Calendar Management" />} />
+              <Route path="/admin/finances" element={<FinanceReports />} />
+              <Route path="/admin/broadcast" element={<BroadcastPage />} />
+              <Route path="/admin/messages" element={<ChatPage userRole="ADMIN" />} />
+              <Route path="/admin/subscriptions" element={<SubscriptionPage />} />
+              <Route path="/admin/accounts" element={<AccountsPage />} />
+              <Route path="/admin/analytics" element={<AnalyticsPage />} />
+            </Route>
 
-        </Routes>
-      </ErrorBoundary>
+          </Routes>
+        </ErrorBoundary>
+      </AuthProvider>
     </Router>
   );
 };

@@ -1,61 +1,133 @@
-import React, { useState } from 'react';
-import Modal from '../ui/Modal';
+import React, { useState, useEffect } from 'react';
+import { getAllCoaches, assignCoachToDemo } from '../../services/firestoreService';
+import { useAuth } from '../../context/AuthContext';
 import Button from '../ui/Button';
 import Input from '../ui/Input';
+import './AssignCoachModal.css';
 
-const AssignCoachModal = ({ isOpen, onClose, demo, onConfirm }) => {
-    const [selectedCoach, setSelectedCoach] = useState('');
+const AssignCoachModal = ({ demo, onClose, onSuccess }) => {
+    // Guard against undefined demo
+    if (!demo) {
+        return null;
+    }
+
+    const { currentUser } = useAuth();
+    const [coaches, setCoaches] = useState([]);
+    const [selectedCoachId, setSelectedCoachId] = useState('');
     const [meetingLink, setMeetingLink] = useState('');
-    const [scheduledTime, setScheduledTime] = useState(demo?.preferredTime || '');
+    const [scheduledStart, setScheduledStart] = useState('');
+    const [loading, setLoading] = useState(false);
+    const [error, setError] = useState('');
 
-    const handleConfirm = () => {
-        onConfirm({
-            ...demo,
-            coach: selectedCoach,
+    useEffect(() => {
+        fetchCoaches();
+    }, []);
+
+    const fetchCoaches = async () => {
+        const result = await getAllCoaches();
+        if (result.success) {
+            setCoaches(result.coaches);
+        }
+    };
+
+    const handleSubmit = async (e) => {
+        e.preventDefault();
+
+        if (!selectedCoachId) {
+            setError('Please select a coach');
+            return;
+        }
+        if (!meetingLink) {
+            setError('Please provide a meeting link');
+            return;
+        }
+        if (!scheduledStart) {
+            setError('Please select a scheduled date/time');
+            return;
+        }
+
+        setLoading(true);
+        setError('');
+
+        const result = await assignCoachToDemo(
+            demo.id,
+            selectedCoachId,
+            currentUser.uid,
             meetingLink,
-            scheduledTime,
-            status: 'SCHEDULED'
-        });
-        onClose();
+            scheduledStart
+        );
+
+        if (result.success) {
+            onSuccess();
+        } else {
+            setError(result.error || 'Failed to assign coach');
+        }
+
+        setLoading(false);
     };
 
     return (
-        <Modal isOpen={isOpen} onClose={onClose} title={`Assign Coach for ${demo?.studentName}`}>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-                <div>
-                    <label style={{ display: 'block', marginBottom: '8px', fontSize: '14px', fontWeight: '600' }}>Select Coach</label>
-                    <select
-                        style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid #ccc' }}
-                        value={selectedCoach}
-                        onChange={(e) => setSelectedCoach(e.target.value)}
-                    >
-                        <option value="">-- Choose a Coach --</option>
-                        <option value="Ramesh Babu">Ramesh Babu (IM) - 5:00 PM Available</option>
-                        <option value="Suresh Kumar">Suresh Kumar (FM) - 6:00 PM Available</option>
-                        <option value="Priya Sharma">Priya Sharma (WGM) - Flexible</option>
-                    </select>
+        <div className="modal-overlay">
+            <div className="modal-content assign-coach-modal">
+                <button className="modal-close" onClick={onClose}>&times;</button>
+                <h2>Assign Coach to Demo</h2>
+
+                <div className="demo-info">
+                    <p><strong>Student:</strong> {demo.studentName}</p>
+                    <p><strong>Parent:</strong> {demo.parentName} ({demo.parentEmail})</p>
+                    <p><strong>Preferred Time:</strong> {demo.preferredDateTime}</p>
+                    <p><strong>Experience:</strong> {demo.chessExperience}</p>
                 </div>
 
-                <Input
-                    label="Meeting Link (Zoom/Meet)"
-                    placeholder="https://meet.google.com/..."
-                    value={meetingLink}
-                    onChange={(e) => setMeetingLink(e.target.value)}
-                />
+                {error && <div className="error-message">{error}</div>}
 
-                <Input
-                    label="Confirm Time"
-                    type="datetime-local"
-                    value={scheduledTime}
-                    onChange={(e) => setScheduledTime(e.target.value)}
-                />
+                <form onSubmit={handleSubmit}>
+                    <div className="form-group">
+                        <label>Select Coach</label>
+                        <select
+                            value={selectedCoachId}
+                            onChange={(e) => setSelectedCoachId(e.target.value)}
+                            required
+                        >
+                            <option value="">-- Select a Coach --</option>
+                            {coaches.map(coach => (
+                                <option key={coach.id} value={coach.id}>
+                                    {coach.coachName || coach.fullName} - {coach.chessTitle || 'Trainer'}
+                                </option>
+                            ))}
+                        </select>
+                    </div>
 
-                <div style={{ display: 'flex', gap: '12px', marginTop: '16px', justifyContent: 'flex-end' }}>
-                    <Button variant="secondary" onClick={onClose}>Cancel</Button>
-                    <Button onClick={handleConfirm} disabled={!selectedCoach || !meetingLink}>Confirm & Schedule</Button>
-                </div>
+                    <div className="form-group">
+                        <label>Meeting Link (Zoom/Meet)</label>
+                        <Input
+                            type="url"
+                            placeholder="https://zoom.us/j/..."
+                            value={meetingLink}
+                            onChange={(e) => setMeetingLink(e.target.value)}
+                            required
+                        />
+                    </div>
+
+                    <div className="form-group">
+                        <label>Scheduled Date & Time</label>
+                        <Input
+                            type="datetime-local"
+                            value={scheduledStart}
+                            onChange={(e) => setScheduledStart(e.target.value)}
+                            required
+                        />
+                    </div>
+
+                    <div className="modal-actions">
+                        <Button type="button" variant="secondary" onClick={onClose}>Cancel</Button>
+                        <Button type="submit" disabled={loading}>
+                            {loading ? 'Assigning...' : 'Assign Coach'}
+                        </Button>
+                    </div>
+                </form>
             </div>
-        </Modal>
+        </div>
     );
 };
 
