@@ -23,6 +23,56 @@ const ApproveCoachModal = ({ application, onClose, onSuccess }) => {
             const result = await approveCoachApplication(application.id, simulatedUid, password, currentUser?.uid);
 
             if (result.success) {
+                // Send welcome email with credentials via Web3Forms
+                try {
+                    const emailResponse = await fetch('https://api.web3forms.com/submit', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({
+                            access_key: import.meta.env.VITE_WEB3FORMS_ACCESS_KEY,
+                            subject: 'Welcome to Indian Chess Academy - Coach Account Approved! 🎉',
+                            from_name: 'Indian Chess Academy',
+                            reply_to: 'indianchessacademy@chess.com',
+                            to: application.email,
+                            message: `Dear ${application.fullName},
+
+Congratulations! Your application as a coach at Indian Chess Academy has been APPROVED! 🎉
+
+🔑 Your Login Credentials:
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+• Email: ${application.email}
+• Temporary Password: ${password}
+• Login URL: ${window.location.origin}/login
+
+📋 Next Steps:
+1. Login using the credentials above
+2. Change your password in Settings (important!)
+3. Complete your coach profile
+4. Wait for batch assignments from the admin team
+
+We're excited to have you on our team and look forward to working together to shape the next generation of chess champions!
+
+Best regards,
+Indian Chess Academy Team
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+📧 Support: indianchessacademy@chess.com
+🌐 Website: www.indianchessacademy.com`
+                        })
+                    });
+
+                    if (emailResponse.ok) {
+                        console.log('✅ Coach credentials email sent to:', application.email);
+                    } else {
+                        console.error('⚠️ Email send failed, but coach was approved');
+                    }
+                } catch (emailError) {
+                    console.error('Email sending error:', emailError);
+                    // Don't fail the approval if email fails
+                }
+
                 onSuccess();
             } else {
                 setError(result.error);

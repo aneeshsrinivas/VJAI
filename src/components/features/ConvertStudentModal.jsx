@@ -49,6 +49,92 @@ const ConvertStudentModal = ({ demo, onClose, onSuccess }) => {
             const result = await convertDemoToStudent(demo.id, simulatedUid, paymentData);
 
             if (result.success) {
+                // Send emails via Web3Forms
+                try {
+                    // 1. Notify Admin of Payment
+                    const adminEmailResponse = await fetch('https://api.web3forms.com/submit', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            access_key: import.meta.env.VITE_WEB3FORMS_ACCESS_KEY,
+                            subject: `🎉 New Payment Received - ${demo.studentName}`,
+                            from_name: 'VJAI System',
+                            reply_to: 'indianchessacademy@chess.com',
+                            to: 'indianchessacademy@chess.com',
+                            message: `New payment received!
+
+💰 Payment Details:
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+• Parent: ${demo.parentName} (${demo.parentEmail})
+• Student: ${demo.studentName}
+• Plan: ${formData.planId}
+• Amount: ₹${formData.amount}
+• Date: ${new Date().toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' })}
+
+📋 Action Required:
+• Assign coach to batch
+• Send LMS access to parent (automated)
+
+Student ID: ${result.studentId}
+Account ID: ${simulatedUid}`
+                        })
+                    });
+
+                    if (adminEmailResponse.ok) {
+                        console.log('✅ Admin notification sent');
+                    }
+
+                    // 2. Send LMS Access to Parent
+                    const parentEmailResponse = await fetch('https://api.web3forms.com/submit', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            access_key: import.meta.env.VITE_WEB3FORMS_ACCESS_KEY,
+                            subject: `Welcome to VJAI - Your LMS Access for ${demo.studentName}`,
+                            from_name: 'Indian Chess Academy',
+                            reply_to: 'indianchessacademy@chess.com',
+                            to: demo.parentEmail,
+                            message: `Dear ${demo.parentName},
+
+Thank you for enrolling ${demo.studentName} at Indian Chess Academy! 🎉
+
+🎓 Your LMS Access:
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+• Student Name: ${demo.studentName}
+• Parent Email: ${demo.parentEmail}
+• Temporary Password: ${formData.password}
+• Portal URL: ${window.location.origin}/login
+
+📚 What's Next:
+1. Login to your parent dashboard
+2. View class schedule (will be updated once coach is assigned)
+3. Access lesson materials & resources
+4. Chat with coach in batch group chat
+5. Track ${demo.studentName}'s progress
+
+Your first class will be scheduled shortly by our admin team. You'll receive an email with the class details.
+
+Important: Please change your password after first login in Settings.
+
+Best regards,
+Indian Chess Academy Team
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+📧 Support: indianchessacademy@chess.com
+🌐 Website: www.indianchessacademy.com`
+                        })
+                    });
+
+                    if (parentEmailResponse.ok) {
+                        console.log('✅ LMS access email sent to:', demo.parentEmail);
+                    } else {
+                        console.error('⚠️ Parent email failed, but account created');
+                    }
+                } catch (emailError) {
+                    console.error('Email sending error:', emailError);
+                    // Don't fail conversion if emails fail
+                }
+
                 onSuccess();
             } else {
                 setError(result.error || 'Failed to convert student');

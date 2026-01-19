@@ -82,7 +82,8 @@ const DemosPage = () => {
     const filteredDemos = demos.filter(demo => {
         const matchesSearch = (demo.studentName || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
             (demo.parentEmail || '').toLowerCase().includes(searchTerm.toLowerCase());
-        return matchesSearch;
+        const matchesFilter = filter === 'ALL' || demo.status === filter;
+        return matchesSearch && matchesFilter;
     });
 
     return (
@@ -159,7 +160,12 @@ const DemosPage = () => {
                                     </td>
                                     <td style={{ padding: '16px' }}>{getStatusBadge(demo.status)}</td>
                                     <td style={{ padding: '16px', fontSize: '14px' }}>
-                                        <div>{demo.preferredDateTime ? new Date(demo.preferredDateTime).toLocaleString([], { dateStyle: 'short', timeStyle: 'short' }) : '-'}</div>
+                                        <div>
+                                            {demo.scheduledStart ?
+                                                new Date(demo.scheduledStart).toLocaleString([], { dateStyle: 'short', timeStyle: 'short' }) :
+                                                (demo.preferredDateTime || (demo.preferredDate && demo.preferredTime ? `${demo.preferredDate} ${demo.preferredTime}` : '-'))
+                                            }
+                                        </div>
                                         <div style={{ fontSize: '11px', color: '#666' }}>{demo.timezone}</div>
                                     </td>
                                     <td style={{ padding: '16px', fontSize: '14px' }}>
