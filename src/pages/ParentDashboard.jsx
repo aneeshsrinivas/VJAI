@@ -53,12 +53,36 @@ const ParentDashboard = () => {
                 setStudent(studentData);
 
                 // If coach is assigned, fetch/listen to coach details
+                // 1. Direct Assignment
                 if (studentData.assignedCoachId) {
-                    // One-time fetch is usually enough for coach name/photo unless we want their status
-                    const coachDoc = await getDoc(doc(db, COLLECTIONS.COACHES, studentData.assignedCoachId));
-                    if (coachDoc.exists()) {
-                        setCoach(coachDoc.data());
-                    }
+                    getDoc(doc(db, COLLECTIONS.COACHES, studentData.assignedCoachId)).then(coachDoc => {
+                        if (coachDoc.exists()) setCoach(coachDoc.data());
+                    });
+                }
+                // 2. Batch Assignment (Group Students)
+                else if (studentData.batchId) {
+                    // We need to find which coach owns this batch.
+                    // Usually batches are stored in 'batches' collection OR inside coach's subcollection.
+                    // Given previous file 'CoachBatches.jsx', it seems batches might be loose or just IDs.
+                    // Let's assume we can fetch the batch doc. Wait, previous code used hardcoded IDs like 'batch_group'.
+                    // If 'batchId' is 'batch_group', how do we know WHICH coach?
+                    // Ah, the problem is deeper: 'batch_group' is a generic ID used in CoachBatches.jsx mock data.
+                    // In a real app, a batch ID should be unique like 'coachId_batchId'.
+
+                    // QUICK FIX: If the student has a batchId, we query the 'batches' collection (if it exists) 
+                    // OR we query 'coaches' to find who has this student?
+                    // No, simpler: The student document SHOULD have 'assignedCoachId' synced when added to a batch.
+
+                    // If sync failed, let's try to look up the batch document if it exists.
+                    // Let's assume there is a 'batches' collection for now or fallback to the schedule query.
+
+                    // ALTERNATIVE: Query 'coaches' who have this student in their list? No, expensive.
+
+                    // Let's rely on the previous fallback I added: "Scheduled Demos".
+                    // But maybe there are NO demos.
+
+                    // NEW FALLBACK: Look for any 'schedule' item (class) for this batch, and see if it has a coachId.
+                    // This will happen in the schedule listener below.
                 }
             } else {
                 // Fallback if no student doc found (maybe just registered)
@@ -91,11 +115,110 @@ const ParentDashboard = () => {
                     status: data.status,
                     isToday: isToday,
                     topic: 'Demo Class',
-                    link: data.meetLink // Assuming meetLink is stored
+                    link: data.meetLink, // Assuming meetLink is stored
+                    assignedCoachId: data.assignedCoachId, // Needed for fallback coach display
+                    type: 'demo'
                 };
             });
             setScheduleItems(items);
+
+            // Fallback: If no coach is set yet, try to find one from scheduled demos
+            // This handles the "Pre-Student" phase or sync issues
+            const scheduledDemo = snapshot.docs.map(d => d.data()).find(d => d.status === 'SCHEDULED' && d.assignedCoachId);
+
+            if (scheduledDemo && scheduledDemo.assignedCoachId) {
+                // Only set if we don't already have a coach from student profile
+                // We check 'student' state, but inside this callback 'student' might be stale due to closure.
+                // Better to check if 'coach' is null.
+                setCoach(prevCoach => {
+                    if (!prevCoach) {
+                        getDoc(doc(db, COLLECTIONS.COACHES, scheduledDemo.assignedCoachId)).then(coachDoc => {
+                            if (coachDoc.exists()) {
+                                setCoach(coachDoc.data());
+                            }
+                        });
+                    }
+                    return prevCoach;
+                });
+            }
         });
+
+        // 2b. Listen to Class Schedule (Regular Batches)
+        // We need the student's batchId to fetch specific classes
+        // If student is null, we can't fetch batch classes yet, but we can rely on the demo listener above.
+        let unsubscribeSchedule = () => { };
+
+        if (student?.batchId || student?.batchName) { // Only fetch if assigned to a batch
+            // Broaden query to catch mismatched batch names (e.g. "Group Batch" vs "Intermediate Group Batch")
+            const batchNames = [
+                student.batchName,
+                'Intermediate Group Batch',
+                'Group Batch',
+                'Intermediate 1:1'
+            ].filter(Boolean); // Remove null/undefined
+
+            // Use 'in' query to match any variation
+            const qSchedule = query(
+                collection(db, COLLECTIONS.SCHEDULE),
+                where('batchName', 'in', [...new Set(batchNames)]), // Unique values
+                // orderBy('date', 'asc'), 
+            );
+
+            unsubscribeSchedule = onSnapshot(qSchedule, (snapshot) => {
+                const classes = snapshot.docs.map(doc => {
+                    const data = doc.data();
+                    // Handle different date formats (Timestamp or ISO string)
+                    let dateObj = new Date();
+                    if (data.start?.toDate) dateObj = data.start.toDate();
+                    else if (data.date?.toDate) dateObj = data.date.toDate();
+                    else if (data.start) dateObj = new Date(data.start);
+
+                    const isToday = new Date().toDateString() === dateObj.toDateString();
+
+                    return {
+                        id: doc.id,
+                        day: dateObj.toLocaleDateString('en-US', { weekday: 'long' }),
+                        time: dateObj.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' }),
+                        status: 'SCHEDULED', // Regular classes are usually scheduled
+                        isToday: isToday,
+                        topic: data.title || 'Regular Class',
+                        link: data.meetLink,
+                        type: 'class',
+                        coachId: data.coachId // IMPORTANT: Capture coachId from class
+                    };
+                });
+
+                // Fallback: If still no coach assigned, try to grab it from the first class found
+                setCoach(prev => {
+                    if (!prev && classes.length > 0) {
+                        const firstClass = classes.find(c => c.coachId);
+                        if (firstClass) {
+                            getDoc(doc(db, COLLECTIONS.COACHES, firstClass.coachId)).then(snap => {
+                                if (snap.exists()) setCoach(snap.data());
+                            });
+                        }
+                    }
+                    return prev;
+                });
+
+                // Merge with existing demos (scheduleItems currently only has demos)
+                // We need to be careful not to overwrite demos blindly. 
+                // Let's use a functional update to merge carefully or just maintain two state variables.
+                // Simpler: Update scheduleItems to include both. 
+                // For now, let's just use a separate state or merge logic inside the effect?
+                // Better: Let's move setScheduleItems to a combiner function or effect.
+                // Actually, let's just append to the state.
+                setScheduleItems(prev => {
+                    // Filter out old class items to avoid duplicates on re-render
+                    const demos = prev.filter(i => i.type !== 'class');
+                    const all = [...demos, ...classes].sort((a, b) => {
+                        // Simple sort helper if needed, or rely on render order
+                        return 0;
+                    });
+                    return all;
+                });
+            });
+        }
 
         // 3. Listen to Broadcasts (Announcements)
         const qBroadcasts = query(
@@ -116,6 +239,7 @@ const ParentDashboard = () => {
         return () => {
             unsubscribeStudent();
             unsubscribeDemos();
+            if (unsubscribeSchedule) unsubscribeSchedule();
             unsubscribeBroadcasts();
         };
     }, [currentUser]);
@@ -125,7 +249,7 @@ const ParentDashboard = () => {
         // Prefer real student data, fall back to auth userData
         const lvl = student?.level || userData?.learningLevel || 'Beginner';
         let p = 15; // Beginner
-        const lvlLower = typeof lvl === 'string' ? lvl.toLowerCase() : '';
+        const lvlLower = (typeof lvl === 'string' ? lvl : '').toLowerCase();
 
         if (lvlLower.includes('intermediate') || lvlLower.includes('rated 1000')) p = 50;
         if (lvlLower.includes('advanced') || lvlLower.includes('rated 1400')) p = 85;

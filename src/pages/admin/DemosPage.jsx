@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { getAllDemos, getDemosByStatus } from '../../services/firestoreService';
+import { getAllDemos, getDemosByStatus, deleteDemo } from '../../services/firestoreService';
 import { useAuth } from '../../context/AuthContext';
 import Card from '../../components/ui/Card';
 import Button from '../../components/ui/Button';
@@ -8,6 +8,7 @@ import DemoOutcomeModal from '../../components/features/DemoOutcomeModal';
 import ConvertStudentModal from '../../components/features/ConvertStudentModal';
 import { toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+import { Trash2, Edit } from 'lucide-react';
 
 const DemosPage = () => {
     const { currentUser } = useAuth();
@@ -77,6 +78,20 @@ const DemosPage = () => {
     const handleOutcomeClick = (demo) => {
         setSelectedDemo(demo);
         setOutcomeModalOpen(true);
+    };
+
+    const handleDeleteClick = async (demoId) => {
+        if (window.confirm('Are you sure you want to delete this demo request? This action cannot be undone.')) {
+            setLoading(true);
+            const result = await deleteDemo(demoId);
+            if (result.success) {
+                toast.success('Demo request deleted successfully');
+                fetchDemos();
+            } else {
+                toast.error('Failed to delete demo: ' + result.error);
+            }
+            setLoading(false);
+        }
     };
 
     const filteredDemos = demos.filter(demo => {
@@ -177,20 +192,56 @@ const DemosPage = () => {
                                     </td>
                                     <td style={{ padding: '16px' }}>
                                         <div style={{ display: 'flex', gap: '8px' }}>
-                                            {demo.status === 'PENDING' && (
-                                                <Button size="sm" onClick={() => handleAssignClick(demo)}>Assign Coach</Button>
+                                            {/* Action: Assign or Reassign */}
+                                            {(demo.status === 'PENDING' || demo.status === 'SCHEDULED') && (
+                                                <Button
+                                                    size="sm"
+                                                    variant={demo.status === 'SCHEDULED' ? 'outline' : 'primary'}
+                                                    onClick={() => handleAssignClick(demo)}
+                                                    title={demo.status === 'SCHEDULED' ? "Reassign Coach" : "Assign Coach"}
+                                                >
+                                                    {demo.status === 'SCHEDULED' ? <Edit size={14} /> : 'Assign'}
+                                                </Button>
                                             )}
+
+                                            {/* Action: Record Outcome */}
                                             {demo.status === 'SCHEDULED' && (
-                                                <Button size="sm" variant="secondary" onClick={() => handleOutcomeClick(demo)}>Record Outcome</Button>
+                                                <Button size="sm" variant="secondary" onClick={() => handleOutcomeClick(demo)}>
+                                                    Outcome
+                                                </Button>
                                             )}
+
+                                            {/* Action: Convert */}
                                             {(demo.status === 'INTERESTED' || demo.status === 'ATTENDED') && (
                                                 <Button size="sm" style={{ backgroundColor: 'var(--color-warm-orange)' }} onClick={() => {
                                                     setSelectedDemo(demo);
                                                     setConvertModalOpen(true);
                                                 }}>
-                                                    Convert to Student
+                                                    Convert
                                                 </Button>
                                             )}
+
+                                            {/* Action: Delete */}
+                                            <button
+                                                onClick={() => handleDeleteClick(demo.id)}
+                                                style={{
+                                                    background: 'none',
+                                                    border: 'none',
+                                                    cursor: 'pointer',
+                                                    color: '#ef4444',
+                                                    padding: '6px',
+                                                    borderRadius: '6px',
+                                                    display: 'flex',
+                                                    alignItems: 'center',
+                                                    justifyContent: 'center',
+                                                    transition: 'background 0.2s'
+                                                }}
+                                                onMouseEnter={(e) => e.currentTarget.style.background = '#fee2e2'}
+                                                onMouseLeave={(e) => e.currentTarget.style.background = 'none'}
+                                                title="Delete Demo Request"
+                                            >
+                                                <Trash2 size={16} />
+                                            </button>
                                         </div>
                                     </td>
                                 </tr>

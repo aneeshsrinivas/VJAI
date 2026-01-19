@@ -22,6 +22,7 @@ const CoachPage = () => {
     const [demos, setDemos] = useState([]);
     const [students, setStudents] = useState([]);
     const [todayClasses, setTodayClasses] = useState([]);
+    const [selectedDemo, setSelectedDemo] = useState(null); // Modal state
 
     useEffect(() => {
         if (!currentUser?.uid) return;
@@ -36,11 +37,21 @@ const CoachPage = () => {
         );
 
         const unsubDemos = onSnapshot(qDemos, (snapshot) => {
-            const demoList = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+            const demoList = snapshot.docs.map(doc => {
+                const data = doc.data();
+                return {
+                    id: doc.id,
+                    ...data,
+                    // Normalize date field: fallback to scheduledStart if scheduledAt is missing
+                    scheduledAt: data.scheduledAt || data.scheduledStart || data.preferredDateTime
+                };
+            });
             demoList.sort((a, b) => {
-                const aTime = a.scheduledAt?.toMillis?.() || a.scheduledAt || 0;
-                const bTime = b.scheduledAt?.toMillis?.() || b.scheduledAt || 0;
-                return aTime - bTime;
+                const getDate = (d) => {
+                    if (!d.scheduledAt) return 0;
+                    return d.scheduledAt.toDate ? d.scheduledAt.toDate().getTime() : new Date(d.scheduledAt).getTime();
+                };
+                return getDate(a) - getDate(b);
             });
             setDemos(demoList);
 
@@ -300,7 +311,12 @@ const CoachPage = () => {
 
                         <div className="demo-list">
                             {demos.slice(0, 4).map(demo => (
-                                <div key={demo.id} className="demo-item">
+                                <div
+                                    key={demo.id}
+                                    className="demo-item"
+                                    onClick={() => setSelectedDemo(demo)}
+                                    style={{ cursor: 'pointer' }}
+                                >
                                     <div className="demo-date">
                                         <span className="day">{formatDate(demo.scheduledAt)}</span>
                                         <span className="time">{formatTime(demo.scheduledAt)}</span>
@@ -328,7 +344,105 @@ const CoachPage = () => {
                     </div>
                 </div>
             </div>
-        </div>
+
+            {/* Demo Details Modal */}
+            {selectedDemo && (
+                <div style={{
+                    position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000,
+                    backdropFilter: 'blur(4px)'
+                }} onClick={() => setSelectedDemo(null)}>
+                    <div style={{
+                        background: 'white', padding: '24px', borderRadius: '20px',
+                        width: '100%', maxWidth: '400px', boxShadow: '0 20px 40px rgba(0,0,0,0.2)',
+                        animation: 'slideUp 0.3s ease-out'
+                    }} onClick={e => e.stopPropagation()}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                                <Zap size={20} color="#F59E0B" fill="#F59E0B" />
+                                <h3 style={{ margin: 0, fontSize: '18px', fontWeight: 'bold', color: '#1e293b' }}>Demo Details</h3>
+                            </div>
+                            <button onClick={() => setSelectedDemo(null)} style={{ border: 'none', background: 'none', cursor: 'pointer', color: '#64748b' }}>
+                                <ChevronRight size={24} style={{ transform: 'rotate(90deg)' }} />
+                            </button>
+                        </div>
+
+                        <div style={{ marginBottom: '24px' }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '16px', marginBottom: '20px' }}>
+                                <div style={{
+                                    width: '48px', height: '48px',
+                                    background: 'linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%)',
+                                    borderRadius: '14px', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                    color: '#3b82f6', fontWeight: 'bold', fontSize: '20px',
+                                    border: '1px solid #bfdbfe'
+                                }}>
+                                    {selectedDemo.studentName?.charAt(0)}
+                                </div>
+                                <div>
+                                    <h4 style={{ margin: 0, fontSize: '18px', color: '#1e293b' }}>{selectedDemo.studentName}</h4>
+                                    <p style={{ margin: 0, color: '#64748b', fontSize: '14px', marginTop: '2px' }}>
+                                        {selectedDemo.studentAge} years • {selectedDemo.chessExperience}
+                                    </p>
+                                </div>
+                            </div>
+
+                            <div style={{ background: '#f8fafc', padding: '20px', borderRadius: '16px', display: 'flex', flexDirection: 'column', gap: '16px', border: '1px solid #f1f5f9' }}>
+                                <div style={{ display: 'flex', gap: '12px' }}>
+                                    <Calendar size={20} color="#64748b" />
+                                    <div>
+                                        <span style={{ display: 'block', fontSize: '12px', color: '#64748b', marginBottom: '2px' }}>Date & Time</span>
+                                        <span style={{ fontWeight: '600', color: '#1e293b', fontSize: '15px' }}>
+                                            {formatDate(selectedDemo.scheduledAt)} at {formatTime(selectedDemo.scheduledAt)}
+                                        </span>
+                                    </div>
+                                </div>
+                                <div style={{ display: 'flex', gap: '12px' }}>
+                                    <Target size={20} color="#64748b" />
+                                    <div>
+                                        <span style={{ display: 'block', fontSize: '12px', color: '#64748b', marginBottom: '2px' }}>Focus Goal</span>
+                                        <span style={{ fontWeight: '600', color: '#1e293b', fontSize: '15px' }}>{selectedDemo.goal || 'General Improvement'}</span>
+                                    </div>
+                                </div>
+
+                                <div style={{ paddingTop: '16px', borderTop: '1px dashed #e2e8f0', marginTop: '4px' }}>
+                                    {selectedDemo.meetingLink ? (
+                                        <a
+                                            href={selectedDemo.meetingLink}
+                                            target="_blank"
+                                            rel="noreferrer"
+                                            className="btn-join"
+                                            style={{
+                                                justifyContent: 'center', width: '100%', textDecoration: 'none',
+                                                padding: '12px', fontSize: '15px'
+                                            }}
+                                        >
+                                            <Video size={18} /> Join Class Room
+                                        </a>
+                                    ) : (
+                                        <div style={{ textAlign: 'center', color: '#ef4444', fontSize: '14px', background: '#fef2f2', padding: '10px', borderRadius: '8px' }}>
+                                            Checking for meeting link...
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+                        </div>
+
+                        {selectedDemo.parentName && (
+                            <div style={{ borderTop: '1px solid #f1f5f9', paddingTop: '16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                <div>
+                                    <p style={{ margin: '0 0 2px', fontSize: '12px', color: '#94a3b8' }}>Parent Contact</p>
+                                    <p style={{ margin: 0, fontWeight: '600', fontSize: '14px', color: '#334155' }}>{selectedDemo.parentName}</p>
+                                </div>
+                                <div style={{ textAlign: 'right' }}>
+                                    <p style={{ margin: 0, fontSize: '13px', color: '#3b82f6', fontWeight: '500' }}>{selectedDemo.parentEmail}</p>
+                                </div>
+                            </div>
+                        )}
+                    </div>
+                </div>
+            )
+            }
+        </div >
     );
 };
 

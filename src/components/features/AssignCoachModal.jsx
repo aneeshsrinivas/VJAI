@@ -260,6 +260,9 @@ Indian Chess Academy Team
                                                     {rec.coachName}
                                                     {isSelected && <Check size={16} color="#10B981" />}
                                                 </div>
+                                                <div className="rec-email" style={{ fontSize: '11px', color: '#64748b' }}>
+                                                    {coach?.email || 'No email'}
+                                                </div>
                                                 <div className="rec-title">
                                                     {coach?.chessTitle || 'Trainer'}
                                                 </div>

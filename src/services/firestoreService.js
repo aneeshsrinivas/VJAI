@@ -98,6 +98,8 @@ export const getDemosByStatus = async (status) => {
 export const assignCoachToDemo = async (demoId, coachId, adminId, meetingLink, scheduledStart) => {
     try {
         const demoRef = doc(db, COLLECTIONS.DEMOS, demoId);
+
+        // 1. Update Demo Document
         await updateDoc(demoRef, {
             assignedCoachId: coachId,
             assignedAdminId: adminId,
@@ -107,9 +109,45 @@ export const assignCoachToDemo = async (demoId, coachId, adminId, meetingLink, s
             updatedAt: serverTimestamp()
         });
 
+        // 2. Sync with Student Document (if exists)
+        // Fetch demo to get email
+        const demoSnap = await getDoc(demoRef);
+        if (demoSnap.exists()) {
+            const demoData = demoSnap.data();
+            if (demoData.parentEmail) {
+                const qStudent = query(
+                    collection(db, COLLECTIONS.STUDENTS),
+                    where('parentEmail', '==', demoData.parentEmail)
+                );
+                const studentSnap = await getDocs(qStudent);
+
+                if (!studentSnap.empty) {
+                    const studentDoc = studentSnap.docs[0];
+                    await updateDoc(doc(db, COLLECTIONS.STUDENTS, studentDoc.id), {
+                        assignedCoachId: coachId,
+                        updatedAt: serverTimestamp()
+                    });
+                    console.log('Synced coach assignment to student profile');
+                }
+            }
+        }
+
         return { success: true };
     } catch (error) {
         console.error('Error assigning coach to demo:', error);
+        return { success: false, error: error.message };
+    }
+};
+
+/**
+ * Delete Demo Request (Admin Action)
+ */
+export const deleteDemo = async (demoId) => {
+    try {
+        await deleteDoc(doc(db, COLLECTIONS.DEMOS, demoId));
+        return { success: true };
+    } catch (error) {
+        console.error('Error deleting demo:', error);
         return { success: false, error: error.message };
     }
 };
