@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Button from '../components/ui/Button';
+import { createDemoRequest } from '../services/firestoreService';
 import './DemoBooking.css';
 
 const DemoBooking = () => {
@@ -24,12 +25,34 @@ const DemoBooking = () => {
         });
     };
 
-    const handleSubmit = (e) => {
+    const [loading, setLoading] = useState(false);
+
+    const handleSubmit = async (e) => {
         e.preventDefault();
-        // TODO: Send form data to backend
-        console.log('Demo booking submitted:', formData);
-        alert('Thank you! We will contact you shortly to confirm your free demo class.');
-        navigate('/');
+        setLoading(true);
+
+        const payload = {
+            parentName: formData.parentName,
+            parentEmail: formData.email,
+            parentPhone: formData.phone,
+            studentName: formData.studentName,
+            studentAge: formData.studentAge,
+            chessExperience: formData.skillLevel,
+            preferredDate: formData.preferredDate,
+            preferredTime: formData.preferredTime,
+            message: formData.message,
+            timezone: 'IST' // Default or get from browser
+        };
+
+        try {
+            await createDemoRequest(payload);
+            navigate('/demo-confirmation');
+        } catch (error) {
+            console.error(error);
+            alert('Failed to book demo: ' + error.message);
+        } finally {
+            setLoading(false);
+        }
     };
 
     return (

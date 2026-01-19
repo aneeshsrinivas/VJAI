@@ -113,7 +113,7 @@ const Login = () => {
                     </form>
 
                     <div className="register-link">
-                        Don't have an account? <Link to="/select-role">Register Here</Link>
+                        Don't have an account? <Link to="/select-role">Join Us</Link>
                     </div>
 
                     <div className="quick-access">
