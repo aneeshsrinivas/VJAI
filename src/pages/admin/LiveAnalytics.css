@@ -1,0 +1,273 @@
+/* Live Analytics Dashboard Styles */
+
+.live-analytics {
+    padding: 24px;
+    max-width: 1400px;
+    margin: 0 auto;
+}
+
+.analytics-loading {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 50vh;
+    color: #666;
+}
+
+.analytics-loading .spin {
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    from {
+        transform: rotate(0deg);
+    }
+
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+/* Header */
+.analytics-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 24px;
+}
+
+.analytics-header h1 {
+    margin: 0 0 8px;
+    font-size: 28px;
+    color: #1E3A8A;
+}
+
+.last-updated {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 13px;
+    color: #666;
+}
+
+.live-dot {
+    width: 8px;
+    height: 8px;
+    background: #10B981;
+    border-radius: 50%;
+    animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+
+    0%,
+    100% {
+        opacity: 1;
+        transform: scale(1);
+    }
+
+    50% {
+        opacity: 0.5;
+        transform: scale(1.2);
+    }
+}
+
+/* Metrics Grid */
+.metrics-grid {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 16px;
+    margin-bottom: 24px;
+}
+
+.metric-card {
+    padding: 24px;
+    border-radius: 16px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    color: white;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.metric-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.15);
+}
+
+.gradient-blue {
+    background: linear-gradient(135deg, #1E3A8A 0%, #3B82F6 100%);
+}
+
+.gradient-green {
+    background: linear-gradient(135deg, #065F46 0%, #10B981 100%);
+}
+
+.gradient-orange {
+    background: linear-gradient(135deg, #C2410C 0%, #FC8A24 100%);
+}
+
+.gradient-purple {
+    background: linear-gradient(135deg, #6D28D9 0%, #8B5CF6 100%);
+}
+
+.gradient-pink {
+    background: linear-gradient(135deg, #BE185D 0%, #EC4899 100%);
+}
+
+.metric-icon {
+    width: 48px;
+    height: 48px;
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.metric-content {
+    display: flex;
+    flex-direction: column;
+}
+
+.metric-value {
+    font-size: 28px;
+    font-weight: 700;
+    line-height: 1.2;
+}
+
+.metric-label {
+    font-size: 13px;
+    opacity: 0.9;
+}
+
+.animate-count {
+    animation: countUp 0.5s ease-out;
+}
+
+@keyframes countUp {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Charts Grid */
+.charts-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 24px;
+    margin-bottom: 24px;
+}
+
+.chart-card {
+    padding: 24px !important;
+}
+
+.chart-card h3 {
+    margin: 0 0 16px;
+    font-size: 16px;
+    color: #1E3A8A;
+    font-weight: 600;
+}
+
+/* Status Grid */
+.status-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 16px;
+}
+
+.status-card {
+    display: flex !important;
+    align-items: center;
+    gap: 16px;
+    padding: 20px !important;
+}
+
+.status-card.pending {
+    border-left: 4px solid #F59E0B;
+}
+
+.status-card.scheduled {
+    border-left: 4px solid #3B82F6;
+}
+
+.status-card.attended {
+    border-left: 4px solid #8B5CF6;
+}
+
+.status-card.converted {
+    border-left: 4px solid #10B981;
+}
+
+.status-card svg {
+    color: #666;
+}
+
+.status-card>div {
+    display: flex;
+    flex-direction: column;
+}
+
+.status-value {
+    font-size: 24px;
+    font-weight: 700;
+    color: #1E3A8A;
+}
+
+.status-label {
+    font-size: 13px;
+    color: #666;
+}
+
+/* Mobile Responsive */
+@media (max-width: 1200px) {
+    .metrics-grid {
+        grid-template-columns: repeat(3, 1fr);
+    }
+}
+
+@media (max-width: 900px) {
+    .metrics-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .charts-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .status-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (max-width: 600px) {
+    .live-analytics {
+        padding: 16px;
+    }
+
+    .analytics-header {
+        flex-direction: column;
+        gap: 16px;
+    }
+
+    .metrics-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .status-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .metric-value {
+        font-size: 24px;
+    }
+}
