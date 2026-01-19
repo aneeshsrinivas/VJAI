@@ -8,15 +8,52 @@ import { useAuth } from '../../context/AuthContext';
 import { COLLECTIONS } from '../../config/firestoreCollections';
 
 import ScheduleClassModal from '../../components/features/ScheduleClassModal';
+import ClassDetailsModal from '../../components/features/ClassDetailsModal';
 
 const CoachSchedule = () => {
     const { currentUser } = useAuth();
     const [blockedSlots, setBlockedSlots] = useState([]);
     const [isScheduleModalOpen, setIsScheduleModalOpen] = useState(false);
+    const [selectedClass, setSelectedClass] = useState(null);
     const [scheduleItems, setScheduleItems] = useState([]);
+    const [weekOffset, setWeekOffset] = useState(0); // 0 = current week, 1 = next week, etc.
 
     const weekDays = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
     const timeSlots = ['10:00 AM', '12:00 PM', '2:00 PM', '4:00 PM', '6:00 PM', '8:00 PM'];
+
+    // Calculate the week's start (Monday) and end (Sunday) based on offset
+    const getWeekBounds = () => {
+        const today = new Date();
+        const dayOfWeek = today.getDay(); // 0 = Sunday, 1 = Monday, ...
+        const diff = dayOfWeek === 0 ? -6 : 1 - dayOfWeek; // Adjust to get Monday
+
+        const monday = new Date(today);
+        monday.setDate(today.getDate() + diff + (weekOffset * 7));
+        monday.setHours(0, 0, 0, 0);
+
+        const sunday = new Date(monday);
+        sunday.setDate(monday.getDate() + 6);
+        sunday.setHours(23, 59, 59, 999);
+
+        return { monday, sunday };
+    };
+
+    const getWeekLabel = () => {
+        const { monday, sunday } = getWeekBounds();
+        const options = { month: 'short', day: 'numeric' };
+        const start = monday.toLocaleDateString('en-US', options);
+        const end = sunday.toLocaleDateString('en-US', { ...options, year: 'numeric' });
+        return `${start} - ${end}`;
+    };
+
+    const getWeekDates = () => {
+        const { monday } = getWeekBounds();
+        return weekDays.map((_, i) => {
+            const date = new Date(monday);
+            date.setDate(monday.getDate() + i);
+            return date.getDate();
+        });
+    };
 
     useEffect(() => {
         if (!currentUser?.uid) return;
@@ -44,7 +81,10 @@ const CoachSchedule = () => {
                     title: data.batchName || data.topic || 'Class',
                     day: date.toLocaleDateString('en-US', { weekday: 'short' }),
                     time: date.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' }),
-                    rawDate: date
+                    rawDate: date,
+                    batchId: data.batchId,
+                    coachId: data.coachId,
+                    meetLink: data.meetLink
                 };
             });
             updateSchedule(classes, 'classes');
@@ -137,9 +177,12 @@ const CoachSchedule = () => {
                 {/* Week Navigation */}
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
                     <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
-                        <Button variant="outline" size="sm"><ChevronLeft size={16} /></Button>
-                        <span style={{ fontWeight: '700', fontSize: '15px', color: '#1e293b' }}>Jan 19 - Jan 25, 2026</span>
-                        <Button variant="outline" size="sm"><ChevronRight size={16} /></Button>
+                        <Button variant="outline" size="sm" onClick={() => setWeekOffset(weekOffset - 1)}><ChevronLeft size={16} /></Button>
+                        <span style={{ fontWeight: '700', fontSize: '15px', color: '#1e293b', minWidth: '180px', textAlign: 'center' }}>{getWeekLabel()}</span>
+                        <Button variant="outline" size="sm" onClick={() => setWeekOffset(weekOffset + 1)}><ChevronRight size={16} /></Button>
+                        {weekOffset !== 0 && (
+                            <Button variant="outline" size="sm" onClick={() => setWeekOffset(0)} style={{ marginLeft: '8px', fontSize: '12px' }}>Today</Button>
+                        )}
                     </div>
                     <div style={{ display: 'flex', gap: '16px', fontSize: '13px' }}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
@@ -218,14 +261,14 @@ const CoachSchedule = () => {
                                                 borderTop: timeIdx > 0 ? '1px solid #f0f0f0' : 'none',
                                                 borderLeft: '1px solid #f0f0f0',
                                                 minHeight: '90px',
-                                                cursor: existingClass ? 'default' : 'pointer',
+                                                cursor: 'pointer',
                                                 position: 'relative',
                                                 transition: 'all 0.2s ease',
                                                 display: 'flex',
                                                 alignItems: 'center',
                                                 justifyContent: 'center'
                                             }}
-                                            onClick={() => !existingClass && toggleBlock(day, time)}
+                                            onClick={() => existingClass ? setSelectedClass(existingClass) : toggleBlock(day, time)}
                                             onMouseEnter={(e) => {
                                                 if (!existingClass) {
                                                     e.currentTarget.style.backgroundColor = isBlocked ? '#fecaca' : '#f1f5f9';
@@ -282,10 +325,19 @@ const CoachSchedule = () => {
             <ScheduleClassModal
                 isOpen={isScheduleModalOpen}
                 onClose={() => setIsScheduleModalOpen(false)}
+                batchId="global"
+                batchName="General Session"
                 onSuccess={() => alert('Class Scheduled Successfully!')}
+            />
+
+            <ClassDetailsModal
+                isOpen={!!selectedClass}
+                onClose={() => setSelectedClass(null)}
+                classData={selectedClass}
             />
         </div>
     );
 };
+
 
 export default CoachSchedule;

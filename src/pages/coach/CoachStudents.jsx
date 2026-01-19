@@ -9,6 +9,8 @@ import {
     BookOpen, Target, Star, Calendar, MoreVertical
 } from 'lucide-react';
 import './CoachStudents.css';
+import SkillMapModal from '../../components/features/SkillMapModal';
+import StudentDetailsModal from '../../components/features/StudentDetailsModal';
 
 const CoachStudents = () => {
     const navigate = useNavigate();
@@ -17,6 +19,8 @@ const CoachStudents = () => {
     const [loading, setLoading] = useState(true);
     const [searchQuery, setSearchQuery] = useState('');
     const [filterLevel, setFilterLevel] = useState('all');
+    const [selectedSkillStudent, setSelectedSkillStudent] = useState(null);
+    const [selectedDetailStudent, setSelectedDetailStudent] = useState(null);
 
     useEffect(() => {
         if (!currentUser?.uid) return;
@@ -158,10 +162,10 @@ const CoachStudents = () => {
                                     </div>
                                 </div>
                                 <div className="card-footer">
-                                    <button className="btn-view" onClick={() => alert('Skill map coming soon!')}>
+                                    <button className="btn-view" onClick={() => setSelectedSkillStudent(student)}>
                                         🎯 View Skills
                                     </button>
-                                    <button className="btn-secondary">
+                                    <button className="btn-secondary" onClick={() => setSelectedDetailStudent(student)}>
                                         View Details <ChevronRight size={14} />
                                     </button>
                                 </div>
@@ -170,6 +174,18 @@ const CoachStudents = () => {
                     })}
                 </div>
             )}
+
+            <SkillMapModal
+                isOpen={!!selectedSkillStudent}
+                onClose={() => setSelectedSkillStudent(null)}
+                student={selectedSkillStudent}
+            />
+
+            <StudentDetailsModal
+                isOpen={!!selectedDetailStudent}
+                onClose={() => setSelectedDetailStudent(null)}
+                student={selectedDetailStudent}
+            />
         </div>
     );
 };

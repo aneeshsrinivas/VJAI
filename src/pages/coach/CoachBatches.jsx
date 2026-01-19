@@ -2,6 +2,10 @@ import React, { useState } from 'react';
 import Card from '../../components/ui/Card';
 import Button from '../../components/ui/Button';
 import { Users, Clock, Calendar, Upload, FileText, BookOpen } from 'lucide-react';
+import { collection, query, where, onSnapshot } from 'firebase/firestore';
+import { db } from '../../lib/firebase';
+import { useAuth } from '../../context/AuthContext';
+import { COLLECTIONS } from '../../config/firestoreCollections';
 
 const UploadModal = ({ isOpen, onClose, batchName }) => {
     if (!isOpen) return null;
@@ -116,11 +120,37 @@ const CoachBatches = () => {
     const [selectedBatch, setSelectedBatch] = useState(null);
     const [createAssignmentBatch, setCreateAssignmentBatch] = useState(null);
 
-    const batches = [
-        { id: 1, name: 'Intermediate B2', time: 'Mon, Wed, Fri • 5:00 PM', students: 8, level: 'Intermediate', color: '#3b82f6' },
-        { id: 2, name: 'Advanced C1', time: 'Tue, Thu, Sat • 7:00 PM', students: 6, level: 'Advanced', color: '#8b5cf6' },
-        { id: 3, name: 'Beginner A1', time: 'Mon, Wed • 4:00 PM', students: 12, level: 'Beginner', color: '#10b981' }
-    ];
+    const [batches, setBatches] = useState([
+        { id: 'batch_intermediate_1_1', name: 'Intermediate 1:1', time: 'Flexible Schedule', students: 0, level: 'Intermediate', color: '#3b82f6' },
+        { id: 'batch_group', name: 'Intermediate Group Batch', time: 'Mon, Wed, Fri • 6:00 PM', students: 0, level: 'Intermediate', color: '#8b5cf6' }
+    ]);
+    const { currentUser } = useAuth(); // Assuming currentUser is needed for student query
+
+    // Fetch real student counts
+    React.useEffect(() => {
+        if (!currentUser?.uid) return;
+
+        // This query assumes we simply count all assigned students by type
+        // In a real app, you might query by explicit batchId if students are assigned to specific batch IDs
+        const q = query(
+            collection(db, COLLECTIONS.STUDENTS),
+            where('assignedCoachId', '==', currentUser.uid)
+        );
+
+        const unsubscribe = onSnapshot(q, (snapshot) => {
+            const studentsList = snapshot.docs.map(d => d.data());
+            const oneOnOneCount = studentsList.filter(s => s.studentType === '1-1').length;
+            const groupCount = studentsList.filter(s => s.studentType !== '1-1').length; // Assuming default is group
+
+            setBatches(prev => prev.map(b => {
+                if (b.id === 'batch_intermediate_1_1') return { ...b, students: oneOnOneCount };
+                if (b.id === 'batch_group') return { ...b, students: groupCount };
+                return b;
+            }));
+        });
+
+        return () => unsubscribe();
+    }, [currentUser]);
 
     return (
         <div style={{

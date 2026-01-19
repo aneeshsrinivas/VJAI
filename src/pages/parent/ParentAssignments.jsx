@@ -5,30 +5,57 @@ import { FileText, CheckCircle, Clock, Upload, ArrowRight } from 'lucide-react';
 import { collection, query, orderBy, onSnapshot } from 'firebase/firestore';
 import { db } from '../../lib/firebase';
 import { COLLECTIONS } from '../../config/firestoreCollections';
+import { useAuth } from '../../context/AuthContext';
+import { where } from 'firebase/firestore';
 
 const ParentAssignments = () => {
     const [assignments, setAssignments] = useState([]);
     const [loading, setLoading] = useState(true);
 
+    const { currentUser } = useAuth(); // Needed to find student doc
+
     useEffect(() => {
-        // In a real app, query by student's batchId or studentId
-        // filters like where('batchId', '==', student.assignedBatchId)
-        const q = query(
-            collection(db, COLLECTIONS.ASSIGNMENTS),
-            orderBy('createdAt', 'desc')
+        if (!currentUser?.uid) return;
+
+        // First fetch student doc to get batchId
+        const studentQuery = query(
+            collection(db, COLLECTIONS.STUDENTS),
+            where('accountId', '==', currentUser.uid)
         );
 
-        const unsubscribe = onSnapshot(q, (snapshot) => {
-            const list = snapshot.docs.map(doc => ({
-                id: doc.id,
-                ...doc.data()
-            }));
-            setAssignments(list);
-            setLoading(false);
+        const unsubscribeStudent = onSnapshot(studentQuery, (snap) => {
+            if (!snap.empty) {
+                const student = snap.docs[0].data();
+                const batchId = student.batchId;
+
+                if (batchId) {
+                    const q = query(
+                        collection(db, COLLECTIONS.ASSIGNMENTS),
+                        where('batchId', '==', batchId),
+                        // Add compound index in Firebase console if needed: batchId ASC, createdAt DESC
+                        orderBy('createdAt', 'desc')
+                    );
+
+                    const unsubscribeAssignments = onSnapshot(q, (snapshot) => {
+                        const list = snapshot.docs.map(doc => ({
+                            id: doc.id,
+                            ...doc.data()
+                        }));
+                        setAssignments(list);
+                        setLoading(false);
+                    });
+                    return () => unsubscribeAssignments();
+                } else {
+                    setLoading(false);
+                    setAssignments([]);
+                }
+            } else {
+                setLoading(false);
+            }
         });
 
-        return () => unsubscribe();
-    }, []);
+        return () => unsubscribeStudent();
+    }, [currentUser]);
 
     const getStatusStyle = (status) => {
         switch (status) {
