@@ -149,6 +149,7 @@ Indian Chess Academy Team
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
                         access_key: import.meta.env.VITE_WEB3FORMS_ACCESS_KEY,
+                        email: 'abhirambhat2210@gmail.com',
                         subject: `Demo Class Scheduled - ${demo.studentName} | Indian Chess Academy`,
                         from_name: 'Indian Chess Academy',
                         message: `Dear ${demo.parentName},
