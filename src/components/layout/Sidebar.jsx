@@ -2,7 +2,7 @@ import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
     LayoutDashboard, Users, GraduationCap, Wallet, Radio, MessageSquare,
-    CreditCard, Calendar, BookOpen, Layers, Shield
+    CreditCard, Calendar, BookOpen, Layers, Shield, BarChart3
 } from 'lucide-react';
 import './Sidebar.css';
 
@@ -10,6 +10,7 @@ const Sidebar = ({ role = 'admin', activePath = '/dashboard' }) => {
     const navigate = useNavigate();
     const links = role === 'admin' ? [
         { label: 'Command Center', icon: <LayoutDashboard size={20} />, path: '/admin' },
+        { label: 'Live Analytics', icon: <BarChart3 size={20} />, path: '/admin/live-analytics' },
         { label: 'Demo Pipeline', icon: <Users size={20} />, path: '/admin/demos' },
         { label: 'Students', icon: <GraduationCap size={20} />, path: '/admin/students' },
         { label: 'Coach Roster', icon: <BookOpen size={20} />, path: '/admin/coaches' },
