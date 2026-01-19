@@ -74,7 +74,15 @@ const CoachLayout = () => {
 const StaffLayout = ({ role }) => (
   <div className="layout-staff" style={{ display: 'flex' }}>
     <Sidebar role={role} />
-    <main className="main-content-staff" style={{ flex: 1, marginLeft: '260px', padding: '24px', width: 'calc(100% - 260px)' }}>
+    <main className="main-content-staff" style={{
+      flex: 1,
+      marginLeft: '260px',
+      padding: '24px',
+      width: 'calc(100% - 260px)',
+      background: 'linear-gradient(180deg, #f8f9fc 0%, #f0f2f5 100%)',
+      minHeight: '100vh',
+      fontFamily: "'Figtree', sans-serif"
+    }}>
       <Outlet />
     </main>
   </div>
@@ -108,15 +116,15 @@ const App = () => {
             <Route path="/payment/checkout" element={<PaymentCheckout />} />
             <Route path="/payment/success" element={<PaymentSuccess />} />
 
-          {/* Parent Routes */}
-          <Route element={<ParentLayout />}>
-            <Route path="/parent" element={<ParentDashboard />} />
-            <Route path="/parent/chat" element={<ChatPage userRole="CUSTOMER" />} />
-            <Route path="/parent/schedule" element={<ParentSchedule />} />
-            <Route path="/parent/assignments" element={<ParentAssignments />} />
-            <Route path="/parent/payments" element={<ParentPayments />} />
-            <Route path="/parent/settings" element={<Settings />} />
-          </Route>
+            {/* Parent Routes */}
+            <Route element={<ParentLayout />}>
+              <Route path="/parent" element={<ParentDashboard />} />
+              <Route path="/parent/chat" element={<ChatPage userRole="CUSTOMER" />} />
+              <Route path="/parent/schedule" element={<ParentSchedule />} />
+              <Route path="/parent/assignments" element={<ParentAssignments />} />
+              <Route path="/parent/payments" element={<ParentPayments />} />
+              <Route path="/parent/settings" element={<Settings />} />
+            </Route>
             {/* Parent Routes */}
             <Route element={<ParentLayout />}>
               <Route path="/parent" element={<ParentDashboard />} />
@@ -129,39 +137,14 @@ const App = () => {
             {/* Student Routes */}
             <Route path="/student" element={<StudentPage />} />
 
-          {/* Coach Routes */}
-          <Route element={<CoachLayout />}>
-            <Route path="/coach" element={<CoachPage />} />
-            <Route path="/coach/students" element={<PlaceholderPage title="My Students" />} />
-            <Route path="/coach/batches" element={<CoachBatches />} />
-            <Route path="/coach/schedule" element={<CoachSchedule />} />
-            <Route path="/coach/chat" element={<ChatPage userRole="COACH" />} />
-            <Route path="/coach/settings" element={<Settings />} />
-          </Route>
-
-          {/* Admin Routes */}
-          <Route element={<StaffLayout role="admin" />}>
-            <Route path="/admin" element={<AdminDashboard />} />
-            <Route path="/chat" element={<ChatPage userRole="ADMIN" />} />
-            <Route path="/admin/students" element={<StudentDatabase />} />
-            <Route path="/admin/coaches" element={<CoachRoster />} />
-            <Route path="/admin/demos" element={<DemosPage />} />
-            <Route path="/admin/calendar" element={<PlaceholderPage title="Calendar Management" />} />
-            <Route path="/admin/finances" element={<FinanceReports />} />
-            <Route path="/admin/broadcast" element={<BroadcastPage />} />
-            <Route path="/admin/messages" element={<ChatPage userRole="ADMIN" />} />
-            <Route path="/admin/subscriptions" element={<SubscriptionPage />} />
-            <Route path="/admin/accounts" element={<AccountsPage />} />
-            <Route path="/admin/analytics" element={<AnalyticsPage />} />
-            <Route path="/admin/settings" element={<Settings />} />
-          </Route>
             {/* Coach Routes */}
-            <Route element={<StaffLayout role="coach" />}>
+            <Route element={<CoachLayout />}>
               <Route path="/coach" element={<CoachPage />} />
               <Route path="/coach/students" element={<PlaceholderPage title="My Students" />} />
               <Route path="/coach/batches" element={<CoachBatches />} />
               <Route path="/coach/schedule" element={<CoachSchedule />} />
               <Route path="/coach/chat" element={<ChatPage userRole="COACH" />} />
+              <Route path="/coach/settings" element={<Settings />} />
             </Route>
 
             {/* Admin Routes */}
@@ -178,7 +161,9 @@ const App = () => {
               <Route path="/admin/subscriptions" element={<SubscriptionPage />} />
               <Route path="/admin/accounts" element={<AccountsPage />} />
               <Route path="/admin/analytics" element={<AnalyticsPage />} />
+              <Route path="/admin/settings" element={<Settings />} />
             </Route>
+
 
           </Routes>
         </ErrorBoundary>
