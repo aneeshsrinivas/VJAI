@@ -1,0 +1,31 @@
+.demo-outcome-modal {
+    max-width: 550px;
+}
+
+.demo-outcome-modal .demo-info {
+    background: #f0f9ff;
+    padding: 16px;
+    border-radius: 8px;
+    margin-bottom: 20px;
+    border-left: 4px solid var(--color-deep-blue, #1E3A8A);
+}
+
+.demo-outcome-modal .demo-info p {
+    margin: 6px 0;
+    font-size: 14px;
+}
+
+.demo-outcome-modal textarea {
+    width: 100%;
+    padding: 12px;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    font-family: inherit;
+    font-size: 14px;
+    resize: vertical;
+}
+
+.demo-outcome-modal textarea:focus {
+    outline: none;
+    border-color: var(--color-deep-blue, #1E3A8A);
+}

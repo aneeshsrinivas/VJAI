@@ -5,16 +5,73 @@ import './RegistrationPage.css';
 
 
 
+import { useAuth } from '../context/AuthContext';
+
 const RegistrationPage = () => {
     const [searchParams] = useSearchParams();
     const navigate = useNavigate();
     const role = searchParams.get('role') || 'parent';
+    const { signup } = useAuth();
 
+    // Unified Form State
+    const [formData, setFormData] = useState({
+        email: '',
+        password: '',
+        confirmPassword: '',
+        fullName: '',
+        // Student Specific
+        studentName: '',
+        studentAge: '',
+        learningLevel: 'Beginner (New to Chess)',
+        studentType: 'Group Class',
+        timezone: 'India (IST)',
+        country: '',
+        chessUsername: '',
+        // Coach Specific
+        phone: '',
+        title: 'Trainer',
+        fideRating: '',
+        experience: '',
+        // Admin Specific
+        employeeId: '',
+        department: 'Operations'
+    });
 
-    const handleSubmit = (e) => {
+    const [loading, setLoading] = useState(false);
+    const [error, setError] = useState('');
+
+    const handleChange = (e) => {
+        const { name, value, type, checked } = e.target;
+        setFormData(prev => ({
+            ...prev,
+            [name]: type === 'checkbox' ? checked : value
+        }));
+    };
+
+    const handleSubmit = async (e) => {
         e.preventDefault();
-        // Mock API call
-        navigate(`/registration-success?role=${role}`);
+        setError('');
+
+        if (formData.password !== formData.confirmPassword) {
+            return setError('Passwords do not match');
+        }
+
+        if (formData.studentAge && Number(formData.studentAge) <= 5) {
+            return setError('Student Age must be above 5 years.');
+        }
+
+        setLoading(true);
+        try {
+            // Destructure basic auth fields, keep the rest as profile data
+            const { email, password, confirmPassword, ...profileData } = formData;
+
+            await signup(email, password, role === 'parent' ? 'customer' : role, profileData);
+            navigate(`/registration-success?role=${role}`);
+        } catch (err) {
+            console.error(err);
+            setError('Failed to create account: ' + err.message);
+            setLoading(false);
+        }
     };
 
     const getRoleTitle = () => {
@@ -37,19 +94,58 @@ const RegistrationPage = () => {
             case 'customer': // Treat parent/student as CUSTOMER
                 return (
                     <>
+                        {error && <div className="error-message" style={{ color: 'red', marginBottom: '1rem' }}>{error}</div>}
+
                         <div style={{ padding: '12px', backgroundColor: '#e3f2fd', borderRadius: '8px', marginBottom: '16px', fontSize: '14px', color: '#0d47a1' }}>
                             <strong>Core Principle:</strong> A single account is used for authentication. Parent details are stored inside the Student record.
                         </div>
-                        <Input label="Parent Name" required placeholder="Enter parent's full name" />
-                        <Input label="Parent Email (Login ID)" type="email" required placeholder="name@example.com" />
-                        <Input label="Student Name" required placeholder="Student's name" />
+                        <Input
+                            label="Parent Name"
+                            name="fullName"
+                            required
+                            placeholder="Enter parent's full name"
+                            value={formData.fullName}
+                            onChange={handleChange}
+                        />
+                        <Input
+                            label="Parent Email (Login ID)"
+                            name="email"
+                            type="email"
+                            required
+                            placeholder="name@example.com"
+                            value={formData.email}
+                            onChange={handleChange}
+                        />
+                        <Input
+                            label="Student Name"
+                            name="studentName"
+                            required
+                            placeholder="Student's name"
+                            value={formData.studentName}
+                            onChange={handleChange}
+                        />
                         <div style={{ display: 'flex', gap: '16px' }}>
                             <div style={{ flex: 1 }}>
-                                <Input label="Student Age" type="number" required placeholder="Age" min="4" max="18" />
+                                <Input
+                                    label="Student Age"
+                                    name="studentAge"
+                                    type="number"
+                                    required
+                                    placeholder="Age"
+                                    min="6"
+                                    max="18"
+                                    value={formData.studentAge}
+                                    onChange={handleChange}
+                                />
                             </div>
                             <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '8px', marginBottom: '16px' }}>
                                 <label style={{ fontSize: '14px', fontWeight: 'bold' }}>Learning Level</label>
-                                <select style={{ padding: '12px', borderRadius: '8px', border: '1px solid #ddd', width: '100%' }}>
+                                <select
+                                    name="learningLevel"
+                                    value={formData.learningLevel}
+                                    onChange={handleChange}
+                                    style={{ padding: '12px', borderRadius: '8px', border: '1px solid #ddd', width: '100%' }}
+                                >
                                     <option>Beginner (New to Chess)</option>
                                     <option>Intermediate (Rated 1000-1400)</option>
                                     <option>Advanced (Rated 1400+)</option>
@@ -60,14 +156,24 @@ const RegistrationPage = () => {
                         <div style={{ display: 'flex', gap: '16px' }}>
                             <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '8px', marginBottom: '16px' }}>
                                 <label style={{ fontSize: '14px', fontWeight: 'bold' }}>Student Type (Mandatory)</label>
-                                <select style={{ padding: '12px', borderRadius: '8px', border: '1px solid #ddd', width: '100%' }}>
+                                <select
+                                    name="studentType"
+                                    value={formData.studentType}
+                                    onChange={handleChange}
+                                    style={{ padding: '12px', borderRadius: '8px', border: '1px solid #ddd', width: '100%' }}
+                                >
                                     <option>Group Class</option>
                                     <option>1-on-1 Tutoring</option>
                                 </select>
                             </div>
                             <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '8px', marginBottom: '16px' }}>
                                 <label style={{ fontSize: '14px', fontWeight: 'bold' }}>Timezone</label>
-                                <select style={{ padding: '12px', borderRadius: '8px', border: '1px solid #ddd', width: '100%' }}>
+                                <select
+                                    name="timezone"
+                                    value={formData.timezone}
+                                    onChange={handleChange}
+                                    style={{ padding: '12px', borderRadius: '8px', border: '1px solid #ddd', width: '100%' }}
+                                >
                                     <option>India (IST)</option>
                                     <option>USA (EST)</option>
                                     <option>USA (PST)</option>
@@ -79,14 +185,43 @@ const RegistrationPage = () => {
 
                         <div style={{ display: 'flex', gap: '16px' }}>
                             <div style={{ flex: 1 }}>
-                                <Input label="Country" placeholder="e.g. India" required />
+                                <Input
+                                    label="Country"
+                                    name="country"
+                                    placeholder="e.g. India"
+                                    required
+                                    value={formData.country}
+                                    onChange={handleChange}
+                                />
                             </div>
                             <div style={{ flex: 1 }}>
-                                <Input label="Chess.com Username (Optional)" placeholder="e.g. magnus_c" />
+                                <Input
+                                    label="Chess.com Username (Optional)"
+                                    name="chessUsername"
+                                    placeholder="e.g. magnus_c"
+                                    value={formData.chessUsername}
+                                    onChange={handleChange}
+                                />
                             </div>
                         </div>
-                        <Input label="Password" type="password" required placeholder="Create a secure password" />
-                        <Input label="Confirm Password" type="password" required placeholder="Confirm your password" />
+                        <Input
+                            label="Password"
+                            name="password"
+                            type="password"
+                            required
+                            placeholder="Create a secure password"
+                            value={formData.password}
+                            onChange={handleChange}
+                        />
+                        <Input
+                            label="Confirm Password"
+                            name="confirmPassword"
+                            type="password"
+                            required
+                            placeholder="Confirm your password"
+                            value={formData.confirmPassword}
+                            onChange={handleChange}
+                        />
                         <div style={{ marginBottom: '16px' }}>
                             <label style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '14px' }}>
                                 <input type="checkbox" required /> I agree to create a single family account (Role: CUSTOMER).
@@ -97,13 +232,18 @@ const RegistrationPage = () => {
             case 'coach':
                 return (
                     <>
-                        <Input label="Full Name" required placeholder="Your full name" />
-                        <Input label="Email" type="email" required placeholder="name@example.com" />
-                        <Input label="Phone Number (Private)" required placeholder="+91 XXXXX XXXXX" />
+                        <Input label="Full Name" name="fullName" required placeholder="Your full name" value={formData.fullName} onChange={handleChange} />
+                        <Input label="Email" name="email" type="email" required placeholder="name@example.com" value={formData.email} onChange={handleChange} />
+                        <Input label="Phone Number (Private)" name="phone" required placeholder="+91 XXXXX XXXXX" value={formData.phone} onChange={handleChange} />
                         <div style={{ display: 'flex', gap: '16px' }}>
                             <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '8px', marginBottom: '16px' }}>
                                 <label style={{ fontSize: '14px', fontWeight: 'bold' }}>Title</label>
-                                <select style={{ padding: '12px', borderRadius: '8px', border: '1px solid #ddd', width: '100%' }}>
+                                <select
+                                    name="title"
+                                    value={formData.title}
+                                    onChange={handleChange}
+                                    style={{ padding: '12px', borderRadius: '8px', border: '1px solid #ddd', width: '100%' }}
+                                >
                                     <option>Trainer</option>
                                     <option>FIDE Master (FM)</option>
                                     <option>International Master (IM)</option>
@@ -111,11 +251,12 @@ const RegistrationPage = () => {
                                 </select>
                             </div>
                             <div style={{ flex: 1 }}>
-                                <Input label="FIDE Rating" type="number" placeholder="Optional" />
+                                <Input label="FIDE Rating" name="fideRating" type="number" placeholder="Optional" value={formData.fideRating} onChange={handleChange} />
                             </div>
                         </div>
-                        <Input label="Experience (Years)" type="number" required />
-                        <Input label="Password" type="password" required />
+                        <Input label="Experience (Years)" name="experience" type="number" required value={formData.experience} onChange={handleChange} />
+                        <Input label="Password" name="password" type="password" required value={formData.password} onChange={handleChange} />
+                        <Input label="Confirm Password" name="confirmPassword" type="password" required placeholder="Confirm your password" value={formData.confirmPassword} onChange={handleChange} />
                         <div style={{ marginBottom: '16px' }}>
                             <label style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '14px' }}>
                                 <input type="checkbox" required /> I understand I will not see parent contact info directly.
@@ -126,18 +267,24 @@ const RegistrationPage = () => {
             case 'admin':
                 return (
                     <>
-                        <Input label="Full Name" required />
-                        <Input label="Work Email" type="email" required placeholder="name@indianchessacademy.com" />
-                        <Input label="Employee ID" required />
+                        <Input label="Full Name" name="fullName" required value={formData.fullName} onChange={handleChange} />
+                        <Input label="Work Email" name="email" type="email" required placeholder="name@indianchessacademy.com" value={formData.email} onChange={handleChange} />
+                        <Input label="Employee ID" name="employeeId" required value={formData.employeeId} onChange={handleChange} />
                         <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginBottom: '16px' }}>
                             <label style={{ fontSize: '14px', fontWeight: 'bold' }}>Department</label>
-                            <select style={{ padding: '12px', borderRadius: '8px', border: '1px solid #ddd', width: '100%' }}>
+                            <select
+                                name="department"
+                                value={formData.department}
+                                onChange={handleChange}
+                                style={{ padding: '12px', borderRadius: '8px', border: '1px solid #ddd', width: '100%' }}
+                            >
                                 <option>Operations</option>
                                 <option>Finance</option>
                                 <option>HR & Management</option>
                             </select>
                         </div>
-                        <Input label="Password" type="password" required />
+                        <Input label="Password" name="password" type="password" required value={formData.password} onChange={handleChange} />
+                        <Input label="Confirm Password" name="confirmPassword" type="password" required placeholder="Confirm your password" value={formData.confirmPassword} onChange={handleChange} />
                         <div style={{ marginBottom: '16px' }}>
                             <label style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '14px' }}>
                                 <input type="checkbox" required /> I acknowledge full data access responsibility.
@@ -145,6 +292,7 @@ const RegistrationPage = () => {
                         </div>
                     </>
                 );
+
             default:
                 return <div>Invalid Role</div>;
         }
@@ -171,7 +319,7 @@ const RegistrationPage = () => {
                     {renderFields()}
 
                     <button type="submit" className="submit-btn" style={{ marginTop: '24px' }}>
-                        {role === 'coach' ? 'Submit Application' : 'Create Account'}
+                        {loading ? 'Account Created...' : (role === 'coach' ? 'Submit Application' : 'Create Account')}
                     </button>
                 </form>
 

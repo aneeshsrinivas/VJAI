@@ -1,10 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
+import { getStudentByAccountId, getSubscriptionByAccountId } from '../services/firestoreService';
 import Card from '../components/ui/Card';
 import Button from '../components/ui/Button';
 import AccountDropdown from '../components/ui/AccountDropdown';
 import ReviewRequestModal from '../components/features/ReviewRequestModal';
-// Icons
+// Icons from friend's UI
 import CalendarIcon from '../components/icons/CalendarIcon';
 import AssignmentIcon from '../components/icons/AssignmentIcon';
 import PaymentIcon from '../components/icons/PaymentIcon';
@@ -20,14 +22,57 @@ import './ParentDashboard.css';
 
 const ParentDashboard = () => {
     const navigate = useNavigate();
+    const { currentUser } = useAuth();
     const [isReviewModalOpen, setReviewModalOpen] = useState(false);
-    const [progress, setProgress] = useState(0);
+    const [student, setStudent] = useState(null);
+    const [subscription, setSubscription] = useState(null);
+    const [loading, setLoading] = useState(true);
     const [cardsVisible, setCardsVisible] = useState(false);
+    const [progress, setProgress] = useState(0);
 
+    // Fetch real data from Firestore
     useEffect(() => {
+        if (currentUser) {
+            fetchStudentData();
+        } else {
+            setLoading(false);
+        }
         setTimeout(() => setProgress(85), 300);
         setTimeout(() => setCardsVisible(true), 100);
-    }, []);
+    }, [currentUser]);
+
+    const fetchStudentData = async () => {
+        setLoading(true);
+        try {
+            const studentResult = await getStudentByAccountId(currentUser.uid);
+            if (studentResult.success) {
+                setStudent(studentResult.student);
+            }
+
+            const subResult = await getSubscriptionByAccountId(currentUser.uid);
+            if (subResult.success) {
+                setSubscription(subResult.subscription);
+            }
+        } catch (error) {
+            console.error('Error fetching student data:', error);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const getDisplayName = () => {
+        if (student?.parentName) return student.parentName;
+        if (currentUser?.displayName) return currentUser.displayName;
+        if (currentUser?.email) return currentUser.email.split('@')[0];
+        return 'Parent';
+    };
+
+    const getGreeting = () => {
+        const hour = new Date().getHours();
+        if (hour < 12) return 'Good Morning';
+        if (hour < 17) return 'Good Afternoon';
+        return 'Good Evening';
+    };
 
     const scheduleItems = [
         { day: 'Monday', time: '5:00 PM IST', status: 'UPCOMING', isToday: true },
@@ -68,8 +113,6 @@ const ParentDashboard = () => {
 
     return (
         <div className="parent-dashboard">
-            {/* Navbar handled by ParentLayout */}
-
             {/* Hero Welcome Section with Unsplash Background */}
             <section className="welcome-hero">
                 <div className="welcome-hero-bg">
@@ -84,10 +127,12 @@ const ParentDashboard = () => {
                     <div className="welcome-left">
                         <div className="greeting-badge">
                             <GreetingIcon size={20} color="#FC8A24" />
-                            <span>Good Evening</span>
+                            <span>{getGreeting()}</span>
                         </div>
-                        <h1 className="welcome-title">Welcome back, Sharma Family!</h1>
-                        <p className="welcome-subtitle">Your child's chess journey is progressing excellently. Keep up the great work!</p>
+                        <h1 className="welcome-title">Welcome back, {getDisplayName()}!</h1>
+                        <p className="welcome-subtitle">
+                            {student ? `${student.studentName}'s chess journey is progressing excellently.` : 'Your chess journey awaits!'}
+                        </p>
                         <div className="welcome-actions">
                             <Button
                                 onClick={() => navigate('/parent/chat')}
@@ -112,7 +157,7 @@ const ParentDashboard = () => {
                             <div className="progress-header">
                                 <div className="progress-info">
                                     <span className="progress-label">Current Rank</span>
-                                    <span className="milestone-name">Bishop</span>
+                                    <span className="milestone-name">{student?.level || 'Beginner'}</span>
                                 </div>
                                 <div className="progress-percentage">{progress}%</div>
                             </div>
@@ -120,7 +165,7 @@ const ParentDashboard = () => {
                                 <div className="progress-bar-fill" style={{ width: `${progress}%` }}></div>
                             </div>
                             <div className="progress-next">
-                                Next milestone: <strong>Queen Rank</strong>
+                                Next milestone: <strong>Intermediate</strong>
                             </div>
                         </div>
                     </div>
@@ -139,7 +184,7 @@ const ParentDashboard = () => {
                                     <CalendarIcon size={22} color="#003366" />
                                     <h3>Weekly Schedule</h3>
                                 </div>
-                                <a href="/parent/schedule" className="view-all-link">View All →</a>
+                                <a href="/parent/schedule" className="view-all-link">View All</a>
                             </div>
                             <div className="schedule-list">
                                 {scheduleItems.map((slot, i) => (
@@ -217,7 +262,7 @@ const ParentDashboard = () => {
                                     <ChessBishopIcon size={40} color="#003366" />
                                 </div>
                                 <div className="coach-info">
-                                    <h4 className="coach-name">Coach Ramesh Kumar</h4>
+                                    <h4 className="coach-name">{student?.assignedCoachId ? 'Coach Assigned' : 'Coach Ramesh Kumar'}</h4>
                                     <div className="coach-badges">
                                         <span className="badge fide">FIDE Master</span>
                                         <span className="badge rating">

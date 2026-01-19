@@ -1,4 +1,7 @@
 import React, { useState } from 'react';
+import { addDoc, collection, serverTimestamp } from 'firebase/firestore';
+import { db } from '../lib/firebase';
+import { toast, ToastContainer } from 'react-toastify';
 import Navbar from '../components/layout/Navbar';
 import Footer from '../components/layout/Footer';
 import CTASection from '../components/shared/CTASection';
@@ -15,20 +18,35 @@ const ContactUs = () => {
         phone: '',
         message: ''
     });
+    const [submitting, setSubmitting] = useState(false);
 
     const handleChange = (e) => {
         setFormData({ ...formData, [e.target.name]: e.target.value });
     };
 
-    const handleSubmit = (e) => {
+    const handleSubmit = async (e) => {
         e.preventDefault();
-        console.log('Contact form submitted:', formData);
-        alert('Thank you! We will get back to you shortly.');
-        setFormData({ name: '', email: '', phone: '', message: '' });
+        setSubmitting(true);
+
+        try {
+            await addDoc(collection(db, 'contact_inquiries'), {
+                ...formData,
+                status: 'NEW',
+                createdAt: serverTimestamp()
+            });
+            toast.success('Thank you! We will get back to you shortly.');
+            setFormData({ name: '', email: '', phone: '', message: '' });
+        } catch (error) {
+            toast.error('Failed to submit. Please try again.');
+            console.error('Error submitting contact form:', error);
+        } finally {
+            setSubmitting(false);
+        }
     };
 
     return (
         <div className="contact-us-page">
+            <ToastContainer position="top-right" autoClose={4000} />
             <Navbar />
 
             <section className="contact-hero">
@@ -87,8 +105,8 @@ const ContactUs = () => {
                                         placeholder="How can we help you?"
                                     ></textarea>
                                 </div>
-                                <Button type="submit" className="submit-contact-btn">
-                                    Send Message
+                                <Button type="submit" className="submit-contact-btn" disabled={submitting}>
+                                    {submitting ? 'Sending...' : 'Send Message'}
                                 </Button>
                             </form>
                         </div>

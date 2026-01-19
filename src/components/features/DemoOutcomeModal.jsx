@@ -1,104 +1,122 @@
 import React, { useState } from 'react';
+import { submitDemoOutcome } from '../../services/firestoreService';
+import { DEMO_STATUS } from '../../config/firestoreCollections';
 import Button from '../ui/Button';
-import '../ui/Modal.css';
+import './DemoOutcomeModal.css';
 
-const DemoOutcomeModal = ({ isOpen, onClose, studentName, onConfirm }) => {
-    const [outcome, setOutcome] = useState('');
-    const [level, setLevel] = useState('');
-    const [studentType, setStudentType] = useState('');
-    const [notes, setNotes] = useState('');
+const DemoOutcomeModal = ({ demo, onClose, onSuccess }) => {
+    // Guard against undefined demo
+    if (!demo) {
+        return null;
+    }
 
-    if (!isOpen) return null;
+    const [formData, setFormData] = useState({
+        demoOutcome: DEMO_STATUS.ATTENDED,
+        recommendedLevel: 'beginner',
+        recommendedStudentType: 'group',
+        adminNotes: ''
+    });
+    const [loading, setLoading] = useState(false);
+    const [error, setError] = useState('');
 
-    const handleSubmit = () => {
-        if (!outcome || !level || !studentType) return;
+    const handleChange = (e) => {
+        const { name, value } = e.target;
+        setFormData(prev => ({ ...prev, [name]: value }));
+    };
 
-        onConfirm({
-            status: outcome,
-            recommended_level: level,
-            recommended_student_type: studentType,
-            admin_notes: notes
-        });
-        onClose();
+    const handleSubmit = async (e) => {
+        e.preventDefault();
+        setLoading(true);
+        setError('');
 
-        // Reset form
-        setOutcome('');
-        setLevel('');
-        setStudentType('');
-        setNotes('');
+        const result = await submitDemoOutcome(demo.id, formData);
+
+        if (result.success) {
+            onSuccess();
+        } else {
+            setError(result.error || 'Failed to submit outcome');
+        }
+
+        setLoading(false);
     };
 
     return (
         <div className="modal-overlay">
-            <div className="modal-content">
-                <div className="modal-header">
-                    <h2 className="modal-title">Demo Outcome Required</h2>
-                    <p style={{ color: '#666' }}>Submit mandatory outcome details for <strong>{studentName}</strong>.</p>
+            <div className="modal-content demo-outcome-modal">
+                <button className="modal-close" onClick={onClose}>&times;</button>
+                <h2>Demo Outcome - {demo.studentName || 'Unknown'}</h2>
+
+                <div className="demo-info">
+                    <p><strong>Parent:</strong> {demo.parentName || 'N/A'}</p>
+                    <p><strong>Scheduled:</strong> {demo.scheduledStart || demo.preferredDateTime || 'N/A'}</p>
+                    <p><strong>Coach:</strong> {demo.assignedCoachId ? 'Assigned' : 'N/A'}</p>
                 </div>
 
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginBottom: '16px' }}>
-                    <div>
-                        <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500', fontSize: '13px' }}>Recommended Level <span style={{ color: 'red' }}>*</span></label>
+                {error && <div className="error-message">{error}</div>}
+
+                <form onSubmit={handleSubmit}>
+                    <div className="form-group">
+                        <label>Demo Outcome *</label>
                         <select
-                            value={level}
-                            onChange={(e) => setLevel(e.target.value)}
-                            className="contact-input"
+                            name="demoOutcome"
+                            value={formData.demoOutcome}
+                            onChange={handleChange}
+                            required
                         >
-                            <option value="" disabled>Select Level...</option>
-                            <option value="Beginner">Beginner</option>
-                            <option value="Intermediate">Intermediate</option>
-                            <option value="Advanced">Advanced</option>
+                            <option value={DEMO_STATUS.ATTENDED}>Attended - Interested</option>
+                            <option value={DEMO_STATUS.NO_SHOW}>No Show</option>
+                            <option value={DEMO_STATUS.INTERESTED}>Highly Interested (Ready to Convert)</option>
+                            <option value={DEMO_STATUS.REJECTED}>Not Interested / Rejected</option>
                         </select>
                     </div>
-                    <div>
-                        <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500', fontSize: '13px' }}>Student Type <span style={{ color: 'red' }}>*</span></label>
-                        <select
-                            value={studentType}
-                            onChange={(e) => setStudentType(e.target.value)}
-                            className="contact-input"
-                        >
-                            <option value="" disabled>Select Type...</option>
-                            <option value="Group">Group</option>
-                            <option value="1-1">1-on-1</option>
-                        </select>
+
+                    {(formData.demoOutcome === DEMO_STATUS.ATTENDED || formData.demoOutcome === DEMO_STATUS.INTERESTED) && (
+                        <>
+                            <div className="form-group">
+                                <label>Recommended Level</label>
+                                <select
+                                    name="recommendedLevel"
+                                    value={formData.recommendedLevel}
+                                    onChange={handleChange}
+                                >
+                                    <option value="beginner">Beginner</option>
+                                    <option value="intermediate">Intermediate</option>
+                                    <option value="advanced">Advanced</option>
+                                </select>
+                            </div>
+
+                            <div className="form-group">
+                                <label>Recommended Student Type</label>
+                                <select
+                                    name="recommendedStudentType"
+                                    value={formData.recommendedStudentType}
+                                    onChange={handleChange}
+                                >
+                                    <option value="group">Group Classes</option>
+                                    <option value="1-1">1-on-1 Sessions</option>
+                                </select>
+                            </div>
+                        </>
+                    )}
+
+                    <div className="form-group">
+                        <label>Admin Notes</label>
+                        <textarea
+                            name="adminNotes"
+                            value={formData.adminNotes}
+                            onChange={handleChange}
+                            rows="4"
+                            placeholder="Any observations, parent feedback, next steps..."
+                        />
                     </div>
-                </div>
 
-                <div style={{ marginBottom: '16px' }}>
-                    <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500', fontSize: '13px' }}>Outcome Status <span style={{ color: 'red' }}>*</span></label>
-                    <select
-                        value={outcome}
-                        onChange={(e) => setOutcome(e.target.value)}
-                        className="contact-input"
-                    >
-                        <option value="" disabled>Select Result...</option>
-                        <option value="INTERESTED">INTERESTED (Send Payment Link)</option>
-                        <option value="NOT_INTERESTED">NOT INTERESTED (Close Lead)</option>
-                        <option value="RESCHEDULED">RESCHEDULED</option>
-                        <option value="NO_SHOW">NO SHOW</option>
-                    </select>
-                </div>
-
-                <div style={{ marginBottom: '24px' }}>
-                    <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500', fontSize: '13px' }}>Coach Feedback / Notes</label>
-                    <textarea
-                        value={notes}
-                        onChange={(e) => setNotes(e.target.value)}
-                        placeholder="Enter performance summary..."
-                        className="contact-input"
-                        style={{ height: '80px', resize: 'none' }}
-                    />
-                </div>
-
-                <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '12px' }}>
-                    <Button variant="outline" onClick={onClose}>Cancel</Button>
-                    <Button
-                        onClick={handleSubmit}
-                        disabled={!outcome || !level || !studentType}
-                    >
-                        Submit Outcome
-                    </Button>
-                </div>
+                    <div className="modal-actions">
+                        <Button type="button" variant="secondary" onClick={onClose}>Cancel</Button>
+                        <Button type="submit" disabled={loading}>
+                            {loading ? 'Submitting...' : 'Submit Outcome'}
+                        </Button>
+                    </div>
+                </form>
             </div>
         </div>
     );

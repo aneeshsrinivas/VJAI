@@ -48,7 +48,7 @@
 /* Prevent white flash on page load */
 html,
 body {
-  background-color: #001a33;
+  background-color: var(--color-ivory);
   min-height: 100vh;
 }
 
