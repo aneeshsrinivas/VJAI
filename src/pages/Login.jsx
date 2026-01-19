@@ -17,21 +17,18 @@ const Login = () => {
         setError('');
         setLoading(true);
         try {
-            const userCredential = await login(email, password);
+            const { role } = await login(email, password);
 
-            // After successful login, wait for AuthContext to update, then navigate to proper dashboard
-            setTimeout(() => {
-                if (userRole === 'admin') {
-                    navigate('/admin');
-                } else if (userRole === 'coach') {
-                    navigate('/coach');
-                } else if (userRole === 'customer') {
-                    navigate('/parent');
-                } else {
-                    // Fallback if role not set yet
-                    window.location.href = '/';
-                }
-            }, 300);
+            // Navigate immediately based on returned role
+            if (role === 'admin') {
+                navigate('/admin');
+            } else if (role === 'coach') {
+                navigate('/coach');
+            } else if (role === 'customer') {
+                navigate('/parent');
+            } else {
+                navigate('/');
+            }
         } catch (err) {
             console.error(err);
             if (err.code === 'auth/user-not-found') {

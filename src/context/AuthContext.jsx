@@ -82,6 +82,7 @@ export const AuthProvider = ({ children }) => {
                 const storedRole = userDoc.data().role;
                 setUserRole(storedRole);
                 setUserData(userDoc.data());
+                return { user, role: storedRole };
             } else {
                 // Create user doc if missing (for admin or new users)
                 await setDoc(userRef, {
@@ -91,13 +92,13 @@ export const AuthProvider = ({ children }) => {
                     lastLoginAt: serverTimestamp()
                 });
                 setUserRole(detectedRole);
+                return { user, role: detectedRole };
             }
         } catch (e) {
             console.log('Could not update lastLoginAt:', e);
             setUserRole(detectedRole);
+            return { user, role: detectedRole };
         }
-
-        return { user, role: detectedRole };
     };
 
     // Logout function
@@ -136,9 +137,6 @@ export const AuthProvider = ({ children }) => {
     };
 
     useEffect(() => {
-        // Try to initialize admin on first load
-        initializeAdmin();
-
         const unsubscribe = onAuthStateChanged(auth, async (user) => {
             setCurrentUser(user);
             if (user) {

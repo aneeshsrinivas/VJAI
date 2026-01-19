@@ -143,9 +143,7 @@ const ParentPayments = () => {
                         </thead>
                         <tbody>
                             {[
-                                { date: 'Jan 01, 2026', desc: 'Monthly Fee - Intermediate', amount: '₹2,500', status: 'COMPLETED' },
-                                { date: 'Dec 01, 2025', desc: 'Monthly Fee - Intermediate', amount: '₹2,500', status: 'COMPLETED' },
-                                { date: 'Nov 01, 2025', desc: 'Monthly Fee - Intermediate', amount: '₹2,500', status: 'COMPLETED' },
+                                { date: 'Jan 01, 2026', desc: 'Group Intermediate Course Subscription', amount: '₹2,500', status: 'COMPLETED' },
                             ].map((tx, i) => (
                                 <tr key={i} style={{ borderBottom: '1px solid #f0f0f0', transition: 'background 0.2s' }}
                                     onMouseEnter={(e) => e.currentTarget.style.background = '#fcfcfc'}

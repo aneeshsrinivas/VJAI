@@ -1,5 +1,9 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
+import { useAuth } from '../../context/AuthContext';
+import { collection, query, where, getDocs } from 'firebase/firestore';
+import { db } from '../../lib/firebase';
+import { COLLECTIONS } from '../../config/firestoreCollections';
 import AccountDropdown from '../ui/AccountDropdown';
 import UserGroupIcon from '../icons/UserGroupIcon';
 import './ParentNavbar.css';
@@ -7,6 +11,38 @@ import './ParentNavbar.css';
 const ParentNavbar = () => {
     const location = useLocation();
     const navigate = useNavigate();
+    const { currentUser, userData, logout } = useAuth();
+    const [studentName, setStudentName] = useState('');
+
+    useEffect(() => {
+        const fetchStudentName = async () => {
+            if (!currentUser?.uid) return;
+
+            try {
+                // Try to find student linked to this account
+                const q = query(
+                    collection(db, COLLECTIONS.STUDENTS),
+                    where('accountId', '==', currentUser.uid)
+                );
+                const snapshot = await getDocs(q);
+
+                if (!snapshot.empty) {
+                    const data = snapshot.docs[0].data();
+                    // Prefer student name, fallback to parent name
+                    setStudentName(data.studentName || data.name || data.parentName || 'Student');
+                } else if (userData?.fullName) {
+                    setStudentName(userData.fullName);
+                } else {
+                    setStudentName('Parent Account');
+                }
+            } catch (error) {
+                console.error("Error fetching student name:", error);
+                setStudentName('Parent Account');
+            }
+        };
+
+        fetchStudentName();
+    }, [currentUser, userData]);
 
     const isActive = (path) => {
         return location.pathname === path ? 'active' : '';
@@ -45,9 +81,10 @@ const ParentNavbar = () => {
                 </a>
             </div>
             <AccountDropdown
-                userName="Sharma Family"
-                userRole="Parent Account"
+                userName={studentName || "Loading..."}
+                userRole="Student Portal"
                 customIcon={<UserGroupIcon size={20} color="white" />}
+                onLogout={logout}
             />
         </nav>
     );

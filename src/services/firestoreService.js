@@ -536,3 +536,47 @@ export const updateSubscriptionStatus = async (subscriptionId, newStatus) => {
         return { success: false, error: error.message };
     }
 };
+// ==========================================
+// ASSIGNMENT OPERATIONS
+// ==========================================
+
+export const createAssignment = async (assignmentData) => {
+    try {
+        await addDoc(collection(db, COLLECTIONS.ASSIGNMENTS), {
+            ...assignmentData,
+            status: 'Pending',
+            createdAt: serverTimestamp()
+        });
+        return { success: true };
+    } catch (error) {
+        console.error('Error creating assignment:', error);
+        return { success: false, error: error.message };
+    }
+};
+
+export const getAssignmentsByBatch = async (batchId) => { // Or studentId if handled
+    // This is a basic query. In real app, might need complex filtering
+    // For now, let's assume assignments are linked to a batch or specific student
+    // If linked to batch: where('batchId', '==', batchId)
+    // If linked to student: where('studentId', '==', studentId)
+    return { success: false, error: "Direct query preferred for real-time" };
+};
+
+
+// ==========================================
+// SCHEDULE OPERATIONS
+// ==========================================
+
+export const createClass = async (classData) => {
+    try {
+        await addDoc(collection(db, COLLECTIONS.SCHEDULE), {
+            ...classData,
+            status: 'SCHEDULED',
+            createdAt: serverTimestamp()
+        });
+        return { success: true };
+    } catch (error) {
+        console.error('Error creating class:', error);
+        return { success: false, error: error.message };
+    }
+};

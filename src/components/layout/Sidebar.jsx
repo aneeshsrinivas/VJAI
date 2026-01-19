@@ -1,20 +1,91 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
     LayoutDashboard, Users, GraduationCap, Wallet, Radio, MessageSquare,
-    CreditCard, Calendar, BookOpen, Layers, Shield, BarChart3
+    CreditCard, Calendar, BookOpen, Layers, Shield, BarChart3, LogOut, ChevronRight, AlertTriangle, Crown
 } from 'lucide-react';
+import { useAuth } from '../../context/AuthContext';
+import { doc, getDoc, collection, query, where, getDocs } from 'firebase/firestore';
+import { db } from '../../lib/firebase';
 import './Sidebar.css';
 
 const Sidebar = ({ role = 'admin', activePath = '/dashboard' }) => {
     const navigate = useNavigate();
+    const { logout, currentUser, userData } = useAuth();
+    const [showDropdown, setShowDropdown] = useState(false);
+    const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
+    const [userProfile, setUserProfile] = useState(null);
+
+    // Fetch user profile dynamically
+    useEffect(() => {
+        const fetchUserProfile = async () => {
+            if (!currentUser?.uid) return;
+
+            if (role === 'coach') {
+                // Try coaches collection first
+                const coachQuery = query(
+                    collection(db, 'coaches'),
+                    where('userId', '==', currentUser.uid)
+                );
+                const coachSnap = await getDocs(coachQuery);
+                if (!coachSnap.empty) {
+                    setUserProfile(coachSnap.docs[0].data());
+                    return;
+                }
+            }
+
+            // Fallback to users collection
+            const userDoc = await getDoc(doc(db, 'users', currentUser.uid));
+            if (userDoc.exists()) {
+                setUserProfile(userDoc.data());
+            }
+        };
+
+        fetchUserProfile();
+    }, [currentUser, role]);
+
+    const handleLogout = async () => {
+        try {
+            await logout();
+            window.location.href = '/login';
+        } catch (error) {
+            console.error('Logout failed', error);
+            window.location.href = '/login';
+        }
+    };
+
+    const getUserDisplayName = () => {
+        if (userProfile?.fullName) return userProfile.fullName;
+        if (userProfile?.coachName) return userProfile.coachName;
+        if (userProfile?.name) return userProfile.name;
+        if (userData?.fullName) return userData.fullName;
+
+        // Extract from email
+        const email = currentUser?.email || '';
+        const username = email.split('@')[0];
+
+        // Special handling for known users
+        if (username.includes('abhirambhat')) return 'Abhiram Bhat';
+
+        // Capitalize first letter
+        return username.charAt(0).toUpperCase() + username.slice(1) || (role === 'admin' ? 'Admin' : 'Coach');
+    };
+
+    const getUserInitials = () => {
+        const name = getUserDisplayName();
+        const parts = name.split(' ');
+        if (parts.length >= 2) {
+            return parts[0].charAt(0) + parts[1].charAt(0);
+        }
+        return name.charAt(0).toUpperCase();
+    };
+
     const links = role === 'admin' ? [
         { label: 'Command Center', icon: <LayoutDashboard size={20} />, path: '/admin' },
         { label: 'Live Analytics', icon: <BarChart3 size={20} />, path: '/admin/live-analytics' },
         { label: 'Demo Pipeline', icon: <Users size={20} />, path: '/admin/demos' },
         { label: 'Students', icon: <GraduationCap size={20} />, path: '/admin/students' },
         { label: 'Coach Roster', icon: <BookOpen size={20} />, path: '/admin/coaches' },
-        { label: 'Applications', icon: <Users size={20} />, path: '/admin/applications' },
         { label: 'Finances', icon: <Wallet size={20} />, path: '/admin/finances' },
         { label: 'Broadcast', icon: <Radio size={20} />, path: '/admin/broadcast' },
         { label: 'Messages', icon: <MessageSquare size={20} />, path: '/chat' },
@@ -24,48 +95,102 @@ const Sidebar = ({ role = 'admin', activePath = '/dashboard' }) => {
         { label: 'Dashboard', icon: <LayoutDashboard size={20} />, path: '/coach' },
         { label: 'My Students', icon: <Users size={20} />, path: '/coach/students' },
         { label: 'Batches', icon: <Layers size={20} />, path: '/coach/batches' },
-        { label: 'Availability', icon: <Calendar size={20} />, path: '/coach/schedule' },
+        { label: 'Schedule', icon: <Calendar size={20} />, path: '/coach/schedule' },
+        { label: 'Messages', icon: <MessageSquare size={20} />, path: '/coach/chat' },
     ];
 
     return (
-        <aside className="sidebar" style={{ borderRight: '1px solid rgba(255,255,255,0.1)' }}>
-            <div className="sidebar-brand" style={{ color: 'var(--color-deep-blue)' }}>
-                {/* Simplified Logo for Admin Panel */}
-                <div style={{ width: '32px', height: '32px', borderRadius: '50%', border: '2px solid var(--color-warm-orange)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                    <div style={{ width: '12px', height: '12px', backgroundColor: 'var(--color-olive-green)', borderRadius: '50%' }}></div>
+        <>
+            {/* Custom Logout Confirmation Modal */}
+            {showLogoutConfirm && (
+                <div className="logout-modal-overlay">
+                    <div className="logout-modal">
+                        <div className="logout-modal-icon">
+                            <AlertTriangle size={28} color="#dc2626" />
+                        </div>
+                        <h3>Confirm Logout</h3>
+                        <p>
+                            Are you sure you want to log out of the {role === 'admin' ? 'Admin Panel' : 'Coach Portal'}?
+                            You will need to sign in again.
+                        </p>
+                        <div className="logout-modal-actions">
+                            <button className="btn-cancel" onClick={() => setShowLogoutConfirm(false)}>
+                                Cancel
+                            </button>
+                            <button className="btn-confirm" onClick={handleLogout}>
+                                Yes, Log Out
+                            </button>
+                        </div>
+                    </div>
                 </div>
-                <span>ICA Admin</span>
-            </div>
+            )}
 
-            <nav className="sidebar-nav">
-                {links.map((link) => (
-                    <div
-                        key={link.path}
-                        className={`nav-item ${activePath === link.path ? 'active' : ''}`}
-                        onClick={() => navigate(link.path)}
+            <aside className="sidebar">
+                {/* Brand Header with Chess Logo */}
+                <div className="sidebar-brand">
+                    <div className="brand-logo">
+                        <Crown size={20} color="#FC8A24" />
+                    </div>
+                    <div className="brand-text">
+                        <span className="brand-name">Indian Chess Academy</span>
+                        <span className="brand-role">{role === 'admin' ? '⚡ Admin Portal' : '♟️ Coach Portal'}</span>
+                    </div>
+                </div>
+
+                {/* Navigation */}
+                <nav className="sidebar-nav">
+                    {links.map((link) => (
+                        <div
+                            key={link.path}
+                            className={`nav-item ${activePath === link.path ? 'active' : ''}`}
+                            onClick={() => navigate(link.path)}
+                        >
+                            <span className="nav-icon">{link.icon}</span>
+                            <span className="nav-label">{link.label}</span>
+                            {activePath === link.path && <div className="active-indicator"></div>}
+                        </div>
+                    ))}
+                </nav>
+
+                {/* User Profile Footer - Works for Both Admin and Coach */}
+                <div className="sidebar-footer">
+                    {showDropdown && (
+                        <div className="dropdown-menu">
+                            <button
+                                className="dropdown-logout-btn"
+                                onClick={() => {
+                                    setShowDropdown(false);
+                                    setShowLogoutConfirm(true);
+                                }}
+                            >
+                                <LogOut size={16} />
+                                <span>Log Out</span>
+                            </button>
+                        </div>
+                    )}
+
+                    <button
+                        className={`user-profile-btn ${showDropdown ? 'active' : ''}`}
+                        onClick={() => setShowDropdown(!showDropdown)}
+                        type="button"
                     >
-                        <span className="nav-icon">{link.icon}</span>
-                        {link.label}
-                    </div>
-                ))}
-            </nav>
-
-            <div className="sidebar-footer">
-                <div className="user-compact">
-                    <div className="user-avatar" style={{ backgroundColor: 'var(--color-deep-blue)', color: '#fff' }}>
-                        {role === 'admin' ? 'A' : 'C'}
-                    </div>
-                    <div>
-                        <div style={{ fontWeight: '600', fontSize: '14px', color: 'var(--color-white)' }}>
-                            {role === 'admin' ? 'System Admin' : 'Coach Ramesh'}
+                        <div className={`user-avatar ${role === 'admin' ? 'admin' : 'coach'}`}>
+                            {getUserInitials()}
                         </div>
-                        <div style={{ fontSize: '12px', color: 'var(--color-white)', opacity: 0.8 }}>
-                            {role === 'admin' ? 'Operations' : 'Senior Coach'}
+                        <div className="user-info">
+                            <div className="user-name">{getUserDisplayName()}</div>
+                            <div className="user-role">
+                                {role === 'admin' ? '👑 System Administrator' : '🎓 Chess Coach'}
+                            </div>
                         </div>
-                    </div>
+                        <ChevronRight
+                            size={16}
+                            className={`chevron ${showDropdown ? 'rotated' : ''}`}
+                        />
+                    </button>
                 </div>
-            </div>
-        </aside>
+            </aside>
+        </>
     );
 };
 

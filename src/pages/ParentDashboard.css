@@ -865,6 +865,79 @@
     color: rgba(255, 255, 255, 0.8);
 }
 
+
+/* ===== ANNOUNCEMENTS CARD ===== */
+.announcement-card {
+    border-left: 5px solid #f59e0b;
+}
+
+.announcement-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.announcement-item {
+    display: flex;
+    gap: 16px;
+    padding: 16px;
+    background: #fffbeb;
+    /* Light amber tint */
+    border-radius: 12px;
+    border: 1px solid #fcd34d;
+    transition: transform 0.2s ease;
+}
+
+.announcement-item:hover {
+    transform: translateX(4px);
+}
+
+.ann-icon {
+    width: 40px;
+    height: 40px;
+    background: #fef3c7;
+    color: #d97706;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.ann-content {
+    flex: 1;
+}
+
+.ann-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 6px;
+}
+
+.ann-subject {
+    font-weight: 700;
+    color: #92400e;
+    /* Dark amber/brown */
+    font-size: 15px;
+}
+
+.ann-date {
+    font-size: 11px;
+    color: #b45309;
+    font-weight: 600;
+    background: rgba(255, 255, 255, 0.5);
+    padding: 2px 8px;
+    border-radius: 12px;
+}
+
+.ann-message {
+    font-size: 13px;
+    color: #4b5563;
+    line-height: 1.5;
+    margin: 0;
+}
+
 /* ===== RESPONSIVE ===== */
 @media (max-width: 1200px) {
     .content-grid {

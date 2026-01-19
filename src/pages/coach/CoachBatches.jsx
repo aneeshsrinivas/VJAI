@@ -110,8 +110,11 @@ const UploadModal = ({ isOpen, onClose, batchName }) => {
     );
 };
 
+import CreateAssignmentModal from '../../components/features/CreateAssignmentModal';
+
 const CoachBatches = () => {
     const [selectedBatch, setSelectedBatch] = useState(null);
+    const [createAssignmentBatch, setCreateAssignmentBatch] = useState(null);
 
     const batches = [
         { id: 1, name: 'Intermediate B2', time: 'Mon, Wed, Fri • 5:00 PM', students: 8, level: 'Intermediate', color: '#3b82f6' },
@@ -233,12 +236,28 @@ const CoachBatches = () => {
                                 borderTop: '1px solid #f1f5f9',
                                 paddingTop: '16px',
                                 display: 'grid',
-                                gridTemplateColumns: '1fr 1fr',
-                                gap: '12px'
+                                gridTemplateColumns: '1fr 1fr 1fr',
+                                gap: '8px'
                             }}>
                                 <Button
                                     size="sm"
                                     onClick={() => setSelectedBatch(batch)}
+                                    style={{
+                                        background: '#f8fafc',
+                                        border: '1px solid #e2e8f0',
+                                        color: '#475569',
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        justifyContent: 'center',
+                                        gap: '4px',
+                                        fontSize: '12px'
+                                    }}
+                                >
+                                    <Upload size={14} /> Upload
+                                </Button>
+                                <Button
+                                    size="sm"
+                                    onClick={() => setCreateAssignmentBatch(batch)}
                                     style={{
                                         background: `${batch.color}`,
                                         border: 'none',
@@ -246,10 +265,11 @@ const CoachBatches = () => {
                                         display: 'flex',
                                         alignItems: 'center',
                                         justifyContent: 'center',
-                                        gap: '6px'
+                                        gap: '4px',
+                                        fontSize: '12px'
                                     }}
                                 >
-                                    <Upload size={14} /> Upload
+                                    <FileText size={14} /> Assign
                                 </Button>
                                 <Button
                                     size="sm"
@@ -258,10 +278,11 @@ const CoachBatches = () => {
                                         display: 'flex',
                                         alignItems: 'center',
                                         justifyContent: 'center',
-                                        gap: '6px'
+                                        gap: '4px',
+                                        fontSize: '12px'
                                     }}
                                 >
-                                    <FileText size={14} /> Reports
+                                    Reports
                                 </Button>
                             </div>
                         </Card>
@@ -273,6 +294,14 @@ const CoachBatches = () => {
                 isOpen={!!selectedBatch}
                 batchName={selectedBatch?.name}
                 onClose={() => setSelectedBatch(null)}
+            />
+
+            <CreateAssignmentModal
+                isOpen={!!createAssignmentBatch}
+                batchId={createAssignmentBatch?.id}
+                batchName={createAssignmentBatch?.name}
+                onClose={() => setCreateAssignmentBatch(null)}
+                onSuccess={() => alert('Assignment Created Successfully!')}
             />
         </div>
     );

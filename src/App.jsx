@@ -16,6 +16,7 @@ import ParentPayments from './pages/parent/ParentPayments';
 import CoachPage from './pages/CoachPage';
 import CoachBatches from './pages/coach/CoachBatches';
 import CoachSchedule from './pages/coach/CoachSchedule';
+import CoachStudents from './pages/coach/CoachStudents';
 import StudentPage from './pages/StudentPage';
 import AdminDashboard from './pages/AdminDashboard';
 import PlaceholderPage from './pages/PlaceholderPage';
@@ -110,7 +111,7 @@ const App = () => {
             {/* Coach Routes */}
             <Route element={<StaffLayout role="coach" />}>
               <Route path="/coach" element={<CoachPage />} />
-              <Route path="/coach/students" element={<PlaceholderPage title="My Students" />} />
+              <Route path="/coach/students" element={<CoachStudents />} />
               <Route path="/coach/batches" element={<CoachBatches />} />
               <Route path="/coach/schedule" element={<CoachSchedule />} />
               <Route path="/coach/chat" element={<ChatPage userRole="COACH" />} />

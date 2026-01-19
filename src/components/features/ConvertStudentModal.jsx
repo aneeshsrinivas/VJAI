@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { convertDemoToStudent, createParentAccount } from '../../services/firestoreService';
+import { createParentAuthAccount } from '../../services/adminAuthService';
 import Button from '../ui/Button';
 import Input from '../ui/Input';
 import { useAuth } from '../../context/AuthContext';
@@ -8,6 +9,7 @@ import './DemoOutcomeModal.css'; // Reuse styles
 const ConvertStudentModal = ({ demo, onClose, onSuccess }) => {
     const { currentUser } = useAuth();
     const [formData, setFormData] = useState({
+        email: demo.parentEmail || '',
         password: '',
         planId: 'monthly-group',
         amount: '2000',
@@ -28,13 +30,19 @@ const ConvertStudentModal = ({ demo, onClose, onSuccess }) => {
         setError('');
 
         try {
-            // 1. Simulate Auth UID (In real app, create Auth user via Admin SDK)
-            const simulatedUid = `user_${Date.now()}`;
+            // 1. Create REAL Firebase Auth account using secondary app
+            const authResult = await createParentAuthAccount(formData.email, formData.password);
 
-            // 2. Create Account Doc
-            // Note: Saving password in plain text is for MVP flow demonstration only as requested
-            // In production, this would be handled by Firebase Auth
-            await createParentAccount(simulatedUid, demo.parentEmail, currentUser?.uid, formData.password);
+            if (!authResult.success) {
+                setError(authResult.error || 'Failed to create login account');
+                setLoading(false);
+                return;
+            }
+
+            const realUid = authResult.uid;
+
+            // 2. Create Account Doc in Firestore with real UID
+            await createParentAccount(realUid, formData.email, currentUser?.uid, formData.password);
 
             // 3. Convert Demo & Create Student/Subscription
             const paymentData = {
@@ -46,7 +54,7 @@ const ConvertStudentModal = ({ demo, onClose, onSuccess }) => {
                 ...formData
             };
 
-            const result = await convertDemoToStudent(demo.id, simulatedUid, paymentData);
+            const result = await convertDemoToStudent(demo.id, realUid, paymentData);
 
             if (result.success) {
                 // Send emails via Web3Forms
@@ -71,12 +79,17 @@ const ConvertStudentModal = ({ demo, onClose, onSuccess }) => {
 • Amount: ₹${formData.amount}
 • Date: ${new Date().toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' })}
 
+🔐 LMS Access Credentials:
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+• Login Email: ${formData.email}
+• Temp Password: ${formData.password}
+• Portal: ${window.location.origin}/login
+
 📋 Action Required:
 • Assign coach to batch
-• Send LMS access to parent (automated)
+• LMS access email sent to parent automatically
 
-Student ID: ${result.studentId}
-Account ID: ${simulatedUid}`
+Student ID: ${result.studentId}`
                         })
                     });
 
@@ -161,6 +174,16 @@ Indian Chess Academy Team
                 {error && <div className="error-message">{error}</div>}
 
                 <form onSubmit={handleSubmit}>
+                    <Input
+                        label="Parent Email (Login ID)"
+                        name="email"
+                        type="email"
+                        required
+                        value={formData.email}
+                        onChange={handleChange}
+                        placeholder="parent@example.com"
+                    />
+
                     <Input
                         label="Set Temporary Password"
                         name="password"
