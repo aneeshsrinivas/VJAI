@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import './Login.css';
-
 import { useAuth } from '../context/AuthContext';
+import { Crown, Users, GraduationCap } from 'lucide-react';
+import './Login.css';
 
 const Login = () => {
     const navigate = useNavigate();
@@ -24,11 +24,20 @@ const Login = () => {
         setError('');
         setLoading(true);
         try {
-            await login(email, password);
-            // Navigation handled by useEffect
+            const result = await login(email, password);
+            // Role-based navigation
+            if (result.role === 'admin') navigate('/admin');
+            else if (result.role === 'coach') navigate('/coach');
+            else navigate('/parent');
         } catch (err) {
             console.error(err);
-            setError('Failed to login. Please check your credentials.');
+            if (err.code === 'auth/user-not-found') {
+                setError('No account found with this email. Please register first.');
+            } else if (err.code === 'auth/wrong-password') {
+                setError('Incorrect password. Please try again.');
+            } else {
+                setError('Failed to login. Please check your credentials.');
+            }
             setLoading(false);
         }
     };
@@ -43,21 +52,19 @@ const Login = () => {
                     <p>Join the Indian Chess Academy and elevate your strategic thinking to the next level.</p>
                     <div className="login-features">
                         <div className="login-feature">
-                            <span className="feature-icon">♔</span>
+                            <span className="feature-icon"><Crown size={24} /></span>
                             <span>Expert Coaches</span>
                         </div>
                         <div className="login-feature">
-                            <span className="feature-icon">♕</span>
+                            <span className="feature-icon"><GraduationCap size={24} /></span>
                             <span>Personalized Training</span>
                         </div>
                         <div className="login-feature">
-                            <span className="feature-icon">♖</span>
+                            <span className="feature-icon"><Users size={24} /></span>
                             <span>Tournament Ready</span>
                         </div>
                     </div>
                 </div>
-                {/* Decorative Elements */}
-                <div style={{ position: 'absolute', bottom: '-50px', right: '-50px', fontSize: '300px', opacity: 0.1, color: '#fff' }}>♞</div>
             </div>
 
             {/* Right Side - Login Form */}
@@ -68,22 +75,22 @@ const Login = () => {
                         className="back-to-home-btn"
                         onClick={() => navigate('/')}
                     >
-                        ← Back to Home
+                        Back to Home
                     </button>
                     <div className="login-header">
-                        <div className="login-icon">♔</div>
+                        <div className="login-icon"><Crown size={32} /></div>
                         <h1>Welcome Back</h1>
-                        <p>Log in to access your VJAI dashboard</p>
+                        <p>Log in to access your dashboard</p>
                     </div>
 
-                    {error && <div className="error-message" style={{ color: 'red', marginBottom: '1rem', textAlign: 'center' }}>{error}</div>}
+                    {error && <div className="error-message" style={{ color: '#DC2626', marginBottom: '1rem', textAlign: 'center', padding: '12px', backgroundColor: '#FEE2E2', borderRadius: '8px' }}>{error}</div>}
 
                     <form onSubmit={handleLogin} className="login-form">
                         <div className="form-group">
                             <label>Email Address</label>
                             <input
                                 type="email"
-                                placeholder="e.g. parent@example.com"
+                                placeholder="yourname@gmail.com"
                                 value={email}
                                 onChange={(e) => setEmail(e.target.value)}
                                 required
@@ -93,7 +100,7 @@ const Login = () => {
                             <label>Password</label>
                             <input
                                 type="password"
-                                placeholder="••••••••"
+                                placeholder="Enter your password"
                                 value={password}
                                 onChange={(e) => setPassword(e.target.value)}
                                 required
@@ -116,11 +123,13 @@ const Login = () => {
                         Don't have an account? <Link to="/select-role">Join Us</Link>
                     </div>
 
-                    <div className="quick-access">
-                        <strong>Quick Access for Demo:</strong>
-                        • admin@vjai.com (Admin)<br />
-                        • coach@vjai.com (Coach)<br />
-                        • parent@vjai.com (Parent)
+                    <div className="quick-access" style={{ marginTop: '24px', padding: '16px', backgroundColor: '#F0F9FF', borderRadius: '8px', fontSize: '13px' }}>
+                        <strong style={{ display: 'block', marginBottom: '8px', color: '#1E3A8A' }}>Login Guide:</strong>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', color: '#64748B' }}>
+                            <span><strong>Admin:</strong> indianchessacademy@chess.com</span>
+                            <span><strong>Coach:</strong> Register with @coach.com email</span>
+                            <span><strong>Parent:</strong> Register with @gmail.com email</span>
+                        </div>
                     </div>
                 </div>
             </div>
