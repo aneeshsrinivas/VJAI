@@ -8,7 +8,9 @@ export const COLLECTIONS = {
     BATCHES: 'batches',
     CHATS: 'chats',
     MESSAGES: 'messages',
-    SUBSCRIPTIONS: 'subscriptions'
+    SUBSCRIPTIONS: 'subscriptions',
+    ASSIGNMENTS: 'assignments',
+    SCHEDULE: 'schedule'
 };
 
 export const DEMO_STATUS = {

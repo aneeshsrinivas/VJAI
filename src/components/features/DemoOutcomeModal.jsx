@@ -147,7 +147,10 @@ const DemoOutcomeModal = ({ demo, onClose, onSuccess, mandatory = false }) => {
                 </div>
             )}
 
-            <div className={`modal-content demo-outcome-modal ${attemptedClose ? 'shake-error' : ''}`}>
+            <div
+                className={`modal-content demo-outcome-modal ${attemptedClose ? 'shake-error' : ''}`}
+                style={{ maxHeight: '90vh', overflowY: 'auto' }}
+            >
                 {/* Only show close button if not mandatory */}
                 {!mandatory && (
                     <button className="modal-close" onClick={handleClose}>&times;</button>
@@ -302,10 +305,10 @@ const DemoOutcomeModal = ({ demo, onClose, onSuccess, mandatory = false }) => {
                         )}
                         <Button
                             type="submit"
-                            disabled={loading || !isFormComplete()}
+                            disabled={loading} // Only disable while loading
                             style={{ flex: mandatory ? 1 : 'initial' }}
                         >
-                            {loading ? 'Submitting...' : isFormComplete() ? 'Submit Outcome' : 'Complete All Fields'}
+                            {loading ? 'Submitting...' : 'Submit Outcome'}
                         </Button>
                     </div>
                 </form>

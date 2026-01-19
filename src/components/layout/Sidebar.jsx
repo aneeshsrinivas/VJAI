@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { signOut } from 'firebase/auth';
 import { auth } from '../../lib/firebase';
@@ -6,6 +6,9 @@ import {
     LayoutDashboard, Users, GraduationCap, Wallet, Radio, MessageSquare,
     CreditCard, Calendar, BookOpen, Layers, Shield, BarChart3, FileText, LogOut
 } from 'lucide-react';
+import { useAuth } from '../../context/AuthContext';
+import { doc, getDoc, collection, query, where, getDocs } from 'firebase/firestore';
+import { db } from '../../lib/firebase';
 import './Sidebar.css';
 
 const Sidebar = ({ role = 'admin', activePath = '/dashboard' }) => {
@@ -27,7 +30,8 @@ const Sidebar = ({ role = 'admin', activePath = '/dashboard' }) => {
         { label: 'Dashboard', icon: <LayoutDashboard size={20} />, path: '/coach' },
         { label: 'My Students', icon: <Users size={20} />, path: '/coach/students' },
         { label: 'Batches', icon: <Layers size={20} />, path: '/coach/batches' },
-        { label: 'Availability', icon: <Calendar size={20} />, path: '/coach/schedule' },
+        { label: 'Schedule', icon: <Calendar size={20} />, path: '/coach/schedule' },
+        { label: 'Messages', icon: <MessageSquare size={20} />, path: '/coach/chat' },
     ];
 
     const handleLogout = async () => {
@@ -57,8 +61,8 @@ const Sidebar = ({ role = 'admin', activePath = '/dashboard' }) => {
                         <span className="nav-icon">{link.icon}</span>
                         {link.label}
                     </div>
-                ))}
-            </nav>
+                </div>
+            )}
 
             <div className="sidebar-footer">
                 <div className="user-compact">
@@ -72,7 +76,27 @@ const Sidebar = ({ role = 'admin', activePath = '/dashboard' }) => {
                         <div className="user-role">
                             {role === 'admin' ? 'Operations' : 'Senior Coach'}
                         </div>
-                    </div>
+                    )}
+
+                    <button
+                        className={`user-profile-btn ${showDropdown ? 'active' : ''}`}
+                        onClick={() => setShowDropdown(!showDropdown)}
+                        type="button"
+                    >
+                        <div className={`user-avatar ${role === 'admin' ? 'admin' : 'coach'}`}>
+                            {getUserInitials()}
+                        </div>
+                        <div className="user-info">
+                            <div className="user-name">{getUserDisplayName()}</div>
+                            <div className="user-role">
+                                {role === 'admin' ? '👑 System Administrator' : '🎓 Chess Coach'}
+                            </div>
+                        </div>
+                        <ChevronRight
+                            size={16}
+                            className={`chevron ${showDropdown ? 'rotated' : ''}`}
+                        />
+                    </button>
                 </div>
 
                 {/* Logout Button */}

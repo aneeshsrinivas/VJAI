@@ -287,7 +287,7 @@ const AdminDashboard = () => {
                                             <div style={{ width: '32px', height: '32px', borderRadius: '8px', backgroundColor: COLORS.deepBlue, color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: '600' }}>
                                                 {(coach.name || coach.coachName || 'C').charAt(0)}
                                             </div>
-                                            <span style={{ fontWeight: '500', color: COLORS.deepBlue }}>{coach.name || coach.coachName || coach.email || 'Coach'}</span>
+                                            <span style={{ fontWeight: '500', color: COLORS.deepBlue }}>{coach.fullName || coach.coachName || coach.name || 'Unknown Coach'}</span>
                                         </div>
                                         <span style={{ color: COLORS.oliveGreen, fontWeight: '700' }}>{coach.rating || '4.5'} ★</span>
                                     </div>

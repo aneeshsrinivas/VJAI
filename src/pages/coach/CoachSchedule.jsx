@@ -1,20 +1,93 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Card from '../../components/ui/Card';
 import { Calendar as CalendarIcon, ChevronLeft, ChevronRight, Ban } from 'lucide-react';
 import Button from '../../components/ui/Button';
+import { collection, query, where, onSnapshot } from 'firebase/firestore';
+import { db } from '../../lib/firebase';
+import { useAuth } from '../../context/AuthContext';
+import { COLLECTIONS } from '../../config/firestoreCollections';
+
+import ScheduleClassModal from '../../components/features/ScheduleClassModal';
 
 const CoachSchedule = () => {
+    const { currentUser } = useAuth();
     const [blockedSlots, setBlockedSlots] = useState([]);
+    const [isScheduleModalOpen, setIsScheduleModalOpen] = useState(false);
+    const [scheduleItems, setScheduleItems] = useState([]);
 
     const weekDays = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
     const timeSlots = ['10:00 AM', '12:00 PM', '2:00 PM', '4:00 PM', '6:00 PM', '8:00 PM'];
 
-    // Mock existing classes
-    const existingClasses = [
-        { day: 'Mon', time: '5:00 PM', title: 'Intermediate B2', type: 'class' },
-        { day: 'Wed', time: '5:00 PM', title: 'Intermediate B2', type: 'class' },
-        { day: 'Mon', time: '4:00 PM', title: 'Beginner A1', type: 'class' },
-    ];
+    useEffect(() => {
+        if (!currentUser?.uid) return;
+
+        // 1. Fetch Regular Scheduled Classes
+        const qClasses = query(
+            collection(db, COLLECTIONS.SCHEDULE),
+            where('coachId', '==', currentUser.uid) // Assuming coachId is stored
+        );
+
+        // 2. Fetch Assigned Demos
+        const qDemos = query(
+            collection(db, COLLECTIONS.DEMOS),
+            where('assignedCoachId', '==', currentUser.uid),
+            where('status', '==', 'SCHEDULED')
+        );
+
+        const unsubscribeClasses = onSnapshot(qClasses, (snapshot) => {
+            const classes = snapshot.docs.map(doc => {
+                const data = doc.data();
+                const date = data.scheduledAt?.toDate ? data.scheduledAt.toDate() : new Date(); // Fallback
+                return {
+                    id: doc.id,
+                    type: 'class',
+                    title: data.batchName || data.topic || 'Class',
+                    day: date.toLocaleDateString('en-US', { weekday: 'short' }),
+                    time: date.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' }),
+                    rawDate: date
+                };
+            });
+            updateSchedule(classes, 'classes');
+        });
+
+        const unsubscribeDemos = onSnapshot(qDemos, (snapshot) => {
+            const demos = snapshot.docs.map(doc => {
+                const data = doc.data();
+                // Handle different date formats (Request vs Scheduled)
+                let date = new Date();
+                if (data.scheduledStart) {
+                    date = new Date(data.scheduledStart);
+                } else if (data.preferredDateTime) {
+                    date = new Date(data.preferredDateTime);
+                }
+
+                return {
+                    id: doc.id,
+                    type: 'demo',
+                    title: `Demo: ${data.studentName}`,
+                    day: date.toLocaleDateString('en-US', { weekday: 'short' }),
+                    time: date.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' }),
+                    rawDate: date
+                };
+            });
+            updateSchedule(demos, 'demos');
+        });
+
+        // Helper to merge lists
+        let currentClasses = [];
+        let currentDemos = [];
+
+        const updateSchedule = (items, source) => {
+            if (source === 'classes') currentClasses = items;
+            if (source === 'demos') currentDemos = items;
+            setScheduleItems([...currentClasses, ...currentDemos]);
+        };
+
+        return () => {
+            unsubscribeClasses();
+            unsubscribeDemos();
+        };
+    }, [currentUser]);
 
     const toggleBlock = (day, time) => {
         const id = `${day}-${time}`;
@@ -34,8 +107,8 @@ const CoachSchedule = () => {
         }}>
             <div style={{ maxWidth: '1400px', margin: '0 auto' }}>
                 {/* Header */}
-                <div style={{ marginBottom: '32px' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '16px', marginBottom: '8px' }}>
+                <div style={{ marginBottom: '32px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
                         <div style={{
                             background: 'linear-gradient(135deg, #3b82f6 0%, #2563eb 100%)',
                             borderRadius: '12px',
@@ -56,6 +129,9 @@ const CoachSchedule = () => {
                             </p>
                         </div>
                     </div>
+                    <Button onClick={() => setIsScheduleModalOpen(true)}>
+                        + Schedule Class
+                    </Button>
                 </div>
 
                 {/* Week Navigation */}
@@ -126,13 +202,18 @@ const CoachSchedule = () => {
                                 {weekDays.map(day => {
                                     const id = `${day}-${time}`;
                                     const isBlocked = blockedSlots.includes(id);
-                                    const existingClass = existingClasses.find(c => c.day === day && time.includes(c.time.split(':')[0]));
+                                    // Find class matching this day and time hour (e.g., '10:00' matches '10:00 AM')
+                                    const existingClass = scheduleItems.find(c =>
+                                        c.day === day &&
+                                        time.split(':')[0] === c.time.split(':')[0] &&
+                                        (time.includes('AM') === c.time.includes('AM')) // Simple check, refine if needed
+                                    );
 
                                     return (
                                         <div
                                             key={id}
                                             style={{
-                                                backgroundColor: isBlocked ? '#fee2e2' : existingClass ? '#dbeafe' : '#fff',
+                                                backgroundColor: isBlocked ? '#fee2e2' : existingClass ? (existingClass.type === 'demo' ? '#d1fae5' : '#dbeafe') : '#fff',
                                                 padding: '12px',
                                                 borderTop: timeIdx > 0 ? '1px solid #f0f0f0' : 'none',
                                                 borderLeft: '1px solid #f0f0f0',
@@ -161,14 +242,13 @@ const CoachSchedule = () => {
                                             {existingClass ? (
                                                 <div style={{
                                                     fontSize: '12px',
-                                                    color: '#1e40af',
                                                     fontWeight: '700',
                                                     textAlign: 'center',
-                                                    background: '#3b82f6',
+                                                    background: existingClass.type === 'demo' ? '#10b981' : '#3b82f6',
                                                     color: 'white',
                                                     padding: '6px 10px',
                                                     borderRadius: '8px',
-                                                    boxShadow: '0 2px 8px rgba(59, 130, 246, 0.3)'
+                                                    boxShadow: '0 2px 8px rgba(0,0,0,0.1)'
                                                 }}>
                                                     {existingClass.title}
                                                 </div>
@@ -198,6 +278,12 @@ const CoachSchedule = () => {
                     <strong>💡 Tip:</strong> Click on any available slot to mark it as unavailable. Students cannot book classes during blocked times.
                 </div>
             </div>
+
+            <ScheduleClassModal
+                isOpen={isScheduleModalOpen}
+                onClose={() => setIsScheduleModalOpen(false)}
+                onSuccess={() => alert('Class Scheduled Successfully!')}
+            />
         </div>
     );
 };

@@ -1,11 +1,9 @@
 import React, { useState } from 'react';
 import { useSearchParams, useNavigate, Link } from 'react-router-dom';
-import Input from '../components/ui/Input'; // Assuming Input component exists or I should use standard input
+import Input from '../components/ui/Input';
 import './RegistrationPage.css';
-
-
-
 import { useAuth } from '../context/AuthContext';
+import { createCoachApplication } from '../services/firestoreService';
 
 const RegistrationPage = () => {
     const [searchParams] = useSearchParams();
@@ -92,18 +90,34 @@ const RegistrationPage = () => {
 
         // Validate email domain based on selected role
         const email = formData.email.toLowerCase();
-        if (role === 'coach' && !email.endsWith('@coach.com')) {
-            return setError('Coaches must register with a @coach.com email address.');
-        }
+
 
         setLoading(true);
         try {
-            // Destructure basic auth fields, keep the rest as profile data
+            // Destructure basic auth fields
             const { email: userEmail, password, confirmPassword, ...profileData } = formData;
 
-            // signup now auto-detects role based on email domain
-            const result = await signup(userEmail, password, profileData);
-            navigate(`/registration-success?role=${result.role}`);
+            if (role === 'coach') {
+                // Submit application only - NO Auth creation yet
+                const applicationData = {
+                    email: userEmail,
+                    fullName: formData.fullName,
+                    phone: formData.phone,
+                    title: formData.title,
+                    fideRating: formData.fideRating,
+                    experience: formData.experience,
+                    role: 'coach'
+                };
+
+                const result = await createCoachApplication(applicationData);
+                if (!result.success) throw new Error(result.error);
+
+                navigate(`/registration-success?role=coach`);
+            } else {
+                // Regular signup for Parent/Admin
+                const result = await signup(userEmail, password, profileData);
+                navigate(`/registration-success?role=${result.role}`);
+            }
         } catch (err) {
             console.error(err);
             if (err.code === 'auth/email-already-in-use') {
@@ -304,6 +318,7 @@ const RegistrationPage = () => {
             case 'coach':
                 return (
                     <>
+                        {error && <div className="error-message" style={{ color: 'red', marginBottom: '1rem' }}>{error}</div>}
                         <Input label="Full Name" name="fullName" required placeholder="Your full name" value={formData.fullName} onChange={handleChange} />
                         <Input label="Email" name="email" type="email" required placeholder="name@example.com" value={formData.email} onChange={handleChange} />
                         <Input label="Phone Number (Private)" name="phone" required placeholder="+91 XXXXX XXXXX" value={formData.phone} onChange={handleChange} />

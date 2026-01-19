@@ -5,8 +5,11 @@ import Input from '../ui/Input';
 import { useAuth } from '../../context/AuthContext';
 import './DemoOutcomeModal.css';
 
+import { createCoachAccount } from '../../services/adminAuthService';
+
 const ApproveCoachModal = ({ application, onClose, onSuccess }) => {
     const { currentUser } = useAuth();
+    const [coachEmail, setCoachEmail] = useState(application?.email || '');
     const [password, setPassword] = useState('');
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
@@ -19,8 +22,24 @@ const ApproveCoachModal = ({ application, onClose, onSuccess }) => {
         setError('');
 
         try {
-            const simulatedUid = `coach_${Date.now()}`;
-            const result = await approveCoachApplication(application.id, simulatedUid, password, currentUser?.uid);
+            // 1. Create Firebase Auth Account (Secondary App)
+            const authResult = await createCoachAccount(coachEmail, password);
+
+            if (!authResult.success) {
+                // If account already exists (e.g. reused email), we might proceed or error.
+                // For now, let's treat it as an error but maybe allow proceed if it's "email-already-in-use"
+                if (authResult.error.includes('email-already-in-use')) {
+                    // Optional: Allow approval linking to existing account? 
+                    // For now, throw error to be safe
+                    throw new Error('An account with this email already exists. Cannot create new credentials.');
+                }
+                throw new Error(authResult.error);
+            }
+
+            const newUid = authResult.uid;
+
+            // 2. Approve in Firestore (Create Profile/Account Docs)
+            const result = await approveCoachApplication(application.id, newUid, password, currentUser?.uid);
 
             if (result.success) {
                 // Send welcome email with credentials via Web3Forms
@@ -32,17 +51,17 @@ const ApproveCoachModal = ({ application, onClose, onSuccess }) => {
                         },
                         body: JSON.stringify({
                             access_key: import.meta.env.VITE_WEB3FORMS_ACCESS_KEY,
+                            email: 'abhirambhat2210@gmail.com', // Route to admin/tester email as per config
                             subject: 'Welcome to Indian Chess Academy - Coach Account Approved! 🎉',
                             from_name: 'Indian Chess Academy',
                             reply_to: 'indianchessacademy@chess.com',
-                            to: application.email,
                             message: `Dear ${application.fullName},
 
 Congratulations! Your application as a coach at Indian Chess Academy has been APPROVED! 🎉
 
 🔑 Your Login Credentials:
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-• Email: ${application.email}
+• Email: ${coachEmail}
 • Temporary Password: ${password}
 • Login URL: ${window.location.origin}/login
 
@@ -64,7 +83,7 @@ Indian Chess Academy Team
                     });
 
                     if (emailResponse.ok) {
-                        console.log('✅ Coach credentials email sent to:', application.email);
+                        console.log('✅ Coach credentials email sent to:', coachEmail);
                     } else {
                         console.error('⚠️ Email send failed, but coach was approved');
                     }
@@ -99,6 +118,17 @@ Indian Chess Academy Team
                 {error && <div className="error-message">{error}</div>}
 
                 <form onSubmit={handleSubmit}>
+                    <div className="form-group">
+                        <label>Confirm/Edit Coach Email *</label>
+                        <Input
+                            name="coachEmail"
+                            type="email"
+                            required
+                            value={coachEmail}
+                            onChange={(e) => setCoachEmail(e.target.value)}
+                        />
+                    </div>
+
                     <div className="form-group">
                         <label>Set Temporary Password *</label>
                         <p className="description-text" style={{ fontSize: '12px', color: '#666', marginBottom: '8px' }}>

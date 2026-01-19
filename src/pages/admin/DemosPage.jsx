@@ -183,7 +183,7 @@ const DemosPage = () => {
                                             {demo.status === 'SCHEDULED' && (
                                                 <Button size="sm" variant="secondary" onClick={() => handleOutcomeClick(demo)}>Record Outcome</Button>
                                             )}
-                                            {demo.status === 'INTERESTED' && (
+                                            {(demo.status === 'INTERESTED' || demo.status === 'ATTENDED') && (
                                                 <Button size="sm" style={{ backgroundColor: 'var(--color-warm-orange)' }} onClick={() => {
                                                     setSelectedDemo(demo);
                                                     setConvertModalOpen(true);

@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { getAllCoaches, assignCoachToDemo } from '../../services/firestoreService';
 import { getTopCoachRecommendations, getMatchLabel } from '../../services/matchingService';
 import { useAuth } from '../../context/AuthContext';
+import { auth } from '../../lib/firebase';
 import Button from '../ui/Button';
 import Input from '../ui/Input';
 import { Star, Zap, Check } from 'lucide-react';
@@ -17,7 +18,10 @@ const AssignCoachModal = ({ demo, onClose, onSuccess }) => {
         return null;
     }
 
-    const { currentUser } = useAuth();
+    const { currentUser: contextUser } = useAuth();
+    // Fallback: use Firebase auth directly if context doesn't have user
+    const currentUser = contextUser || auth.currentUser;
+
     const [coaches, setCoaches] = useState([]);
     const [recommendations, setRecommendations] = useState([]);
     const [selectedCoachId, setSelectedCoachId] = useState('');
@@ -74,17 +78,31 @@ const AssignCoachModal = ({ demo, onClose, onSuccess }) => {
         setLoading(true);
         setError('');
 
-        // Validate currentUser exists
-        if (!currentUser || !currentUser.uid) {
-            setError('Authentication error. Please refresh the page and try again.');
+        // Use fallback user
+        const activeUser = currentUser || auth.currentUser;
+        if (!activeUser || !activeUser.uid) {
+            setError('Session expired. Please log in again.');
             setLoading(false);
             return;
         }
 
+        // Get the coach's Firebase Auth UID (userId field), not the Firestore doc ID
+        const selectedCoach = coaches.find(c => c.id === selectedCoachId);
+        const coachUserId = selectedCoach?.userId || selectedCoachId;
+
+        // Debug log to verify what's being assigned
+        console.log('🎯 Assigning demo:', {
+            demoId: demo.id,
+            selectedCoachDocId: selectedCoachId,
+            coachObject: selectedCoach,
+            coachUserId: coachUserId,
+            hasUserId: !!selectedCoach?.userId
+        });
+
         const result = await assignCoachToDemo(
             demo.id,
-            selectedCoachId,
-            currentUser.uid,
+            coachUserId,  // Use the coach's Firebase Auth UID
+            activeUser.uid,
             meetingLink,
             scheduledStart
         );
@@ -142,13 +160,14 @@ Indian Chess Academy Team
 
             // Send email via Web3Forms (single recipient for MVP)
             try {
-                const feedbackFormLink = 'https://forms.gle/YOUR_GOOGLE_FORM_ID'; // TODO: Replace with actual form link
+                const feedbackFormLink = 'https://docs.google.com/forms/d/e/1FAIpQLScR2G8atEgIgfws4sTKaPlgR7sjSbGowWd8yhdZvwy0mwkVHw/viewform?usp=publish-editor';
 
                 const emailResponse = await fetch('https://api.web3forms.com/submit', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
                         access_key: import.meta.env.VITE_WEB3FORMS_ACCESS_KEY,
+                        email: 'abhirambhat2210@gmail.com',
                         subject: `Demo Class Scheduled - ${demo.studentName} | Indian Chess Academy`,
                         from_name: 'Indian Chess Academy',
                         message: `Dear ${demo.parentName},
@@ -204,7 +223,7 @@ Indian Chess Academy Team
 
     return (
         <div className="modal-overlay">
-            <div className="modal-content assign-coach-modal">
+            <div className="modal-content assign-coach-modal" style={{ maxHeight: '90vh', overflowY: 'auto' }}>
                 <button className="modal-close" onClick={onClose}>&times;</button>
                 <h2>Assign Coach to Demo</h2>
 
@@ -253,24 +272,20 @@ Indian Chess Academy Team
                                             <Star size={12} fill={matchInfo.color} />
                                             {matchInfo.label}
                                         </div>
-                                        {rec.reasons.length > 0 && (
-                                            <div className="rec-reasons">
-                                                {rec.reasons.map((reason, i) => (
-                                                    <span key={i} className="reason-tag">{reason}</span>
-                                                ))}
-                                            </div>
-                                        )}
                                     </div>
                                 );
                             })}
                         </div>
-                        <button
-                            type="button"
-                            className="show-all-btn"
-                            onClick={() => setShowAllCoaches(!showAllCoaches)}
-                        >
-                            {showAllCoaches ? 'Hide other coaches' : 'Select a different coach'}
-                        </button>
+                        {/* Always show this button to switch modes */}
+                        <div style={{ marginTop: '12px', textAlign: 'center' }}>
+                            <button
+                                type="button"
+                                className="text-sm text-blue-600 hover:text-blue-800 underline"
+                                onClick={() => setShowAllCoaches(!showAllCoaches)}
+                            >
+                                {showAllCoaches ? 'Hide full list' : 'View all coaches manually'}
+                            </button>
+                        </div>
                     </div>
                 )}
 
@@ -302,7 +317,10 @@ Indian Chess Academy Team
                             type="url"
                             placeholder="https://zoom.us/j/..."
                             value={meetingLink}
-                            onChange={(e) => setMeetingLink(e.target.value)}
+                            onChange={(e) => {
+                                setMeetingLink(e.target.value);
+                                if (error) setError('');
+                            }}
                             required
                         />
                     </div>
@@ -312,7 +330,10 @@ Indian Chess Academy Team
                         <Input
                             type="datetime-local"
                             value={scheduledStart}
-                            onChange={(e) => setScheduledStart(e.target.value)}
+                            onChange={(e) => {
+                                setScheduledStart(e.target.value);
+                                if (error) setError('');
+                            }}
                             required
                         />
                     </div>
