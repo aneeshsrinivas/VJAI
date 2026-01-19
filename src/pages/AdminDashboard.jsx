@@ -7,10 +7,13 @@ import DemoOutcomeModal from '../components/features/DemoOutcomeModal';
 import DemoSuccessPredictor from '../components/features/hackathon/DemoSuccessPredictor';
 import BatchOptimizer from '../components/features/hackathon/BatchOptimizer';
 import EngagementMonitor from '../components/features/hackathon/EngagementMonitor';
+import { ShieldCheck } from 'lucide-react';
+import { useAuth } from '../context/AuthContext';
 import './Dashboard.css';
 
 const AdminDashboard = () => {
     const navigate = useNavigate();
+    const { userData } = useAuth();
     const [showDemoModal, setShowDemoModal] = useState(false);
     return (
         <div className="dashboard-container">
@@ -20,9 +23,9 @@ const AdminDashboard = () => {
                     <p className="sub-text">Academy Operations Overview</p>
                 </div>
                 <AccountDropdown
-                    userName="System Admin"
+                    userName={userData?.fullName || "System Admin"}
                     userRole="Administrator"
-                    avatarEmoji="👑"
+                    customIcon={<ShieldCheck size={20} color="white" />}
                 />
             </div>
 
