@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { createDemoRequest } from '../services/firestoreService';
+
 import { toast, ToastContainer } from 'react-toastify';
 import Button from '../components/ui/Button';
 import Navbar from '../components/layout/Navbar';
@@ -14,18 +14,6 @@ const LandingPage = () => {
     const navigate = useNavigate();
     const [activeFAQ, setActiveFAQ] = useState(null);
     const [activeModal, setActiveModal] = useState(null);
-
-    // Demo Booking Form State
-    const [demoForm, setDemoForm] = useState({
-        studentName: '',
-        parentName: '',
-        parentEmail: '',
-        parentPhone: '',
-        timezone: 'IST',
-        preferredDateTime: '',
-        chessExperience: 'beginner'
-    });
-    const [demoLoading, setDemoLoading] = useState(false);
 
     // Mock testimonials data
     const testimonials = [
@@ -76,30 +64,7 @@ const LandingPage = () => {
         }
     ];
 
-    // Handle Demo Form Submission
-    const handleDemoSubmit = async (e) => {
-        e.preventDefault();
-        setDemoLoading(true);
 
-        const result = await createDemoRequest(demoForm);
-
-        if (result.success) {
-            toast.success('Demo request submitted! We will contact you within 24 hours.');
-            setDemoForm({
-                studentName: '',
-                parentName: '',
-                parentEmail: '',
-                parentPhone: '',
-                timezone: 'IST',
-                preferredDateTime: '',
-                chessExperience: 'beginner'
-            });
-        } else {
-            toast.error('Failed to submit: ' + result.error);
-        }
-
-        setDemoLoading(false);
-    };
 
     return (
         <div className="landing-page-home">
@@ -198,87 +163,7 @@ const LandingPage = () => {
                 </div>
             </section>
 
-            {/* Demo Booking Section */}
-            <section className="demo-booking-section" style={{ padding: '60px 0', background: '#f8fafc' }}>
-                <div className="section-container-home">
-                    <div className="section-header-home">
-                        <span className="section-tag-home">Free Trial</span>
-                        <h2 className="section-title-home">Book a Free Demo Class</h2>
-                        <p className="section-subtitle-home">Experience our teaching style with a complimentary 45-minute session.</p>
-                    </div>
-                    <form onSubmit={handleDemoSubmit} style={{ maxWidth: '600px', margin: '0 auto', display: 'grid', gap: '16px' }}>
-                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
-                            <input
-                                type="text"
-                                placeholder="Student Name *"
-                                value={demoForm.studentName}
-                                onChange={(e) => setDemoForm({ ...demoForm, studentName: e.target.value })}
-                                required
-                                style={{ padding: '14px', borderRadius: '8px', border: '1px solid #ddd', fontSize: '14px' }}
-                            />
-                            <input
-                                type="text"
-                                placeholder="Parent Name *"
-                                value={demoForm.parentName}
-                                onChange={(e) => setDemoForm({ ...demoForm, parentName: e.target.value })}
-                                required
-                                style={{ padding: '14px', borderRadius: '8px', border: '1px solid #ddd', fontSize: '14px' }}
-                            />
-                        </div>
-                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
-                            <input
-                                type="email"
-                                placeholder="Parent Email *"
-                                value={demoForm.parentEmail}
-                                onChange={(e) => setDemoForm({ ...demoForm, parentEmail: e.target.value })}
-                                required
-                                style={{ padding: '14px', borderRadius: '8px', border: '1px solid #ddd', fontSize: '14px' }}
-                            />
-                            <input
-                                type="tel"
-                                placeholder="Phone (Optional)"
-                                value={demoForm.parentPhone}
-                                onChange={(e) => setDemoForm({ ...demoForm, parentPhone: e.target.value })}
-                                style={{ padding: '14px', borderRadius: '8px', border: '1px solid #ddd', fontSize: '14px' }}
-                            />
-                        </div>
-                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
-                            <select
-                                value={demoForm.timezone}
-                                onChange={(e) => setDemoForm({ ...demoForm, timezone: e.target.value })}
-                                required
-                                style={{ padding: '14px', borderRadius: '8px', border: '1px solid #ddd', fontSize: '14px' }}
-                            >
-                                <option value="IST">IST (India)</option>
-                                <option value="PST">PST (US West)</option>
-                                <option value="EST">EST (US East)</option>
-                                <option value="GMT">GMT (UK)</option>
-                            </select>
-                            <select
-                                value={demoForm.chessExperience}
-                                onChange={(e) => setDemoForm({ ...demoForm, chessExperience: e.target.value })}
-                                required
-                                style={{ padding: '14px', borderRadius: '8px', border: '1px solid #ddd', fontSize: '14px' }}
-                            >
-                                <option value="beginner">Beginner</option>
-                                <option value="intermediate">Intermediate</option>
-                                <option value="advanced">Advanced</option>
-                            </select>
-                        </div>
-                        <input
-                            type="datetime-local"
-                            placeholder="Preferred Date & Time"
-                            value={demoForm.preferredDateTime}
-                            onChange={(e) => setDemoForm({ ...demoForm, preferredDateTime: e.target.value })}
-                            required
-                            style={{ padding: '14px', borderRadius: '8px', border: '1px solid #ddd', fontSize: '14px' }}
-                        />
-                        <Button type="submit" disabled={demoLoading} className="btn-hero-primary" style={{ padding: '16px', fontSize: '16px' }}>
-                            {demoLoading ? 'Submitting...' : 'Book Free Demo'}
-                        </Button>
-                    </form>
-                </div>
-            </section>
+
 
             {/* FAQ Section */}
             <section className="faq-home">

@@ -12,23 +12,26 @@ const Login = () => {
     const [error, setError] = useState('');
     const [loading, setLoading] = useState(false);
 
-    // Effect to redirect based on role if already logged in (or after successful login)
-    React.useEffect(() => {
-        if (userRole === 'admin') navigate('/admin');
-        if (userRole === 'coach') navigate('/coach');
-        if (userRole === 'customer') navigate('/parent');
-    }, [userRole, navigate]);
-
     const handleLogin = async (e) => {
         e.preventDefault();
         setError('');
         setLoading(true);
         try {
-            const result = await login(email, password);
-            // Role-based navigation
-            if (result.role === 'admin') navigate('/admin');
-            else if (result.role === 'coach') navigate('/coach');
-            else navigate('/parent');
+            const userCredential = await login(email, password);
+
+            // After successful login, wait for AuthContext to update, then navigate to proper dashboard
+            setTimeout(() => {
+                if (userRole === 'admin') {
+                    navigate('/admin');
+                } else if (userRole === 'coach') {
+                    navigate('/coach');
+                } else if (userRole === 'customer') {
+                    navigate('/parent');
+                } else {
+                    // Fallback if role not set yet
+                    window.location.href = '/';
+                }
+            }, 300);
         } catch (err) {
             console.error(err);
             if (err.code === 'auth/user-not-found') {
