@@ -38,6 +38,31 @@ const RegistrationPage = () => {
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
 
+    // Password strength calculator
+    const getPasswordStrength = (password) => {
+        if (!password) return { level: 0, label: '', color: '#ddd' };
+
+        let score = 0;
+
+        // Length checks
+        if (password.length >= 6) score += 1;
+        if (password.length >= 8) score += 1;
+        if (password.length >= 12) score += 1;
+
+        // Character type checks
+        if (/[a-z]/.test(password)) score += 1;
+        if (/[A-Z]/.test(password)) score += 1;
+        if (/[0-9]/.test(password)) score += 1;
+        if (/[^a-zA-Z0-9]/.test(password)) score += 2;
+
+        if (score <= 2) return { level: 1, label: 'Weak', color: '#DC2626' };
+        if (score <= 4) return { level: 2, label: 'Medium', color: '#F59E0B' };
+        if (score <= 6) return { level: 3, label: 'Strong', color: '#6B8E23' };
+        return { level: 4, label: 'Very Strong', color: '#059669' };
+    };
+
+    const passwordStrength = getPasswordStrength(formData.password);
+
     const handleChange = (e) => {
         const { name, value, type, checked } = e.target;
         setFormData(prev => ({
@@ -50,8 +75,12 @@ const RegistrationPage = () => {
         e.preventDefault();
         setError('');
 
-        // Skip password check for coaches
-        if (role !== 'coach' && formData.password !== formData.confirmPassword) {
+        // Require Very Strong password
+        if (passwordStrength.level < 4) {
+            return setError('Password must be Very Strong. Include 12+ characters with uppercase, lowercase, numbers, and special characters.');
+        }
+
+        if (formData.password !== formData.confirmPassword) {
             return setError('Passwords do not match');
         }
 
@@ -241,6 +270,35 @@ const RegistrationPage = () => {
                             value={formData.password}
                             onChange={handleChange}
                         />
+                        {/* Password Strength Indicator */}
+                        {formData.password && (
+                            <div style={{ marginTop: '-8px', marginBottom: '16px' }}>
+                                <div style={{ display: 'flex', gap: '4px', marginBottom: '6px' }}>
+                                    {[1, 2, 3, 4].map(level => (
+                                        <div
+                                            key={level}
+                                            style={{
+                                                flex: 1,
+                                                height: '4px',
+                                                borderRadius: '2px',
+                                                background: passwordStrength.level >= level ? passwordStrength.color : '#e5e7eb',
+                                                transition: 'all 0.3s'
+                                            }}
+                                        />
+                                    ))}
+                                </div>
+                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                    <span style={{ fontSize: '12px', fontWeight: '600', color: passwordStrength.color }}>
+                                        {passwordStrength.label}
+                                    </span>
+                                    {passwordStrength.level < 4 && (
+                                        <span style={{ fontSize: '11px', color: '#666' }}>
+                                            Needs: {passwordStrength.level < 3 ? '12+ chars, ' : ''}{!/[A-Z]/.test(formData.password) ? 'UPPERCASE, ' : ''}{!/[0-9]/.test(formData.password) ? 'numbers, ' : ''}{!/[^a-zA-Z0-9]/.test(formData.password) ? 'special char' : ''}
+                                        </span>
+                                    )}
+                                </div>
+                            </div>
+                        )}
                         <Input
                             label="Confirm Password"
                             name="confirmPassword"
@@ -284,7 +342,42 @@ const RegistrationPage = () => {
                             </div>
                         </div>
                         <Input label="Experience (Years)" name="experience" type="number" required value={formData.experience} onChange={handleChange} />
-
+                        <Input label="Password" name="password" type="password" required value={formData.password} onChange={handleChange} />
+                        {/* Password Strength Indicator for Coach */}
+                        {formData.password && (
+                            <div style={{ marginTop: '-8px', marginBottom: '16px' }}>
+                                <div style={{ display: 'flex', gap: '4px', marginBottom: '6px' }}>
+                                    {[1, 2, 3, 4].map(level => (
+                                        <div
+                                            key={level}
+                                            style={{
+                                                flex: 1,
+                                                height: '4px',
+                                                borderRadius: '2px',
+                                                background: passwordStrength.level >= level ? passwordStrength.color : '#e5e7eb',
+                                                transition: 'all 0.3s'
+                                            }}
+                                        />
+                                    ))}
+                                </div>
+                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                    <span style={{ fontSize: '12px', fontWeight: '600', color: passwordStrength.color }}>
+                                        {passwordStrength.label}
+                                    </span>
+                                    {passwordStrength.level < 4 && (
+                                        <span style={{ fontSize: '11px', color: '#666' }}>
+                                            Needs: {formData.password.length < 12 ? '12+ chars, ' : ''}{!/[A-Z]/.test(formData.password) ? 'UPPERCASE, ' : ''}{!/[0-9]/.test(formData.password) ? 'numbers, ' : ''}{!/[^a-zA-Z0-9]/.test(formData.password) ? 'special char' : ''}
+                                        </span>
+                                    )}
+                                </div>
+                            </div>
+                        )}
+                        <Input label="Confirm Password" name="confirmPassword" type="password" required placeholder="Confirm your password" value={formData.confirmPassword} onChange={handleChange} />
+                        <div style={{ marginBottom: '16px' }}>
+                            <label style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '14px' }}>
+                                <input type="checkbox" required /> I understand I will not see parent contact info directly.
+                            </label>
+                        </div>
                     </>
                 );
             case 'admin':
@@ -307,6 +400,35 @@ const RegistrationPage = () => {
                             </select>
                         </div>
                         <Input label="Password" name="password" type="password" required value={formData.password} onChange={handleChange} />
+                        {/* Password Strength Indicator for Admin */}
+                        {formData.password && (
+                            <div style={{ marginTop: '-8px', marginBottom: '16px' }}>
+                                <div style={{ display: 'flex', gap: '4px', marginBottom: '6px' }}>
+                                    {[1, 2, 3, 4].map(level => (
+                                        <div
+                                            key={level}
+                                            style={{
+                                                flex: 1,
+                                                height: '4px',
+                                                borderRadius: '2px',
+                                                background: passwordStrength.level >= level ? passwordStrength.color : '#e5e7eb',
+                                                transition: 'all 0.3s'
+                                            }}
+                                        />
+                                    ))}
+                                </div>
+                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                    <span style={{ fontSize: '12px', fontWeight: '600', color: passwordStrength.color }}>
+                                        {passwordStrength.label}
+                                    </span>
+                                    {passwordStrength.level < 4 && (
+                                        <span style={{ fontSize: '11px', color: '#666' }}>
+                                            Needs: {formData.password.length < 12 ? '12+ chars, ' : ''}{!/[A-Z]/.test(formData.password) ? 'UPPERCASE, ' : ''}{!/[0-9]/.test(formData.password) ? 'numbers, ' : ''}{!/[^a-zA-Z0-9]/.test(formData.password) ? 'special char' : ''}
+                                        </span>
+                                    )}
+                                </div>
+                            </div>
+                        )}
                         <Input label="Confirm Password" name="confirmPassword" type="password" required placeholder="Confirm your password" value={formData.confirmPassword} onChange={handleChange} />
                         <div style={{ marginBottom: '16px' }}>
                             <label style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '14px' }}>
@@ -341,8 +463,8 @@ const RegistrationPage = () => {
                 <form onSubmit={handleSubmit} className="registration-form">
                     {renderFields()}
 
-                    <button type="submit" className="submit-btn" style={{ marginTop: '24px' }}>
-                        {loading ? 'Account Created...' : (role === 'coach' ? 'Submit Application' : 'Create Account')}
+                    <button type="submit" className="submit-btn" style={{ marginTop: '24px' }} disabled={loading}>
+                        {loading ? 'Processing...' : (role === 'coach' ? 'Submit Application' : 'Create Account')}
                     </button>
                 </form>
 

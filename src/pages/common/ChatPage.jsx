@@ -2,13 +2,13 @@ import React, { useState, useEffect, useRef } from 'react';
 import { collection, query, orderBy, onSnapshot, addDoc, serverTimestamp, getDocs, where, updateDoc, doc } from 'firebase/firestore';
 import { db } from '../../lib/firebase';
 import { useAuth } from '../../context/AuthContext';
-import Card from '../../components/ui/Card';
 import Button from '../../components/ui/Button';
 import { toast, ToastContainer } from 'react-toastify';
-import { Send, Paperclip, Lock, Plus, X, Users, MessageSquare, Shield, Search, User } from 'lucide-react';
+import { Send, Lock, Plus, X, Users, MessageSquare, Search, User, ArrowLeft } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import './ChatPage.css';
 
-// Color scheme
+// ICA Color scheme
 const COLORS = {
     orange: '#FC8A24',
     deepBlue: '#003366',
@@ -16,13 +16,15 @@ const COLORS = {
     ivory: '#FFFEF3'
 };
 
-const ChatPage = () => {
-    const { currentUser, userRole } = useAuth();
+const ChatPage = ({ userRole: propRole }) => {
+    const navigate = useNavigate();
+    const { currentUser, userRole: authRole } = useAuth();
     const [chats, setChats] = useState([]);
     const [selectedChat, setSelectedChat] = useState(null);
     const [messages, setMessages] = useState([]);
     const [message, setMessage] = useState('');
     const [loading, setLoading] = useState(true);
+    const [sending, setSending] = useState(false);
     const [showNewChatModal, setShowNewChatModal] = useState(false);
     const [users, setUsers] = useState([]);
     const [batches, setBatches] = useState([]);
@@ -32,7 +34,7 @@ const ChatPage = () => {
     const [searchQuery, setSearchQuery] = useState('');
     const messagesEndRef = useRef(null);
 
-    const role = (userRole || 'CUSTOMER').toUpperCase();
+    const role = (propRole || authRole || 'CUSTOMER').toUpperCase();
 
     // Auto-scroll to bottom
     const scrollToBottom = () => {
@@ -53,34 +55,46 @@ const ChatPage = () => {
         const chatsRef = collection(db, 'chats');
         let q;
 
-        if (role === 'ADMIN') {
-            q = query(chatsRef, orderBy('lastMessageAt', 'desc'));
-        } else {
-            q = query(chatsRef, where('participants', 'array-contains', currentUser.uid), orderBy('lastMessageAt', 'desc'));
-        }
+        try {
+            if (role === 'ADMIN') {
+                q = query(chatsRef);
+            } else {
+                q = query(chatsRef, where('participants', 'array-contains', currentUser.uid));
+            }
 
-        const unsubscribe = onSnapshot(q, (snapshot) => {
-            const chatList = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+            const unsubscribe = onSnapshot(q, (snapshot) => {
+                let chatList = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
 
-            const filtered = chatList.filter(chat => {
-                if (role === 'ADMIN') return true;
-                if (role === 'CUSTOMER') {
-                    return chat.chatType === 'BATCH_GROUP' || chat.chatType === 'ADMIN_PARENT';
-                }
-                if (role === 'COACH') {
-                    return chat.chatType === 'BATCH_GROUP' || chat.chatType === 'ADMIN_COACH';
-                }
-                return false;
+                chatList.sort((a, b) => {
+                    const aTime = a.lastMessageAt?.toDate?.() || new Date(0);
+                    const bTime = b.lastMessageAt?.toDate?.() || new Date(0);
+                    return bTime - aTime;
+                });
+
+                const filtered = chatList.filter(chat => {
+                    if (role === 'ADMIN') return true;
+                    if (role === 'CUSTOMER') {
+                        return chat.chatType === 'BATCH_GROUP' || chat.chatType === 'ADMIN_PARENT';
+                    }
+                    if (role === 'COACH') {
+                        return chat.chatType === 'BATCH_GROUP' || chat.chatType === 'ADMIN_COACH';
+                    }
+                    return false;
+                });
+
+                setChats(filtered);
+                setLoading(false);
+            }, (error) => {
+                console.error('Error loading chats:', error);
+                toast.error('Error loading chats: ' + error.message);
+                setLoading(false);
             });
 
-            setChats(filtered);
+            return () => unsubscribe();
+        } catch (error) {
+            console.error('Chat query error:', error);
             setLoading(false);
-        }, (error) => {
-            console.error('Error loading chats:', error);
-            setLoading(false);
-        });
-
-        return () => unsubscribe();
+        }
     }, [currentUser, role]);
 
     // Real-time listener for messages
@@ -90,15 +104,29 @@ const ChatPage = () => {
             return;
         }
 
-        const messagesRef = collection(db, 'messages');
-        const q = query(messagesRef, where('chatId', '==', selectedChat.id), orderBy('createdAt', 'asc'));
+        try {
+            const messagesRef = collection(db, 'messages');
+            const q = query(messagesRef, where('chatId', '==', selectedChat.id));
 
-        const unsubscribe = onSnapshot(q, (snapshot) => {
-            const msgList = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-            setMessages(msgList);
-        });
+            const unsubscribe = onSnapshot(q, (snapshot) => {
+                let msgList = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
 
-        return () => unsubscribe();
+                msgList.sort((a, b) => {
+                    const aTime = a.createdAt?.toDate?.() || new Date(0);
+                    const bTime = b.createdAt?.toDate?.() || new Date(0);
+                    return aTime - bTime;
+                });
+
+                setMessages(msgList);
+            }, (error) => {
+                console.error('Error loading messages:', error);
+                toast.error('Error loading messages');
+            });
+
+            return () => unsubscribe();
+        } catch (error) {
+            console.error('Messages query error:', error);
+        }
     }, [selectedChat]);
 
     // Fetch users and batches for new chat modal
@@ -106,35 +134,42 @@ const ChatPage = () => {
         if (role === 'ADMIN') {
             getDocs(collection(db, 'users')).then(snap => {
                 setUsers(snap.docs.map(d => ({ id: d.id, ...d.data() })));
-            });
+            }).catch(err => console.error('Error fetching users:', err));
+
             getDocs(collection(db, 'batches')).then(snap => {
                 setBatches(snap.docs.map(d => ({ id: d.id, ...d.data() })));
-            });
+            }).catch(err => console.error('Error fetching batches:', err));
         }
     }, [role]);
 
     const handleSendMessage = async () => {
-        if (!message.trim() || !selectedChat) return;
+        if (!message.trim() || !selectedChat || sending || !currentUser) return;
+
+        setSending(true);
+        const messageText = message.trim();
+        setMessage('');
 
         try {
             await addDoc(collection(db, 'messages'), {
                 chatId: selectedChat.id,
-                content: message.trim(),
+                content: messageText,
                 senderId: currentUser.uid,
-                senderEmail: currentUser.email,
+                senderEmail: currentUser.email || 'admin@chess.com',
                 senderRole: role,
                 senderName: role === 'ADMIN' ? 'Admin' : currentUser.email?.split('@')[0] || 'User',
                 createdAt: serverTimestamp()
             });
 
             await updateDoc(doc(db, 'chats', selectedChat.id), {
-                lastMessage: message.trim(),
+                lastMessage: messageText,
                 lastMessageAt: serverTimestamp()
             });
-
-            setMessage('');
         } catch (error) {
-            toast.error('Failed to send message');
+            console.error('Send message error:', error);
+            toast.error('Failed to send: ' + error.message);
+            setMessage(messageText);
+        } finally {
+            setSending(false);
         }
     };
 
@@ -146,6 +181,11 @@ const ChatPage = () => {
     };
 
     const handleCreateChat = async () => {
+        if (!currentUser) {
+            toast.error('You must be logged in to create a chat');
+            return;
+        }
+
         if (newChatType === 'BATCH_GROUP' && !selectedBatchId) {
             toast.error('Please select a batch');
             return;
@@ -166,26 +206,28 @@ const ChatPage = () => {
                     : [currentUser.uid, selectedUserId],
                 name: newChatType === 'BATCH_GROUP'
                     ? batch?.name || `Batch ${selectedBatchId}`
-                    : user?.email || 'New Chat',
+                    : user?.fullName || user?.email || 'New Chat',
                 createdAt: serverTimestamp(),
                 lastMessageAt: serverTimestamp(),
                 lastMessage: ''
             };
 
-            await addDoc(collection(db, 'chats'), chatData);
+            const docRef = await addDoc(collection(db, 'chats'), chatData);
             setShowNewChatModal(false);
             setSelectedUserId('');
             setSelectedBatchId('');
-            toast.success('Chat created successfully!');
+            toast.success('Chat created!');
+            setSelectedChat({ id: docRef.id, ...chatData });
         } catch (error) {
-            toast.error('Failed to create chat');
+            console.error('Create chat error:', error);
+            toast.error('Failed to create chat: ' + error.message);
         }
     };
 
     const getChatDisplayName = (chat) => {
         if (chat.name) return chat.name;
         if (chat.chatType === 'BATCH_GROUP') return 'Batch Group';
-        return chat.participants?.find(p => p !== currentUser?.uid) || 'Chat';
+        return 'Chat';
     };
 
     const getChatIcon = (chatType) => {
@@ -202,266 +244,285 @@ const ChatPage = () => {
 
     const formatTime = (timestamp) => {
         if (!timestamp?.toDate) return '';
-        const date = timestamp.toDate();
-        const now = new Date();
-        const diff = now - date;
+        try {
+            const date = timestamp.toDate();
+            const now = new Date();
+            const diff = now - date;
 
-        if (diff < 60000) return 'Just now';
-        if (diff < 3600000) return `${Math.floor(diff / 60000)}m ago`;
-        if (diff < 86400000) return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-        return date.toLocaleDateString([], { month: 'short', day: 'numeric' });
+            if (diff < 60000) return 'Just now';
+            if (diff < 3600000) return `${Math.floor(diff / 60000)}m ago`;
+            if (diff < 86400000) return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+            return date.toLocaleDateString([], { month: 'short', day: 'numeric' });
+        } catch {
+            return '';
+        }
+    };
+
+    // Get back path based on role
+    const getBackPath = () => {
+        if (role === 'CUSTOMER') return '/parent';
+        if (role === 'COACH') return '/coach';
+        return '/admin';
     };
 
     return (
-        <div style={{ display: 'grid', gridTemplateColumns: '320px 1fr', gap: '24px', height: 'calc(100vh - 100px)', padding: '24px' }}>
+        <div className="chat-page" style={{ backgroundColor: COLORS.ivory }}>
             <ToastContainer position="top-right" autoClose={3000} />
 
-            {/* Sidebar List */}
-            <Card style={{ padding: '0', overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
-                <div style={{ padding: '16px', borderBottom: '1px solid #1e3a8a20', backgroundColor: '#f9fafb', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <h3 style={{ margin: 0, display: 'flex', alignItems: 'center', gap: '8px', color: COLORS.deepBlue }}>
-                        <MessageSquare size={18} />
-                        Messages
-                    </h3>
-                    {role === 'ADMIN' && (
-                        <Button size="sm" onClick={() => setShowNewChatModal(true)} style={{ backgroundColor: COLORS.orange, border: 'none' }}>
-                            <Plus size={16} />
-                        </Button>
-                    )}
+            {/* Header with Back Button */}
+            <div className="chat-header" style={{ backgroundColor: COLORS.deepBlue }}>
+                <div className="chat-header-content">
+                    <button
+                        onClick={() => navigate(getBackPath())}
+                        style={{
+                            background: 'none',
+                            border: 'none',
+                            color: 'white',
+                            cursor: 'pointer',
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '8px',
+                            marginRight: '16px',
+                            padding: '8px 12px',
+                            borderRadius: '6px',
+                            transition: 'background 0.2s'
+                        }}
+                        onMouseOver={(e) => e.currentTarget.style.background = 'rgba(255,255,255,0.1)'}
+                        onMouseOut={(e) => e.currentTarget.style.background = 'none'}
+                    >
+                        <ArrowLeft size={20} />
+                        <span>Back</span>
+                    </button>
+                    <MessageSquare size={24} color="white" />
+                    <h1 style={{ color: 'white', margin: 0, fontSize: '20px' }}>Messages</h1>
                 </div>
+                {role === 'ADMIN' && (
+                    <Button onClick={() => setShowNewChatModal(true)} style={{ backgroundColor: COLORS.orange, border: 'none' }}>
+                        <Plus size={16} style={{ marginRight: 6 }} />
+                        New Chat
+                    </Button>
+                )}
+            </div>
 
-                {/* Search */}
-                <div style={{ padding: '12px', borderBottom: '1px solid #eee' }}>
-                    <div style={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: '8px',
-                        backgroundColor: '#f1f5f9',
-                        padding: '8px 12px',
-                        borderRadius: '8px'
-                    }}>
-                        <Search size={16} color="#94a3b8" />
+            <div className="chat-container">
+                {/* Sidebar - Chat List */}
+                <div className="chat-sidebar">
+                    <div className="chat-search" style={{ borderColor: COLORS.deepBlue }}>
+                        <Search size={18} color="#666" />
                         <input
                             type="text"
-                            placeholder="Search..."
+                            placeholder="Search conversations..."
                             value={searchQuery}
                             onChange={(e) => setSearchQuery(e.target.value)}
-                            style={{ border: 'none', background: 'transparent', outline: 'none', width: '100%', fontSize: '14px' }}
                         />
+                    </div>
+
+                    <div className="chat-list">
+                        {loading ? (
+                            <div className="chat-empty">Loading chats...</div>
+                        ) : filteredChats.length === 0 ? (
+                            <div className="chat-empty">
+                                <MessageSquare size={40} color="#ddd" />
+                                <p>No conversations yet</p>
+                                {role === 'ADMIN' && (
+                                    <Button size="sm" onClick={() => setShowNewChatModal(true)} style={{ backgroundColor: COLORS.orange, border: 'none' }}>
+                                        Start a chat
+                                    </Button>
+                                )}
+                            </div>
+                        ) : (
+                            filteredChats.map(chat => (
+                                <div
+                                    key={chat.id}
+                                    className={`chat-item ${selectedChat?.id === chat.id ? 'active' : ''}`}
+                                    onClick={() => setSelectedChat(chat)}
+                                    style={{ borderLeftColor: selectedChat?.id === chat.id ? COLORS.orange : 'transparent' }}
+                                >
+                                    <div className="chat-item-icon" style={{
+                                        backgroundColor: chat.chatType === 'BATCH_GROUP' ? '#E8F5E9' : '#E3F2FD'
+                                    }}>
+                                        {getChatIcon(chat.chatType)}
+                                    </div>
+                                    <div className="chat-item-content">
+                                        <div className="chat-item-header">
+                                            <span className="chat-item-name" style={{ color: COLORS.deepBlue }}>
+                                                {getChatDisplayName(chat)}
+                                            </span>
+                                            <span className="chat-item-time">{formatTime(chat.lastMessageAt)}</span>
+                                        </div>
+                                        <div className="chat-item-preview">
+                                            {chat.lastMessage || 'No messages yet'}
+                                        </div>
+                                    </div>
+                                </div>
+                            ))
+                        )}
                     </div>
                 </div>
 
-                <div style={{ flex: 1, overflowY: 'auto' }}>
-                    {loading ? (
-                        <div style={{ padding: '24px', textAlign: 'center', color: '#999' }}>Loading chats...</div>
-                    ) : filteredChats.length === 0 ? (
-                        <div style={{ padding: '24px', textAlign: 'center', color: '#666' }}>
-                            <Users size={32} style={{ color: '#ccc', marginBottom: '12px' }} />
-                            <div>No conversations found.</div>
-                        </div>
-                    ) : (
-                        filteredChats.map(chat => (
-                            <div
-                                key={chat.id}
-                                onClick={() => setSelectedChat(chat)}
-                                style={{
-                                    padding: '16px',
-                                    borderBottom: '1px solid #f0f0f0',
-                                    borderLeft: selectedChat?.id === chat.id ? `4px solid ${COLORS.orange}` : '4px solid transparent',
-                                    backgroundColor: selectedChat?.id === chat.id ? '#F0F9FF' : '#fff',
-                                    cursor: 'pointer',
-                                    transition: 'background 0.2s'
-                                }}
-                            >
-                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-                                    <div style={{ fontWeight: '600', color: COLORS.deepBlue, display: 'flex', alignItems: 'center', gap: '8px' }}>
-                                        {getChatIcon(chat.chatType)}
-                                        {getChatDisplayName(chat)}
+                {/* Main Chat Area */}
+                <div className="chat-main">
+                    {selectedChat ? (
+                        <>
+                            {/* Chat Header */}
+                            <div className="chat-main-header" style={{ borderBottomColor: COLORS.deepBlue }}>
+                                <div className="chat-main-info">
+                                    <div className="chat-main-icon" style={{
+                                        backgroundColor: selectedChat.chatType === 'BATCH_GROUP' ? COLORS.oliveGreen : COLORS.deepBlue
+                                    }}>
+                                        {selectedChat.chatType === 'BATCH_GROUP' ? <Users size={20} color="white" /> : <User size={20} color="white" />}
                                     </div>
-                                    <span style={{ fontSize: '11px', color: '#94a3b8' }}>{formatTime(chat.lastMessageAt)}</span>
-                                </div>
-
-                                <div style={{ fontSize: '12px', color: '#666', marginTop: '4px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                                    {chat.lastMessage || <span style={{ fontStyle: 'italic', color: '#9ca3af' }}>No messages yet</span>}
-                                </div>
-                            </div>
-                        ))
-                    )}
-                </div>
-            </Card>
-
-            {/* Main Chat Area */}
-            <Card style={{ padding: '0', display: 'flex', flexDirection: 'column', height: '100%', overflow: 'hidden' }}>
-                {selectedChat ? (
-                    <>
-                        {/* Chat Header */}
-                        <div style={{ padding: '16px', borderBottom: '1px solid #eee', display: 'flex', justifyContent: 'space-between', alignItems: 'center', backgroundColor: '#fff' }}>
-                            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                                <div style={{
-                                    width: '40px',
-                                    height: '40px',
-                                    borderRadius: '50%',
-                                    backgroundColor: selectedChat.chatType === 'BATCH_GROUP' ? '#dcfce7' : '#e0f2fe',
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    justifyContent: 'center'
-                                }}>
-                                    {getChatIcon(selectedChat.chatType)}
-                                </div>
-                                <div>
-                                    <h3 style={{ margin: 0, color: COLORS.deepBlue }}>{getChatDisplayName(selectedChat)}</h3>
-                                    <div style={{ fontSize: '12px', color: '#64748b', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                                        {selectedChat.chatType === 'BATCH_GROUP' ? 'Group Chat' : 'Private Conversation'}
-                                        {role === 'COACH' && (
-                                            <span style={{
-                                                display: 'flex',
-                                                alignItems: 'center',
-                                                gap: '4px',
-                                                backgroundColor: '#fffbeb',
-                                                padding: '2px 6px',
-                                                borderRadius: '4px',
-                                                color: '#b45309'
-                                            }}>
-                                                <Lock size={10} /> Privacy active
-                                            </span>
-                                        )}
+                                    <div>
+                                        <h3 style={{ color: COLORS.deepBlue, margin: 0 }}>{getChatDisplayName(selectedChat)}</h3>
+                                        <span className="chat-type-badge" style={{
+                                            backgroundColor: selectedChat.chatType === 'BATCH_GROUP' ? '#E8F5E9' : '#FFF3E0',
+                                            color: selectedChat.chatType === 'BATCH_GROUP' ? COLORS.oliveGreen : COLORS.orange
+                                        }}>
+                                            {selectedChat.chatType === 'BATCH_GROUP' ? 'Group Chat' : 'Private Chat'}
+                                        </span>
                                     </div>
                                 </div>
+                                {role === 'COACH' && (
+                                    <div className="privacy-badge">
+                                        <Lock size={12} />
+                                        Contact details hidden
+                                    </div>
+                                )}
                             </div>
-                        </div>
 
-                        {/* Messages */}
-                        <div style={{ flex: 1, padding: '24px', overflowY: 'auto', backgroundColor: '#f8fafc', display: 'flex', flexDirection: 'column', gap: '16px' }}>
-                            {messages.length === 0 ? (
-                                <div style={{ textAlign: 'center', color: '#94a3b8', marginTop: '40px' }}>
-                                    <MessageSquare size={48} style={{ opacity: 0.2, marginBottom: '16px' }} />
-                                    <p>No messages yet. Start the conversation!</p>
-                                </div>
-                            ) : (
-                                messages.map(msg => {
-                                    const isMe = msg.senderId === currentUser?.uid;
-                                    return (
-                                        <div key={msg.id} style={{ alignSelf: isMe ? 'flex-end' : 'flex-start', maxWidth: '70%' }}>
-                                            <div style={{ fontSize: '11px', color: '#64748b', marginBottom: '4px', textAlign: isMe ? 'right' : 'left' }}>
-                                                {msg.senderName} • {formatTime(msg.createdAt)}
+                            {/* Messages */}
+                            <div className="chat-messages">
+                                {messages.length === 0 ? (
+                                    <div className="chat-messages-empty">
+                                        <MessageSquare size={48} color="#ddd" />
+                                        <p>No messages yet</p>
+                                        <span>Start the conversation!</span>
+                                    </div>
+                                ) : (
+                                    messages.map(msg => (
+                                        <div
+                                            key={msg.id}
+                                            className={`message ${msg.senderId === currentUser?.uid ? 'sent' : 'received'}`}
+                                        >
+                                            <div className="message-header">
+                                                <span className="message-sender" style={{
+                                                    color: msg.senderRole === 'ADMIN' ? COLORS.deepBlue :
+                                                        msg.senderRole === 'COACH' ? COLORS.oliveGreen : COLORS.orange
+                                                }}>
+                                                    {msg.senderName || 'User'}
+                                                </span>
+                                                <span className="message-time">{formatTime(msg.createdAt)}</span>
                                             </div>
-                                            <div style={{
-                                                padding: '12px 16px',
-                                                backgroundColor: isMe ? COLORS.deepBlue : '#fff',
-                                                color: isMe ? '#fff' : '#1e293b',
-                                                borderRadius: isMe ? '12px 12px 0 12px' : '12px 12px 12px 0',
-                                                boxShadow: '0 1px 2px rgba(0,0,0,0.05)',
-                                                wordBreak: 'break-word'
-                                            }}>
+                                            <div
+                                                className="message-bubble"
+                                                style={{
+                                                    backgroundColor: msg.senderId === currentUser?.uid ? COLORS.deepBlue : '#fff',
+                                                    color: msg.senderId === currentUser?.uid ? 'white' : '#333'
+                                                }}
+                                            >
                                                 {msg.content}
                                             </div>
                                         </div>
-                                    );
-                                })
-                            )}
-                            <div ref={messagesEndRef} />
-                        </div>
+                                    ))
+                                )}
+                                <div ref={messagesEndRef} />
+                            </div>
 
-                        {/* Input Area */}
-                        <div style={{ padding: '16px', borderTop: '1px solid #eee', backgroundColor: '#fff', display: 'flex', gap: '12px' }}>
-                            <Button variant="outline" title="Attach file (Coming soon)" disabled>
-                                <Paperclip size={18} />
-                            </Button>
-                            <input
-                                type="text"
-                                value={message}
-                                onChange={(e) => setMessage(e.target.value)}
-                                onKeyPress={handleKeyPress}
-                                placeholder="Type a message..."
-                                style={{
-                                    flex: 1,
-                                    padding: '12px',
-                                    borderRadius: '8px',
-                                    border: '1px solid #e2e8f0',
-                                    outline: 'none',
-                                    fontFamily: 'inherit'
-                                }}
-                            />
-                            <Button onClick={handleSendMessage} disabled={!message.trim()} style={{ backgroundColor: COLORS.orange, border: 'none' }}>
-                                <Send size={18} />
-                            </Button>
+                            {/* Message Input */}
+                            <div className="chat-input">
+                                <input
+                                    type="text"
+                                    value={message}
+                                    onChange={(e) => setMessage(e.target.value)}
+                                    onKeyPress={handleKeyPress}
+                                    placeholder="Type your message..."
+                                    disabled={sending}
+                                    style={{ borderColor: COLORS.deepBlue }}
+                                />
+                                <Button
+                                    onClick={handleSendMessage}
+                                    disabled={!message.trim() || sending}
+                                    style={{ backgroundColor: COLORS.orange, border: 'none' }}
+                                >
+                                    <Send size={18} />
+                                </Button>
+                            </div>
+                        </>
+                    ) : (
+                        <div className="chat-no-selection">
+                            <div className="chat-no-selection-icon" style={{ backgroundColor: COLORS.ivory }}>
+                                <MessageSquare size={64} color={COLORS.deepBlue} />
+                            </div>
+                            <h2 style={{ color: COLORS.deepBlue }}>Select a conversation</h2>
+                            <p>Choose a chat from the sidebar to start messaging</p>
                         </div>
-                    </>
-                ) : (
-                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%', color: '#94a3b8', flexDirection: 'column', gap: '16px' }}>
-                        <div style={{ padding: '24px', backgroundColor: '#f1f5f9', borderRadius: '50%' }}>
-                            <MessageSquare size={48} color="#cbd5e1" />
-                        </div>
-                        <div style={{ textAlign: 'center' }}>
-                            <h3 style={{ margin: '0 0 8px 0', color: '#475569' }}>Select a conversation</h3>
-                            <p style={{ margin: 0 }}>Choose a chat from the sidebar to start messaging</p>
-                        </div>
-                    </div>
-                )}
-            </Card>
+                    )}
+                </div>
+            </div>
 
-            {/* New Chat Modal (Admin Only) */}
+            {/* New Chat Modal */}
             {showNewChatModal && (
-                <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000 }} onClick={() => setShowNewChatModal(false)}>
-                    <div style={{ backgroundColor: '#fff', borderRadius: '12px', padding: '24px', width: '400px', maxWidth: '90%', boxShadow: '0 10px 25px rgba(0,0,0,0.1)' }} onClick={e => e.stopPropagation()}>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
-                            <h3 style={{ margin: 0, color: COLORS.deepBlue }}>New Conversation</h3>
-                            <button onClick={() => setShowNewChatModal(false)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#64748b' }}><X size={20} /></button>
+                <div className="modal-overlay" onClick={() => setShowNewChatModal(false)}>
+                    <div className="modal-content" onClick={e => e.stopPropagation()}>
+                        <div className="modal-header" style={{ borderBottomColor: COLORS.deepBlue }}>
+                            <h3 style={{ color: COLORS.deepBlue, margin: 0 }}>New Conversation</h3>
+                            <button onClick={() => setShowNewChatModal(false)} className="modal-close">
+                                <X size={20} />
+                            </button>
                         </div>
 
-                        <div style={{ marginBottom: '20px' }}>
-                            <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500', color: '#334155', fontSize: '14px' }}>Chat Type</label>
-                            <select
-                                value={newChatType}
-                                onChange={(e) => setNewChatType(e.target.value)}
-                                style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid #cbd5e1', outline: 'none' }}
-                            >
-                                <option value="ADMIN_PARENT">Chat with Parent</option>
-                                <option value="ADMIN_COACH">Chat with Coach</option>
-                                <option value="BATCH_GROUP">Batch Group Chat</option>
-                            </select>
-                        </div>
-
-                        {newChatType === 'BATCH_GROUP' ? (
-                            <div style={{ marginBottom: '24px' }}>
-                                <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500', color: '#334155', fontSize: '14px' }}>Select Batch</label>
+                        <div className="modal-body">
+                            <div className="form-group">
+                                <label style={{ color: COLORS.deepBlue }}>Chat Type</label>
                                 <select
-                                    value={selectedBatchId}
-                                    onChange={(e) => setSelectedBatchId(e.target.value)}
-                                    style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid #cbd5e1', outline: 'none' }}
+                                    value={newChatType}
+                                    onChange={(e) => setNewChatType(e.target.value)}
                                 >
-                                    <option value="">-- Select Batch --</option>
-                                    {batches.map(batch => (
-                                        <option key={batch.id} value={batch.id}>{batch.name || batch.id}</option>
-                                    ))}
+                                    <option value="ADMIN_PARENT">Chat with Parent</option>
+                                    <option value="ADMIN_COACH">Chat with Coach</option>
+                                    <option value="BATCH_GROUP">Batch Group Chat</option>
                                 </select>
                             </div>
-                        ) : (
-                            <div style={{ marginBottom: '24px' }}>
-                                <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500', color: '#334155', fontSize: '14px' }}>
-                                    {newChatType === 'ADMIN_PARENT' ? 'Select Parent' : 'Select Coach'}
-                                </label>
-                                <select
-                                    value={recipientId}
-                                    onChange={(e) => setRecipientId(e.target.value)}
-                                    style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid #cbd5e1', outline: 'none' }}
-                                >
-                                    <option value="">-- Select Recipient --</option>
-                                    {/* Note: In a real app, users list should be filtered by role here if fetched all */}
-                                    {users
-                                        .filter(u => newChatType === 'ADMIN_PARENT' ? u.role === 'customer' : u.role === 'coach')
-                                        .map(user => (
-                                            <option key={user.id} value={user.id}>
-                                                {user.displayName || user.email}
-                                            </option>
+
+                            {newChatType === 'BATCH_GROUP' ? (
+                                <div className="form-group">
+                                    <label style={{ color: COLORS.deepBlue }}>Select Batch</label>
+                                    <select
+                                        value={selectedBatchId}
+                                        onChange={(e) => setSelectedBatchId(e.target.value)}
+                                    >
+                                        <option value="">-- Select Batch --</option>
+                                        {batches.map(batch => (
+                                            <option key={batch.id} value={batch.id}>{batch.name || batch.id}</option>
                                         ))}
-                                </select>
-                            </div>
-                        )}
+                                    </select>
+                                </div>
+                            ) : (
+                                <div className="form-group">
+                                    <label style={{ color: COLORS.deepBlue }}>
+                                        Select {newChatType === 'ADMIN_PARENT' ? 'Parent' : 'Coach'}
+                                    </label>
+                                    <select
+                                        value={selectedUserId}
+                                        onChange={(e) => setSelectedUserId(e.target.value)}
+                                    >
+                                        <option value="">-- Select User --</option>
+                                        {users
+                                            .filter(u => newChatType === 'ADMIN_PARENT' ? u.role === 'customer' : u.role === 'coach')
+                                            .map(user => (
+                                                <option key={user.id} value={user.id}>{user.fullName || user.email}</option>
+                                            ))
+                                        }
+                                    </select>
+                                </div>
+                            )}
+                        </div>
 
-                        <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end' }}>
+                        <div className="modal-footer">
                             <Button variant="secondary" onClick={() => setShowNewChatModal(false)}>Cancel</Button>
-                            <Button onClick={handleCreateChat} style={{ backgroundColor: COLORS.orange, border: 'none' }}>Create Chat</Button>
+                            <Button onClick={handleCreateChat} style={{ backgroundColor: COLORS.orange, border: 'none' }}>
+                                Create Chat
+                            </Button>
                         </div>
                     </div>
                 </div>

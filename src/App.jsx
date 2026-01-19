@@ -13,6 +13,7 @@ import ParentDashboard from './pages/ParentDashboard';
 import ParentSchedule from './pages/parent/ParentSchedule';
 import ParentAssignments from './pages/parent/ParentAssignments';
 import ParentPayments from './pages/parent/ParentPayments';
+import ParentSettings from './pages/parent/ParentSettings';
 import CoachPage from './pages/CoachPage';
 import CoachBatches from './pages/coach/CoachBatches';
 import CoachSchedule from './pages/coach/CoachSchedule';
@@ -29,6 +30,7 @@ import SubscriptionPage from './pages/admin/SubscriptionPage';
 import AccountsPage from './pages/admin/AccountsPage';
 import AnalyticsPage from './pages/admin/AnalyticsPage';
 import LiveAnalytics from './pages/admin/LiveAnalytics';
+import AdminCoachApplications from './pages/admin/AdminCoachApplications';
 import ChatPage from './pages/common/ChatPage';
 import PlanSelection from './pages/PlanSelection';
 import PaymentCheckout from './pages/PaymentCheckout';
@@ -103,6 +105,7 @@ const App = () => {
               <Route path="/parent/schedule" element={<ParentSchedule />} />
               <Route path="/parent/assignments" element={<ParentAssignments />} />
               <Route path="/parent/payments" element={<ParentPayments />} />
+              <Route path="/parent/settings" element={<ParentSettings />} />
             </Route>
 
             {/* Student Routes */}
@@ -132,6 +135,7 @@ const App = () => {
               <Route path="/admin/accounts" element={<AccountsPage />} />
               <Route path="/admin/analytics" element={<AnalyticsPage />} />
               <Route path="/admin/live-analytics" element={<LiveAnalytics />} />
+              <Route path="/admin/applications" element={<AdminCoachApplications />} />
             </Route>
 
           </Routes>
