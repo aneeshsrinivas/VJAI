@@ -347,13 +347,40 @@ export const approveCoachApplication = async (applicationId, uid, password, admi
 
 export const getAllCoaches = async () => {
     try {
-        const q = query(collection(db, COLLECTIONS.COACHES), where('status', '==', 'ACTIVE'));
-        const snapshot = await getDocs(q);
-        const coaches = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-        return { success: true, coaches };
+        // Fetch from coaches collection
+        const coachSnapshot = await getDocs(collection(db, 'coaches'));
+        let coachList = coachSnapshot.docs.map(doc => ({
+            id: doc.id,
+            ...doc.data()
+        }));
+
+        // Also fetch users with role 'coach'
+        const usersSnapshot = await getDocs(collection(db, 'users'));
+        const coachUsers = usersSnapshot.docs
+            .filter(doc => doc.data().role === 'coach')
+            .map(doc => ({
+                id: doc.id,
+                coachName: doc.data().fullName || doc.data().email?.split('@')[0] || 'Coach',
+                fullName: doc.data().fullName || doc.data().email?.split('@')[0] || 'Coach',
+                email: doc.data().email,
+                title: doc.data().chessTitle || 'Chess Trainer',
+                rating: doc.data().rating || '-',
+                bio: doc.data().bio || 'No bio provided',
+                phone: doc.data().phone || '-'
+            }));
+
+        // Combine both sources, avoiding duplicates
+        const existingIds = coachList.map(c => c.id);
+        coachUsers.forEach(u => {
+            if (!existingIds.includes(u.id)) {
+                coachList.push(u);
+            }
+        });
+
+        return { success: true, coaches: coachList };
     } catch (error) {
         console.error('Error fetching coaches:', error);
-        return { success: false, error: error.message };
+        return { success: false, error: error.message, coaches: [] };
     }
 };
 

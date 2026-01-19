@@ -74,6 +74,13 @@ const AssignCoachModal = ({ demo, onClose, onSuccess }) => {
         setLoading(true);
         setError('');
 
+        // Validate currentUser exists
+        if (!currentUser || !currentUser.uid) {
+            setError('Authentication error. Please refresh the page and try again.');
+            setLoading(false);
+            return;
+        }
+
         const result = await assignCoachToDemo(
             demo.id,
             selectedCoachId,
@@ -83,6 +90,105 @@ const AssignCoachModal = ({ demo, onClose, onSuccess }) => {
         );
 
         if (result.success) {
+            // Generate and send confirmation email to parent
+            const selectedCoach = coaches.find(c => c.id === selectedCoachId);
+            const coachName = selectedCoach?.coachName || selectedCoach?.fullName || 'Your Coach';
+
+            const formattedDate = new Date(scheduledStart).toLocaleString('en-US', {
+                weekday: 'long',
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit',
+                timeZone: demo.timezone || 'UTC'
+            });
+
+            const emailSubject = encodeURIComponent(
+                `Demo Class Scheduled - ${demo.studentName} | Indian Chess Academy`
+            );
+
+            const emailBody = encodeURIComponent(
+                `Dear ${demo.parentName},
+
+We are excited to confirm your demo class for ${demo.studentName}!
+
+📅 Class Details:
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+• Student Name: ${demo.studentName}
+• Date & Time: ${formattedDate} (${demo.timezone})
+• Coach: ${coachName}
+• Duration: 45 minutes
+
+🔗 Join Meeting:
+${meetingLink}
+
+📋 What to Prepare:
+• Ensure stable internet connection
+• Have a chessboard ready (physical or digital)
+• Test your camera and microphone before the session
+• Join 5 minutes early
+
+We look forward to an engaging session! If you have any questions or need to reschedule, please reply to this email.
+
+Best regards,
+Indian Chess Academy Team
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+📧 Contact: indianchessacademy@gmail.com
+🌐 Website: www.indianchessacademy.com
+`
+            );
+
+            // Send email via Web3Forms (single recipient for MVP)
+            try {
+                const feedbackFormLink = 'https://forms.gle/YOUR_GOOGLE_FORM_ID'; // TODO: Replace with actual form link
+
+                const emailResponse = await fetch('https://api.web3forms.com/submit', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        access_key: import.meta.env.VITE_WEB3FORMS_ACCESS_KEY,
+                        subject: `Demo Class Scheduled - ${demo.studentName} | Indian Chess Academy`,
+                        from_name: 'Indian Chess Academy',
+                        message: `Dear ${demo.parentName},
+
+We are excited to confirm your demo class for ${demo.studentName}!
+
+📅 Class Details:
+• Student: ${demo.studentName}
+• Date & Time: ${formattedDate} (${demo.timezone})
+• Coach: ${coachName}
+• Duration: 45 minutes
+
+🔗 Join Meeting:
+${meetingLink}
+
+📋 What to Prepare:
+• Ensure stable internet connection
+• Have a chessboard ready (physical or digital)
+• Test your camera and microphone
+• Join 5 minutes early
+
+📝 After the Demo Class:
+Please share your feedback:
+${feedbackFormLink}
+
+Best regards,
+Indian Chess Academy Team
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+📧 Contact: indianchessacademy@chess.com`
+                    })
+                });
+
+                if (emailResponse.ok) {
+                    console.log('✅ Demo confirmation email sent');
+                }
+            } catch (emailError) {
+                console.error('Email sending error:', emailError);
+            }
+
             onSuccess();
         } else {
             setError(result.error || 'Failed to assign coach');

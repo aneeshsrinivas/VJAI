@@ -4,7 +4,8 @@ import { db } from '../../lib/firebase';
 import { useAuth } from '../../context/AuthContext';
 import Button from '../../components/ui/Button';
 import { toast, ToastContainer } from 'react-toastify';
-import { Send, Plus, X, Users, MessageSquare, Search, User, Loader } from 'lucide-react';
+import { Send, Lock, Plus, X, Users, MessageSquare, Search, User, ArrowLeft } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import './ChatPage.css';
 
 // ICA Color scheme
@@ -16,6 +17,7 @@ const COLORS = {
 };
 
 const ChatPage = ({ userRole: propRole }) => {
+    const navigate = useNavigate();
     const { currentUser, userRole: authRole } = useAuth();
     const [chats, setChats] = useState([]);
     const [selectedChat, setSelectedChat] = useState(null);
@@ -31,7 +33,6 @@ const ChatPage = ({ userRole: propRole }) => {
     const [selectedBatchId, setSelectedBatchId] = useState('');
     const [searchQuery, setSearchQuery] = useState('');
     const messagesEndRef = useRef(null);
-    const inputRef = useRef(null);
 
     const role = (propRole || authRole || 'CUSTOMER').toUpperCase();
 
@@ -56,7 +57,6 @@ const ChatPage = ({ userRole: propRole }) => {
 
         try {
             if (role === 'ADMIN') {
-                // Admin sees all chats - simple query without composite index
                 q = query(chatsRef);
             } else {
                 q = query(chatsRef, where('participants', 'array-contains', currentUser.uid));
@@ -65,14 +65,12 @@ const ChatPage = ({ userRole: propRole }) => {
             const unsubscribe = onSnapshot(q, (snapshot) => {
                 let chatList = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
 
-                // Sort by lastMessageAt client-side to avoid index issues
                 chatList.sort((a, b) => {
                     const aTime = a.lastMessageAt?.toDate?.() || new Date(0);
                     const bTime = b.lastMessageAt?.toDate?.() || new Date(0);
                     return bTime - aTime;
                 });
 
-                // Filter by role
                 const filtered = chatList.filter(chat => {
                     if (role === 'ADMIN') return true;
                     if (role === 'CUSTOMER') {
@@ -113,7 +111,6 @@ const ChatPage = ({ userRole: propRole }) => {
             const unsubscribe = onSnapshot(q, (snapshot) => {
                 let msgList = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
 
-                // Sort by createdAt client-side
                 msgList.sort((a, b) => {
                     const aTime = a.createdAt?.toDate?.() || new Date(0);
                     const bTime = b.createdAt?.toDate?.() || new Date(0);
@@ -150,10 +147,9 @@ const ChatPage = ({ userRole: propRole }) => {
 
         setSending(true);
         const messageText = message.trim();
-        setMessage(''); // Clear immediately for better UX
+        setMessage('');
 
         try {
-            // Add message to messages collection
             await addDoc(collection(db, 'messages'), {
                 chatId: selectedChat.id,
                 content: messageText,
@@ -164,18 +160,14 @@ const ChatPage = ({ userRole: propRole }) => {
                 createdAt: serverTimestamp()
             });
 
-            // Update chat's last message
             await updateDoc(doc(db, 'chats', selectedChat.id), {
                 lastMessage: messageText,
                 lastMessageAt: serverTimestamp()
             });
-
-            // Focus input for quick next message
-            inputRef.current?.focus();
         } catch (error) {
             console.error('Send message error:', error);
             toast.error('Failed to send: ' + error.message);
-            setMessage(messageText); // Restore message on error
+            setMessage(messageText);
         } finally {
             setSending(false);
         }
@@ -225,8 +217,6 @@ const ChatPage = ({ userRole: propRole }) => {
             setSelectedUserId('');
             setSelectedBatchId('');
             toast.success('Chat created!');
-
-            // Auto-select the new chat
             setSelectedChat({ id: docRef.id, ...chatData });
         } catch (error) {
             console.error('Create chat error:', error);
@@ -268,13 +258,41 @@ const ChatPage = ({ userRole: propRole }) => {
         }
     };
 
+    // Get back path based on role
+    const getBackPath = () => {
+        if (role === 'CUSTOMER') return '/parent';
+        if (role === 'COACH') return '/coach';
+        return '/admin';
+    };
+
     return (
         <div className="chat-page" style={{ backgroundColor: COLORS.ivory }}>
             <ToastContainer position="top-right" autoClose={3000} />
 
-            {/* Header */}
+            {/* Header with Back Button */}
             <div className="chat-header" style={{ backgroundColor: COLORS.deepBlue }}>
                 <div className="chat-header-content">
+                    <button
+                        onClick={() => navigate(getBackPath())}
+                        style={{
+                            background: 'none',
+                            border: 'none',
+                            color: 'white',
+                            cursor: 'pointer',
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '8px',
+                            marginRight: '16px',
+                            padding: '8px 12px',
+                            borderRadius: '6px',
+                            transition: 'background 0.2s'
+                        }}
+                        onMouseOver={(e) => e.currentTarget.style.background = 'rgba(255,255,255,0.1)'}
+                        onMouseOut={(e) => e.currentTarget.style.background = 'none'}
+                    >
+                        <ArrowLeft size={20} />
+                        <span>Back</span>
+                    </button>
                     <MessageSquare size={24} color="white" />
                     <h1 style={{ color: 'white', margin: 0, fontSize: '20px' }}>Messages</h1>
                 </div>
@@ -289,7 +307,7 @@ const ChatPage = ({ userRole: propRole }) => {
             <div className="chat-container">
                 {/* Sidebar - Chat List */}
                 <div className="chat-sidebar">
-                    <div className="chat-search">
+                    <div className="chat-search" style={{ borderColor: COLORS.deepBlue }}>
                         <Search size={18} color="#666" />
                         <input
                             type="text"
@@ -301,10 +319,7 @@ const ChatPage = ({ userRole: propRole }) => {
 
                     <div className="chat-list">
                         {loading ? (
-                            <div className="chat-empty">
-                                <Loader size={24} className="spin" color={COLORS.deepBlue} />
-                                <p>Loading chats...</p>
-                            </div>
+                            <div className="chat-empty">Loading chats...</div>
                         ) : filteredChats.length === 0 ? (
                             <div className="chat-empty">
                                 <MessageSquare size={40} color="#ddd" />
@@ -321,15 +336,18 @@ const ChatPage = ({ userRole: propRole }) => {
                                     key={chat.id}
                                     className={`chat-item ${selectedChat?.id === chat.id ? 'active' : ''}`}
                                     onClick={() => setSelectedChat(chat)}
+                                    style={{ borderLeftColor: selectedChat?.id === chat.id ? COLORS.orange : 'transparent' }}
                                 >
                                     <div className="chat-item-icon" style={{
-                                        backgroundColor: chat.chatType === 'BATCH_GROUP' ? 'rgba(107,142,35,0.1)' : 'rgba(0,51,102,0.1)'
+                                        backgroundColor: chat.chatType === 'BATCH_GROUP' ? '#E8F5E9' : '#E3F2FD'
                                     }}>
                                         {getChatIcon(chat.chatType)}
                                     </div>
                                     <div className="chat-item-content">
                                         <div className="chat-item-header">
-                                            <span className="chat-item-name">{getChatDisplayName(chat)}</span>
+                                            <span className="chat-item-name" style={{ color: COLORS.deepBlue }}>
+                                                {getChatDisplayName(chat)}
+                                            </span>
                                             <span className="chat-item-time">{formatTime(chat.lastMessageAt)}</span>
                                         </div>
                                         <div className="chat-item-preview">
@@ -347,7 +365,7 @@ const ChatPage = ({ userRole: propRole }) => {
                     {selectedChat ? (
                         <>
                             {/* Chat Header */}
-                            <div className="chat-main-header">
+                            <div className="chat-main-header" style={{ borderBottomColor: COLORS.deepBlue }}>
                                 <div className="chat-main-info">
                                     <div className="chat-main-icon" style={{
                                         backgroundColor: selectedChat.chatType === 'BATCH_GROUP' ? COLORS.oliveGreen : COLORS.deepBlue
@@ -357,13 +375,19 @@ const ChatPage = ({ userRole: propRole }) => {
                                     <div>
                                         <h3 style={{ color: COLORS.deepBlue, margin: 0 }}>{getChatDisplayName(selectedChat)}</h3>
                                         <span className="chat-type-badge" style={{
-                                            backgroundColor: selectedChat.chatType === 'BATCH_GROUP' ? 'rgba(107,142,35,0.15)' : 'rgba(252,138,36,0.15)',
+                                            backgroundColor: selectedChat.chatType === 'BATCH_GROUP' ? '#E8F5E9' : '#FFF3E0',
                                             color: selectedChat.chatType === 'BATCH_GROUP' ? COLORS.oliveGreen : COLORS.orange
                                         }}>
                                             {selectedChat.chatType === 'BATCH_GROUP' ? 'Group Chat' : 'Private Chat'}
                                         </span>
                                     </div>
                                 </div>
+                                {role === 'COACH' && (
+                                    <div className="privacy-badge">
+                                        <Lock size={12} />
+                                        Contact details hidden
+                                    </div>
+                                )}
                             </div>
 
                             {/* Messages */}
@@ -407,36 +431,30 @@ const ChatPage = ({ userRole: propRole }) => {
                             {/* Message Input */}
                             <div className="chat-input">
                                 <input
-                                    ref={inputRef}
                                     type="text"
                                     value={message}
                                     onChange={(e) => setMessage(e.target.value)}
                                     onKeyPress={handleKeyPress}
                                     placeholder="Type your message..."
                                     disabled={sending}
+                                    style={{ borderColor: COLORS.deepBlue }}
                                 />
                                 <Button
                                     onClick={handleSendMessage}
                                     disabled={!message.trim() || sending}
-                                    style={{ backgroundColor: COLORS.orange, border: 'none', minWidth: '48px' }}
+                                    style={{ backgroundColor: COLORS.orange, border: 'none' }}
                                 >
-                                    {sending ? <Loader size={18} className="spin" /> : <Send size={18} />}
+                                    <Send size={18} />
                                 </Button>
                             </div>
                         </>
                     ) : (
                         <div className="chat-no-selection">
-                            <div className="chat-no-selection-icon">
+                            <div className="chat-no-selection-icon" style={{ backgroundColor: COLORS.ivory }}>
                                 <MessageSquare size={64} color={COLORS.deepBlue} />
                             </div>
                             <h2 style={{ color: COLORS.deepBlue }}>Select a conversation</h2>
                             <p>Choose a chat from the sidebar to start messaging</p>
-                            {role === 'ADMIN' && (
-                                <Button onClick={() => setShowNewChatModal(true)} style={{ backgroundColor: COLORS.orange, border: 'none', marginTop: '16px' }}>
-                                    <Plus size={16} style={{ marginRight: 6 }} />
-                                    Start New Chat
-                                </Button>
-                            )}
                         </div>
                     )}
                 </div>
@@ -446,7 +464,7 @@ const ChatPage = ({ userRole: propRole }) => {
             {showNewChatModal && (
                 <div className="modal-overlay" onClick={() => setShowNewChatModal(false)}>
                     <div className="modal-content" onClick={e => e.stopPropagation()}>
-                        <div className="modal-header">
+                        <div className="modal-header" style={{ borderBottomColor: COLORS.deepBlue }}>
                             <h3 style={{ color: COLORS.deepBlue, margin: 0 }}>New Conversation</h3>
                             <button onClick={() => setShowNewChatModal(false)} className="modal-close">
                                 <X size={20} />
@@ -509,11 +527,6 @@ const ChatPage = ({ userRole: propRole }) => {
                     </div>
                 </div>
             )}
-
-            <style>{`
-                .spin { animation: spin 1s linear infinite; }
-                @keyframes spin { to { transform: rotate(360deg); } }
-            `}</style>
         </div>
     );
 };
