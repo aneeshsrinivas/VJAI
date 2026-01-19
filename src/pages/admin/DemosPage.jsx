@@ -5,6 +5,7 @@ import Card from '../../components/ui/Card';
 import Button from '../../components/ui/Button';
 import AssignCoachModal from '../../components/features/AssignCoachModal';
 import DemoOutcomeModal from '../../components/features/DemoOutcomeModal';
+import ConvertStudentModal from '../../components/features/ConvertStudentModal';
 import { toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 
@@ -14,6 +15,7 @@ const DemosPage = () => {
     const [searchTerm, setSearchTerm] = useState('');
     const [assignModalOpen, setAssignModalOpen] = useState(false);
     const [outcomeModalOpen, setOutcomeModalOpen] = useState(false);
+    const [convertModalOpen, setConvertModalOpen] = useState(false);
     const [selectedDemo, setSelectedDemo] = useState(null);
     const [demos, setDemos] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -176,8 +178,11 @@ const DemosPage = () => {
                                                 <Button size="sm" variant="secondary" onClick={() => handleOutcomeClick(demo)}>Record Outcome</Button>
                                             )}
                                             {demo.status === 'INTERESTED' && (
-                                                <Button size="sm" style={{ backgroundColor: 'var(--color-warm-orange)' }}>
-                                                    Send Payment
+                                                <Button size="sm" style={{ backgroundColor: 'var(--color-warm-orange)' }} onClick={() => {
+                                                    setSelectedDemo(demo);
+                                                    setConvertModalOpen(true);
+                                                }}>
+                                                    Convert to Student
                                                 </Button>
                                             )}
                                         </div>
@@ -209,6 +214,18 @@ const DemosPage = () => {
                         fetchDemos();
                         setOutcomeModalOpen(false);
                         toast.success('Demo outcome submitted!');
+                    }}
+                />
+            )}
+
+            {convertModalOpen && selectedDemo && (
+                <ConvertStudentModal
+                    demo={selectedDemo}
+                    onClose={() => setConvertModalOpen(false)}
+                    onSuccess={() => {
+                        fetchDemos();
+                        setConvertModalOpen(false);
+                        toast.success('Student account created successfully!');
                     }}
                 />
             )}

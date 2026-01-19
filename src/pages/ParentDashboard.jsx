@@ -22,7 +22,7 @@ import './ParentDashboard.css';
 
 const ParentDashboard = () => {
     const navigate = useNavigate();
-    const { currentUser } = useAuth();
+    const { currentUser, userData } = useAuth();
     const [isReviewModalOpen, setReviewModalOpen] = useState(false);
     const [student, setStudent] = useState(null);
     const [subscription, setSubscription] = useState(null);
@@ -31,15 +31,28 @@ const ParentDashboard = () => {
     const [progress, setProgress] = useState(0);
 
     // Fetch real data from Firestore
+    // Fetch real data from Firestore
     useEffect(() => {
         if (currentUser) {
             fetchStudentData();
         } else {
             setLoading(false);
         }
-        setTimeout(() => setProgress(85), 300);
         setTimeout(() => setCardsVisible(true), 100);
     }, [currentUser]);
+
+    // Dynamic Progress Calculation
+    useEffect(() => {
+        const lvl = student?.level || userData?.learningLevel || 'Beginner';
+        let p = 15; // Beginner
+        const lvlLower = typeof lvl === 'string' ? lvl.toLowerCase() : '';
+
+        if (lvlLower.includes('intermediate') || lvlLower.includes('rated 1000')) p = 50;
+        if (lvlLower.includes('advanced') || lvlLower.includes('rated 1400')) p = 85;
+
+        const timer = setTimeout(() => setProgress(p), 300);
+        return () => clearTimeout(timer);
+    }, [student, userData]);
 
     const fetchStudentData = async () => {
         setLoading(true);
@@ -131,7 +144,9 @@ const ParentDashboard = () => {
                         </div>
                         <h1 className="welcome-title">Welcome back, {getDisplayName()}!</h1>
                         <p className="welcome-subtitle">
-                            {student ? `${student.studentName}'s chess journey is progressing excellently.` : 'Your chess journey awaits!'}
+                            {(student?.studentName || userData?.studentName)
+                                ? `${student?.studentName || userData?.studentName}'s chess journey is progressing excellently.`
+                                : 'Your chess journey awaits!'}
                         </p>
                         <div className="welcome-actions">
                             <Button
@@ -157,7 +172,7 @@ const ParentDashboard = () => {
                             <div className="progress-header">
                                 <div className="progress-info">
                                     <span className="progress-label">Current Rank</span>
-                                    <span className="milestone-name">{student?.level || 'Beginner'}</span>
+                                    <span className="milestone-name">{student?.level || userData?.learningLevel || 'Beginner'}</span>
                                 </div>
                                 <div className="progress-percentage">{progress}%</div>
                             </div>

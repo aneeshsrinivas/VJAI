@@ -13,6 +13,7 @@ const Sidebar = ({ role = 'admin', activePath = '/dashboard' }) => {
         { label: 'Demo Pipeline', icon: <Users size={20} />, path: '/admin/demos' },
         { label: 'Students', icon: <GraduationCap size={20} />, path: '/admin/students' },
         { label: 'Coach Roster', icon: <BookOpen size={20} />, path: '/admin/coaches' },
+        { label: 'Applications', icon: <Users size={20} />, path: '/admin/applications' },
         { label: 'Finances', icon: <Wallet size={20} />, path: '/admin/finances' },
         { label: 'Broadcast', icon: <Radio size={20} />, path: '/admin/broadcast' },
         { label: 'Messages', icon: <MessageSquare size={20} />, path: '/chat' },

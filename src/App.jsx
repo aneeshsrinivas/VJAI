@@ -21,6 +21,7 @@ import AdminDashboard from './pages/AdminDashboard';
 import PlaceholderPage from './pages/PlaceholderPage';
 import StudentDatabase from './pages/admin/StudentDatabase';
 import CoachRoster from './pages/admin/CoachRoster';
+import AdminCoachApplications from './pages/admin/AdminCoachApplications';
 import FinanceReports from './pages/admin/FinanceReports';
 import DemosPage from './pages/admin/DemosPage';
 import BroadcastPage from './pages/admin/BroadcastPage';
@@ -28,6 +29,8 @@ import SubscriptionPage from './pages/admin/SubscriptionPage';
 import AccountsPage from './pages/admin/AccountsPage';
 import AnalyticsPage from './pages/admin/AnalyticsPage';
 import ChatPage from './pages/common/ChatPage';
+import Settings from './pages/common/Settings';
+import BatchChat from './pages/BatchChat';
 import PlanSelection from './pages/PlanSelection';
 import PaymentCheckout from './pages/PaymentCheckout';
 import PaymentSuccess from './pages/PaymentSuccess';
@@ -43,6 +46,7 @@ import PrivacyPolicy from './pages/PrivacyPolicy';
 import Sidebar from './components/layout/Sidebar';
 import ErrorBoundary from './components/ui/ErrorBoundary';
 import ParentNavbar from './components/layout/ParentNavbar';
+import CoachNavbar from './components/layout/CoachNavbar';
 import { AuthProvider } from './context/AuthContext';
 
 // Layout Wrappers
@@ -57,10 +61,29 @@ const ParentLayout = () => {
   );
 };
 
+const CoachLayout = () => {
+  return (
+    <div className="layout-coach">
+      <CoachNavbar />
+      <main className="main-content" style={{ padding: 0, marginTop: 0 }}>
+        <Outlet />
+      </main>
+    </div>
+  );
+};
+
 const StaffLayout = ({ role }) => (
   <div className="layout-staff" style={{ display: 'flex' }}>
     <Sidebar role={role} />
-    <main className="main-content-staff" style={{ flex: 1, marginLeft: '260px', padding: '24px', width: 'calc(100% - 260px)' }}>
+    <main className="main-content-staff" style={{
+      flex: 1,
+      marginLeft: '260px',
+      padding: '24px',
+      width: 'calc(100% - 260px)',
+      background: 'linear-gradient(180deg, #f8f9fc 0%, #f0f2f5 100%)',
+      minHeight: '100vh',
+      fontFamily: "'Figtree', sans-serif"
+    }}>
       <Outlet />
     </main>
   </div>
@@ -101,18 +124,28 @@ const App = () => {
               <Route path="/parent/schedule" element={<ParentSchedule />} />
               <Route path="/parent/assignments" element={<ParentAssignments />} />
               <Route path="/parent/payments" element={<ParentPayments />} />
+              <Route path="/parent/settings" element={<Settings />} />
+            </Route>
+            {/* Parent Routes */}
+            <Route element={<ParentLayout />}>
+              <Route path="/parent" element={<ParentDashboard />} />
+              <Route path="/parent/chat" element={<ChatPage userRole="CUSTOMER" />} />
+              <Route path="/parent/schedule" element={<ParentSchedule />} />
+              <Route path="/parent/assignments" element={<ParentAssignments />} />
+              <Route path="/parent/payments" element={<ParentPayments />} />
             </Route>
 
             {/* Student Routes */}
             <Route path="/student" element={<StudentPage />} />
 
             {/* Coach Routes */}
-            <Route element={<StaffLayout role="coach" />}>
+            <Route element={<CoachLayout />}>
               <Route path="/coach" element={<CoachPage />} />
               <Route path="/coach/students" element={<PlaceholderPage title="My Students" />} />
               <Route path="/coach/batches" element={<CoachBatches />} />
               <Route path="/coach/schedule" element={<CoachSchedule />} />
               <Route path="/coach/chat" element={<ChatPage userRole="COACH" />} />
+              <Route path="/coach/settings" element={<Settings />} />
             </Route>
 
             {/* Admin Routes */}
@@ -121,6 +154,7 @@ const App = () => {
               <Route path="/chat" element={<ChatPage userRole="ADMIN" />} />
               <Route path="/admin/students" element={<StudentDatabase />} />
               <Route path="/admin/coaches" element={<CoachRoster />} />
+              <Route path="/admin/applications" element={<AdminCoachApplications />} />
               <Route path="/admin/demos" element={<DemosPage />} />
               <Route path="/admin/calendar" element={<PlaceholderPage title="Calendar Management" />} />
               <Route path="/admin/finances" element={<FinanceReports />} />
@@ -129,7 +163,9 @@ const App = () => {
               <Route path="/admin/subscriptions" element={<SubscriptionPage />} />
               <Route path="/admin/accounts" element={<AccountsPage />} />
               <Route path="/admin/analytics" element={<AnalyticsPage />} />
+              <Route path="/admin/settings" element={<Settings />} />
             </Route>
+
 
           </Routes>
         </ErrorBoundary>

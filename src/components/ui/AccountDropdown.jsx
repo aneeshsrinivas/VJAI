@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { ChevronDown, Settings, LogOut, User } from 'lucide-react';
 
 const AccountDropdown = ({ userName = 'User', userRole = 'Customer', avatarEmoji = '👤', customIcon = null }) => {
     const navigate = useNavigate();
@@ -33,21 +34,22 @@ const AccountDropdown = ({ userName = 'User', userRole = 'Customer', avatarEmoji
                     alignItems: 'center',
                     gap: '12px',
                     padding: '8px 16px',
-                    background: 'rgba(255, 255, 255, 0.1)',
-                    border: '1px solid rgba(255, 255, 255, 0.2)',
+                    background: 'white',
+                    border: '1px solid #e2e8f0',
                     borderRadius: '12px',
                     cursor: 'pointer',
                     transition: 'all 0.3s ease',
-                    color: 'white',
+                    color: '#1e293b',
                     fontFamily: 'Figtree, sans-serif',
+                    boxShadow: '0 4px 12px rgba(0,0,0,0.05)'
                 }}
                 onMouseEnter={(e) => {
-                    e.currentTarget.style.background = 'rgba(255, 255, 255, 0.15)';
-                    e.currentTarget.style.borderColor = 'rgba(252, 138, 36, 0.5)';
+                    e.currentTarget.style.transform = 'translateY(-1px)';
+                    e.currentTarget.style.boxShadow = '0 6px 16px rgba(0,0,0,0.1)';
                 }}
                 onMouseLeave={(e) => {
-                    e.currentTarget.style.background = 'rgba(255, 255, 255, 0.1)';
-                    e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.2)';
+                    e.currentTarget.style.transform = 'translateY(0)';
+                    e.currentTarget.style.boxShadow = '0 4px 12px rgba(0,0,0,0.05)';
                 }}
             >
                 <div style={{
@@ -100,53 +102,7 @@ const AccountDropdown = ({ userName = 'User', userRole = 'Customer', avatarEmoji
                         <div style={{ fontSize: '12px', color: '#666', marginTop: '2px' }}>{userRole}</div>
                     </div>
 
-                    {/* Menu Items */}
-                    <div style={{ padding: '8px' }}>
-                        <button
-                            onClick={() => { setIsOpen(false); }}
-                            style={{
-                                width: '100%',
-                                padding: '10px 12px',
-                                display: 'flex',
-                                alignItems: 'center',
-                                gap: '10px',
-                                background: 'none',
-                                border: 'none',
-                                borderRadius: '8px',
-                                cursor: 'pointer',
-                                fontSize: '14px',
-                                color: '#333',
-                                transition: 'all 0.2s ease',
-                                fontFamily: 'Figtree, sans-serif',
-                            }}
-                            onMouseEnter={(e) => e.currentTarget.style.background = '#f5f5f5'}
-                            onMouseLeave={(e) => e.currentTarget.style.background = 'none'}
-                        >
-                            <span>👤</span> My Profile
-                        </button>
-                        <button
-                            onClick={() => { setIsOpen(false); }}
-                            style={{
-                                width: '100%',
-                                padding: '10px 12px',
-                                display: 'flex',
-                                alignItems: 'center',
-                                gap: '10px',
-                                background: 'none',
-                                border: 'none',
-                                borderRadius: '8px',
-                                cursor: 'pointer',
-                                fontSize: '14px',
-                                color: '#333',
-                                transition: 'all 0.2s ease',
-                                fontFamily: 'Figtree, sans-serif',
-                            }}
-                            onMouseEnter={(e) => e.currentTarget.style.background = '#f5f5f5'}
-                            onMouseLeave={(e) => e.currentTarget.style.background = 'none'}
-                        >
-                            <span>⚙️</span> Settings
-                        </button>
-                    </div>
+
 
                     {/* Logout */}
                     <div style={{ padding: '8px', borderTop: '1px solid #eee' }}>
@@ -171,7 +127,7 @@ const AccountDropdown = ({ userName = 'User', userRole = 'Customer', avatarEmoji
                             onMouseEnter={(e) => e.currentTarget.style.background = '#FEE2E2'}
                             onMouseLeave={(e) => e.currentTarget.style.background = 'none'}
                         >
-                            <span>🚪</span> Logout
+                            <LogOut size={16} /> Logout
                         </button>
                     </div>
                 </div>
@@ -189,7 +145,7 @@ const AccountDropdown = ({ userName = 'User', userRole = 'Customer', avatarEmoji
                     }
                 }
             `}</style>
-        </div>
+        </div >
     );
 };
 

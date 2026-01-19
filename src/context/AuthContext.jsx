@@ -24,15 +24,18 @@ export const AuthProvider = ({ children }) => {
         const user = userCredential.user;
 
         // Create user document in Firestore
-        await setDoc(doc(db, 'users', user.uid), {
+        const newUserData = {
             email,
             role,
             createdAt: serverTimestamp(),
             lastLoginAt: serverTimestamp(),
             ...additionalData
-        });
+        };
+
+        await setDoc(doc(db, 'users', user.uid), newUserData);
 
         setUserRole(role);
+        setUserData(newUserData);
         return user;
     };
 
@@ -54,6 +57,8 @@ export const AuthProvider = ({ children }) => {
 
     // Logout function
     const logout = () => {
+        setUserData(null);
+        setUserRole(null);
         return signOut(auth);
     };
 
@@ -67,7 +72,9 @@ export const AuthProvider = ({ children }) => {
                     const userDoc = await getDoc(userDocRef);
 
                     if (userDoc.exists()) {
-                        setUserRole(userDoc.data().role);
+                        const data = userDoc.data();
+                        setUserRole(data.role);
+                        setUserData(data);
                     } else {
                         // Handle case where user exists in Auth but not Firestore
                         console.warn("User document not found in Firestore. Creating validation record...");
@@ -88,6 +95,7 @@ export const AuthProvider = ({ children }) => {
                 }
             } else {
                 setUserRole(null);
+                setUserData(null);
             }
             setLoading(false);
         });
@@ -98,6 +106,7 @@ export const AuthProvider = ({ children }) => {
     const value = {
         currentUser,
         userRole,
+        userData,
         signup,
         login,
         logout
