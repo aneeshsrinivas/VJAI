@@ -1,132 +1,185 @@
-import React, { useState } from 'react';
+import React from 'react';
+import { useNavigate } from 'react-router-dom';
 import Card from '../components/ui/Card';
 import Button from '../components/ui/Button';
-import AccountDropdown from '../components/ui/AccountDropdown';
-import { useNavigate } from 'react-router-dom';
-import { Lock, FileText, MessageSquare, Upload } from 'lucide-react';
+import { Clock, Users, Calendar, TrendingUp, BookOpen, Award, Lightbulb } from 'lucide-react';
+import './CoachDashboard.css';
 
 const CoachPage = () => {
     const navigate = useNavigate();
 
+    const todayClasses = [
+        { id: 1, time: '4:00 PM', batch: 'Beginner A1', students: 12, status: 'upcoming', color: '#10b981' },
+        { id: 2, time: '5:00 PM', batch: 'Intermediate B2', students: 8, status: 'live', color: '#3b82f6' },
+        { id: 3, time: '7:00 PM', batch: 'Advanced C1', students: 6, status: 'upcoming', color: '#8b5cf6' },
+    ];
+
+    const stats = [
+        { label: 'Total Students', value: '26', icon: Users, color: '#3b82f6' },
+        { label: 'Active Batches', value: '3', icon: BookOpen, color: '#10b981' },
+        { label: 'Classes This Week', value: '12', icon: Calendar, color: '#f59e0b' },
+        { label: 'Avg. Attendance', value: '94%', icon: TrendingUp, color: '#8b5cf6' },
+    ];
+
     return (
-        <div style={{ padding: '24px', maxWidth: '1200px', margin: '0 auto' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '32px' }}>
-                <div>
-                    <h1 style={{ margin: 0 }}>Coach Dashboard</h1>
-                    <p style={{ margin: '4px 0 0', color: '#666' }}>Manage your classes and students.</p>
+        <div className="coach-dashboard">
+            {/* Welcome Section */}
+            <div className="coach-welcome">
+                <div className="coach-welcome-content">
+                    <h1 className="coach-welcome-title">Welcome back, Coach Ramesh!</h1>
+                    <p className="coach-welcome-subtitle">Ready to inspire your students today?</p>
                 </div>
-                <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
-                    <Button onClick={() => navigate('/admin/calendar')}>View Full Calendar</Button>
-                    <AccountDropdown
-                        userName="Coach Ramesh"
-                        userRole="FIDE Master"
-                        avatarEmoji="♞"
-                    />
+                <div className="coach-welcome-actions">
+                    <Button onClick={() => navigate('/coach/schedule')} className="coach-btn-primary">
+                        <Calendar size={18} />
+                        View Full Schedule
+                    </Button>
                 </div>
             </div>
 
+            {/* Stats Grid */}
+            <div className="coach-stats-grid">
+                {stats.map((stat, index) => (
+                    <Card key={index} className="coach-stat-card">
+                        <div className="coach-stat-icon" style={{ background: `${stat.color}15`, color: stat.color }}>
+                            <stat.icon size={24} />
+                        </div>
+                        <div className="coach-stat-content">
+                            <div className="coach-stat-value">{stat.value}</div>
+                            <div className="coach-stat-label">{stat.label}</div>
+                        </div>
+                    </Card>
+                ))}
+            </div>
 
-            <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '24px' }}>
+            {/* Main Content Grid */}
+            <div className="coach-content-grid">
                 {/* Left Column */}
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
-
+                <div className="coach-left-column">
                     {/* Today's Classes */}
-                    <Card title="Today's Classes">
-                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '16px', backgroundColor: '#F0F9FF', borderRadius: '8px', borderLeft: '4px solid #0284C7', marginBottom: '12px' }}>
-                            <div>
-                                <div style={{ fontSize: '18px', fontWeight: 'bold', color: 'var(--color-deep-blue)' }}>5:00 PM - Intermediate B2</div>
-                                <div style={{ fontSize: '14px', color: '#666' }}>8 Students • Group Class</div>
-                            </div>
-                            <div style={{ display: 'flex', gap: '8px' }}>
-                                <Button size="sm" onClick={() => alert('Starting Live Class Session...')}>Start Class</Button>
-                                <Button size="sm" variant="secondary" onClick={() => alert('Opening Attendance Sheet...')}>Attendance</Button>
-                            </div>
+                    <Card className="coach-card">
+                        <div className="coach-card-header">
+                            <h2 className="coach-card-title">Today's Classes</h2>
+                            <span className="coach-badge">{todayClasses.length} Scheduled</span>
                         </div>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '16px', backgroundColor: '#F9FAFB', borderRadius: '8px', borderLeft: '4px solid #9CA3AF' }}>
-                            <div>
-                                <div style={{ fontSize: '18px', fontWeight: 'bold', color: '#374151' }}>7:00 PM - Advanced C1</div>
-                                <div style={{ fontSize: '14px', color: '#666' }}>6 Students • Group Class</div>
-                            </div>
-                            <Button size="sm" variant="outline" disabled>Upcoming</Button>
-                        </div>
-                    </Card>
-
-                    {/* My Students (Privacy Enforced) */}
-                    <Card title="My Students">
-                        <div style={{ overflowX: 'auto' }}>
-                            <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '14px' }}>
-                                <thead>
-                                    <tr style={{ textAlign: 'left', borderBottom: '2px solid #eee' }}>
-                                        <th style={{ padding: '12px' }}>Name</th>
-                                        <th style={{ padding: '12px' }}>Level</th>
-                                        <th style={{ padding: '12px' }}>Batch</th>
-                                        <th style={{ padding: '12px' }}>Parent Contact</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {[
-                                        { name: 'Arjun Sharma', level: 'Intermediate', batch: 'B2', parent: 'Raman Sharma' },
-                                        { name: 'Priya Patel', level: 'Beginner', batch: 'A1', parent: 'Sanjay Patel' },
-                                        { name: 'Rohan Gupta', level: 'Intermediate', batch: 'B2', parent: 'Vikram Gupta' },
-                                    ].map((student, i) => (
-                                        <tr key={i} style={{ borderBottom: '1px solid #f0f0f0' }}>
-                                            <td style={{ padding: '12px', fontWeight: 'bold' }}>{student.name}</td>
-                                            <td style={{ padding: '12px' }}>{student.level}</td>
-                                            <td style={{ padding: '12px' }}>{student.batch}</td>
-                                            <td style={{ padding: '12px' }}>
-                                                <span style={{ fontSize: '12px', padding: '4px 8px', backgroundColor: '#F3F4F6', borderRadius: '12px', color: '#6B7280', display: 'flex', alignItems: 'center', gap: '4px', width: 'fit-content' }}>
-                                                    <Lock size={12} /> Hidden (Use Batch Chat)
-                                                </span>
-                                            </td>
-                                        </tr>
-                                    ))}
-                                </tbody>
-                            </table>
+                        <div className="coach-classes-list">
+                            {todayClasses.map((cls) => (
+                                <div key={cls.id} className={`coach-class-item ${cls.status === 'live' ? 'live' : ''}`}>
+                                    <div className="coach-class-time">
+                                        <Clock size={18} />
+                                        <span>{cls.time}</span>
+                                    </div>
+                                    <div className="coach-class-details">
+                                        <div className="coach-class-name">{cls.batch}</div>
+                                        <div className="coach-class-meta">
+                                            <Users size={14} />
+                                            <span>{cls.students} Students</span>
+                                        </div>
+                                    </div>
+                                    <div className="coach-class-actions">
+                                        {cls.status === 'live' ? (
+                                            <Button size="sm" className="coach-btn-live">
+                                                Start Class
+                                            </Button>
+                                        ) : (
+                                            <Button size="sm" variant="outline">
+                                                Prepare
+                                            </Button>
+                                        )}
+                                    </div>
+                                </div>
+                            ))}
                         </div>
                     </Card>
 
-                    {/* Material Upload */}
-                    <Card title="Upload Learning Materials">
-                        <div style={{ border: '2px dashed #ccc', borderRadius: '8px', padding: '32px', textAlign: 'center', backgroundColor: '#FAFAFA' }}>
-                            <div style={{ marginBottom: '8px', color: '#888' }}><Upload size={32} /></div>
-                            <p style={{ margin: '0 0 16px', fontWeight: '500' }}>Drag & drop PDF/PGN files here</p>
-                            <input
-                                type="file"
-                                id="file-upload"
-                                style={{ display: 'none' }}
-                                onChange={(e) => alert(`Selected file: ${e.target.files[0]?.name}`)}
-                            />
-                            <Button variant="secondary" size="sm" onClick={() => document.getElementById('file-upload').click()}>Select Files</Button>
+                    {/* Quick Actions */}
+                    <Card className="coach-card">
+                        <div className="coach-card-header">
+                            <h2 className="coach-card-title">Quick Actions</h2>
                         </div>
-                        <div style={{ marginTop: '16px' }}>
-                            <label style={{ display: 'block', fontSize: '14px', marginBottom: '8px' }}>Select Batch</label>
-                            <select style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid #ccc' }}>
-                                <option>Intermediate B2</option>
-                                <option>Advanced C1</option>
-                            </select>
+                        <div className="coach-quick-actions">
+                            <button className="coach-action-btn" onClick={() => navigate('/coach/batches')}>
+                                <div className="coach-action-icon" style={{ background: '#3b82f615', color: '#3b82f6' }}>
+                                    <BookOpen size={20} />
+                                </div>
+                                <div className="coach-action-text">
+                                    <div className="coach-action-title">Upload Materials</div>
+                                    <div className="coach-action-subtitle">Share resources with batches</div>
+                                </div>
+                            </button>
+                            <button className="coach-action-btn" onClick={() => navigate('/coach/schedule')}>
+                                <div className="coach-action-icon" style={{ background: '#f59e0b15', color: '#f59e0b' }}>
+                                    <Calendar size={20} />
+                                </div>
+                                <div className="coach-action-text">
+                                    <div className="coach-action-title">Manage Availability</div>
+                                    <div className="coach-action-subtitle">Block unavailable slots</div>
+                                </div>
+                            </button>
+                            <button className="coach-action-btn" onClick={() => navigate('/coach/chat')}>
+                                <div className="coach-action-icon" style={{ background: '#8b5cf615', color: '#8b5cf6' }}>
+                                    <Users size={20} />
+                                </div>
+                                <div className="coach-action-text">
+                                    <div className="coach-action-title">Batch Chat</div>
+                                    <div className="coach-action-subtitle">Communicate with students</div>
+                                </div>
+                            </button>
                         </div>
-                        <Button style={{ marginTop: '16px', width: '100%' }}>Upload to Batch</Button>
                     </Card>
                 </div>
 
                 {/* Right Column */}
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+                <div className="coach-right-column">
                     {/* Demo Schedule */}
-                    <Card title="Demo Schedule">
-                        <div style={{ padding: '12px', backgroundColor: '#FFF7ED', borderRadius: '8px', marginBottom: '12px' }}>
-                            <div style={{ fontSize: '12px', color: '#9A3412', fontWeight: 'bold', marginBottom: '4px' }}>TOMORROW, 3:00 PM</div>
-                            <div style={{ fontWeight: 'bold' }}>New Demo: Ishaan Ver...</div>
-                            <div style={{ fontSize: '12px', color: '#666' }}>Beginner • 10 Years Old</div>
-                            <Button size="sm" variant="outline" style={{ marginTop: '8px', width: '100%' }}>View Details</Button>
+                    <Card className="coach-card">
+                        <div className="coach-card-header">
+                            <h2 className="coach-card-title">Upcoming Demos</h2>
+                        </div>
+                        <div className="coach-demo-card">
+                            <div className="coach-demo-badge">Tomorrow, 3:00 PM</div>
+                            <div className="coach-demo-name">Ishaan Verma</div>
+                            <div className="coach-demo-meta">
+                                <span>Beginner Level</span>
+                                <span>•</span>
+                                <span>10 Years Old</span>
+                            </div>
+                            <Button size="sm" variant="outline" style={{ marginTop: '12px', width: '100%' }}>
+                                View Details
+                            </Button>
                         </div>
                     </Card>
 
-                    {/* Quick Chats */}
-                    <Card title="Batch Chats">
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                            <Button variant="ghost" style={{ justifyContent: 'flex-start', gap: '8px' }}><MessageSquare size={16} /> Intermediate B2 (3 new)</Button>
-                            <Button variant="ghost" style={{ justifyContent: 'flex-start', gap: '8px' }}><MessageSquare size={16} /> Advanced C1</Button>
-                            <Button variant="ghost" style={{ justifyContent: 'flex-start', gap: '8px' }}><MessageSquare size={16} /> Beginner A1</Button>
+                    {/* Teaching Tip */}
+                    <Card className="coach-card coach-tip-card">
+                        <div className="coach-tip-icon">
+                            <Lightbulb size={24} />
+                        </div>
+                        <div className="coach-tip-title">Teaching Tip</div>
+                        <div className="coach-tip-text">
+                            "Use puzzles to reinforce tactical patterns. Students retain concepts better through problem-solving."
+                        </div>
+                    </Card>
+
+                    {/* Performance Overview */}
+                    <Card className="coach-card">
+                        <div className="coach-card-header">
+                            <h2 className="coach-card-title">This Month</h2>
+                            <Award size={20} color="#f59e0b" />
+                        </div>
+                        <div className="coach-performance-stats">
+                            <div className="coach-perf-item">
+                                <div className="coach-perf-label">Classes Completed</div>
+                                <div className="coach-perf-value">48</div>
+                            </div>
+                            <div className="coach-perf-item">
+                                <div className="coach-perf-label">Materials Uploaded</div>
+                                <div className="coach-perf-value">12</div>
+                            </div>
+                            <div className="coach-perf-item">
+                                <div className="coach-perf-label">Student Progress</div>
+                                <div className="coach-perf-value">+15%</div>
+                            </div>
                         </div>
                     </Card>
                 </div>

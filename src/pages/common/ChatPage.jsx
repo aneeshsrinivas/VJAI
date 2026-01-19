@@ -36,7 +36,7 @@ const ChatPage = ({ userRole = 'ADMIN' }) => { // Roles: ADMIN, COACH, CUSTOMER
             height: 'calc(100vh - 80px)', // Adjust for navbar
             padding: '24px',
             fontFamily: "'Figtree', sans-serif",
-            background: userRole === 'CUSTOMER' ? 'linear-gradient(180deg, #f8f9fc 0%, #f0f2f5 100%)' : 'transparent'
+            background: 'linear-gradient(180deg, #f8f9fc 0%, #f0f2f5 100%)'
         }}>
             <div style={{ display: 'grid', gridTemplateColumns: '320px 1fr', gap: '24px', height: '100%', maxWidth: '1400px', margin: '0 auto' }}>
 

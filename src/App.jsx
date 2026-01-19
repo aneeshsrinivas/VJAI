@@ -25,6 +25,7 @@ import SubscriptionPage from './pages/admin/SubscriptionPage';
 import AccountsPage from './pages/admin/AccountsPage';
 import AnalyticsPage from './pages/admin/AnalyticsPage';
 import ChatPage from './pages/common/ChatPage';
+import Settings from './pages/common/Settings';
 import BatchChat from './pages/BatchChat';
 import PlanSelection from './pages/PlanSelection';
 import PaymentCheckout from './pages/PaymentCheckout';
@@ -41,12 +42,24 @@ import Sidebar from './components/layout/Sidebar';
 import ErrorBoundary from './components/ui/ErrorBoundary';
 
 import ParentNavbar from './components/layout/ParentNavbar';
+import CoachNavbar from './components/layout/CoachNavbar';
 
 // Layout Wrappers
 const ParentLayout = () => {
   return (
     <div className="layout-parent">
       <ParentNavbar />
+      <main className="main-content" style={{ padding: 0, marginTop: 0 }}>
+        <Outlet />
+      </main>
+    </div>
+  );
+};
+
+const CoachLayout = () => {
+  return (
+    <div className="layout-coach">
+      <CoachNavbar />
       <main className="main-content" style={{ padding: 0, marginTop: 0 }}>
         <Outlet />
       </main>
@@ -95,18 +108,20 @@ const App = () => {
             <Route path="/parent/schedule" element={<ParentSchedule />} />
             <Route path="/parent/assignments" element={<ParentAssignments />} />
             <Route path="/parent/payments" element={<ParentPayments />} />
+            <Route path="/parent/settings" element={<Settings />} />
           </Route>
 
           {/* Student Routes */}
           <Route path="/student" element={<StudentPage />} />
 
           {/* Coach Routes */}
-          <Route element={<StaffLayout role="coach" />}>
+          <Route element={<CoachLayout />}>
             <Route path="/coach" element={<CoachPage />} />
             <Route path="/coach/students" element={<PlaceholderPage title="My Students" />} />
             <Route path="/coach/batches" element={<CoachBatches />} />
             <Route path="/coach/schedule" element={<CoachSchedule />} />
             <Route path="/coach/chat" element={<ChatPage userRole="COACH" />} />
+            <Route path="/coach/settings" element={<Settings />} />
           </Route>
 
           {/* Admin Routes */}
@@ -123,6 +138,7 @@ const App = () => {
             <Route path="/admin/subscriptions" element={<SubscriptionPage />} />
             <Route path="/admin/accounts" element={<AccountsPage />} />
             <Route path="/admin/analytics" element={<AnalyticsPage />} />
+            <Route path="/admin/settings" element={<Settings />} />
           </Route>
 
         </Routes>
