@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { ChevronDown, Settings, LogOut, User } from 'lucide-react';
 
 const AccountDropdown = ({ userName = 'User', userRole = 'Customer', avatarEmoji = '👤', customIcon = null }) => {
     const navigate = useNavigate();
@@ -122,10 +123,10 @@ const AccountDropdown = ({ userName = 'User', userRole = 'Customer', avatarEmoji
                             onMouseEnter={(e) => e.currentTarget.style.background = '#f5f5f5'}
                             onMouseLeave={(e) => e.currentTarget.style.background = 'none'}
                         >
-                            <span>👤</span> My Profile
+                            <User size={16} /> My Profile
                         </button>
                         <button
-                            onClick={() => { setIsOpen(false); }}
+                            onClick={() => { setIsOpen(false); navigate('/settings'); }}
                             style={{
                                 width: '100%',
                                 padding: '10px 12px',
@@ -144,7 +145,7 @@ const AccountDropdown = ({ userName = 'User', userRole = 'Customer', avatarEmoji
                             onMouseEnter={(e) => e.currentTarget.style.background = '#f5f5f5'}
                             onMouseLeave={(e) => e.currentTarget.style.background = 'none'}
                         >
-                            <span>⚙️</span> Settings
+                            <Settings size={16} /> Settings
                         </button>
                     </div>
 
@@ -171,7 +172,7 @@ const AccountDropdown = ({ userName = 'User', userRole = 'Customer', avatarEmoji
                             onMouseEnter={(e) => e.currentTarget.style.background = '#FEE2E2'}
                             onMouseLeave={(e) => e.currentTarget.style.background = 'none'}
                         >
-                            <span>🚪</span> Logout
+                            <LogOut size={16} /> Logout
                         </button>
                     </div>
                 </div>
@@ -189,7 +190,7 @@ const AccountDropdown = ({ userName = 'User', userRole = 'Customer', avatarEmoji
                     }
                 }
             `}</style>
-        </div>
+        </div >
     );
 };
 
