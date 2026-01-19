@@ -21,6 +21,7 @@ import AdminDashboard from './pages/AdminDashboard';
 import PlaceholderPage from './pages/PlaceholderPage';
 import StudentDatabase from './pages/admin/StudentDatabase';
 import CoachRoster from './pages/admin/CoachRoster';
+import AdminCoachApplications from './pages/admin/AdminCoachApplications';
 import FinanceReports from './pages/admin/FinanceReports';
 import DemosPage from './pages/admin/DemosPage';
 import BroadcastPage from './pages/admin/BroadcastPage';
@@ -153,6 +154,7 @@ const App = () => {
               <Route path="/chat" element={<ChatPage userRole="ADMIN" />} />
               <Route path="/admin/students" element={<StudentDatabase />} />
               <Route path="/admin/coaches" element={<CoachRoster />} />
+              <Route path="/admin/applications" element={<AdminCoachApplications />} />
               <Route path="/admin/demos" element={<DemosPage />} />
               <Route path="/admin/calendar" element={<PlaceholderPage title="Calendar Management" />} />
               <Route path="/admin/finances" element={<FinanceReports />} />

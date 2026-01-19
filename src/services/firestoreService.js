@@ -28,12 +28,16 @@ export const createDemoRequest = async (demoData) => {
     try {
         const demoRef = await addDoc(collection(db, COLLECTIONS.DEMOS), {
             studentName: demoData.studentName,
+            studentAge: demoData.studentAge, // Added
             parentName: demoData.parentName,
             parentEmail: demoData.parentEmail,
             parentPhone: demoData.parentPhone || '',
-            timezone: demoData.timezone,
-            preferredDateTime: demoData.preferredDateTime,
+            timezone: demoData.timezone || 'IST',
+            preferredDate: demoData.preferredDate,
+            preferredTime: demoData.preferredTime,
+            preferredDateTime: `${demoData.preferredDate} ${demoData.preferredTime}`,
             chessExperience: demoData.chessExperience || 'beginner',
+            message: demoData.message || '', // Added
             status: DEMO_STATUS.PENDING,
             assignedCoachId: null,
             assignedAdminId: null,
@@ -285,9 +289,66 @@ export const updateStudent = async (studentId, updateData) => {
 // COACH OPERATIONS
 // ==========================================
 
+export const createCoachApplication = async (applicationData) => {
+    try {
+        await addDoc(collection(db, COLLECTIONS.COACHES), {
+            ...applicationData,
+            status: 'PENDING',
+            createdAt: serverTimestamp(),
+            updatedAt: serverTimestamp()
+        });
+        return { success: true };
+    } catch (error) {
+        console.error('Error submitting coach application:', error);
+        return { success: false, error: error.message };
+    }
+};
+
+export const getCoachApplications = async () => {
+    try {
+        const q = query(collection(db, COLLECTIONS.COACHES), where('status', '==', 'PENDING'));
+        const snapshot = await getDocs(q);
+        const applications = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        return { success: true, applications };
+    } catch (error) {
+        console.error('Error fetching applications:', error);
+        return { success: false, error: error.message };
+    }
+};
+
+export const approveCoachApplication = async (applicationId, uid, password, adminId) => {
+    try {
+        // 1. Create Account Record
+        // Note: Password saved only for MVP demonstration as requested
+        await setDoc(doc(db, COLLECTIONS.ACCOUNTS, uid), {
+            email: null, // Will be updated or fetched from coach doc if needed, but usually account links to profile
+            role: 'COACH',
+            createdByAdminId: adminId,
+            tempPassword: password,
+            createdAt: serverTimestamp(),
+            updatedAt: serverTimestamp()
+        });
+
+        // 2. Update Coach Doc
+        const coachRef = doc(db, COLLECTIONS.COACHES, applicationId);
+        await updateDoc(coachRef, {
+            status: 'ACTIVE',
+            accountId: uid,
+            approvedBy: adminId,
+            updatedAt: serverTimestamp()
+        });
+
+        return { success: true };
+    } catch (error) {
+        console.error('Error approving coach:', error);
+        return { success: false, error: error.message };
+    }
+};
+
 export const getAllCoaches = async () => {
     try {
-        const snapshot = await getDocs(collection(db, COLLECTIONS.COACHES));
+        const q = query(collection(db, COLLECTIONS.COACHES), where('status', '==', 'ACTIVE'));
+        const snapshot = await getDocs(q);
         const coaches = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
         return { success: true, coaches };
     } catch (error) {

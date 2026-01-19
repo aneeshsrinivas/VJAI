@@ -52,24 +52,47 @@ const RegistrationPage = () => {
         e.preventDefault();
         setError('');
 
-        if (formData.password !== formData.confirmPassword) {
+        if (role !== 'coach' && formData.password !== formData.confirmPassword) {
             return setError('Passwords do not match');
         }
 
-        if (formData.studentAge && Number(formData.studentAge) <= 5) {
-            return setError('Student Age must be above 5 years.');
+        if (role === 'parent' || role === 'customer') {
+            // Redundant check as UI is blocked, but safe
+            return navigate('/demo-booking');
         }
 
         setLoading(true);
         try {
-            // Destructure basic auth fields, keep the rest as profile data
-            const { email, password, confirmPassword, ...profileData } = formData;
+            if (role === 'coach') {
+                // Submit Application Only
+                // Import this! I need to ensure it's imported at the top. I'll rely on a separate replace or assume dynamic import... 
+                // Wait, I cannot use dynamic import easily inside function without async. 
+                // I should check imports. 
+                // For now, I'll update functionality assuming I will add the import next step.
+                const { createCoachApplication } = await import('../services/firestoreService');
 
-            await signup(email, password, role === 'parent' ? 'customer' : role, profileData);
-            navigate(`/registration-success?role=${role}`);
+                const applicationData = {
+                    fullName: formData.fullName,
+                    email: formData.email,
+                    phone: formData.phone,
+                    title: formData.title,
+                    fideRating: formData.fideRating,
+                    experience: formData.experience,
+                    department: formData.department // If applicable
+                };
+
+                await createCoachApplication(applicationData);
+                alert('Application Submitted! We will review and contact you.');
+                navigate('/');
+            } else {
+                // Admin registration (Blocked in UI but logic remains for other roles if any)
+                const { email, password, confirmPassword, ...profileData } = formData;
+                await signup(email, password, role === 'parent' ? 'customer' : role, profileData);
+                navigate(`/registration-success?role=${role}`);
+            }
         } catch (err) {
             console.error(err);
-            setError('Failed to create account: ' + err.message);
+            setError('Failed to process: ' + err.message);
             setLoading(false);
         }
     };
@@ -91,147 +114,43 @@ const RegistrationPage = () => {
     const renderFields = () => {
         switch (role) {
             case 'parent':
-            case 'customer': // Treat parent/student as CUSTOMER
+            case 'customer':
                 return (
-                    <>
-                        {error && <div className="error-message" style={{ color: 'red', marginBottom: '1rem' }}>{error}</div>}
-
-                        <div style={{ padding: '12px', backgroundColor: '#e3f2fd', borderRadius: '8px', marginBottom: '16px', fontSize: '14px', color: '#0d47a1' }}>
-                            <strong>Core Principle:</strong> A single account is used for authentication. Parent details are stored inside the Student record.
+                    <div className="restriction-message">
+                        <div style={{ textAlign: 'center', padding: '20px' }}>
+                            <h3 style={{ color: 'var(--color-deep-blue)', marginBottom: '16px' }}>Registration via Demo Only</h3>
+                            <p style={{ marginBottom: '24px', color: '#555' }}>
+                                To ensure the best placement for your child, we require a free demo class before enrollment.
+                                Please book a session to get started.
+                            </p>
+                            <button
+                                onClick={() => navigate('/demo-booking')}
+                                className="submit-btn"
+                            >
+                                Book Free Demo
+                            </button>
                         </div>
-                        <Input
-                            label="Parent Name"
-                            name="fullName"
-                            required
-                            placeholder="Enter parent's full name"
-                            value={formData.fullName}
-                            onChange={handleChange}
-                        />
-                        <Input
-                            label="Parent Email (Login ID)"
-                            name="email"
-                            type="email"
-                            required
-                            placeholder="name@example.com"
-                            value={formData.email}
-                            onChange={handleChange}
-                        />
-                        <Input
-                            label="Student Name"
-                            name="studentName"
-                            required
-                            placeholder="Student's name"
-                            value={formData.studentName}
-                            onChange={handleChange}
-                        />
-                        <div style={{ display: 'flex', gap: '16px' }}>
-                            <div style={{ flex: 1 }}>
-                                <Input
-                                    label="Student Age"
-                                    name="studentAge"
-                                    type="number"
-                                    required
-                                    placeholder="Age"
-                                    min="6"
-                                    max="18"
-                                    value={formData.studentAge}
-                                    onChange={handleChange}
-                                />
-                            </div>
-                            <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '8px', marginBottom: '16px' }}>
-                                <label style={{ fontSize: '14px', fontWeight: 'bold' }}>Learning Level</label>
-                                <select
-                                    name="learningLevel"
-                                    value={formData.learningLevel}
-                                    onChange={handleChange}
-                                    style={{ padding: '12px', borderRadius: '8px', border: '1px solid #ddd', width: '100%' }}
-                                >
-                                    <option>Beginner (New to Chess)</option>
-                                    <option>Intermediate (Rated 1000-1400)</option>
-                                    <option>Advanced (Rated 1400+)</option>
-                                </select>
-                            </div>
+                    </div>
+                );
+            case 'admin':
+                return (
+                    <div className="restriction-message">
+                        <div style={{ textAlign: 'center', padding: '20px' }}>
+                            <h3 style={{ color: '#d32f2f', marginBottom: '16px' }}>Access Restricted</h3>
+                            <p style={{ color: '#555' }}>
+                                Admin accounts are created internally by the System Administrator.
+                                Please contact your supervisor for credentials.
+                            </p>
+                            <Link to="/login" style={{ display: 'block', marginTop: '16px', color: 'var(--color-deep-blue)' }}>Back to Login</Link>
                         </div>
-
-                        <div style={{ display: 'flex', gap: '16px' }}>
-                            <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '8px', marginBottom: '16px' }}>
-                                <label style={{ fontSize: '14px', fontWeight: 'bold' }}>Student Type (Mandatory)</label>
-                                <select
-                                    name="studentType"
-                                    value={formData.studentType}
-                                    onChange={handleChange}
-                                    style={{ padding: '12px', borderRadius: '8px', border: '1px solid #ddd', width: '100%' }}
-                                >
-                                    <option>Group Class</option>
-                                    <option>1-on-1 Tutoring</option>
-                                </select>
-                            </div>
-                            <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '8px', marginBottom: '16px' }}>
-                                <label style={{ fontSize: '14px', fontWeight: 'bold' }}>Timezone</label>
-                                <select
-                                    name="timezone"
-                                    value={formData.timezone}
-                                    onChange={handleChange}
-                                    style={{ padding: '12px', borderRadius: '8px', border: '1px solid #ddd', width: '100%' }}
-                                >
-                                    <option>India (IST)</option>
-                                    <option>USA (EST)</option>
-                                    <option>USA (PST)</option>
-                                    <option>UK (GMT)</option>
-                                    <option>Australia (AEST)</option>
-                                </select>
-                            </div>
-                        </div>
-
-                        <div style={{ display: 'flex', gap: '16px' }}>
-                            <div style={{ flex: 1 }}>
-                                <Input
-                                    label="Country"
-                                    name="country"
-                                    placeholder="e.g. India"
-                                    required
-                                    value={formData.country}
-                                    onChange={handleChange}
-                                />
-                            </div>
-                            <div style={{ flex: 1 }}>
-                                <Input
-                                    label="Chess.com Username (Optional)"
-                                    name="chessUsername"
-                                    placeholder="e.g. magnus_c"
-                                    value={formData.chessUsername}
-                                    onChange={handleChange}
-                                />
-                            </div>
-                        </div>
-                        <Input
-                            label="Password"
-                            name="password"
-                            type="password"
-                            required
-                            placeholder="Create a secure password"
-                            value={formData.password}
-                            onChange={handleChange}
-                        />
-                        <Input
-                            label="Confirm Password"
-                            name="confirmPassword"
-                            type="password"
-                            required
-                            placeholder="Confirm your password"
-                            value={formData.confirmPassword}
-                            onChange={handleChange}
-                        />
-                        <div style={{ marginBottom: '16px' }}>
-                            <label style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '14px' }}>
-                                <input type="checkbox" required /> I agree to create a single family account (Role: CUSTOMER).
-                            </label>
-                        </div>
-                    </>
+                    </div>
                 );
             case 'coach':
                 return (
                     <>
+                        <div style={{ padding: '12px', backgroundColor: '#fff3e0', borderRadius: '8px', marginBottom: '16px', fontSize: '14px', color: '#e65100' }}>
+                            <strong>Note:</strong> Coach applications are reviewed by our team. You will be contacted upon approval.
+                        </div>
                         <Input label="Full Name" name="fullName" required placeholder="Your full name" value={formData.fullName} onChange={handleChange} />
                         <Input label="Email" name="email" type="email" required placeholder="name@example.com" value={formData.email} onChange={handleChange} />
                         <Input label="Phone Number (Private)" name="phone" required placeholder="+91 XXXXX XXXXX" value={formData.phone} onChange={handleChange} />
@@ -255,39 +174,17 @@ const RegistrationPage = () => {
                             </div>
                         </div>
                         <Input label="Experience (Years)" name="experience" type="number" required value={formData.experience} onChange={handleChange} />
-                        <Input label="Password" name="password" type="password" required value={formData.password} onChange={handleChange} />
-                        <Input label="Confirm Password" name="confirmPassword" type="password" required placeholder="Confirm your password" value={formData.confirmPassword} onChange={handleChange} />
+
+                        {/* 
+                            Password field removed for Coach Application - Admin creates it? 
+                            OR keep it if we let them create account PENDING approval? 
+                            User said "Admin... manual account creation". 
+                            So Coach just submits DATA. No password.
+                        */}
+
                         <div style={{ marginBottom: '16px' }}>
                             <label style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '14px' }}>
-                                <input type="checkbox" required /> I understand I will not see parent contact info directly.
-                            </label>
-                        </div>
-                    </>
-                );
-            case 'admin':
-                return (
-                    <>
-                        <Input label="Full Name" name="fullName" required value={formData.fullName} onChange={handleChange} />
-                        <Input label="Work Email" name="email" type="email" required placeholder="name@indianchessacademy.com" value={formData.email} onChange={handleChange} />
-                        <Input label="Employee ID" name="employeeId" required value={formData.employeeId} onChange={handleChange} />
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginBottom: '16px' }}>
-                            <label style={{ fontSize: '14px', fontWeight: 'bold' }}>Department</label>
-                            <select
-                                name="department"
-                                value={formData.department}
-                                onChange={handleChange}
-                                style={{ padding: '12px', borderRadius: '8px', border: '1px solid #ddd', width: '100%' }}
-                            >
-                                <option>Operations</option>
-                                <option>Finance</option>
-                                <option>HR & Management</option>
-                            </select>
-                        </div>
-                        <Input label="Password" name="password" type="password" required value={formData.password} onChange={handleChange} />
-                        <Input label="Confirm Password" name="confirmPassword" type="password" required placeholder="Confirm your password" value={formData.confirmPassword} onChange={handleChange} />
-                        <div style={{ marginBottom: '16px' }}>
-                            <label style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '14px' }}>
-                                <input type="checkbox" required /> I acknowledge full data access responsibility.
+                                <input type="checkbox" required /> I understand this is an application for a coaching position.
                             </label>
                         </div>
                     </>
