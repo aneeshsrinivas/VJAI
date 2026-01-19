@@ -74,10 +74,24 @@ const ParentDashboard = () => {
     };
 
     const getDisplayName = () => {
-        if (student?.parentName) return student.parentName;
-        if (currentUser?.displayName) return currentUser.displayName;
-        if (currentUser?.email) return currentUser.email.split('@')[0];
-        return 'Parent';
+        // Debug log to see what userData contains
+        console.log('userData:', userData);
+        console.log('currentUser:', currentUser?.email);
+
+        // Priority: userData.fullName > userData.studentName > student.parentName > email
+        if (userData?.fullName && userData.fullName.trim()) return userData.fullName;
+        if (userData?.studentName && userData.studentName.trim()) return userData.studentName;
+        if (student?.parentName && student.parentName.trim()) return student.parentName;
+        if (currentUser?.displayName && currentUser.displayName.trim()) return currentUser.displayName;
+
+        // Extract from email as last resort
+        if (currentUser?.email) {
+            const emailName = currentUser.email.split('@')[0];
+            // If email name has numbers at end (like user123), just return it as is
+            // Otherwise capitalize first letter
+            return emailName;
+        }
+        return 'Student';
     };
 
     const getGreeting = () => {

@@ -69,8 +69,9 @@ export const AuthProvider = ({ children }) => {
 
         // Check if admin email
         const detectedRole = detectRoleFromEmail(email);
+        let finalRole = detectedRole;
 
-        // Update lastLoginAt in Firestore
+        // Update lastLoginAt in Firestore and get stored role
         try {
             const userRef = doc(db, 'users', user.uid);
             const userDoc = await getDoc(userRef);
@@ -79,8 +80,10 @@ export const AuthProvider = ({ children }) => {
                 await updateDoc(userRef, {
                     lastLoginAt: serverTimestamp()
                 });
+                // Use the stored role from Firestore
                 const storedRole = userDoc.data().role;
-                setUserRole(storedRole);
+                finalRole = storedRole || detectedRole;
+                setUserRole(finalRole);
                 setUserData(userDoc.data());
             } else {
                 // Create user doc if missing (for admin or new users)
@@ -97,7 +100,7 @@ export const AuthProvider = ({ children }) => {
             setUserRole(detectedRole);
         }
 
-        return { user, role: detectedRole };
+        return { user, role: finalRole };
     };
 
     // Logout function

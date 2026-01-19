@@ -122,15 +122,6 @@ const Login = () => {
                     <div className="register-link">
                         Don't have an account? <Link to="/select-role">Join Us</Link>
                     </div>
-
-                    <div className="quick-access" style={{ marginTop: '24px', padding: '16px', backgroundColor: '#F0F9FF', borderRadius: '8px', fontSize: '13px' }}>
-                        <strong style={{ display: 'block', marginBottom: '8px', color: '#1E3A8A' }}>Login Guide:</strong>
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', color: '#64748B' }}>
-                            <span><strong>Admin:</strong> indianchessacademy@chess.com</span>
-                            <span><strong>Coach:</strong> Register with @coach.com email</span>
-                            <span><strong>Parent:</strong> Register with @gmail.com email</span>
-                        </div>
-                    </div>
                 </div>
             </div>
         </div>

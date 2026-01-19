@@ -2,13 +2,12 @@ import React, { useState, useEffect, useRef } from 'react';
 import { collection, query, orderBy, onSnapshot, addDoc, serverTimestamp, getDocs, where, updateDoc, doc } from 'firebase/firestore';
 import { db } from '../../lib/firebase';
 import { useAuth } from '../../context/AuthContext';
-import Card from '../../components/ui/Card';
 import Button from '../../components/ui/Button';
 import { toast, ToastContainer } from 'react-toastify';
-import { Send, Lock, Plus, X, Users, MessageSquare, Search, User } from 'lucide-react';
+import { Send, Plus, X, Users, MessageSquare, Search, User, Loader } from 'lucide-react';
 import './ChatPage.css';
 
-// Color scheme from user
+// ICA Color scheme
 const COLORS = {
     orange: '#FC8A24',
     deepBlue: '#003366',
@@ -16,13 +15,14 @@ const COLORS = {
     ivory: '#FFFEF3'
 };
 
-const ChatPage = () => {
-    const { currentUser, userRole } = useAuth();
+const ChatPage = ({ userRole: propRole }) => {
+    const { currentUser, userRole: authRole } = useAuth();
     const [chats, setChats] = useState([]);
     const [selectedChat, setSelectedChat] = useState(null);
     const [messages, setMessages] = useState([]);
     const [message, setMessage] = useState('');
     const [loading, setLoading] = useState(true);
+    const [sending, setSending] = useState(false);
     const [showNewChatModal, setShowNewChatModal] = useState(false);
     const [users, setUsers] = useState([]);
     const [batches, setBatches] = useState([]);
@@ -31,8 +31,9 @@ const ChatPage = () => {
     const [selectedBatchId, setSelectedBatchId] = useState('');
     const [searchQuery, setSearchQuery] = useState('');
     const messagesEndRef = useRef(null);
+    const inputRef = useRef(null);
 
-    const role = (userRole || 'CUSTOMER').toUpperCase();
+    const role = (propRole || authRole || 'CUSTOMER').toUpperCase();
 
     // Auto-scroll to bottom
     const scrollToBottom = () => {
@@ -53,34 +54,49 @@ const ChatPage = () => {
         const chatsRef = collection(db, 'chats');
         let q;
 
-        if (role === 'ADMIN') {
-            q = query(chatsRef, orderBy('lastMessageAt', 'desc'));
-        } else {
-            q = query(chatsRef, where('participants', 'array-contains', currentUser.uid), orderBy('lastMessageAt', 'desc'));
-        }
+        try {
+            if (role === 'ADMIN') {
+                // Admin sees all chats - simple query without composite index
+                q = query(chatsRef);
+            } else {
+                q = query(chatsRef, where('participants', 'array-contains', currentUser.uid));
+            }
 
-        const unsubscribe = onSnapshot(q, (snapshot) => {
-            const chatList = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+            const unsubscribe = onSnapshot(q, (snapshot) => {
+                let chatList = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
 
-            const filtered = chatList.filter(chat => {
-                if (role === 'ADMIN') return true;
-                if (role === 'CUSTOMER') {
-                    return chat.chatType === 'BATCH_GROUP' || chat.chatType === 'ADMIN_PARENT';
-                }
-                if (role === 'COACH') {
-                    return chat.chatType === 'BATCH_GROUP' || chat.chatType === 'ADMIN_COACH';
-                }
-                return false;
+                // Sort by lastMessageAt client-side to avoid index issues
+                chatList.sort((a, b) => {
+                    const aTime = a.lastMessageAt?.toDate?.() || new Date(0);
+                    const bTime = b.lastMessageAt?.toDate?.() || new Date(0);
+                    return bTime - aTime;
+                });
+
+                // Filter by role
+                const filtered = chatList.filter(chat => {
+                    if (role === 'ADMIN') return true;
+                    if (role === 'CUSTOMER') {
+                        return chat.chatType === 'BATCH_GROUP' || chat.chatType === 'ADMIN_PARENT';
+                    }
+                    if (role === 'COACH') {
+                        return chat.chatType === 'BATCH_GROUP' || chat.chatType === 'ADMIN_COACH';
+                    }
+                    return false;
+                });
+
+                setChats(filtered);
+                setLoading(false);
+            }, (error) => {
+                console.error('Error loading chats:', error);
+                toast.error('Error loading chats: ' + error.message);
+                setLoading(false);
             });
 
-            setChats(filtered);
+            return () => unsubscribe();
+        } catch (error) {
+            console.error('Chat query error:', error);
             setLoading(false);
-        }, (error) => {
-            console.error('Error loading chats:', error);
-            setLoading(false);
-        });
-
-        return () => unsubscribe();
+        }
     }, [currentUser, role]);
 
     // Real-time listener for messages
@@ -90,15 +106,30 @@ const ChatPage = () => {
             return;
         }
 
-        const messagesRef = collection(db, 'messages');
-        const q = query(messagesRef, where('chatId', '==', selectedChat.id), orderBy('createdAt', 'asc'));
+        try {
+            const messagesRef = collection(db, 'messages');
+            const q = query(messagesRef, where('chatId', '==', selectedChat.id));
 
-        const unsubscribe = onSnapshot(q, (snapshot) => {
-            const msgList = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-            setMessages(msgList);
-        });
+            const unsubscribe = onSnapshot(q, (snapshot) => {
+                let msgList = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
 
-        return () => unsubscribe();
+                // Sort by createdAt client-side
+                msgList.sort((a, b) => {
+                    const aTime = a.createdAt?.toDate?.() || new Date(0);
+                    const bTime = b.createdAt?.toDate?.() || new Date(0);
+                    return aTime - bTime;
+                });
+
+                setMessages(msgList);
+            }, (error) => {
+                console.error('Error loading messages:', error);
+                toast.error('Error loading messages');
+            });
+
+            return () => unsubscribe();
+        } catch (error) {
+            console.error('Messages query error:', error);
+        }
     }, [selectedChat]);
 
     // Fetch users and batches for new chat modal
@@ -106,35 +137,47 @@ const ChatPage = () => {
         if (role === 'ADMIN') {
             getDocs(collection(db, 'users')).then(snap => {
                 setUsers(snap.docs.map(d => ({ id: d.id, ...d.data() })));
-            });
+            }).catch(err => console.error('Error fetching users:', err));
+
             getDocs(collection(db, 'batches')).then(snap => {
                 setBatches(snap.docs.map(d => ({ id: d.id, ...d.data() })));
-            });
+            }).catch(err => console.error('Error fetching batches:', err));
         }
     }, [role]);
 
     const handleSendMessage = async () => {
-        if (!message.trim() || !selectedChat) return;
+        if (!message.trim() || !selectedChat || sending || !currentUser) return;
+
+        setSending(true);
+        const messageText = message.trim();
+        setMessage(''); // Clear immediately for better UX
 
         try {
+            // Add message to messages collection
             await addDoc(collection(db, 'messages'), {
                 chatId: selectedChat.id,
-                content: message.trim(),
+                content: messageText,
                 senderId: currentUser.uid,
-                senderEmail: currentUser.email,
+                senderEmail: currentUser.email || 'admin@chess.com',
                 senderRole: role,
                 senderName: role === 'ADMIN' ? 'Admin' : currentUser.email?.split('@')[0] || 'User',
                 createdAt: serverTimestamp()
             });
 
+            // Update chat's last message
             await updateDoc(doc(db, 'chats', selectedChat.id), {
-                lastMessage: message.trim(),
+                lastMessage: messageText,
                 lastMessageAt: serverTimestamp()
             });
 
-            setMessage('');
+            // Focus input for quick next message
+            inputRef.current?.focus();
         } catch (error) {
-            toast.error('Failed to send message');
+            console.error('Send message error:', error);
+            toast.error('Failed to send: ' + error.message);
+            setMessage(messageText); // Restore message on error
+        } finally {
+            setSending(false);
         }
     };
 
@@ -146,6 +189,11 @@ const ChatPage = () => {
     };
 
     const handleCreateChat = async () => {
+        if (!currentUser) {
+            toast.error('You must be logged in to create a chat');
+            return;
+        }
+
         if (newChatType === 'BATCH_GROUP' && !selectedBatchId) {
             toast.error('Please select a batch');
             return;
@@ -166,26 +214,30 @@ const ChatPage = () => {
                     : [currentUser.uid, selectedUserId],
                 name: newChatType === 'BATCH_GROUP'
                     ? batch?.name || `Batch ${selectedBatchId}`
-                    : user?.email || 'New Chat',
+                    : user?.fullName || user?.email || 'New Chat',
                 createdAt: serverTimestamp(),
                 lastMessageAt: serverTimestamp(),
                 lastMessage: ''
             };
 
-            await addDoc(collection(db, 'chats'), chatData);
+            const docRef = await addDoc(collection(db, 'chats'), chatData);
             setShowNewChatModal(false);
             setSelectedUserId('');
             setSelectedBatchId('');
-            toast.success('Chat created successfully!');
+            toast.success('Chat created!');
+
+            // Auto-select the new chat
+            setSelectedChat({ id: docRef.id, ...chatData });
         } catch (error) {
-            toast.error('Failed to create chat');
+            console.error('Create chat error:', error);
+            toast.error('Failed to create chat: ' + error.message);
         }
     };
 
     const getChatDisplayName = (chat) => {
         if (chat.name) return chat.name;
         if (chat.chatType === 'BATCH_GROUP') return 'Batch Group';
-        return chat.participants?.find(p => p !== currentUser?.uid) || 'Chat';
+        return 'Chat';
     };
 
     const getChatIcon = (chatType) => {
@@ -202,14 +254,18 @@ const ChatPage = () => {
 
     const formatTime = (timestamp) => {
         if (!timestamp?.toDate) return '';
-        const date = timestamp.toDate();
-        const now = new Date();
-        const diff = now - date;
+        try {
+            const date = timestamp.toDate();
+            const now = new Date();
+            const diff = now - date;
 
-        if (diff < 60000) return 'Just now';
-        if (diff < 3600000) return `${Math.floor(diff / 60000)}m ago`;
-        if (diff < 86400000) return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-        return date.toLocaleDateString([], { month: 'short', day: 'numeric' });
+            if (diff < 60000) return 'Just now';
+            if (diff < 3600000) return `${Math.floor(diff / 60000)}m ago`;
+            if (diff < 86400000) return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+            return date.toLocaleDateString([], { month: 'short', day: 'numeric' });
+        } catch {
+            return '';
+        }
     };
 
     return (
@@ -220,7 +276,7 @@ const ChatPage = () => {
             <div className="chat-header" style={{ backgroundColor: COLORS.deepBlue }}>
                 <div className="chat-header-content">
                     <MessageSquare size={24} color="white" />
-                    <h1 style={{ color: 'white', margin: 0 }}>Messages</h1>
+                    <h1 style={{ color: 'white', margin: 0, fontSize: '20px' }}>Messages</h1>
                 </div>
                 {role === 'ADMIN' && (
                     <Button onClick={() => setShowNewChatModal(true)} style={{ backgroundColor: COLORS.orange, border: 'none' }}>
@@ -233,7 +289,7 @@ const ChatPage = () => {
             <div className="chat-container">
                 {/* Sidebar - Chat List */}
                 <div className="chat-sidebar">
-                    <div className="chat-search" style={{ borderColor: COLORS.deepBlue }}>
+                    <div className="chat-search">
                         <Search size={18} color="#666" />
                         <input
                             type="text"
@@ -245,7 +301,10 @@ const ChatPage = () => {
 
                     <div className="chat-list">
                         {loading ? (
-                            <div className="chat-empty">Loading chats...</div>
+                            <div className="chat-empty">
+                                <Loader size={24} className="spin" color={COLORS.deepBlue} />
+                                <p>Loading chats...</p>
+                            </div>
                         ) : filteredChats.length === 0 ? (
                             <div className="chat-empty">
                                 <MessageSquare size={40} color="#ddd" />
@@ -262,18 +321,15 @@ const ChatPage = () => {
                                     key={chat.id}
                                     className={`chat-item ${selectedChat?.id === chat.id ? 'active' : ''}`}
                                     onClick={() => setSelectedChat(chat)}
-                                    style={{ borderLeftColor: selectedChat?.id === chat.id ? COLORS.orange : 'transparent' }}
                                 >
                                     <div className="chat-item-icon" style={{
-                                        backgroundColor: chat.chatType === 'BATCH_GROUP' ? '#E8F5E9' : '#E3F2FD'
+                                        backgroundColor: chat.chatType === 'BATCH_GROUP' ? 'rgba(107,142,35,0.1)' : 'rgba(0,51,102,0.1)'
                                     }}>
                                         {getChatIcon(chat.chatType)}
                                     </div>
                                     <div className="chat-item-content">
                                         <div className="chat-item-header">
-                                            <span className="chat-item-name" style={{ color: COLORS.deepBlue }}>
-                                                {getChatDisplayName(chat)}
-                                            </span>
+                                            <span className="chat-item-name">{getChatDisplayName(chat)}</span>
                                             <span className="chat-item-time">{formatTime(chat.lastMessageAt)}</span>
                                         </div>
                                         <div className="chat-item-preview">
@@ -291,7 +347,7 @@ const ChatPage = () => {
                     {selectedChat ? (
                         <>
                             {/* Chat Header */}
-                            <div className="chat-main-header" style={{ borderBottomColor: COLORS.deepBlue }}>
+                            <div className="chat-main-header">
                                 <div className="chat-main-info">
                                     <div className="chat-main-icon" style={{
                                         backgroundColor: selectedChat.chatType === 'BATCH_GROUP' ? COLORS.oliveGreen : COLORS.deepBlue
@@ -301,19 +357,13 @@ const ChatPage = () => {
                                     <div>
                                         <h3 style={{ color: COLORS.deepBlue, margin: 0 }}>{getChatDisplayName(selectedChat)}</h3>
                                         <span className="chat-type-badge" style={{
-                                            backgroundColor: selectedChat.chatType === 'BATCH_GROUP' ? '#E8F5E9' : '#FFF3E0',
+                                            backgroundColor: selectedChat.chatType === 'BATCH_GROUP' ? 'rgba(107,142,35,0.15)' : 'rgba(252,138,36,0.15)',
                                             color: selectedChat.chatType === 'BATCH_GROUP' ? COLORS.oliveGreen : COLORS.orange
                                         }}>
                                             {selectedChat.chatType === 'BATCH_GROUP' ? 'Group Chat' : 'Private Chat'}
                                         </span>
                                     </div>
                                 </div>
-                                {role === 'COACH' && (
-                                    <div className="privacy-badge">
-                                        <Lock size={12} />
-                                        Contact details hidden
-                                    </div>
-                                )}
                             </div>
 
                             {/* Messages */}
@@ -335,7 +385,7 @@ const ChatPage = () => {
                                                     color: msg.senderRole === 'ADMIN' ? COLORS.deepBlue :
                                                         msg.senderRole === 'COACH' ? COLORS.oliveGreen : COLORS.orange
                                                 }}>
-                                                    {msg.senderName}
+                                                    {msg.senderName || 'User'}
                                                 </span>
                                                 <span className="message-time">{formatTime(msg.createdAt)}</span>
                                             </div>
@@ -357,29 +407,36 @@ const ChatPage = () => {
                             {/* Message Input */}
                             <div className="chat-input">
                                 <input
+                                    ref={inputRef}
                                     type="text"
                                     value={message}
                                     onChange={(e) => setMessage(e.target.value)}
                                     onKeyPress={handleKeyPress}
                                     placeholder="Type your message..."
-                                    style={{ borderColor: COLORS.deepBlue }}
+                                    disabled={sending}
                                 />
                                 <Button
                                     onClick={handleSendMessage}
-                                    disabled={!message.trim()}
-                                    style={{ backgroundColor: COLORS.orange, border: 'none' }}
+                                    disabled={!message.trim() || sending}
+                                    style={{ backgroundColor: COLORS.orange, border: 'none', minWidth: '48px' }}
                                 >
-                                    <Send size={18} />
+                                    {sending ? <Loader size={18} className="spin" /> : <Send size={18} />}
                                 </Button>
                             </div>
                         </>
                     ) : (
                         <div className="chat-no-selection">
-                            <div className="chat-no-selection-icon" style={{ backgroundColor: COLORS.ivory }}>
+                            <div className="chat-no-selection-icon">
                                 <MessageSquare size={64} color={COLORS.deepBlue} />
                             </div>
                             <h2 style={{ color: COLORS.deepBlue }}>Select a conversation</h2>
                             <p>Choose a chat from the sidebar to start messaging</p>
+                            {role === 'ADMIN' && (
+                                <Button onClick={() => setShowNewChatModal(true)} style={{ backgroundColor: COLORS.orange, border: 'none', marginTop: '16px' }}>
+                                    <Plus size={16} style={{ marginRight: 6 }} />
+                                    Start New Chat
+                                </Button>
+                            )}
                         </div>
                     )}
                 </div>
@@ -389,8 +446,8 @@ const ChatPage = () => {
             {showNewChatModal && (
                 <div className="modal-overlay" onClick={() => setShowNewChatModal(false)}>
                     <div className="modal-content" onClick={e => e.stopPropagation()}>
-                        <div className="modal-header" style={{ borderBottomColor: COLORS.deepBlue }}>
-                            <h3 style={{ color: COLORS.deepBlue }}>New Conversation</h3>
+                        <div className="modal-header">
+                            <h3 style={{ color: COLORS.deepBlue, margin: 0 }}>New Conversation</h3>
                             <button onClick={() => setShowNewChatModal(false)} className="modal-close">
                                 <X size={20} />
                             </button>
@@ -435,7 +492,7 @@ const ChatPage = () => {
                                         {users
                                             .filter(u => newChatType === 'ADMIN_PARENT' ? u.role === 'customer' : u.role === 'coach')
                                             .map(user => (
-                                                <option key={user.id} value={user.id}>{user.email}</option>
+                                                <option key={user.id} value={user.id}>{user.fullName || user.email}</option>
                                             ))
                                         }
                                     </select>
@@ -452,6 +509,11 @@ const ChatPage = () => {
                     </div>
                 </div>
             )}
+
+            <style>{`
+                .spin { animation: spin 1s linear infinite; }
+                @keyframes spin { to { transform: rotate(360deg); } }
+            `}</style>
         </div>
     );
 };

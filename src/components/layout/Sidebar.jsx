@@ -1,20 +1,23 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
+import { signOut } from 'firebase/auth';
+import { auth } from '../../lib/firebase';
 import {
     LayoutDashboard, Users, GraduationCap, Wallet, Radio, MessageSquare,
-    CreditCard, Calendar, BookOpen, Layers, Shield, BarChart3
+    CreditCard, Calendar, BookOpen, Layers, Shield, BarChart3, FileText, LogOut
 } from 'lucide-react';
 import './Sidebar.css';
 
 const Sidebar = ({ role = 'admin', activePath = '/dashboard' }) => {
     const navigate = useNavigate();
+
     const links = role === 'admin' ? [
         { label: 'Command Center', icon: <LayoutDashboard size={20} />, path: '/admin' },
         { label: 'Live Analytics', icon: <BarChart3 size={20} />, path: '/admin/live-analytics' },
         { label: 'Demo Pipeline', icon: <Users size={20} />, path: '/admin/demos' },
         { label: 'Students', icon: <GraduationCap size={20} />, path: '/admin/students' },
         { label: 'Coach Roster', icon: <BookOpen size={20} />, path: '/admin/coaches' },
-        { label: 'Applications', icon: <Users size={20} />, path: '/admin/applications' },
+        { label: 'Applications', icon: <FileText size={20} />, path: '/admin/applications' },
         { label: 'Finances', icon: <Wallet size={20} />, path: '/admin/finances' },
         { label: 'Broadcast', icon: <Radio size={20} />, path: '/admin/broadcast' },
         { label: 'Messages', icon: <MessageSquare size={20} />, path: '/chat' },
@@ -27,14 +30,21 @@ const Sidebar = ({ role = 'admin', activePath = '/dashboard' }) => {
         { label: 'Availability', icon: <Calendar size={20} />, path: '/coach/schedule' },
     ];
 
+    const handleLogout = async () => {
+        try {
+            await signOut(auth);
+            navigate('/login');
+        } catch (error) {
+            console.error('Logout error:', error);
+        }
+    };
+
     return (
-        <aside className="sidebar" style={{ borderRight: '1px solid rgba(255,255,255,0.1)' }}>
-            <div className="sidebar-brand" style={{ color: 'var(--color-deep-blue)' }}>
-                {/* Simplified Logo for Admin Panel */}
-                <div style={{ width: '32px', height: '32px', borderRadius: '50%', border: '2px solid var(--color-warm-orange)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                    <div style={{ width: '12px', height: '12px', backgroundColor: 'var(--color-olive-green)', borderRadius: '50%' }}></div>
-                </div>
-                <span>ICA Admin</span>
+        <aside className="sidebar">
+            {/* Logo Section */}
+            <div className="sidebar-brand">
+                <img src="/ica-logo.png" alt="Indian Chess Academy" className="sidebar-logo" />
+                <span className="sidebar-title">ICA Admin</span>
             </div>
 
             <nav className="sidebar-nav">
@@ -52,18 +62,27 @@ const Sidebar = ({ role = 'admin', activePath = '/dashboard' }) => {
 
             <div className="sidebar-footer">
                 <div className="user-compact">
-                    <div className="user-avatar" style={{ backgroundColor: 'var(--color-deep-blue)', color: '#fff' }}>
+                    <div className="user-avatar">
                         {role === 'admin' ? 'A' : 'C'}
                     </div>
                     <div>
-                        <div style={{ fontWeight: '600', fontSize: '14px', color: 'var(--color-white)' }}>
-                            {role === 'admin' ? 'System Admin' : 'Coach Ramesh'}
+                        <div className="user-name">
+                            {role === 'admin' ? 'System Admin' : 'Coach'}
                         </div>
-                        <div style={{ fontSize: '12px', color: 'var(--color-white)', opacity: 0.8 }}>
+                        <div className="user-role">
                             {role === 'admin' ? 'Operations' : 'Senior Coach'}
                         </div>
                     </div>
                 </div>
+
+                {/* Logout Button */}
+                <button
+                    onClick={handleLogout}
+                    className="logout-btn"
+                >
+                    <LogOut size={18} />
+                    <span>Logout</span>
+                </button>
             </div>
         </aside>
     );
