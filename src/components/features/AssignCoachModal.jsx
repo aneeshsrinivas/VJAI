@@ -142,7 +142,7 @@ Indian Chess Academy Team
 
             // Send email via Web3Forms (single recipient for MVP)
             try {
-                const feedbackFormLink = 'https://forms.gle/YOUR_GOOGLE_FORM_ID'; // TODO: Replace with actual form link
+                const feedbackFormLink = 'https://docs.google.com/forms/d/e/1FAIpQLScR2G8atEgIgfws4sTKaPlgR7sjSbGowWd8yhdZvwy0mwkVHw/viewform?usp=publish-editor';
 
                 const emailResponse = await fetch('https://api.web3forms.com/submit', {
                     method: 'POST',
