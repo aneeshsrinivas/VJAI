@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { ChevronDown, Settings, LogOut, User } from 'lucide-react';
 
 const AccountDropdown = ({ userName = 'User', userRole = 'Customer', avatarEmoji = '👤', customIcon = null }) => {
     const navigate = useNavigate();
@@ -100,53 +101,61 @@ const AccountDropdown = ({ userName = 'User', userRole = 'Customer', avatarEmoji
                         <div style={{ fontSize: '12px', color: '#666', marginTop: '2px' }}>{userRole}</div>
                     </div>
 
-                    {/* Menu Items */}
-                    <div style={{ padding: '8px' }}>
-                        <button
-                            onClick={() => { setIsOpen(false); }}
-                            style={{
-                                width: '100%',
-                                padding: '10px 12px',
-                                display: 'flex',
-                                alignItems: 'center',
-                                gap: '10px',
-                                background: 'none',
-                                border: 'none',
-                                borderRadius: '8px',
-                                cursor: 'pointer',
-                                fontSize: '14px',
-                                color: '#333',
-                                transition: 'all 0.2s ease',
-                                fontFamily: 'Figtree, sans-serif',
-                            }}
-                            onMouseEnter={(e) => e.currentTarget.style.background = '#f5f5f5'}
-                            onMouseLeave={(e) => e.currentTarget.style.background = 'none'}
-                        >
-                            <span>👤</span> My Profile
-                        </button>
-                        <button
-                            onClick={() => { setIsOpen(false); }}
-                            style={{
-                                width: '100%',
-                                padding: '10px 12px',
-                                display: 'flex',
-                                alignItems: 'center',
-                                gap: '10px',
-                                background: 'none',
-                                border: 'none',
-                                borderRadius: '8px',
-                                cursor: 'pointer',
-                                fontSize: '14px',
-                                color: '#333',
-                                transition: 'all 0.2s ease',
-                                fontFamily: 'Figtree, sans-serif',
-                            }}
-                            onMouseEnter={(e) => e.currentTarget.style.background = '#f5f5f5'}
-                            onMouseLeave={(e) => e.currentTarget.style.background = 'none'}
-                        >
-                            <span>⚙️</span> Settings
-                        </button>
-                    </div>
+                    {/* Menu Items - Only show for Admin, not Parents or Coaches */}
+                    {userRole !== 'Parent Account' && userRole !== 'Coach' && (
+                        <div style={{ padding: '8px' }}>
+                            <button
+                                onClick={() => { setIsOpen(false); }}
+                                style={{
+                                    width: '100%',
+                                    padding: '10px 12px',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    gap: '10px',
+                                    background: 'none',
+                                    border: 'none',
+                                    borderRadius: '8px',
+                                    cursor: 'pointer',
+                                    fontSize: '14px',
+                                    color: '#333',
+                                    transition: 'all 0.2s ease',
+                                    fontFamily: 'Figtree, sans-serif',
+                                }}
+                                onMouseEnter={(e) => e.currentTarget.style.background = '#f5f5f5'}
+                                onMouseLeave={(e) => e.currentTarget.style.background = 'none'}
+                            >
+                                <User size={16} /> My Profile
+                            </button>
+                            <button
+                                onClick={() => {
+                                    setIsOpen(false);
+                                    const rolePrefix = userRole === 'Parent Account' ? 'parent' :
+                                        userRole === 'Coach' ? 'coach' :
+                                            userRole === 'Admin' ? 'admin' : 'parent';
+                                    navigate(`/${rolePrefix}/settings`);
+                                }}
+                                style={{
+                                    width: '100%',
+                                    padding: '10px 12px',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    gap: '10px',
+                                    background: 'none',
+                                    border: 'none',
+                                    borderRadius: '8px',
+                                    cursor: 'pointer',
+                                    fontSize: '14px',
+                                    color: '#333',
+                                    transition: 'all 0.2s ease',
+                                    fontFamily: 'Figtree, sans-serif',
+                                }}
+                                onMouseEnter={(e) => e.currentTarget.style.background = '#f5f5f5'}
+                                onMouseLeave={(e) => e.currentTarget.style.background = 'none'}
+                            >
+                                <Settings size={16} /> Settings
+                            </button>
+                        </div>
+                    )}
 
                     {/* Logout */}
                     <div style={{ padding: '8px', borderTop: '1px solid #eee' }}>
@@ -171,7 +180,7 @@ const AccountDropdown = ({ userName = 'User', userRole = 'Customer', avatarEmoji
                             onMouseEnter={(e) => e.currentTarget.style.background = '#FEE2E2'}
                             onMouseLeave={(e) => e.currentTarget.style.background = 'none'}
                         >
-                            <span>🚪</span> Logout
+                            <LogOut size={16} /> Logout
                         </button>
                     </div>
                 </div>
@@ -189,7 +198,7 @@ const AccountDropdown = ({ userName = 'User', userRole = 'Customer', avatarEmoji
                     }
                 }
             `}</style>
-        </div>
+        </div >
     );
 };
 
