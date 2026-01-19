@@ -1,0 +1,68 @@
+.coach-navbar {
+    background: linear-gradient(135deg, #1e3a8a 0%, #1e40af 50%, #3b82f6 100%);
+    box-shadow: 0 4px 20px rgba(30, 58, 138, 0.15);
+    position: sticky;
+    top: 0;
+    z-index: 100;
+}
+
+.coach-navbar-container {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 0 32px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: 70px;
+}
+
+.coach-navbar-brand {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.coach-navbar-title {
+    font-size: 20px;
+    font-weight: 800;
+    color: white;
+    margin: 0;
+    font-family: 'Figtree', sans-serif;
+    letter-spacing: -0.5px;
+}
+
+.coach-navbar-links {
+    display: flex;
+    gap: 8px;
+    flex: 1;
+    justify-content: center;
+}
+
+.coach-nav-link {
+    background: none;
+    border: none;
+    color: rgba(255, 255, 255, 0.85);
+    font-size: 15px;
+    font-weight: 600;
+    padding: 10px 20px;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-family: 'Figtree', sans-serif;
+}
+
+.coach-nav-link:hover {
+    background: rgba(255, 255, 255, 0.1);
+    color: white;
+}
+
+.coach-nav-link.active {
+    background: #FC8A24;
+    color: white;
+    box-shadow: 0 4px 12px rgba(252, 138, 36, 0.4);
+}
+
+.coach-navbar-account {
+    display: flex;
+    align-items: center;
+}
