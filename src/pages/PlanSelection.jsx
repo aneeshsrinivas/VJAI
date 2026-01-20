@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import './PlanSelection.css';
 import PricingCard from '../components/ui/PricingCard';
 import Button from '../components/ui/Button';
@@ -7,6 +7,9 @@ import { mockPlans } from '../data/mockData';
 
 const PlanSelection = () => {
     const navigate = useNavigate();
+    const [searchParams] = useSearchParams();
+    const demoId = searchParams.get('demoId'); // Get demoId from URL if present
+
     const [selectedPlan, setSelectedPlan] = useState(null);
     const [filterType, setFilterType] = useState('all'); // 'all', '1-on-1', 'Group'
     const [filterLevel, setFilterLevel] = useState('all'); // 'all', 'Beginner', 'Intermediate'
@@ -23,7 +26,8 @@ const PlanSelection = () => {
 
     const handleContinue = () => {
         if (selectedPlan) {
-            navigate('/payment/checkout', { state: { plan: selectedPlan } });
+            // Pass demoId to checkout if present
+            navigate('/payment/checkout', { state: { plan: selectedPlan, demoId } });
         }
     };
 

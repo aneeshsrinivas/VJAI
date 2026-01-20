@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { getAllDemos, getDemosByStatus, deleteDemo } from '../../services/firestoreService';
+import { conversionService } from '../../services/conversionService';
 import { useAuth } from '../../context/AuthContext';
 import Card from '../../components/ui/Card';
 import Button from '../../components/ui/Button';
@@ -8,7 +9,7 @@ import DemoOutcomeModal from '../../components/features/DemoOutcomeModal';
 import ConvertStudentModal from '../../components/features/ConvertStudentModal';
 import { toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
-import { Trash2, Edit } from 'lucide-react';
+import { Trash2, Edit, Link, CheckCircle } from 'lucide-react';
 
 const DemosPage = () => {
     const { currentUser } = useAuth();
@@ -50,6 +51,7 @@ const DemosPage = () => {
             ATTENDED: { bg: '#D1FAE5', color: '#065F46' },
             NO_SHOW: { bg: '#FEE2E2', color: '#991B1B' },
             INTERESTED: { bg: '#E0E7FF', color: '#3730A3' },
+            PAYMENT_PENDING: { bg: '#FEF3C7', color: '#B45309' },
             CONVERTED: { bg: '#DCFCE7', color: '#166534' },
             REJECTED: { bg: '#F3F4F6', color: '#6B7280' },
         };
@@ -94,6 +96,28 @@ const DemosPage = () => {
         }
     };
 
+    const handleApprovePayment = async (demo) => {
+        if (window.confirm(`Confirm payment for ${demo.studentName}? This will create a student account.`)) {
+            setLoading(true);
+            try {
+                await conversionService.approvePayment(demo.id);
+                toast.success('Payment Approved! Student Account Created.');
+                fetchDemos();
+            } catch (error) {
+                console.error(error);
+                toast.error('Approval Failed: ' + error.message);
+            } finally {
+                setLoading(false);
+            }
+        }
+    };
+
+    const copyPaymentLink = (demoId) => {
+        const link = `${window.location.origin}/pricing?demoId=${demoId}`;
+        navigator.clipboard.writeText(link);
+        toast.success('Payment link copied!');
+    };
+
     const filteredDemos = demos.filter(demo => {
         const matchesSearch = (demo.studentName || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
             (demo.parentEmail || '').toLowerCase().includes(searchTerm.toLowerCase());
@@ -123,7 +147,7 @@ const DemosPage = () => {
 
             {/* Filter Tabs */}
             <div style={{ display: 'flex', gap: '8px', marginBottom: '24px', flexWrap: 'wrap' }}>
-                {['ALL', 'PENDING', 'SCHEDULED', 'ATTENDED', 'INTERESTED', 'CONVERTED'].map(f => (
+                {['ALL', 'PENDING', 'SCHEDULED', 'ATTENDED', 'INTERESTED', 'PAYMENT_PENDING', 'CONVERTED'].map(f => (
                     <button
                         key={f}
                         onClick={() => setFilter(f)}
@@ -213,11 +237,33 @@ const DemosPage = () => {
 
                                             {/* Action: Convert */}
                                             {(demo.status === 'INTERESTED' || demo.status === 'ATTENDED') && (
-                                                <Button size="sm" style={{ backgroundColor: 'var(--color-warm-orange)' }} onClick={() => {
-                                                    setSelectedDemo(demo);
-                                                    setConvertModalOpen(true);
-                                                }}>
-                                                    Convert
+                                                <>
+                                                    <Button size="sm" style={{ backgroundColor: 'var(--color-warm-orange)' }} onClick={() => {
+                                                        setSelectedDemo(demo);
+                                                        setConvertModalOpen(true);
+                                                    }}>
+                                                        Convert
+                                                    </Button>
+                                                    <Button
+                                                        size="sm"
+                                                        variant="secondary"
+                                                        onClick={() => copyPaymentLink(demo.id)}
+                                                        title="Copy payment link"
+                                                    >
+                                                        <Link size={14} />
+                                                    </Button>
+                                                </>
+                                            )}
+
+                                            {/* Action: Approve Payment */}
+                                            {demo.status === 'PAYMENT_PENDING' && (
+                                                <Button
+                                                    size="sm"
+                                                    style={{ backgroundColor: '#166534' }}
+                                                    onClick={() => handleApprovePayment(demo)}
+                                                >
+                                                    <CheckCircle size={14} style={{ marginRight: '4px' }} />
+                                                    Approve
                                                 </Button>
                                             )}
 

@@ -6,121 +6,15 @@ import { collection, query, where, onSnapshot, getDocs } from 'firebase/firestor
 import { db } from '../../lib/firebase';
 import { useAuth } from '../../context/AuthContext';
 import { COLLECTIONS } from '../../config/firestoreCollections';
-
-const UploadModal = ({ isOpen, onClose, batchName }) => {
-    if (!isOpen) return null;
-
-    return (
-        <div style={{
-            position: 'fixed',
-            top: 0,
-            left: 0,
-            right: 0,
-            bottom: 0,
-            background: 'rgba(0, 0, 0, 0.5)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            zIndex: 1000,
-            fontFamily: "'Figtree', sans-serif"
-        }}>
-            <div style={{
-                background: 'white',
-                borderRadius: '20px',
-                padding: '32px',
-                maxWidth: '500px',
-                width: '90%',
-                boxShadow: '0 20px 60px rgba(0,0,0,0.3)'
-            }}>
-                <div style={{ marginBottom: '24px' }}>
-                    <h2 style={{ margin: '0 0 8px', fontSize: '22px', fontWeight: '800', color: '#1e293b' }}>
-                        Upload Material
-                    </h2>
-                    <p style={{ fontSize: '14px', color: '#64748b', margin: 0 }}>
-                        Target: <strong style={{ color: '#3b82f6' }}>{batchName}</strong>
-                    </p>
-                </div>
-
-                <div style={{ marginBottom: '24px' }}>
-                    <label style={{ display: 'block', marginBottom: '12px', fontSize: '14px', fontWeight: '700', color: '#1e293b' }}>
-                        Material Type
-                    </label>
-                    <div style={{ display: 'flex', gap: '16px' }}>
-                        <label style={{
-                            display: 'flex',
-                            alignItems: 'center',
-                            gap: '8px',
-                            cursor: 'pointer',
-                            padding: '10px 16px',
-                            background: '#f8fafc',
-                            borderRadius: '8px',
-                            flex: 1
-                        }}>
-                            <input type="radio" name="type" defaultChecked />
-                            <span style={{ fontSize: '14px', fontWeight: '600' }}>Class PDF</span>
-                        </label>
-                        <label style={{
-                            display: 'flex',
-                            alignItems: 'center',
-                            gap: '8px',
-                            cursor: 'pointer',
-                            padding: '10px 16px',
-                            background: '#f8fafc',
-                            borderRadius: '8px',
-                            flex: 1
-                        }}>
-                            <input type="radio" name="type" />
-                            <span style={{ fontSize: '14px', fontWeight: '600' }}>Homework PGN</span>
-                        </label>
-                    </div>
-                </div>
-
-                <div style={{
-                    border: '2px dashed #cbd5e1',
-                    borderRadius: '12px',
-                    padding: '32px',
-                    textAlign: 'center',
-                    background: '#f8fafc',
-                    marginBottom: '24px',
-                    cursor: 'pointer',
-                    transition: 'all 0.2s ease'
-                }}
-                    onClick={() => alert('File Selector Triggered')}
-                    onMouseEnter={(e) => {
-                        e.currentTarget.style.borderColor = '#3b82f6';
-                        e.currentTarget.style.background = '#eff6ff';
-                    }}
-                    onMouseLeave={(e) => {
-                        e.currentTarget.style.borderColor = '#cbd5e1';
-                        e.currentTarget.style.background = '#f8fafc';
-                    }}>
-                    <Upload size={32} color="#3b82f6" style={{ marginBottom: '12px' }} />
-                    <div style={{ fontSize: '15px', fontWeight: '600', color: '#1e293b', marginBottom: '4px' }}>
-                        Click to Browse Files
-                    </div>
-                    <div style={{ fontSize: '13px', color: '#64748b' }}>
-                        PDF, PGN, CBV allowed
-                    </div>
-                </div>
-
-                <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '12px' }}>
-                    <Button variant="outline" onClick={onClose}>Cancel</Button>
-                    <Button onClick={() => { alert('Material Uploaded Successfully!'); onClose(); }}>
-                        Upload Material
-                    </Button>
-                </div>
-            </div>
-        </div>
-    );
-};
-
 import CreateAssignmentModal from '../../components/features/CreateAssignmentModal';
+import UploadMaterialModal from '../../components/features/UploadMaterialModal'; // Replaced inline modal
 
 const CoachBatches = () => {
-    const [selectedBatch, setSelectedBatch] = useState(null);
+    const [selectedBatchForUpload, setSelectedBatchForUpload] = useState(null);
     const [createAssignmentBatch, setCreateAssignmentBatch] = useState(null);
     const [batches, setBatches] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [uploadLog, setUploadLog] = useState([]);
     const { currentUser } = useAuth();
 
     const getColorForLevel = (level) => {
@@ -149,39 +43,48 @@ const CoachBatches = () => {
 
     // Fetch batches from coach's subcollection
     useEffect(() => {
+        if (!currentUser?.uid) {
+            setLoading(false);
+            return;
+        }
+
+        console.log("Fetching batches for coach:", currentUser.uid);
+        const q = query(
+            collection(db, COLLECTIONS.BATCHES),
+            where('coachId', '==', currentUser.uid)
+        );
+
+        const unsubscribe = onSnapshot(q, (snapshot) => {
+            const batchList = snapshot.docs.map(d => ({ 
+                id: d.id, 
+                ...d.data(),
+                color: getColorForLevel(d.data().level)
+            }));
+            setBatches(batchList);
+            setLoading(false);
+        }, (error) => {
+            console.error('Error fetching batches:', error);
+            setBatches([]);
+            setLoading(false);
+        });
+
+        return () => unsubscribe();
+    }, [currentUser]);
+
+    // Fetch Upload Log (Assignments uploaded by this coach)
+    useEffect(() => {
         if (!currentUser?.uid) return;
 
-        const loadBatches = async () => {
-            try {
-                setLoading(true);
-                const batchesRef = collection(db, 'coaches', currentUser.uid, 'batches');
-                const batchesSnap = await getDocs(batchesRef);
+        const qAssignments = query(
+            collection(db, COLLECTIONS.ASSIGNMENTS),
+            where('coachId', '==', currentUser.uid)
+        );
 
-                const batchList = batchesSnap.docs.map(batchDoc => {
-                    const data = batchDoc.data();
-                    return {
-                        id: batchDoc.id,
-                        name: data.name || 'Unnamed Batch',
-                        level: data.level || 'beginner',
-                        daysOfWeek: data.daysOfWeek || [],
-                        time: data.time || '',
-                        duration: data.duration || 1,
-                        students: (data.studentsId || []).length,
-                        description: data.description || '',
-                        color: getColorForLevel(data.level)
-                    };
-                });
+        const unsubscribeAssignments = onSnapshot(qAssignments, (snapshot) => {
+            setUploadLog(snapshot.docs.map(d => ({ id: d.id, ...d.data() })));
+        });
 
-                setBatches(batchList);
-            } catch (error) {
-                console.error('Error fetching batches:', error);
-                setBatches([]);
-            } finally {
-                setLoading(false);
-            }
-        };
-
-        loadBatches();
+        return () => unsubscribeAssignments();
     }, [currentUser]);
 
     if (loading) {
@@ -234,51 +137,52 @@ const CoachBatches = () => {
                             </p>
                         </div>
                     </div>
-                    <Button variant="outline">Download All Reports</Button>
                 </div>
 
                 {/* Batches Grid */}
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(360px, 1fr))', gap: '24px' }}>
-                    {batches.map(batch => (
-                        <Card key={batch.id} style={{
-                            border: 'none',
-                            borderRadius: '20px',
-                            boxShadow: '0 4px 20px rgba(0,0,0,0.05)',
-                            padding: '24px',
-                            borderTop: `4px solid ${batch.color}`,
-                            transition: 'all 0.3s ease',
-                            cursor: 'pointer'
-                        }}
-                            onMouseEnter={(e) => {
-                                e.currentTarget.style.transform = 'translateY(-8px)';
-                                e.currentTarget.style.boxShadow = '0 12px 32px rgba(0,0,0,0.12)';
-                            }}
-                            onMouseLeave={(e) => {
-                                e.currentTarget.style.transform = 'translateY(0)';
-                                e.currentTarget.style.boxShadow = '0 4px 20px rgba(0,0,0,0.05)';
+                    {loading ? (
+                        <div>Loading batches...</div>
+                    ) : batches.length === 0 ? (
+                        <div style={{ gridColumn: '1 / -1', textAlign: 'center', padding: '40px', color: '#64748b' }}>
+                            <h3>No batches assigned yet</h3>
+                            <p>Contact the administrator to assign batches to your profile.</p>
+                        </div>
+                    ) : (
+                        batches.map(batch => (
+                            <Card key={batch.id} style={{
+                                border: 'none',
+                                borderRadius: '20px',
+                                boxShadow: '0 4px 20px rgba(0,0,0,0.05)',
+                                padding: '24px',
+                                borderTop: `4px solid ${batch.color || '#3b82f6'}`,
+                                transition: 'all 0.3s ease',
+                                cursor: 'pointer'
                             }}>
-                            <div style={{ marginBottom: '20px' }}>
-                                <h3 style={{
-                                    margin: '0 0 16px',
-                                    fontSize: '20px',
-                                    fontWeight: '800',
-                                    color: '#1e293b'
-                                }}>
-                                    {batch.name}
-                                </h3>
+                                <div style={{ marginBottom: '20px' }}>
+                                    <h3 style={{
+                                        margin: '0 0 16px',
+                                        fontSize: '20px',
+                                        fontWeight: '800',
+                                        color: '#1e293b'
+                                    }}>
+                                        {batch.name}
+                                    </h3>
 
-                                <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-                                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px', color: '#64748b', fontSize: '14px' }}>
-                                        <div style={{
-                                            width: '32px',
-                                            height: '32px',
-                                            background: `${batch.color}15`,
-                                            borderRadius: '8px',
-                                            display: 'flex',
-                                            alignItems: 'center',
-                                            justifyContent: 'center'
-                                        }}>
-                                            <Clock size={16} color={batch.color} />
+                                    <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                                        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', color: '#64748b', fontSize: '14px' }}>
+                                            <div style={{
+                                                width: '32px',
+                                                height: '32px',
+                                                background: `${batch.color || '#3b82f6'}15`,
+                                                borderRadius: '8px',
+                                                display: 'flex',
+                                                alignItems: 'center',
+                                                justifyContent: 'center'
+                                            }}>
+                                                <Clock size={16} color={batch.color || '#3b82f6'} />
+                                            </div>
+                                            <span>{batch.schedule || 'Flexible'}</span>
                                         </div>
                                         <span>{formatSchedule(batch.daysOfWeek, batch.time)}</span>
                                     </div>
@@ -294,87 +198,108 @@ const CoachBatches = () => {
                                         }}>
                                             <Users size={16} color={batch.color} />
                                         </div>
-                                        <span>{batch.students} Students</span>
-                                    </div>
-                                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px', color: '#64748b', fontSize: '14px' }}>
-                                        <div style={{
-                                            width: '32px',
-                                            height: '32px',
-                                            background: `${batch.color}15`,
-                                            borderRadius: '8px',
-                                            display: 'flex',
-                                            alignItems: 'center',
-                                            justifyContent: 'center'
-                                        }}>
-                                            <Calendar size={16} color={batch.color} />
-                                        </div>
-                                        <span>{batch.level} Level</span>
+                                        <span>{batch.students} students</span>
                                     </div>
                                 </div>
-                            </div>
 
-                            <div style={{
-                                borderTop: '1px solid #f1f5f9',
-                                paddingTop: '16px',
-                                display: 'grid',
-                                gridTemplateColumns: '1fr 1fr 1fr',
-                                gap: '8px'
-                            }}>
-                                <Button
-                                    size="sm"
-                                    onClick={() => setSelectedBatch(batch)}
-                                    style={{
-                                        background: '#f8fafc',
-                                        border: '1px solid #e2e8f0',
-                                        color: '#475569',
-                                        display: 'flex',
-                                        alignItems: 'center',
-                                        justifyContent: 'center',
-                                        gap: '4px',
-                                        fontSize: '12px'
-                                    }}
-                                >
-                                    <Upload size={14} /> Upload
-                                </Button>
-                                <Button
-                                    size="sm"
-                                    onClick={() => setCreateAssignmentBatch(batch)}
-                                    style={{
-                                        background: `${batch.color}`,
-                                        border: 'none',
-                                        color: 'white',
-                                        display: 'flex',
-                                        alignItems: 'center',
-                                        justifyContent: 'center',
-                                        gap: '4px',
-                                        fontSize: '12px'
-                                    }}
-                                >
-                                    <FileText size={14} /> Assign
-                                </Button>
-                                <Button
-                                    size="sm"
-                                    variant="outline"
-                                    style={{
-                                        display: 'flex',
-                                        alignItems: 'center',
-                                        justifyContent: 'center',
-                                        gap: '4px',
-                                        fontSize: '12px'
-                                    }}
-                                >
-                                    Reports
-                                </Button>
-                            </div>
-                        </Card>
-                    ))}
+                                <div style={{
+                                    borderTop: '1px solid #f1f5f9',
+                                    paddingTop: '16px',
+                                    display: 'grid',
+                                    gridTemplateColumns: '1fr',
+                                    gap: '8px'
+                                }}>
+                                    <Button
+                                        size="sm"
+                                        onClick={() => setSelectedBatchForUpload(batch)}
+                                        style={{
+                                            background: '#f8fafc',
+                                            border: '1px solid #e2e8f0',
+                                            color: '#475569',
+                                            display: 'flex',
+                                            alignItems: 'center',
+                                            justifyContent: 'center',
+                                            gap: '4px',
+                                            fontSize: '12px'
+                                        }}
+                                    >
+                                        <Upload size={14} /> Upload Material (PDF/PGN)
+                                    </Button>
+                                    {/* Removed old 'Assign' button as it was mockup */}
+                                </div>
+                            </Card>
+                        )))}
                 </div>
             </div>
 
-            <UploadModal
-                isOpen={!!selectedBatch}
-                batchName={selectedBatch?.name}
-                onClose={() => setSelectedBatch(null)}
+            {/* Upload Log Section */}
+            <div style={{ marginTop: '48px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '24px' }}>
+                    <div style={{
+                        background: '#e0f2fe', borderRadius: '12px', padding: '10px',
+                        display: 'flex', justifyContent: 'center', alignItems: 'center'
+                    }}>
+                        <FileText size={24} color="#0284c7" />
+                    </div>
+                    <h2 style={{ fontSize: '24px', fontWeight: '800', color: '#0f172a', margin: 0 }}>Upload History</h2>
+                </div>
+
+                <Card style={{ padding: '0', overflow: 'hidden', border: 'none', borderRadius: '16px', boxShadow: '0 4px 20px rgba(0,0,0,0.05)' }}>
+                    <div style={{ overflowX: 'auto' }}>
+                        <table style={{ width: '100%', borderCollapse: 'collapse', minWidth: '800px' }}>
+                            <thead style={{ background: '#f8fafc', borderBottom: '1px solid #e2e8f0' }}>
+                                <tr>
+                                    <th style={{ padding: '16px 20px', textAlign: 'left', fontSize: '13px', fontWeight: '700', color: '#64748b', textTransform: 'uppercase' }}>Document Name</th>
+                                    <th style={{ padding: '16px 20px', textAlign: 'left', fontSize: '13px', fontWeight: '700', color: '#64748b', textTransform: 'uppercase' }}>Batch</th>
+                                    <th style={{ padding: '16px 20px', textAlign: 'left', fontSize: '13px', fontWeight: '700', color: '#64748b', textTransform: 'uppercase' }}>Type</th>
+                                    <th style={{ padding: '16px 20px', textAlign: 'left', fontSize: '13px', fontWeight: '700', color: '#64748b', textTransform: 'uppercase' }}>Date Uploaded</th>
+                                    <th style={{ padding: '16px 20px', textAlign: 'left', fontSize: '13px', fontWeight: '700', color: '#64748b', textTransform: 'uppercase' }}>Action</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {uploadLog.length === 0 ? (
+                                    <tr>
+                                        <td colSpan="5" style={{ padding: '40px', textAlign: 'center', color: '#94a3b8' }}>No uploads found yet.</td>
+                                    </tr>
+                                ) : (
+                                    uploadLog.map(item => (
+                                        <tr key={item.id} style={{ borderBottom: '1px solid #f1f5f9' }}>
+                                            <td style={{ padding: '16px 20px', fontWeight: '600', color: '#334155' }}>{item.title}</td>
+                                            <td style={{ padding: '16px 20px', color: '#64748b' }}>
+                                                <span style={{ background: '#f1f5f9', padding: '4px 8px', borderRadius: '4px', fontSize: '12px', fontWeight: '600' }}>
+                                                    {item.batchName || 'General'}
+                                                </span>
+                                            </td>
+                                            <td style={{ padding: '16px 20px' }}>
+                                                <span style={{
+                                                    color: item.type === 'PGN' ? '#84cc16' : '#f43f5e',
+                                                    background: item.type === 'PGN' ? '#ecfccb' : '#ffe4e6',
+                                                    padding: '4px 10px', borderRadius: '20px', fontSize: '12px', fontWeight: '700'
+                                                }}>
+                                                    {item.type}
+                                                </span>
+                                            </td>
+                                            <td style={{ padding: '16px 20px', color: '#64748b', fontSize: '14px' }}>
+                                                {item.createdAt?.toDate ? item.createdAt.toDate().toLocaleDateString() : 'Just now'}
+                                            </td>
+                                            <td style={{ padding: '16px 20px' }}>
+                                                <Button variant="ghost" size="sm" onClick={() => window.open(item.url, '_blank')} style={{ fontSize: '12px' }}>
+                                                    View
+                                                </Button>
+                                            </td>
+                                        </tr>
+                                    ))
+                                )}
+                            </tbody>
+                        </table>
+                    </div>
+                </Card>
+            </div>
+
+            <UploadMaterialModal
+                isOpen={!!selectedBatchForUpload}
+                batch={selectedBatchForUpload}
+                onClose={() => setSelectedBatchForUpload(null)}
             />
 
             <CreateAssignmentModal

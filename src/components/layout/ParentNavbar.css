@@ -31,6 +31,11 @@
 .navbar-logo {
     height: 44px;
     width: auto;
+    /* mix-blend-mode: multiply; - Removed to make logo visible on dark bg */
+    /* border-radius: 50%; - Replaced with clip-path for tighter crop */
+    clip-path: circle(46% at 50% 50%);
+    position: relative;
+    z-index: 10;
 }
 
 .navbar-title {

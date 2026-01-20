@@ -23,12 +23,23 @@ const StudentDatabase = () => {
     const [isAddModalOpen, setAddModalOpen] = useState(false);
     const [editingStudent, setEditingStudent] = useState(null);
     const [students, setStudents] = useState([]);
+    const [coaches, setCoaches] = useState([]);
     const [loading, setLoading] = useState(true);
     const [searchQuery, setSearchQuery] = useState('');
     const [statusFilter, setStatusFilter] = useState('All');
     const [typeFilter, setTypeFilter] = useState('All');
-    const [coaches, setCoaches] = useState([]);
     const [batches, setBatches] = useState([]);
+
+    // Fetch Coaches for dropdown
+    const fetchCoaches = async () => {
+        try {
+            const q = query(collection(db, 'users'), where('role', '==', 'coach'));
+            const snap = await getDocs(q);
+            setCoaches(snap.docs.map(doc => ({ id: doc.id, ...doc.data() })));
+        } catch (e) {
+            console.error("Error fetching coaches:", e);
+        }
+    };
 
     const fetchStudents = async () => {
         setLoading(true);
@@ -67,6 +78,7 @@ const StudentDatabase = () => {
 
     useEffect(() => {
         fetchStudents();
+        fetchCoaches();
     }, []);
 
     // load coaches and batches for assignment selects
@@ -407,6 +419,38 @@ const StudentDatabase = () => {
                                         <option value="CANCELLED">Cancelled</option>
                                     </select>
                                 </div>
+
+                            </div>
+
+                            {/* Coach & Batch Assignment */}
+                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', borderTop: '1px solid #eee', paddingTop: '16px' }}>
+                                <div>
+                                    <label style={{ display: 'block', marginBottom: '6px', fontWeight: '600', color: COLORS.deepBlue, fontSize: '14px' }}>Assigned Coach</label>
+                                    <select
+                                        value={editingStudent.assigned_coach_id === '-' ? '' : editingStudent.assigned_coach_id}
+                                        onChange={(e) => setEditingStudent({ ...editingStudent, assigned_coach_id: e.target.value })}
+                                        style={{ width: '100%', padding: '12px', border: '1px solid #ddd', borderRadius: '8px', fontSize: '14px' }}
+                                    >
+                                        <option value="">No Coach Assigned</option>
+                                        {coaches.map(c => (
+                                            <option key={c.id} value={c.id}>{c.fullName || c.email}</option>
+                                        ))}
+                                    </select>
+                                </div>
+                                <div>
+                                    <label style={{ display: 'block', marginBottom: '6px', fontWeight: '600', color: COLORS.deepBlue, fontSize: '14px' }}>Batch Name</label>
+                                    <select
+                                        value={editingStudent.assigned_batch_id === '-' ? '' : editingStudent.assigned_batch_id}
+                                        onChange={(e) => setEditingStudent({ ...editingStudent, assigned_batch_id: e.target.value })}
+                                        style={{ width: '100%', padding: '12px', border: '1px solid #ddd', borderRadius: '8px', fontSize: '14px' }}
+                                    >
+                                        <option value="">Select Batch...</option>
+                                        <option value="Beginner Group">Beginner Group</option>
+                                        <option value="Intermediate Group">Intermediate Group</option>
+                                        <option value="Intermediate 1:1">Intermediate 1:1</option>
+                                        <option value="Advanced Group">Advanced Group</option>
+                                    </select>
+                                </div>
                             </div>
                             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
                                 <div>
@@ -445,9 +489,9 @@ const StudentDatabase = () => {
                             </Button>
                         </div>
                     </div>
-                </div>
+                </div >
             )}
-        </div>
+        </div >
     );
 };
 

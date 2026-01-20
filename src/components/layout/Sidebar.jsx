@@ -1,12 +1,11 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { signOut } from 'firebase/auth';
 import { auth } from '../../lib/firebase';
 import {
     LayoutDashboard, Users, GraduationCap, Wallet, Radio, MessageSquare,
-    CreditCard, Calendar, BookOpen, Layers, Shield, BarChart3, FileText, LogOut
+    CreditCard, Calendar, BookOpen, Layers, Shield, BarChart3, FileText, LogOut, ChevronRight
 } from 'lucide-react';
-import { ChevronRight } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { doc, getDoc, collection, query, where, getDocs } from 'firebase/firestore';
 import { db } from '../../lib/firebase';
@@ -14,6 +13,7 @@ import './Sidebar.css';
 
 const Sidebar = ({ role = 'admin', activePath = '/dashboard' }) => {
     const navigate = useNavigate();
+    const [showDropdown, setShowDropdown] = useState(false);
 
     const links = role === 'admin' ? [
         { label: 'Command Center', icon: <LayoutDashboard size={20} />, path: '/admin' },
@@ -44,9 +44,7 @@ const Sidebar = ({ role = 'admin', activePath = '/dashboard' }) => {
         }
     };
 
-    const [showDropdown, setShowDropdown] = useState(false);
-
-    const getUserInitials = () => (role === 'admin' ? 'SA' : 'C');
+    const getUserInitials = () => (role === 'admin' ? 'A' : 'C');
     const getUserDisplayName = () => (role === 'admin' ? 'System Admin' : 'Coach');
 
     return (
@@ -54,7 +52,7 @@ const Sidebar = ({ role = 'admin', activePath = '/dashboard' }) => {
             {/* Logo Section */}
             <div className="sidebar-brand">
                 <img src="/ica-logo.png" alt="Indian Chess Academy" className="sidebar-logo" />
-                <span className="sidebar-title">ICA Admin</span>
+                <span className="sidebar-title">{role === 'admin' ? 'ICA Admin' : 'Coach Portal'}</span>
             </div>
 
             <nav className="sidebar-nav">

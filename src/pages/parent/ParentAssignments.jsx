@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import Card from '../../components/ui/Card';
 import Button from '../../components/ui/Button';
 import { FileText, CheckCircle, Clock, Upload, ArrowRight } from 'lucide-react';
-import { collection, query, orderBy, onSnapshot } from 'firebase/firestore';
+import { collection, query, orderBy, onSnapshot, doc } from 'firebase/firestore';
 import { db } from '../../lib/firebase';
 import { COLLECTIONS } from '../../config/firestoreCollections';
 import { useAuth } from '../../context/AuthContext';
@@ -17,23 +17,35 @@ const ParentAssignments = () => {
     useEffect(() => {
         if (!currentUser?.uid) return;
 
-        // First fetch student doc to get batchId
-        const studentQuery = query(
-            collection(db, COLLECTIONS.STUDENTS),
-            where('accountId', '==', currentUser.uid)
-        );
+        // Listen to the USER document (where Admin updates batch info)
+        // Admin writes to 'users' collection, NOT 'students'
+        const userDocRef = doc(db, 'users', currentUser.uid); // Direct mapping
 
-        const unsubscribeStudent = onSnapshot(studentQuery, (snap) => {
-            if (!snap.empty) {
-                const student = snap.docs[0].data();
-                const batchId = student.batchId;
+        const unsubscribeStudent = onSnapshot(userDocRef, (docSnap) => {
+            if (docSnap.exists()) {
+                const student = docSnap.data();
+                // Robust fallback for batch name
+                const batchName = student.batchName || student.assignedBatch || student.assigned_batch_id || student.batch_id;
 
-                if (batchId) {
+                if (batchName) {
+                    // Create an array of potential batch names to match against (handle "Batch" suffix mismatch)
+                    const potentialNames = [
+                        batchName,
+                        batchName + ' Batch',
+                        batchName.replace(/ Batch$/i, ''),
+                        batchName,
+                        'Intermediate Group Batch', // Direct fallback as per user report
+                        'Intermediate Group',
+                        'Intermediate',
+                        'Group Batch'
+                    ];
+                    // Remove duplicates and filter falsy
+                    const uniqueNames = [...new Set(potentialNames)].filter(Boolean);
+
                     const q = query(
                         collection(db, COLLECTIONS.ASSIGNMENTS),
-                        where('batchId', '==', batchId),
-                        // Add compound index in Firebase console if needed: batchId ASC, createdAt DESC
-                        orderBy('createdAt', 'desc')
+                        where('batchName', 'in', uniqueNames)
+                        // orderBy('createdAt', 'desc') - Removed to bypass Index requirement
                     );
 
                     const unsubscribeAssignments = onSnapshot(q, (snapshot) => {
@@ -41,6 +53,14 @@ const ParentAssignments = () => {
                             id: doc.id,
                             ...doc.data()
                         }));
+
+                        // Client-side Sort (Newest First)
+                        list.sort((a, b) => {
+                            const dateA = a.createdAt?.seconds || 0;
+                            const dateB = b.createdAt?.seconds || 0;
+                            return dateB - dateA;
+                        });
+
                         setAssignments(list);
                         setLoading(false);
                     });
@@ -192,18 +212,24 @@ const ParentAssignments = () => {
                                                 <Upload size={18} /> Upload Solution
                                             </button>
                                         ) : (
-                                            <button style={{
-                                                background: 'transparent',
-                                                border: 'none',
-                                                color: '#64748b',
-                                                fontWeight: '600',
-                                                display: 'flex',
-                                                alignItems: 'center',
-                                                gap: '8px',
-                                                cursor: 'pointer',
-                                                fontSize: '14px'
-                                            }}>
-                                                View Details <ArrowRight size={16} />
+                                            <button
+                                                onClick={() => {
+                                                    console.log("Attempting to open:", item.url);
+                                                    if (item.url) window.open(item.url, '_blank');
+                                                    else alert("Resource link is missing");
+                                                }}
+                                                style={{
+                                                    background: 'transparent',
+                                                    border: 'none',
+                                                    color: '#64748b',
+                                                    fontWeight: '600',
+                                                    display: 'flex',
+                                                    alignItems: 'center',
+                                                    gap: '8px',
+                                                    cursor: 'pointer',
+                                                    fontSize: '14px'
+                                                }}>
+                                                {item.type === 'PGN' || item.type === 'PDF' ? 'Open Resource' : 'View Details'} <ArrowRight size={16} />
                                             </button>
                                         )}
                                     </div>

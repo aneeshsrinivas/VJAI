@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { submitDemoOutcome } from '../../services/firestoreService';
 import { DEMO_STATUS } from '../../config/firestoreCollections';
+import { emailService } from '../../services/emailService';
 import Button from '../ui/Button';
 import { AlertTriangle, CheckCircle, XCircle, Clock, Star } from 'lucide-react';
 import './DemoOutcomeModal.css';
@@ -119,6 +120,21 @@ const DemoOutcomeModal = ({ demo, onClose, onSuccess, mandatory = false }) => {
         });
 
         if (result.success) {
+            // Send Payment Link Email automatically if Interested
+            if (formData.parentInterest === 'INTERESTED' || formData.demoOutcome === 'INTERESTED') {
+                try {
+                    await emailService.sendPaymentLinkEmail({
+                        parentEmail: demo.parentEmail,
+                        parentName: demo.parentName,
+                        studentName: demo.studentName,
+                        demoId: demo.id
+                    });
+                } catch (emailError) {
+                    console.error('Failed to send payment email:', emailError);
+                    // Non-blocking error
+                }
+            }
+
             setShowConfetti(true);
             setTimeout(() => {
                 setShowConfetti(false);

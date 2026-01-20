@@ -56,28 +56,24 @@ const ParentNavbar = () => {
                 <a
                     onClick={() => navigate('/parent')}
                     className={`nav-link ${isActive('/parent')}`}
-                    style={{ color: isActive('/parent') ? COLORS.orange : 'white' }}
                 >
                     Dashboard
                 </a>
                 <a
                     onClick={() => navigate('/parent/schedule')}
                     className={`nav-link ${isActive('/parent/schedule')}`}
-                    style={{ color: isActive('/parent/schedule') ? COLORS.orange : 'white' }}
                 >
                     Schedule
                 </a>
                 <a
                     onClick={() => navigate('/parent/assignments')}
                     className={`nav-link ${isActive('/parent/assignments')}`}
-                    style={{ color: isActive('/parent/assignments') ? COLORS.orange : 'white' }}
                 >
                     Assignments
                 </a>
                 <a
                     onClick={() => navigate('/parent/payments')}
                     className={`nav-link ${isActive('/parent/payments')}`}
-                    style={{ color: isActive('/parent/payments') ? COLORS.orange : 'white' }}
                 >
                     Payments
                 </a>
