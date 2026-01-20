@@ -6,6 +6,7 @@ import {
     LayoutDashboard, Users, GraduationCap, Wallet, Radio, MessageSquare,
     CreditCard, Calendar, BookOpen, Layers, Shield, BarChart3, FileText, LogOut
 } from 'lucide-react';
+import { ChevronRight } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { doc, getDoc, collection, query, where, getDocs } from 'firebase/firestore';
 import { db } from '../../lib/firebase';
@@ -43,6 +44,11 @@ const Sidebar = ({ role = 'admin', activePath = '/dashboard' }) => {
         }
     };
 
+    const [showDropdown, setShowDropdown] = useState(false);
+
+    const getUserInitials = () => (role === 'admin' ? 'SA' : 'C');
+    const getUserDisplayName = () => (role === 'admin' ? 'System Admin' : 'Coach');
+
     return (
         <aside className="sidebar">
             {/* Logo Section */}
@@ -61,8 +67,8 @@ const Sidebar = ({ role = 'admin', activePath = '/dashboard' }) => {
                         <span className="nav-icon">{link.icon}</span>
                         {link.label}
                     </div>
-                </div>
-            )}
+                ))}
+            </nav>
 
             <div className="sidebar-footer">
                 <div className="user-compact">
@@ -76,7 +82,7 @@ const Sidebar = ({ role = 'admin', activePath = '/dashboard' }) => {
                         <div className="user-role">
                             {role === 'admin' ? 'Operations' : 'Senior Coach'}
                         </div>
-                    )}
+                    </div>
 
                     <button
                         className={`user-profile-btn ${showDropdown ? 'active' : ''}`}

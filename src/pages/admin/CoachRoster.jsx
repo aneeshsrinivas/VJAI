@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { collection, getDocs } from 'firebase/firestore';
+import { collection, getDocs, updateDoc, doc, serverTimestamp, addDoc } from 'firebase/firestore';
 import { db } from '../../lib/firebase';
 import Card from '../../components/ui/Card';
 import Button from '../../components/ui/Button';
@@ -14,6 +14,10 @@ const CoachRoster = () => {
     const [isAddModalOpen, setAddModalOpen] = useState(false);
     const [coaches, setCoaches] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [editingCoach, setEditingCoach] = useState(null);
+    const [isEditOpen, setEditOpen] = useState(false);
+    const [batches, setBatches] = useState([]);
+    const [newBatchName, setNewBatchName] = useState('');
 
     const fetchCoaches = async () => {
         setLoading(true);
@@ -60,6 +64,20 @@ const CoachRoster = () => {
             fetchCoaches();
         }
     }, [activeTab]);
+
+    // fetch batches for assigning
+    useEffect(() => {
+        const fetchBatches = async () => {
+            try {
+                const snap = await getDocs(collection(db, 'batches'));
+                const list = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+                setBatches(list);
+            } catch (err) {
+                console.error('Error loading batches:', err);
+            }
+        };
+        fetchBatches();
+    }, []);
 
     const handleAddSuccess = () => {
         setAddModalOpen(false);
@@ -170,6 +188,11 @@ const CoachRoster = () => {
                                             {coach.phone || '-'}
                                         </div>
                                     </div>
+
+                                    <div style={{ display: 'flex', gap: '8px', marginTop: '12px' }}>
+                                        <Button size="sm" onClick={() => { setEditingCoach({ ...coach, assignedBatchId: coach.assignedBatchId || coach.batchId || '' }); setEditOpen(true); }} style={{ backgroundColor: '#F3F4F6', color: '#111' }}>Edit</Button>
+                                        <Button size="sm" onClick={() => { setEditingCoach({ ...coach, assignedBatchId: coach.assignedBatchId || coach.batchId || '' }); setEditOpen(true); }} style={{ backgroundColor: '#E0F2FE', color: '#0369A1' }}>Assign / Change Batch</Button>
+                                    </div>
                                 </Card>
                             ))}
                         </div>
@@ -179,6 +202,120 @@ const CoachRoster = () => {
                 <AdminCoachApplications />
             )}
 
+            {/* Edit Coach Modal */}
+            {isEditOpen && editingCoach && (
+                <div style={{ position: 'fixed', inset: 0, backgroundColor: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1200 }}>
+                    <div style={{ background: '#fff', borderRadius: 12, width: 560, maxWidth: '95%', boxShadow: '0 20px 60px rgba(0,0,0,0.2)' }}>
+                        <div style={{ padding: '16px 20px', borderBottom: '1px solid #eee', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                            <h3 style={{ margin: 0 }}>Edit Coach</h3>
+                            <button onClick={() => { setEditOpen(false); setEditingCoach(null); }} style={{ background: 'none', border: 'none', cursor: 'pointer' }}>✕</button>
+                        </div>
+
+                        <div style={{ padding: 20, display: 'grid', gap: 12 }}>
+                            <div>
+                                <label style={{ display: 'block', fontWeight: 600, marginBottom: 6 }}>Name</label>
+                                <input value={editingCoach.name || editingCoach.coachName || ''} onChange={(e) => setEditingCoach(prev => ({ ...prev, name: e.target.value }))} style={{ width: '100%', padding: 10, borderRadius: 8, border: '1px solid #ddd' }} />
+                            </div>
+                            <div>
+                                <label style={{ display: 'block', fontWeight: 600, marginBottom: 6 }}>Email</label>
+                                <input value={editingCoach.email || ''} onChange={(e) => setEditingCoach(prev => ({ ...prev, email: e.target.value }))} style={{ width: '100%', padding: 10, borderRadius: 8, border: '1px solid #ddd' }} />
+                            </div>
+                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+                                <div>
+                                    <label style={{ display: 'block', fontWeight: 600, marginBottom: 6 }}>Title</label>
+                                    <input value={editingCoach.title || editingCoach.chessTitle || ''} onChange={(e) => setEditingCoach(prev => ({ ...prev, title: e.target.value }))} style={{ width: '100%', padding: 10, borderRadius: 8, border: '1px solid #ddd' }} />
+                                </div>
+                                <div>
+                                    <label style={{ display: 'block', fontWeight: 600, marginBottom: 6 }}>Phone</label>
+                                    <input value={editingCoach.phone || ''} onChange={(e) => setEditingCoach(prev => ({ ...prev, phone: e.target.value }))} style={{ width: '100%', padding: 10, borderRadius: 8, border: '1px solid #ddd' }} />
+                                </div>
+                            </div>
+
+                            <div>
+                                <label style={{ display: 'block', fontWeight: 600, marginBottom: 6 }}>Bio</label>
+                                <textarea value={editingCoach.bio || ''} onChange={(e) => setEditingCoach(prev => ({ ...prev, bio: e.target.value }))} rows={4} style={{ width: '100%', padding: 10, borderRadius: 8, border: '1px solid #ddd' }} />
+                            </div>
+
+                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+                                <div>
+                                    <label style={{ display: 'block', fontWeight: 600, marginBottom: 6 }}>Rating</label>
+                                    <input value={editingCoach.rating || ''} onChange={(e) => setEditingCoach(prev => ({ ...prev, rating: e.target.value }))} style={{ width: '100%', padding: 10, borderRadius: 8, border: '1px solid #ddd' }} />
+                                </div>
+                                <div>
+                                    <label style={{ display: 'block', fontWeight: 600, marginBottom: 6 }}>Assign Batch</label>
+                                    <select value={editingCoach.assignedBatchId || ''} onChange={(e) => setEditingCoach(prev => ({ ...prev, assignedBatchId: e.target.value }))} style={{ width: '100%', padding: 10, borderRadius: 8, border: '1px solid #ddd' }}>
+                                        <option value="">-- No Batch --</option>
+                                        {batches.map(b => (
+                                            <option key={b.id} value={b.id}>{b.name || b.id}</option>
+                                        ))}
+                                    </select>
+                                            <div style={{ display: 'flex', gap: 8, marginTop: 8 }}>
+                                                <input placeholder="New batch name" value={newBatchName} onChange={e => setNewBatchName(e.target.value)} style={{ flex: 1, padding: 8, borderRadius: 8, border: '1px solid #ddd' }} />
+                                                <Button size="sm" onClick={async () => {
+                                                    const name = (newBatchName || '').trim();
+                                                    if (!name) return alert('Please enter a batch name');
+                                                    try {
+                                                        const payload = {
+                                                            name,
+                                                            createdAt: serverTimestamp(),
+                                                            assignedCoachId: editingCoach?.id || null
+                                                        };
+                                                        const ref = await addDoc(collection(db, 'batches'), payload);
+                                                        const created = { id: ref.id, ...payload };
+                                                        setBatches(prev => [created, ...prev]);
+                                                        setEditingCoach(prev => ({ ...prev, assignedBatchId: ref.id }));
+                                                        setNewBatchName('');
+                                                    } catch (err) {
+                                                        console.error('Error creating batch:', err);
+                                                        alert('Failed to create batch: ' + err.message);
+                                                    }
+                                                }} style={{ backgroundColor: '#3B82F6', color: 'white' }}>Create</Button>
+                                            </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div style={{ padding: '12px 20px', display: 'flex', justifyContent: 'flex-end', gap: 8, borderTop: '1px solid #eee' }}>
+                            <Button variant="secondary" onClick={() => { setEditOpen(false); setEditingCoach(null); }}>Cancel</Button>
+                            <Button onClick={async () => {
+                                // save changes
+                                try {
+                                    const coachRef = doc(db, 'coaches', editingCoach.id);
+                                    const updateData = {
+                                        fullName: editingCoach.name,
+                                        email: editingCoach.email,
+                                        chessTitle: editingCoach.title,
+                                        phone: editingCoach.phone,
+                                        bio: editingCoach.bio,
+                                        rating: editingCoach.rating,
+                                        assignedBatchId: editingCoach.assignedBatchId || null,
+                                        updatedAt: serverTimestamp()
+                                    };
+                                    await updateDoc(coachRef, updateData);
+
+                                    // try update users collection for coach profile if exists
+                                    try {
+                                        const userRef = doc(db, 'users', editingCoach.id);
+                                        await updateDoc(userRef, {
+                                            fullName: editingCoach.name,
+                                            email: editingCoach.email
+                                        });
+                                    } catch (uErr) {
+                                        // ignore if user doc not found
+                                    }
+
+                                    setEditOpen(false);
+                                    setEditingCoach(null);
+                                    fetchCoaches();
+                                } catch (err) {
+                                    console.error('Error updating coach:', err);
+                                    alert('Failed to save coach: ' + err.message);
+                                }
+                            }} style={{ backgroundColor: '#10B981', color: 'white' }}>Save</Button>
+                        </div>
+                    </div>
+                </div>
+            )}
             <AddCoachModal
                 isOpen={isAddModalOpen}
                 onClose={() => setAddModalOpen(false)}

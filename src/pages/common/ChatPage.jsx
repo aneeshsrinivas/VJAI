@@ -33,7 +33,13 @@ const ChatPage = ({ userRole: propRole }) => {
     const [selectedBatchId, setSelectedBatchId] = useState('');
     const [searchQuery, setSearchQuery] = useState('');
     const messagesEndRef = useRef(null);
+    const wsRef = useRef(null);
+    const prevRoomRef = useRef(null);
+    const messagesRef = useRef([]);
+    const selectedChatRef = useRef(null);
 
+    const WS_URL = import.meta.env.VITE_WS_URL || import.meta.env.REACT_APP_WS_URL || 'ws://localhost:3001';
+    console.log('WebSocket URL:', WS_URL);
     const role = (propRole || authRole || 'CUSTOMER').toUpperCase();
 
     // Auto-scroll to bottom
@@ -43,7 +49,85 @@ const ChatPage = ({ userRole: propRole }) => {
 
     useEffect(() => {
         scrollToBottom();
+        messagesRef.current = messages;
+        selectedChatRef.current = selectedChat;
     }, [messages]);
+
+    // WebSocket connection
+    useEffect(() => {
+        if (wsRef.current) return; // already connected
+
+        try {
+            const ws = new WebSocket(WS_URL);
+            wsRef.current = ws;
+
+            let reconnectAttempts = 0;
+
+            ws.onopen = () => {
+                // eslint-disable-next-line no-console
+                console.log('WebSocket connected');
+                reconnectAttempts = 0;
+            };
+
+            ws.onmessage = (ev) => {
+                try {
+                    const data = JSON.parse(ev.data);
+                    if (data.type === 'message') {
+                        const { room, text, user, ts } = data;
+                        // Only append if viewing the same room
+                        if (selectedChatRef.current && selectedChatRef.current.id === room) {
+                            // avoid duplicates: check existing messages
+                            const exists = messagesRef.current.find(m => (m.content === text && m.senderId === user.id && Math.abs((m.createdAt?.toDate?.()?.getTime?.() || 0) - ts) < 2000));
+                            if (!exists) {
+                                const m = {
+                                    id: `ws-${ts}-${user.id}`,
+                                    chatId: room,
+                                    content: text,
+                                    senderId: user.id,
+                                    senderName: user.name || user.id,
+                                    senderRole: user.role || 'USER',
+                                    createdAt: { toDate: () => new Date(ts) }
+                                };
+                                setMessages(prev => [...prev, m]);
+                            }
+                        }
+                    }
+                } catch (e) {
+                    // ignore parse errors
+                }
+            };
+
+            ws.onclose = (ev) => {
+                // eslint-disable-next-line no-console
+                console.warn('WebSocket closed', { code: ev.code, reason: ev.reason, wasClean: ev.wasClean });
+                wsRef.current = null;
+
+                // simple reconnect with backoff
+                setTimeout(() => {
+                    reconnectAttempts += 1;
+                    if (reconnectAttempts > 5) return;
+                    try {
+                        const retry = new WebSocket(WS_URL);
+                        wsRef.current = retry;
+                    } catch (e) {}
+                }, Math.min(30000, 1000 * Math.pow(2, reconnectAttempts)));
+            };
+
+            ws.onerror = (ev) => {
+                // eslint-disable-next-line no-console
+                console.error('WebSocket error event', ev);
+            };
+        } catch (e) {
+            // ignore
+        }
+
+        return () => {
+            try {
+                if (wsRef.current) wsRef.current.close();
+            } catch (e) {}
+            wsRef.current = null;
+        };
+    }, []);
 
     // Real-time listener for chats
     useEffect(() => {
@@ -104,6 +188,20 @@ const ChatPage = ({ userRole: propRole }) => {
             return;
         }
 
+        // If this is a group chat, join via WebSocket
+        if (wsRef.current && selectedChat.chatType === 'BATCH_GROUP') {
+            const prev = prevRoomRef.current;
+            if (prev && prev !== selectedChat.id) {
+                try { wsRef.current.send(JSON.stringify({ type: 'leave', room: prev, user: { id: currentUser?.uid, name: currentUser?.email?.split('@')[0] } })); } catch (e) {}
+            }
+            try { wsRef.current.send(JSON.stringify({ type: 'join', room: selectedChat.id, user: { id: currentUser?.uid, name: currentUser?.email?.split('@')[0] } })); } catch (e) {}
+            prevRoomRef.current = selectedChat.id;
+        } else if (wsRef.current && prevRoomRef.current && selectedChat?.id !== prevRoomRef.current) {
+            // leaving previous room when switching to a non-group chat
+            try { wsRef.current.send(JSON.stringify({ type: 'leave', room: prevRoomRef.current, user: { id: currentUser?.uid } })); } catch (e) {}
+            prevRoomRef.current = null;
+        }
+
         try {
             const messagesRef = collection(db, 'messages');
             const q = query(messagesRef, where('chatId', '==', selectedChat.id));
@@ -129,6 +227,11 @@ const ChatPage = ({ userRole: propRole }) => {
         }
     }, [selectedChat]);
 
+    // keep selectedChatRef in sync
+    useEffect(() => {
+        selectedChatRef.current = selectedChat;
+    }, [selectedChat]);
+
     // Fetch users and batches for new chat modal
     useEffect(() => {
         if (role === 'ADMIN') {
@@ -150,6 +253,21 @@ const ChatPage = ({ userRole: propRole }) => {
         setMessage('');
 
         try {
+            // If this is a group chat, broadcast over WebSocket for live updates
+            if (selectedChat.chatType === 'BATCH_GROUP' && wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
+                try {
+                    wsRef.current.send(JSON.stringify({
+                        type: 'message',
+                        room: selectedChat.id,
+                        text: messageText,
+                        user: { id: currentUser.uid, name: currentUser.email?.split('@')[0] },
+                        ts: Date.now()
+                    }));
+                } catch (e) {
+                    // ignore ws send error
+                }
+            }
+
             await addDoc(collection(db, 'messages'), {
                 chatId: selectedChat.id,
                 content: messageText,
