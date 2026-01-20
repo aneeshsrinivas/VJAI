@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { collection, getDocs, updateDoc, doc, serverTimestamp, addDoc } from 'firebase/firestore';
+import { collection, getDocs, updateDoc, doc, serverTimestamp, addDoc, query, where, deleteDoc } from 'firebase/firestore';
 import { db } from '../../lib/firebase';
 import Card from '../../components/ui/Card';
 import Button from '../../components/ui/Button';
@@ -10,7 +10,7 @@ import '../../pages/Dashboard.css';
 import AdminCoachApplications from './AdminCoachApplications';
 
 const CoachRoster = () => {
-    const [activeTab, setActiveTab] = useState('roster'); // 'roster' or 'applications'
+    const [activeTab, setActiveTab] = useState('roster');
     const [isAddModalOpen, setAddModalOpen] = useState(false);
     const [coaches, setCoaches] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -18,18 +18,26 @@ const CoachRoster = () => {
     const [isEditOpen, setEditOpen] = useState(false);
     const [batches, setBatches] = useState([]);
     const [newBatchName, setNewBatchName] = useState('');
+    const [batchSearch, setBatchSearch] = useState('');
+    const [isCreateBatchModalOpen, setIsCreateBatchModalOpen] = useState(false);
+    const [batchFormData, setBatchFormData] = useState({
+        name: '',
+        level: 'beginner',
+        daysOfWeek: [],
+        time: '',
+        duration: '1',
+        description: ''
+    });
 
     const fetchCoaches = async () => {
         setLoading(true);
         try {
-            // Fetch from coaches collection
             const coachSnapshot = await getDocs(collection(db, 'coaches'));
             let coachList = coachSnapshot.docs.map(doc => ({
                 id: doc.id,
                 ...doc.data()
             }));
 
-            // Also fetch users with role 'coach'
             const usersSnapshot = await getDocs(collection(db, 'users'));
             const coachUsers = usersSnapshot.docs
                 .filter(doc => doc.data().role === 'coach')
@@ -43,7 +51,6 @@ const CoachRoster = () => {
                     phone: doc.data().phone || '-'
                 }));
 
-            // Combine both sources, avoiding duplicates
             const existingIds = coachList.map(c => c.id);
             coachUsers.forEach(u => {
                 if (!existingIds.includes(u.id)) {
@@ -65,19 +72,19 @@ const CoachRoster = () => {
         }
     }, [activeTab]);
 
-    // fetch batches for assigning
     useEffect(() => {
-        const fetchBatches = async () => {
+        const fetchBatchesForEditingCoach = async () => {
+            if (!editingCoach?.id) return;
             try {
-                const snap = await getDocs(collection(db, 'batches'));
+                const snap = await getDocs(collection(db, 'coaches', editingCoach.id, 'batches'));
                 const list = snap.docs.map(d => ({ id: d.id, ...d.data() }));
                 setBatches(list);
             } catch (err) {
                 console.error('Error loading batches:', err);
             }
         };
-        fetchBatches();
-    }, []);
+        fetchBatchesForEditingCoach();
+    }, [editingCoach?.id]);
 
     const handleAddSuccess = () => {
         setAddModalOpen(false);
@@ -91,34 +98,18 @@ const CoachRoster = () => {
                     <h1 className="welcome-text">Coach Management</h1>
                     <p className="sub-text">Overview of coaching staff and applications.</p>
                 </div>
+
                 {activeTab === 'roster' && (
                     <Button onClick={() => setAddModalOpen(true)}>+ Add New Coach</Button>
                 )}
             </div>
 
             <div className="tabs" style={{ display: 'flex', gap: '20px', marginBottom: '24px', borderBottom: '1px solid #eee' }}>
-                <div
-                    onClick={() => setActiveTab('roster')}
-                    style={{
-                        padding: '12px 0',
-                        cursor: 'pointer',
-                        color: activeTab === 'roster' ? '#1E3A8A' : '#666',
-                        borderBottom: activeTab === 'roster' ? '2px solid #1E3A8A' : 'none',
-                        fontWeight: activeTab === 'roster' ? '600' : '400'
-                    }}
-                >
+                <div onClick={() => setActiveTab('roster')}>
                     Active Roster
                 </div>
-                <div
-                    onClick={() => setActiveTab('applications')}
-                    style={{
-                        padding: '12px 0',
-                        cursor: 'pointer',
-                        color: activeTab === 'applications' ? '#1E3A8A' : '#666',
-                        borderBottom: activeTab === 'applications' ? '2px solid #1E3A8A' : 'none',
-                        fontWeight: activeTab === 'applications' ? '600' : '400'
-                    }}
-                >
+
+                <div onClick={() => setActiveTab('applications')}>
                     Applications
                 </div>
             </div>
@@ -126,72 +117,148 @@ const CoachRoster = () => {
             {activeTab === 'roster' ? (
                 <>
                     {loading ? (
-                        <div style={{ padding: '40px', textAlign: 'center' }}>Loading coaches...</div>
-                    ) : coaches.length === 0 ? (
-                        <Card>
-                            <div style={{ padding: '40px', textAlign: 'center', color: '#666' }}>
-                                <User size={48} style={{ color: '#ccc', marginBottom: '16px' }} />
-                                <h3 style={{ margin: '0 0 8px' }}>No Coaches Found</h3>
-                                <p style={{ margin: '0 0 16px' }}>Add your first coach to get started.</p>
-                                <Button onClick={() => setAddModalOpen(true)}>+ Add Coach</Button>
-                            </div>
-                        </Card>
+                        <div>Loading coaches...</div>
                     ) : (
-                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: '20px' }}>
+                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: '20px' }}>
                             {coaches.map(coach => (
-                                <Card key={coach.id} style={{ padding: '20px' }}>
-                                    <div style={{ display: 'flex', alignItems: 'flex-start', gap: '16px' }}>
+                                <Card key={coach.id} style={{ padding: '24px', borderRadius: '12px', boxShadow: '0 4px 12px rgba(0,0,0,0.08)', transition: 'all 0.3s ease', cursor: 'pointer' }}>
+                                    {/* Header with Avatar */}
+                                    <div style={{ display: 'flex', alignItems: 'flex-start', gap: '14px', marginBottom: '16px' }}>
                                         <div style={{
                                             width: '56px',
                                             height: '56px',
-                                            borderRadius: '12px',
+                                            borderRadius: '10px',
                                             background: 'linear-gradient(135deg, #1E3A8A 0%, #3B82F6 100%)',
                                             display: 'flex',
                                             alignItems: 'center',
                                             justifyContent: 'center',
                                             color: 'white',
                                             fontWeight: '700',
-                                            fontSize: '20px',
+                                            fontSize: '22px',
                                             flexShrink: 0
                                         }}>
-                                            {(coach.name || coach.coachName || 'C').charAt(0).toUpperCase()}
+                                            {(coach.name || 'C').charAt(0).toUpperCase()}
                                         </div>
                                         <div style={{ flex: 1 }}>
-                                            <h3 style={{ margin: '0 0 4px', fontSize: '16px', fontWeight: '600' }}>
-                                                {coach.name || coach.coachName || 'Unknown Coach'}
+                                            <h3 style={{ margin: '0 0 4px 0', fontSize: '18px', fontWeight: '700', color: '#1E3A8A' }}>
+                                                {coach.name || 'Unknown'}
                                             </h3>
-                                            <div style={{ fontSize: '13px', color: '#666', marginBottom: '8px' }}>
-                                                {coach.title || coach.chessTitle || 'Chess Trainer'}
-                                            </div>
-                                            {coach.rating && coach.rating !== '-' && (
-                                                <div style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '12px', color: '#1E3A8A', fontWeight: '600' }}>
-                                                    <Star size={12} />
-                                                    Rating: {coach.rating}
-                                                </div>
-                                            )}
+                                            <p style={{ margin: 0, fontSize: '13px', color: '#666' }}>
+                                                {coach.title || 'Coach'}
+                                            </p>
                                         </div>
                                     </div>
 
-                                    {coach.bio && (
-                                        <p style={{ fontSize: '13px', color: '#666', margin: '12px 0', lineHeight: '1.5' }}>
-                                            {coach.bio.length > 120 ? coach.bio.substring(0, 120) + '...' : coach.bio}
-                                        </p>
+                                    {/* Rating and Email */}
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '12px', paddingBottom: '12px', borderBottom: '1px solid #f0f0f0' }}>
+                                        {coach.rating && coach.rating !== '-' && (
+                                            <div style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '12px', color: '#F59E0B', fontWeight: '600' }}>
+                                                <Star size={14} />
+                                                {coach.rating}
+                                            </div>
+                                        )}
+                                        <div style={{ fontSize: '12px', color: '#666' }}>
+                                            <Mail size={12} style={{ display: 'inline', marginRight: '4px' }} />
+                                            {coach.email || 'N/A'}
+                                        </div>
+                                    </div>
+
+                                    {/* Assigned Batches Badge */}
+                                    {coach.assignedBatchIds && coach.assignedBatchIds.length > 0 && (
+                                        <div style={{ marginBottom: '14px' }}>
+                                            <div style={{ fontSize: '11px', fontWeight: '600', color: '#666', marginBottom: '6px', textTransform: 'uppercase' }}>
+                                                {coach.assignedBatchIds.length} Batch{coach.assignedBatchIds.length !== 1 ? 'es' : ''}
+                                            </div>
+                                            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
+                                                {coach.assignedBatchIds.slice(0, 2).map(bid => {
+                                                    const batch = batches.find(b => b.id === bid);
+                                                    return (
+                                                        <span key={bid} style={{
+                                                            display: 'inline-block',
+                                                            backgroundColor: '#E0F2FE',
+                                                            color: '#0369A1',
+                                                            padding: '4px 10px',
+                                                            borderRadius: '6px',
+                                                            fontSize: '12px',
+                                                            fontWeight: '600'
+                                                        }}>
+                                                            {batch?.name || 'Batch'}
+                                                        </span>
+                                                    );
+                                                })}
+                                                {coach.assignedBatchIds.length > 2 && (
+                                                    <span style={{
+                                                        display: 'inline-block',
+                                                        backgroundColor: '#F3F4F6',
+                                                        color: '#666',
+                                                        padding: '4px 10px',
+                                                        borderRadius: '6px',
+                                                        fontSize: '12px',
+                                                        fontWeight: '600'
+                                                    }}>
+                                                        +{coach.assignedBatchIds.length - 2} more
+                                                    </span>
+                                                )}
+                                            </div>
+                                        </div>
                                     )}
 
-                                    <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginTop: '12px', borderTop: '1px solid #eee', paddingTop: '12px' }}>
-                                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '13px', color: '#666' }}>
-                                            <Mail size={14} />
-                                            {coach.email || '-'}
-                                        </div>
-                                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '13px', color: '#666' }}>
-                                            <Phone size={14} />
-                                            {coach.phone || '-'}
-                                        </div>
-                                    </div>
-
-                                    <div style={{ display: 'flex', gap: '8px', marginTop: '12px' }}>
-                                        <Button size="sm" onClick={() => { setEditingCoach({ ...coach, assignedBatchId: coach.assignedBatchId || coach.batchId || '' }); setEditOpen(true); }} style={{ backgroundColor: '#F3F4F6', color: '#111' }}>Edit</Button>
-                                        <Button size="sm" onClick={() => { setEditingCoach({ ...coach, assignedBatchId: coach.assignedBatchId || coach.batchId || '' }); setEditOpen(true); }} style={{ backgroundColor: '#E0F2FE', color: '#0369A1' }}>Assign / Change Batch</Button>
+                                    {/* Action Buttons */}
+                                    <div style={{ display: 'flex', gap: '8px', marginTop: '16px' }}>
+                                        <Button
+                                            size="sm"
+                                            onClick={() => {
+                                                setEditingCoach({
+                                                    ...coach,
+                                                    assignedBatchIds:
+                                                        coach.assignedBatchIds ||
+                                                        (coach.assignedBatchId ? [coach.assignedBatchId] : []) ||
+                                                        (coach.batchIds || [])
+                                                });
+                                                setEditOpen(true);
+                                            }}
+                                            style={{
+                                                flex: 1,
+                                                backgroundColor: '#1E3A8A',
+                                                color: 'white',
+                                                padding: '10px 14px',
+                                                borderRadius: '8px',
+                                                border: 'none',
+                                                fontWeight: '600',
+                                                fontSize: '13px',
+                                                cursor: 'pointer',
+                                                transition: 'all 0.2s ease'
+                                            }}
+                                        >
+                                            ✎ Edit
+                                        </Button>
+                                        <Button
+                                            size="sm"
+                                            onClick={() => {
+                                                setEditingCoach({
+                                                    ...coach,
+                                                    assignedBatchIds:
+                                                        coach.assignedBatchIds ||
+                                                        (coach.assignedBatchId ? [coach.assignedBatchId] : []) ||
+                                                        (coach.batchIds || [])
+                                                });
+                                                setEditOpen(true);
+                                            }}
+                                            style={{
+                                                flex: 1,
+                                                backgroundColor: '#E0F2FE',
+                                                color: '#0369A1',
+                                                padding: '10px 14px',
+                                                borderRadius: '8px',
+                                                border: '1px solid #BAE6FD',
+                                                fontWeight: '600',
+                                                fontSize: '13px',
+                                                cursor: 'pointer',
+                                                transition: 'all 0.2s ease'
+                                            }}
+                                        >
+                                            📦 Batches
+                                        </Button>
                                     </div>
                                 </Card>
                             ))}
@@ -202,120 +269,619 @@ const CoachRoster = () => {
                 <AdminCoachApplications />
             )}
 
-            {/* Edit Coach Modal */}
+            {/* ===== ENHANCED EDIT MODAL ===== */}
             {isEditOpen && editingCoach && (
-                <div style={{ position: 'fixed', inset: 0, backgroundColor: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1200 }}>
-                    <div style={{ background: '#fff', borderRadius: 12, width: 560, maxWidth: '95%', boxShadow: '0 20px 60px rgba(0,0,0,0.2)' }}>
-                        <div style={{ padding: '16px 20px', borderBottom: '1px solid #eee', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                            <h3 style={{ margin: 0 }}>Edit Coach</h3>
-                            <button onClick={() => { setEditOpen(false); setEditingCoach(null); }} style={{ background: 'none', border: 'none', cursor: 'pointer' }}>✕</button>
-                        </div>
-
-                        <div style={{ padding: 20, display: 'grid', gap: 12 }}>
-                            <div>
-                                <label style={{ display: 'block', fontWeight: 600, marginBottom: 6 }}>Name</label>
-                                <input value={editingCoach.name || editingCoach.coachName || ''} onChange={(e) => setEditingCoach(prev => ({ ...prev, name: e.target.value }))} style={{ width: '100%', padding: 10, borderRadius: 8, border: '1px solid #ddd' }} />
-                            </div>
-                            <div>
-                                <label style={{ display: 'block', fontWeight: 600, marginBottom: 6 }}>Email</label>
-                                <input value={editingCoach.email || ''} onChange={(e) => setEditingCoach(prev => ({ ...prev, email: e.target.value }))} style={{ width: '100%', padding: 10, borderRadius: 8, border: '1px solid #ddd' }} />
-                            </div>
-                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
-                                <div>
-                                    <label style={{ display: 'block', fontWeight: 600, marginBottom: 6 }}>Title</label>
-                                    <input value={editingCoach.title || editingCoach.chessTitle || ''} onChange={(e) => setEditingCoach(prev => ({ ...prev, title: e.target.value }))} style={{ width: '100%', padding: 10, borderRadius: 8, border: '1px solid #ddd' }} />
-                                </div>
-                                <div>
-                                    <label style={{ display: 'block', fontWeight: 600, marginBottom: 6 }}>Phone</label>
-                                    <input value={editingCoach.phone || ''} onChange={(e) => setEditingCoach(prev => ({ ...prev, phone: e.target.value }))} style={{ width: '100%', padding: 10, borderRadius: 8, border: '1px solid #ddd' }} />
-                                </div>
-                            </div>
-
-                            <div>
-                                <label style={{ display: 'block', fontWeight: 600, marginBottom: 6 }}>Bio</label>
-                                <textarea value={editingCoach.bio || ''} onChange={(e) => setEditingCoach(prev => ({ ...prev, bio: e.target.value }))} rows={4} style={{ width: '100%', padding: 10, borderRadius: 8, border: '1px solid #ddd' }} />
-                            </div>
-
-                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
-                                <div>
-                                    <label style={{ display: 'block', fontWeight: 600, marginBottom: 6 }}>Rating</label>
-                                    <input value={editingCoach.rating || ''} onChange={(e) => setEditingCoach(prev => ({ ...prev, rating: e.target.value }))} style={{ width: '100%', padding: 10, borderRadius: 8, border: '1px solid #ddd' }} />
-                                </div>
-                                <div>
-                                    <label style={{ display: 'block', fontWeight: 600, marginBottom: 6 }}>Assign Batch</label>
-                                    <select value={editingCoach.assignedBatchId || ''} onChange={(e) => setEditingCoach(prev => ({ ...prev, assignedBatchId: e.target.value }))} style={{ width: '100%', padding: 10, borderRadius: 8, border: '1px solid #ddd' }}>
-                                        <option value="">-- No Batch --</option>
-                                        {batches.map(b => (
-                                            <option key={b.id} value={b.id}>{b.name || b.id}</option>
-                                        ))}
-                                    </select>
-                                            <div style={{ display: 'flex', gap: 8, marginTop: 8 }}>
-                                                <input placeholder="New batch name" value={newBatchName} onChange={e => setNewBatchName(e.target.value)} style={{ flex: 1, padding: 8, borderRadius: 8, border: '1px solid #ddd' }} />
-                                                <Button size="sm" onClick={async () => {
-                                                    const name = (newBatchName || '').trim();
-                                                    if (!name) return alert('Please enter a batch name');
-                                                    try {
-                                                        const payload = {
-                                                            name,
-                                                            createdAt: serverTimestamp(),
-                                                            assignedCoachId: editingCoach?.id || null
-                                                        };
-                                                        const ref = await addDoc(collection(db, 'batches'), payload);
-                                                        const created = { id: ref.id, ...payload };
-                                                        setBatches(prev => [created, ...prev]);
-                                                        setEditingCoach(prev => ({ ...prev, assignedBatchId: ref.id }));
-                                                        setNewBatchName('');
-                                                    } catch (err) {
-                                                        console.error('Error creating batch:', err);
-                                                        alert('Failed to create batch: ' + err.message);
-                                                    }
-                                                }} style={{ backgroundColor: '#3B82F6', color: 'white' }}>Create</Button>
-                                            </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div style={{ padding: '12px 20px', display: 'flex', justifyContent: 'flex-end', gap: 8, borderTop: '1px solid #eee' }}>
-                            <Button variant="secondary" onClick={() => { setEditOpen(false); setEditingCoach(null); }}>Cancel</Button>
-                            <Button onClick={async () => {
-                                // save changes
-                                try {
-                                    const coachRef = doc(db, 'coaches', editingCoach.id);
-                                    const updateData = {
-                                        fullName: editingCoach.name,
-                                        email: editingCoach.email,
-                                        chessTitle: editingCoach.title,
-                                        phone: editingCoach.phone,
-                                        bio: editingCoach.bio,
-                                        rating: editingCoach.rating,
-                                        assignedBatchId: editingCoach.assignedBatchId || null,
-                                        updatedAt: serverTimestamp()
-                                    };
-                                    await updateDoc(coachRef, updateData);
-
-                                    // try update users collection for coach profile if exists
-                                    try {
-                                        const userRef = doc(db, 'users', editingCoach.id);
-                                        await updateDoc(userRef, {
-                                            fullName: editingCoach.name,
-                                            email: editingCoach.email
-                                        });
-                                    } catch (uErr) {
-                                        // ignore if user doc not found
-                                    }
-
+                <div style={{
+                    position: 'fixed',
+                    inset: 0,
+                    backgroundColor: 'rgba(0,0,0,0.6)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    zIndex: 1200,
+                    padding: '20px'
+                }}>
+                    <div style={{
+                        background: '#fff',
+                        borderRadius: '12px',
+                        width: '100%',
+                        maxWidth: '600px',
+                        boxShadow: '0 20px 60px rgba(0,0,0,0.3)',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        maxHeight: '90vh',
+                        overflow: 'hidden'
+                    }}>
+                        {/* Modal Header */}
+                        <div style={{
+                            padding: '24px',
+                            borderBottom: '1px solid #f0f0f0',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'space-between'
+                        }}>
+                            <h2 style={{ margin: 0, fontSize: '20px', fontWeight: '700', color: '#1E3A8A' }}>
+                                Edit Coach
+                            </h2>
+                            <button
+                                onClick={() => {
                                     setEditOpen(false);
                                     setEditingCoach(null);
-                                    fetchCoaches();
-                                } catch (err) {
-                                    console.error('Error updating coach:', err);
-                                    alert('Failed to save coach: ' + err.message);
-                                }
-                            }} style={{ backgroundColor: '#10B981', color: 'white' }}>Save</Button>
+                                }}
+                                style={{
+                                    background: 'none',
+                                    border: 'none',
+                                    fontSize: '24px',
+                                    color: '#999',
+                                    cursor: 'pointer'
+                                }}
+                            >
+                                ✕
+                            </button>
+                        </div>
+
+                        {/* Modal Content */}
+                        <div style={{
+                            padding: '24px',
+                            overflowY: 'auto',
+                            flex: 1
+                        }}>
+                            {/* Name Input */}
+                            <div style={{ marginBottom: '16px' }}>
+                                <label style={{ display: 'block', fontWeight: '600', marginBottom: '6px', color: '#333', fontSize: '14px' }}>
+                                    Coach Name
+                                </label>
+                                <input
+                                    value={editingCoach.name || ''}
+                                    onChange={(e) =>
+                                        setEditingCoach(prev => ({
+                                            ...prev,
+                                            name: e.target.value
+                                        }))
+                                    }
+                                    style={{
+                                        width: '100%',
+                                        padding: '10px 12px',
+                                        borderRadius: '8px',
+                                        border: '1px solid #ddd',
+                                        fontSize: '14px',
+                                        boxSizing: 'border-box'
+                                    }}
+                                    placeholder="Coach name"
+                                />
+                            </div>
+
+                            {/* Email Input */}
+                            <div style={{ marginBottom: '16px' }}>
+                                <label style={{ display: 'block', fontWeight: '600', marginBottom: '6px', color: '#333', fontSize: '14px' }}>
+                                    Email
+                                </label>
+                                <input
+                                    value={editingCoach.email || ''}
+                                    onChange={(e) =>
+                                        setEditingCoach(prev => ({
+                                            ...prev,
+                                            email: e.target.value
+                                        }))
+                                    }
+                                    type="email"
+                                    style={{
+                                        width: '100%',
+                                        padding: '10px 12px',
+                                        borderRadius: '8px',
+                                        border: '1px solid #ddd',
+                                        fontSize: '14px',
+                                        boxSizing: 'border-box'
+                                    }}
+                                    placeholder="coach@example.com"
+                                />
+                            </div>
+
+                            {/* Assigned Batches Section */}
+                            <div style={{
+                                marginBottom: '16px',
+                                padding: '16px',
+                                backgroundColor: '#F8F9FA',
+                                borderRadius: '8px',
+                                border: '1px solid #E9ECEF'
+                            }}>
+                                <label style={{
+                                    display: 'block',
+                                    fontWeight: '700',
+                                    marginBottom: '12px',
+                                    color: '#1E3A8A',
+                                    fontSize: '14px'
+                                }}>
+                                    📦 Assigned Batches ({editingCoach.assignedBatchIds?.length || 0})
+                                </label>
+
+                                {/* Current Batches List */}
+                                {(!editingCoach.assignedBatchIds || editingCoach.assignedBatchIds.length === 0) ? (
+                                    <div style={{ color: '#999', fontSize: '13px', padding: '12px', textAlign: 'center' }}>
+                                        No batches assigned yet
+                                    </div>
+                                ) : (
+                                    <div style={{ marginBottom: '12px' }}>
+                                        {editingCoach.assignedBatchIds.map(bid => {
+                                            const b = batches.find(x => x.id === bid) || { id: bid, name: bid };
+                                            return (
+                                                <div key={bid} style={{
+                                                    display: 'flex',
+                                                    justifyContent: 'space-between',
+                                                    alignItems: 'center',
+                                                    padding: '10px 12px',
+                                                    backgroundColor: '#fff',
+                                                    borderRadius: '6px',
+                                                    marginBottom: '6px',
+                                                    border: '1px solid #E9ECEF'
+                                                }}>
+                                                    <span style={{ fontSize: '14px', fontWeight: '500', color: '#1E3A8A' }}>
+                                                        {b.name}
+                                                    </span>
+                                                    <button
+                                                        onClick={async () => {
+                                                            try {
+                                                                // Delete from Firestore subcollection
+                                                                await deleteDoc(doc(db, 'coaches', editingCoach.id, 'batches', bid));
+                                                                // Remove from local state
+                                                                setEditingCoach(prev => ({
+                                                                    ...prev,
+                                                                    assignedBatchIds: (prev.assignedBatchIds || []).filter(x => x !== bid)
+                                                                }));
+                                                                setBatches(prev => prev.filter(b => b.id !== bid));
+                                                            } catch (err) {
+                                                                console.error('Error deleting batch:', err);
+                                                                alert('Failed to delete batch: ' + err.message);
+                                                            }
+                                                        }}
+                                                        style={{
+                                                            background: '#FEE2E2',
+                                                            border: '1px solid #FECACA',
+                                                            color: '#DC2626',
+                                                            padding: '4px 10px',
+                                                            borderRadius: '4px',
+                                                            fontSize: '12px',
+                                                            fontWeight: '600',
+                                                            cursor: 'pointer'
+                                                        }}
+                                                    >
+                                                        ✕ Remove
+                                                    </button>
+                                                </div>
+                                            );
+                                        })}
+                                    </div>
+                                )}
+
+                                {/* Batch Results */}
+                                <div style={{
+                                    maxHeight: '150px',
+                                    overflowY: 'auto',
+                                    backgroundColor: '#fff',
+                                    borderRadius: '6px',
+                                    border: '1px solid #E9ECEF',
+                                    marginBottom: '12px'
+                                }}>
+                                    {batches
+                                        .filter(b => !batchSearch || b.name?.toLowerCase().includes(batchSearch.toLowerCase()))
+                                        .filter(b => !(editingCoach.assignedBatchIds || []).includes(b.id))
+                                        .slice(0, 20)
+                                        .map(b => (
+                                            <div
+                                                key={b.id}
+                                                style={{
+                                                    display: 'flex',
+                                                    justifyContent: 'space-between',
+                                                    alignItems: 'center',
+                                                    padding: '10px 12px',
+                                                    borderBottom: '1px solid #F0F0F0'
+                                                }}
+                                            >
+                                                <span style={{ fontSize: '13px', color: '#666' }}>{b.name || b.id}</span>
+                                                <Button
+                                                    size="sm"
+                                                    onClick={() => {
+                                                        setEditingCoach(prev => {
+                                                            const arr = Array.from(new Set([...(prev.assignedBatchIds || []), b.id]));
+                                                            return { ...prev, assignedBatchIds: arr };
+                                                        });
+                                                    }}
+                                                    style={{
+                                                        backgroundColor: '#DBEAFE',
+                                                        color: '#0369A1',
+                                                        border: '1px solid #7DD3FC',
+                                                        padding: '4px 10px',
+                                                        fontSize: '12px'
+                                                    }}
+                                                >
+                                                    + Add
+                                                </Button>
+                                            </div>
+                                        ))}
+                                </div>
+
+                                {/* Create New Batch */}
+                                <Button
+                                    onClick={() => {
+                                        setBatchFormData({ name: '', level: 'beginner', daysOfWeek: [], time: '', duration: '1', description: '' });
+                                        setIsCreateBatchModalOpen(true);
+                                    }}
+                                    style={{
+                                        width: '100%',
+                                        backgroundColor: '#3B82F6',
+                                        color: 'white',
+                                        border: 'none',
+                                        padding: '10px 16px',
+                                        fontSize: '13px',
+                                        borderRadius: '6px',
+                                        fontWeight: '600',
+                                        cursor: 'pointer'
+                                    }}
+                                >
+                                    + Create New Batch
+                                </Button>
+                            </div>
+                        </div>
+
+                        {/* Modal Footer */}
+                        <div
+                            style={{
+                                padding: '16px 24px',
+                                display: 'flex',
+                                justifyContent: 'flex-end',
+                                gap: '10px',
+                                borderTop: '1px solid #f0f0f0',
+                                backgroundColor: '#F9FAFB'
+                            }}
+                        >
+                            <Button
+                                onClick={() => {
+                                    setEditOpen(false);
+                                    setEditingCoach(null);
+                                }}
+                                style={{
+                                    backgroundColor: '#F3F4F6',
+                                    color: '#333',
+                                    border: '1px solid #D1D5DB',
+                                    padding: '10px 16px',
+                                    borderRadius: '6px',
+                                    fontSize: '14px',
+                                    fontWeight: '600',
+                                    cursor: 'pointer'
+                                }}
+                            >
+                                Cancel
+                            </Button>
+
+                            <Button
+                                onClick={async () => {
+                                    try {
+                                        const coachRef = doc(db, 'coaches', editingCoach.id);
+                                        const selectedBatchIds = editingCoach.assignedBatchIds || [];
+
+                                        await updateDoc(coachRef, {
+                                            fullName: editingCoach.name,
+                                            email: editingCoach.email,
+                                            assignedBatchIds: selectedBatchIds,
+                                            assignedBatchId: selectedBatchIds[0] || null,
+                                            updatedAt: serverTimestamp()
+                                        });
+
+                                        try {
+                                            // Batches are now subcollections of coaches, no need to sync assignedCoachId
+                                            // Just update the coach document with the selected batch IDs
+                                        } catch (syncErr) {
+                                            console.error('Error syncing batches:', syncErr);
+                                        }
+
+                                        setEditOpen(false);
+                                        setEditingCoach(null);
+                                        fetchCoaches();
+
+                                    } catch (err) {
+                                        alert('Failed to save coach: ' + err.message);
+                                    }
+                                }}
+                                style={{
+                                    backgroundColor: '#10B981',
+                                    color: 'white',
+                                    border: 'none',
+                                    padding: '10px 20px',
+                                    borderRadius: '6px',
+                                    fontSize: '14px',
+                                    fontWeight: '600',
+                                    cursor: 'pointer'
+                                }}
+                            >
+                                💾 Save Changes
+                            </Button>
                         </div>
                     </div>
                 </div>
             )}
+
+            {/* Create Batch Modal */}
+            {isCreateBatchModalOpen && editingCoach && (
+                <div style={{
+                    position: 'fixed',
+                    inset: 0,
+                    backgroundColor: 'rgba(0,0,0,0.6)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    zIndex: 1300,
+                    padding: '20px'
+                }}>
+                    <div style={{
+                        background: '#fff',
+                        borderRadius: '12px',
+                        width: '100%',
+                        maxWidth: '500px',
+                        boxShadow: '0 20px 60px rgba(0,0,0,0.3)',
+                        overflow: 'hidden'
+                    }}>
+                        {/* Modal Header */}
+                        <div style={{
+                            padding: '24px',
+                            borderBottom: '1px solid #f0f0f0',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'space-between'
+                        }}>
+                            <h2 style={{ margin: 0, fontSize: '20px', fontWeight: '700', color: '#1E3A8A' }}>
+                                Create New Batch
+                            </h2>
+                            <button
+                                onClick={() => setIsCreateBatchModalOpen(false)}
+                                style={{
+                                    background: 'none',
+                                    border: 'none',
+                                    fontSize: '24px',
+                                    color: '#999',
+                                    cursor: 'pointer'
+                                }}
+                            >
+                                ✕
+                            </button>
+                        </div>
+
+                        {/* Modal Content */}
+                        <div style={{ padding: '24px' }}>
+                            {/* Batch Name */}
+                            <div style={{ marginBottom: '16px' }}>
+                                <label style={{ display: 'block', fontWeight: '600', marginBottom: '6px', color: '#333', fontSize: '14px' }}>
+                                    Batch Name *
+                                </label>
+                                <input
+                                    value={batchFormData.name}
+                                    onChange={(e) => setBatchFormData(prev => ({ ...prev, name: e.target.value }))}
+                                    placeholder="e.g., Chess Basics Level 1"
+                                    style={{
+                                        width: '100%',
+                                        padding: '10px 12px',
+                                        borderRadius: '8px',
+                                        border: '1px solid #ddd',
+                                        fontSize: '14px',
+                                        boxSizing: 'border-box'
+                                    }}
+                                />
+                            </div>
+
+                            {/* Level */}
+                            <div style={{ marginBottom: '16px' }}>
+                                <label style={{ display: 'block', fontWeight: '600', marginBottom: '6px', color: '#333', fontSize: '14px' }}>
+                                    Level *
+                                </label>
+                                <select
+                                    value={batchFormData.level}
+                                    onChange={(e) => setBatchFormData(prev => ({ ...prev, level: e.target.value }))}
+                                    style={{
+                                        width: '100%',
+                                        padding: '10px 12px',
+                                        borderRadius: '8px',
+                                        border: '1px solid #ddd',
+                                        fontSize: '14px',
+                                        boxSizing: 'border-box',
+                                        backgroundColor: '#fff'
+                                    }}
+                                >
+                                    <option value="beginner">Beginner</option>
+                                    <option value="intermediate">Intermediate</option>
+                                    <option value="advance">Advance</option>
+                                </select>
+                            </div>
+
+                            {/* Scheduled: Days of Week */}
+                            <div style={{ marginBottom: '16px' }}>
+                                <label style={{ display: 'block', fontWeight: '600', marginBottom: '8px', color: '#333', fontSize: '14px' }}>
+                                    Days of Week *
+                                </label>
+                                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(80px, 1fr))', gap: '8px' }}>
+                                    {['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'].map(day => (
+                                        <label key={day} style={{ display: 'flex', alignItems: 'center', gap: '6px', cursor: 'pointer' }}>
+                                            <input
+                                                type="checkbox"
+                                                checked={batchFormData.daysOfWeek.includes(day)}
+                                                onChange={(e) => {
+                                                    if (e.target.checked) {
+                                                        setBatchFormData(prev => ({
+                                                            ...prev,
+                                                            daysOfWeek: [...prev.daysOfWeek, day]
+                                                        }));
+                                                    } else {
+                                                        setBatchFormData(prev => ({
+                                                            ...prev,
+                                                            daysOfWeek: prev.daysOfWeek.filter(d => d !== day)
+                                                        }));
+                                                    }
+                                                }}
+                                                style={{ cursor: 'pointer', width: '16px', height: '16px' }}
+                                            />
+                                            <span style={{ fontSize: '13px', color: '#666' }}>{day}</span>
+                                        </label>
+                                    ))}
+                                </div>
+                            </div>
+
+                            {/* Time and Duration */}
+                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '16px' }}>
+                                {/* Start Time */}
+                                <div>
+                                    <label style={{ display: 'block', fontWeight: '600', marginBottom: '6px', color: '#333', fontSize: '14px' }}>
+                                        Start Time *
+                                    </label>
+                                    <input
+                                        type="time"
+                                        value={batchFormData.time}
+                                        onChange={(e) => setBatchFormData(prev => ({ ...prev, time: e.target.value }))}
+                                        style={{
+                                            width: '100%',
+                                            padding: '10px 12px',
+                                            borderRadius: '8px',
+                                            border: '1px solid #ddd',
+                                            fontSize: '14px',
+                                            boxSizing: 'border-box'
+                                        }}
+                                    />
+                                </div>
+
+                                {/* Duration */}
+                                <div>
+                                    <label style={{ display: 'block', fontWeight: '600', marginBottom: '6px', color: '#333', fontSize: '14px' }}>
+                                        Duration (hours) *
+                                    </label>
+                                    <input
+                                        type="number"
+                                        min="0.5"
+                                        step="0.5"
+                                        value={batchFormData.duration}
+                                        onChange={(e) => setBatchFormData(prev => ({ ...prev, duration: e.target.value }))}
+                                        placeholder="e.g., 1.5"
+                                        style={{
+                                            width: '100%',
+                                            padding: '10px 12px',
+                                            borderRadius: '8px',
+                                            border: '1px solid #ddd',
+                                            fontSize: '14px',
+                                            boxSizing: 'border-box'
+                                        }}
+                                    />
+                                </div>
+                            </div>
+
+                            {/* Description */}
+                            <div style={{ marginBottom: '16px' }}>
+                                <label style={{ display: 'block', fontWeight: '600', marginBottom: '6px', color: '#333', fontSize: '14px' }}>
+                                    Description
+                                </label>
+                                <textarea
+                                    value={batchFormData.description}
+                                    onChange={(e) => setBatchFormData(prev => ({ ...prev, description: e.target.value }))}
+                                    placeholder="Enter batch description..."
+                                    style={{
+                                        width: '100%',
+                                        padding: '10px 12px',
+                                        borderRadius: '8px',
+                                        border: '1px solid #ddd',
+                                        fontSize: '14px',
+                                        boxSizing: 'border-box',
+                                        minHeight: '80px',
+                                        fontFamily: 'inherit',
+                                        resize: 'vertical'
+                                    }}
+                                />
+                            </div>
+                        </div>
+
+                        {/* Modal Footer */}
+                        <div style={{
+                            padding: '16px 24px',
+                            display: 'flex',
+                            justifyContent: 'flex-end',
+                            gap: '10px',
+                            borderTop: '1px solid #f0f0f0',
+                            backgroundColor: '#F9FAFB'
+                        }}>
+                            <Button
+                                onClick={() => setIsCreateBatchModalOpen(false)}
+                                style={{
+                                    backgroundColor: '#F3F4F6',
+                                    color: '#333',
+                                    border: '1px solid #D1D5DB',
+                                    padding: '10px 16px',
+                                    borderRadius: '6px',
+                                    fontSize: '14px',
+                                    fontWeight: '600',
+                                    cursor: 'pointer'
+                                }}
+                            >
+                                Cancel
+                            </Button>
+
+                            <Button
+                                onClick={async () => {
+                                    if (!batchFormData.name.trim()) {
+                                        alert('Please enter batch name');
+                                        return;
+                                    }
+                                    if (batchFormData.daysOfWeek.length === 0) {
+                                        alert('Please select at least one day of week');
+                                        return;
+                                    }
+                                    if (!batchFormData.time) {
+                                        alert('Please select start time');
+                                        return;
+                                    }
+                                    if (!batchFormData.duration || parseFloat(batchFormData.duration) <= 0) {
+                                        alert('Please enter valid duration');
+                                        return;
+                                    }
+
+                                    try {
+                                        const payload = {
+                                            name: batchFormData.name.trim(),
+                                            level: batchFormData.level,
+                                            daysOfWeek: batchFormData.daysOfWeek,
+                                            time: batchFormData.time,
+                                            duration: parseFloat(batchFormData.duration),
+                                            description: batchFormData.description.trim(),
+                                            studentsId: [],
+                                            assignments: [],
+                                            reports: [],
+                                            createdAt: serverTimestamp()
+                                        };
+                                        const ref = await addDoc(collection(db, 'coaches', editingCoach.id, 'batches'), payload);
+                                        const created = { id: ref.id, ...payload };
+                                        setBatches(prev => [created, ...prev]);
+                                        setEditingCoach(prev => ({ 
+                                            ...prev, 
+                                            assignedBatchIds: [...(prev.assignedBatchIds || []), ref.id] 
+                                        }));
+                                        setIsCreateBatchModalOpen(false);
+                                        alert('Batch created successfully!');
+                                    } catch (err) {
+                                        console.error('Error creating batch:', err);
+                                        alert('Failed to create batch: ' + err.message);
+                                    }
+                                }}
+                                style={{
+                                    backgroundColor: '#10B981',
+                                    color: 'white',
+                                    border: 'none',
+                                    padding: '10px 20px',
+                                    borderRadius: '6px',
+                                    fontSize: '14px',
+                                    fontWeight: '600',
+                                    cursor: 'pointer'
+                                }}
+                            >
+                                ✓ Create Batch
+                            </Button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
             <AddCoachModal
                 isOpen={isAddModalOpen}
                 onClose={() => setAddModalOpen(false)}

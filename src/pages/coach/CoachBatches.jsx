@@ -1,8 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Card from '../../components/ui/Card';
 import Button from '../../components/ui/Button';
 import { Users, Clock, Calendar, Upload, FileText, BookOpen } from 'lucide-react';
-import { collection, query, where, onSnapshot } from 'firebase/firestore';
+import { collection, query, where, onSnapshot, getDocs } from 'firebase/firestore';
 import { db } from '../../lib/firebase';
 import { useAuth } from '../../context/AuthContext';
 import { COLLECTIONS } from '../../config/firestoreCollections';
@@ -119,38 +119,89 @@ import CreateAssignmentModal from '../../components/features/CreateAssignmentMod
 const CoachBatches = () => {
     const [selectedBatch, setSelectedBatch] = useState(null);
     const [createAssignmentBatch, setCreateAssignmentBatch] = useState(null);
+    const [batches, setBatches] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const { currentUser } = useAuth();
 
-    const [batches, setBatches] = useState([
-        { id: 'batch_intermediate_1_1', name: 'Intermediate 1:1', time: 'Flexible Schedule', students: 0, level: 'Intermediate', color: '#3b82f6' },
-        { id: 'batch_group', name: 'Intermediate Group Batch', time: 'Mon, Wed, Fri • 6:00 PM', students: 0, level: 'Intermediate', color: '#8b5cf6' }
-    ]);
-    const { currentUser } = useAuth(); // Assuming currentUser is needed for student query
+    const getColorForLevel = (level) => {
+        const colors = {
+            'beginner': '#3b82f6',
+            'intermediate': '#8b5cf6',
+            'advance': '#ec4899'
+        };
+        return colors[level?.toLowerCase()] || '#3b82f6';
+    };
 
-    // Fetch real student counts
-    React.useEffect(() => {
+    const formatSchedule = (daysOfWeek, time) => {
+        if (!daysOfWeek || !time) return 'No schedule';
+        const dayShortcuts = {
+            'Monday': 'Mon',
+            'Tuesday': 'Tue',
+            'Wednesday': 'Wed',
+            'Thursday': 'Thu',
+            'Friday': 'Fri',
+            'Saturday': 'Sat',
+            'Sunday': 'Sun'
+        };
+        const shortDays = daysOfWeek.map(d => dayShortcuts[d]).join(', ');
+        return `${shortDays} • ${time}`;
+    };
+
+    // Fetch batches from coach's subcollection
+    useEffect(() => {
         if (!currentUser?.uid) return;
 
-        // This query assumes we simply count all assigned students by type
-        // In a real app, you might query by explicit batchId if students are assigned to specific batch IDs
-        const q = query(
-            collection(db, COLLECTIONS.STUDENTS),
-            where('assignedCoachId', '==', currentUser.uid)
-        );
+        const loadBatches = async () => {
+            try {
+                setLoading(true);
+                const batchesRef = collection(db, 'coaches', currentUser.uid, 'batches');
+                const batchesSnap = await getDocs(batchesRef);
 
-        const unsubscribe = onSnapshot(q, (snapshot) => {
-            const studentsList = snapshot.docs.map(d => d.data());
-            const oneOnOneCount = studentsList.filter(s => s.studentType === '1-1').length;
-            const groupCount = studentsList.filter(s => s.studentType !== '1-1').length; // Assuming default is group
+                const batchList = batchesSnap.docs.map(batchDoc => {
+                    const data = batchDoc.data();
+                    return {
+                        id: batchDoc.id,
+                        name: data.name || 'Unnamed Batch',
+                        level: data.level || 'beginner',
+                        daysOfWeek: data.daysOfWeek || [],
+                        time: data.time || '',
+                        duration: data.duration || 1,
+                        students: (data.studentsId || []).length,
+                        description: data.description || '',
+                        color: getColorForLevel(data.level)
+                    };
+                });
 
-            setBatches(prev => prev.map(b => {
-                if (b.id === 'batch_intermediate_1_1') return { ...b, students: oneOnOneCount };
-                if (b.id === 'batch_group') return { ...b, students: groupCount };
-                return b;
-            }));
-        });
+                setBatches(batchList);
+            } catch (error) {
+                console.error('Error fetching batches:', error);
+                setBatches([]);
+            } finally {
+                setLoading(false);
+            }
+        };
 
-        return () => unsubscribe();
+        loadBatches();
     }, [currentUser]);
+
+    if (loading) {
+        return (
+            <div style={{
+                minHeight: 'calc(100vh - 70px)',
+                background: 'linear-gradient(180deg, #f8f9fc 0%, #f0f2f5 100%)',
+                padding: '32px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                fontFamily: "'Figtree', sans-serif"
+            }}>
+                <div style={{ textAlign: 'center' }}>
+                    <div style={{ fontSize: '40px', marginBottom: '16px' }}>📚</div>
+                    <p style={{ color: '#64748b', fontSize: '16px' }}>Loading your batches...</p>
+                </div>
+            </div>
+        );
+    }
 
     return (
         <div style={{
@@ -229,7 +280,7 @@ const CoachBatches = () => {
                                         }}>
                                             <Clock size={16} color={batch.color} />
                                         </div>
-                                        <span>{batch.time}</span>
+                                        <span>{formatSchedule(batch.daysOfWeek, batch.time)}</span>
                                     </div>
                                     <div style={{ display: 'flex', alignItems: 'center', gap: '10px', color: '#64748b', fontSize: '14px' }}>
                                         <div style={{

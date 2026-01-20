@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { collection, query, where, onSnapshot } from 'firebase/firestore';
+import { collection, query, where, onSnapshot, getDocs, doc } from 'firebase/firestore';
 import { db } from '../../lib/firebase';
 import { useAuth } from '../../context/AuthContext';
 import { COLLECTIONS } from '../../config/firestoreCollections';
@@ -25,26 +25,60 @@ const CoachStudents = () => {
     useEffect(() => {
         if (!currentUser?.uid) return;
 
-        // Listen to assigned students
-        const q = query(
-            collection(db, COLLECTIONS.STUDENTS),
-            where('assignedCoachId', '==', currentUser.uid)
-        );
+        const loadStudentsFromBatches = async () => {
+            try {
+                setLoading(true);
+                // Get all batches for this coach
+                const batchesRef = collection(db, 'coaches', currentUser.uid, 'batches');
+                const batchesSnap = await getDocs(batchesRef);
 
-        const unsubscribe = onSnapshot(q, (snapshot) => {
-            const list = snapshot.docs.map(doc => ({
-                id: doc.id,
-                ...doc.data()
-            }));
-            setStudents(list);
-            setLoading(false);
-        }, (error) => {
-            console.error('Error fetching students:', error);
-            setStudents([]);
-            setLoading(false);
-        });
+                // Collect all student IDs from all batches
+                const studentIds = new Set();
+                batchesSnap.docs.forEach(batchDoc => {
+                    const batchData = batchDoc.data();
+                    if (batchData.studentsId && Array.isArray(batchData.studentsId)) {
+                        batchData.studentsId.forEach(id => studentIds.add(id));
+                    }
+                });
 
-        return () => unsubscribe();
+                // If no students, set empty and return
+                if (studentIds.size === 0) {
+                    setStudents([]);
+                    setLoading(false);
+                    return;
+                }
+
+                // Query users collection for all student IDs
+                const studentIdArray = Array.from(studentIds);
+                const studentsList = [];
+
+                // Firestore has a limit of 10 items in 'in' query, so chunk if needed
+                const chunkSize = 10;
+                for (let i = 0; i < studentIdArray.length; i += chunkSize) {
+                    const chunk = studentIdArray.slice(i, i + chunkSize);
+                    const q = query(
+                        collection(db, 'users'),
+                        where('__name__', 'in', chunk)
+                    );
+                    const snapshot = await getDocs(q);
+                    snapshot.docs.forEach(doc => {
+                        studentsList.push({
+                            id: doc.id,
+                            ...doc.data()
+                        });
+                    });
+                }
+
+                setStudents(studentsList);
+            } catch (error) {
+                console.error('Error fetching students from batches:', error);
+                setStudents([]);
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        loadStudentsFromBatches();
     }, [currentUser]);
 
     const filteredStudents = students.filter(student => {
