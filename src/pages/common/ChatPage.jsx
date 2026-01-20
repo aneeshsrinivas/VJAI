@@ -319,7 +319,28 @@ const ChatPage = ({ userRole: propRole }) => {
     }, [role, currentUser?.uid]);
 
     const handleSendMessage = async () => {
-        if (!message.trim() || !selectedChat || sending || !currentUser) return;
+        console.log('handleSendMessage called');
+        console.log('message:', message);
+        console.log('selectedChat:', selectedChat);
+        console.log('sending:', sending);
+        console.log('currentUser:', currentUser);
+        
+        if (!message.trim()) {
+            console.log('Message is empty, returning');
+            return;
+        }
+        if (!selectedChat) {
+            console.log('No selectedChat, returning');
+            return;
+        }
+        if (sending) {
+            console.log('Already sending, returning');
+            return;
+        }
+        if (!currentUser) {
+            console.log('No currentUser, returning');
+            return;
+        }
 
         setSending(true);
         const messageText = message.trim();
@@ -327,15 +348,16 @@ const ChatPage = ({ userRole: propRole }) => {
 
         try {
             console.log('Sending message for chat:', selectedChat);
-            // Ensure chat document exists (for batch chats created on the fly)
+            console.log('Current user UID:', currentUser.uid);
+            console.log('Selected chat ID:', selectedChat.id);
+            
+            // Check if chat document exists using getDoc (more efficient)
             const chatDocRef = doc(db, 'chats', selectedChat.id);
-            const chatSnap = await getDocs(collection(db, 'chats')).then(snap => 
-                snap.docs.find(d => d.id === selectedChat.id)
-            );
+            const chatSnap = await getDoc(chatDocRef);
 
-            console.log('Chat snap exists:', !!chatSnap);
+            console.log('Chat document exists:', chatSnap.exists());
 
-            if (!chatSnap) {
+            if (!chatSnap.exists()) {
                 // Chat doesn't exist, create it first
                 const chatData = {
                     chatType: selectedChat.chatType || 'BATCH_GROUP',
@@ -352,8 +374,10 @@ const ChatPage = ({ userRole: propRole }) => {
                     chatData.userId = role === 'ADMIN' ? selectedChat.userId : currentUser.uid;
                 }
 
-                console.log('Creating new chat document:', chatData);
+                console.log('Creating new chat document with ID:', selectedChat.id);
+                console.log('Chat data:', chatData);
                 await setDoc(chatDocRef, chatData);
+                console.log('Chat document created successfully');
             }
 
             // If this is a group chat, broadcast over WebSocket for live updates
@@ -371,7 +395,8 @@ const ChatPage = ({ userRole: propRole }) => {
                 }
             }
 
-            await addDoc(collection(db, 'messages'), {
+            // Add message to messages collection
+            const messageData = {
                 chatId: selectedChat.id,
                 content: messageText,
                 senderId: currentUser.uid,
@@ -379,12 +404,19 @@ const ChatPage = ({ userRole: propRole }) => {
                 senderRole: role,
                 senderName: role === 'ADMIN' ? 'Admin' : currentUser.email?.split('@')[0] || 'User',
                 createdAt: serverTimestamp()
-            });
+            };
+            
+            console.log('Adding message:', messageData);
+            
+            const msgRef = await addDoc(collection(db, 'messages'), messageData);
+            console.log('Message added successfully with ID:', msgRef.id);
 
             await updateDoc(chatDocRef, {
                 lastMessage: messageText,
                 lastMessageAt: serverTimestamp()
             });
+            console.log('Chat document updated with last message');
+            
         } catch (error) {
             console.error('Send message error:', error);
             toast.error('Failed to send: ' + error.message);
@@ -549,7 +581,8 @@ const ChatPage = ({ userRole: propRole }) => {
                                         onClick={() => {
                                             const chatType = user.role === 'coach' ? 'ADMIN_COACH' : 'ADMIN_PARENT';
                                             const userName = user.fullName || user.email?.split('@')[0] || 'User';
-                                            const chatId = [currentUser?.uid, user.id].sort().join('_');
+                                            // Use consistent format: userId_admin
+                                            const chatId = `${user.id}_admin`;
                                             
                                             console.log('Admin selecting user:', { userId: user.id, chatId, chatType });
                                             
@@ -600,9 +633,10 @@ const ChatPage = ({ userRole: propRole }) => {
                         <div style={{ padding: '12px', borderBottom: `1px solid ${COLORS.deepBlue}20` }}>
                             <li
                                 onClick={() => {
-                                    // Create admin chat reference
-                                    const chatId = [currentUser?.uid, 'admin'].sort().join('_');
-                                    const adminChat = chats.find(c => c.chatType === 'ADMIN_PARENT');
+                                    // Use consistent format: userId_admin
+                                    const chatId = `${currentUser?.uid}_admin`;
+                                    console.log('Customer clicking admin chat, chatId:', chatId);
+                                    const adminChat = chats.find(c => c.id === chatId || c.chatType === 'ADMIN_PARENT');
                                     if (adminChat) {
                                         setSelectedChat(adminChat);
                                     } else {
@@ -610,6 +644,7 @@ const ChatPage = ({ userRole: propRole }) => {
                                             id: chatId,
                                             name: 'Admin Support',
                                             chatType: 'ADMIN_PARENT',
+                                            userId: currentUser?.uid,
                                             participants: [currentUser?.uid]
                                         });
                                     }
