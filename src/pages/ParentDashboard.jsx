@@ -456,6 +456,11 @@ const ParentDashboard = () => {
                                             {coach?.rating || '5.0'}
                                         </span>
                                     </div>
+                                    {student?.assignedBatchName && (
+                                        <p className="assigned-batch" style={{ margin: '8px 0 0 0', fontSize: '14px', color: '#666' }}>
+                                            <strong>Batch:</strong> {student.assignedBatchName}
+                                        </p>
+                                    )}
                                 </div>
                             </div>
                             <div className="coach-stats-row">

@@ -17,42 +17,36 @@ const ParentAssignments = () => {
     useEffect(() => {
         if (!currentUser?.uid) return;
 
-        // Listen to the USER document (where Admin updates batch info)
-        // Admin writes to 'users' collection, NOT 'students'
-        const userDocRef = doc(db, 'users', currentUser.uid); // Direct mapping
+        // Listen to the USER document to get assigned batch
+        const userDocRef = doc(db, 'users', currentUser.uid);
 
         const unsubscribeStudent = onSnapshot(userDocRef, (docSnap) => {
             if (docSnap.exists()) {
                 const student = docSnap.data();
-                // Robust fallback for batch name
-                const batchName = student.batchName || student.assignedBatch || student.assigned_batch_id || student.batch_id;
-
-                if (batchName) {
-                    // Create an array of potential batch names to match against (handle "Batch" suffix mismatch)
-                    const potentialNames = [
-                        batchName,
-                        batchName + ' Batch',
-                        batchName.replace(/ Batch$/i, ''),
-                        batchName,
-                        'Intermediate Group Batch', // Direct fallback as per user report
-                        'Intermediate Group',
-                        'Intermediate',
-                        'Group Batch'
-                    ];
-                    // Remove duplicates and filter falsy
-                    const uniqueNames = [...new Set(potentialNames)].filter(Boolean);
-
+                
+                console.log('Student data:', student);
+                
+                // Get batch ID from user document
+                const batchId = student.assignedBatchId || student.assignedBatch;
+                
+                console.log('Looking for assignments with batchId:', batchId);
+                
+                if (batchId) {
+                    // Query assignments filtered by batchId
                     const q = query(
                         collection(db, COLLECTIONS.ASSIGNMENTS),
-                        where('batchName', 'in', uniqueNames)
-                        // orderBy('createdAt', 'desc') - Removed to bypass Index requirement
+                        where('batchId', '==', batchId)
                     );
 
                     const unsubscribeAssignments = onSnapshot(q, (snapshot) => {
-                        const list = snapshot.docs.map(doc => ({
-                            id: doc.id,
-                            ...doc.data()
-                        }));
+                        console.log('Found assignments:', snapshot.docs.length);
+                        const list = snapshot.docs.map(doc => {
+                            console.log('Assignment:', doc.id, doc.data());
+                            return {
+                                id: doc.id,
+                                ...doc.data()
+                            };
+                        });
 
                         // Client-side Sort (Newest First)
                         list.sort((a, b) => {

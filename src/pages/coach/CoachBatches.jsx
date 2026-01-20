@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import Card from '../../components/ui/Card';
 import Button from '../../components/ui/Button';
 import { Users, Clock, Calendar, Upload, FileText, BookOpen } from 'lucide-react';
-import { collection, query, where, onSnapshot, getDocs } from 'firebase/firestore';
+import { collection, query, where, onSnapshot } from 'firebase/firestore';
 import { db } from '../../lib/firebase';
 import { useAuth } from '../../context/AuthContext';
 import { COLLECTIONS } from '../../config/firestoreCollections';
@@ -49,16 +49,16 @@ const CoachBatches = () => {
         }
 
         console.log("Fetching batches for coach:", currentUser.uid);
-        const q = query(
-            collection(db, COLLECTIONS.BATCHES),
-            where('coachId', '==', currentUser.uid)
-        );
+        
+        // Fetch from coach's subcollection: coaches/{coachId}/batches
+        const batchesRef = collection(db, 'coaches', currentUser.uid, 'batches');
 
-        const unsubscribe = onSnapshot(q, (snapshot) => {
+        const unsubscribe = onSnapshot(batchesRef, (snapshot) => {
             const batchList = snapshot.docs.map(d => ({ 
                 id: d.id, 
                 ...d.data(),
-                color: getColorForLevel(d.data().level)
+                color: getColorForLevel(d.data().level),
+                students: (d.data().studentsId || []).length
             }));
             setBatches(batchList);
             setLoading(false);
