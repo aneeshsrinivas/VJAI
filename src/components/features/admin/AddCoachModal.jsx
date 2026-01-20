@@ -22,7 +22,8 @@ const secondaryAuth = getAuth(secondaryApp);
 const AddCoachModal = ({ isOpen, onClose, onSuccess }) => {
     const [formData, setFormData] = useState({
         fullName: '',
-        email: '',
+        personalEmail: '', // For sending account details
+        assignedEmail: '', // @coach.com email for login
         phone: '',
         title: 'Trainer',
         fideRating: '',
@@ -45,13 +46,21 @@ const AddCoachModal = ({ isOpen, onClose, onSuccess }) => {
         setError('');
 
         try {
-            // 1. Create User in Firebase Auth (Secondary)
-            const userCredential = await createUserWithEmailAndPassword(secondaryAuth, formData.email, formData.password);
+            // Validate assigned email ends with @coach.com
+            if (!formData.assignedEmail.endsWith('@coach.com')) {
+                setError('Assigned email must end with @coach.com');
+                setLoading(false);
+                return;
+            }
+
+            // 1. Create User in Firebase Auth (Secondary) with assigned email
+            const userCredential = await createUserWithEmailAndPassword(secondaryAuth, formData.assignedEmail, formData.password);
             const user = userCredential.user;
 
             // 2. Create User Document in Firestore
             await setDoc(doc(db, 'users', user.uid), {
-                email: formData.email,
+                email: formData.assignedEmail, // Login email
+                personalEmail: formData.personalEmail, // For sending notifications
                 role: 'coach',
                 fullName: formData.fullName,
                 createdAt: new Date(),
@@ -95,16 +104,26 @@ const AddCoachModal = ({ isOpen, onClose, onSuccess }) => {
                             onChange={handleChange}
                         />
                         <Input
-                            label="Email"
-                            name="email"
+                            label="Personal Email (for notifications)"
+                            name="personalEmail"
                             type="email"
                             required
-                            value={formData.email}
+                            placeholder="coach@gmail.com"
+                            value={formData.personalEmail}
                             onChange={handleChange}
                         />
                     </div>
 
                     <div className="form-row">
+                        <Input
+                            label="Assigned Login Email"
+                            name="assignedEmail"
+                            type="email"
+                            required
+                            placeholder="firstname.lastname@coach.com"
+                            value={formData.assignedEmail}
+                            onChange={handleChange}
+                        />
                         <Input
                             label="Phone Number"
                             name="phone"
@@ -112,6 +131,9 @@ const AddCoachModal = ({ isOpen, onClose, onSuccess }) => {
                             value={formData.phone}
                             onChange={handleChange}
                         />
+                    </div>
+
+                    <div className="form-row">
                         <div className="form-group">
                             <label>Professional Title</label>
                             <select name="title" value={formData.title} onChange={handleChange}>

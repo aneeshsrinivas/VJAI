@@ -3,20 +3,49 @@ import Button from '../ui/Button';
 import { createClass } from '../../services/firestoreService';
 import { useAuth } from '../../context/AuthContext';
 import { Calendar, Clock, Video, X, AlignLeft } from 'lucide-react';
+import { collection, query, where, getDocs } from 'firebase/firestore';
+import { db } from '../../lib/firebase';
+import { COLLECTIONS } from '../../config/firestoreCollections';
 
 const ScheduleClassModal = ({ isOpen, onClose, batchId, batchName, onSuccess }) => {
     if (!isOpen) return null;
 
     const { currentUser, userData } = useAuth();
     const [loading, setLoading] = useState(false);
+    const [batches, setBatches] = useState([]);
     const [formData, setFormData] = useState({
         topic: '',
         date: '',
         time: '',
         meetLink: '',
         description: '',
-        batchType: 'group'
+        selectedBatchId: ''
     });
+
+    // Fetch Coach's Batches
+    React.useEffect(() => {
+        const fetchBatches = async () => {
+            if (!currentUser?.uid) return;
+            try {
+                const q = query(collection(db, COLLECTIONS.BATCHES), where('coachId', '==', currentUser.uid));
+                const snap = await getDocs(q);
+                const list = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                setBatches(list);
+
+                // Default to first batch if available and no batch pre-selected
+                if (list.length > 0 && !formData.selectedBatchId && !batchId) {
+                    setFormData(prev => ({ ...prev, selectedBatchId: list[0].id }));
+                } else if (batchId && batchId !== 'global') {
+                    setFormData(prev => ({ ...prev, selectedBatchId: batchId }));
+                }
+            } catch (e) {
+                console.error("Error fetching batches:", e);
+            }
+        };
+        if (isOpen) {
+            fetchBatches();
+        }
+    }, [isOpen, currentUser, batchId]);
 
     const handleChange = (e) => {
         setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -26,15 +55,19 @@ const ScheduleClassModal = ({ isOpen, onClose, batchId, batchName, onSuccess }) 
         e.preventDefault();
         setLoading(true);
 
-        const selectedBatchId = formData.batchType === 'group' ? 'batch_group' : 'batch_intermediate_1_1';
-        const selectedBatchName = formData.batchType === 'group' ? 'Intermediate Group Batch' : 'Intermediate 1:1';
+        const selectedBatch = batches.find(b => b.id === formData.selectedBatchId);
+        if (!selectedBatch) {
+            alert('Please select a valid batch');
+            setLoading(false);
+            return;
+        }
 
         const result = await createClass({
             ...formData,
             coachId: currentUser.uid,
             coachName: userData?.fullName || currentUser.email?.split('@')[0] || 'Coach',
-            batchId: selectedBatchId,
-            batchName: selectedBatchName,
+            batchId: selectedBatch.id,
+            batchName: selectedBatch.name,
             status: 'SCHEDULED',
             scheduledAt: new Date(`${formData.date}T${formData.time}`)
         });
@@ -136,20 +169,28 @@ const ScheduleClassModal = ({ isOpen, onClose, batchId, batchName, onSuccess }) 
                     </div>
 
                     <div style={{ marginBottom: '16px' }}>
-                        <label style={{ display: 'block', fontSize: '14px', fontWeight: '600', marginBottom: '8px', color: '#334155' }}>Batch Type</label>
+                        <label style={{ display: 'block', fontSize: '14px', fontWeight: '600', marginBottom: '8px', color: '#334155' }}>Select Batch</label>
                         <select
-                            name="batchType"
-                            value={formData.batchType}
-                            onChange={(e) => setFormData({ ...formData, batchType: e.target.value })}
+                            name="selectedBatchId"
+                            value={formData.selectedBatchId}
+                            onChange={handleChange}
+                            required
                             style={{
                                 width: '100%', padding: '10px',
                                 borderRadius: '8px', border: '1px solid #cbd5e1', outline: 'none',
                                 background: 'white', fontFamily: 'inherit'
                             }}
                         >
-                            <option value="group">Group Batch</option>
-                            <option value="intermediate_1_1">Intermediate 1:1</option>
+                            <option value="">-- Select a Batch --</option>
+                            {batches.map(batch => (
+                                <option key={batch.id} value={batch.id}>{batch.name} ({batch.schedule || 'No schedule'})</option>
+                            ))}
                         </select>
+                        {batches.length === 0 && (
+                            <p style={{ fontSize: '12px', color: '#dc2626', marginTop: '4px' }}>
+                                You have no batches assigned. Please contact Admin.
+                            </p>
+                        )}
                     </div>
 
                     <div style={{ marginBottom: '24px' }}>

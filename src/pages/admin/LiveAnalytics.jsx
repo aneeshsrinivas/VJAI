@@ -107,12 +107,30 @@ const LiveAnalytics = () => {
             const subs = snapshot.docs.map(d => d.data());
 
             const activeSubs = subs.filter(s => s.status === 'ACTIVE');
-            const monthlyRevenue = activeSubs.reduce((sum, s) => sum + (s.amount || 0), 0);
+
+            // Normalize revenue to monthly equivalent based on billing cycle
+            const monthlyRevenue = activeSubs.reduce((sum, s) => {
+                const amount = s.amount || 0;
+                const cycle = (s.billingCycle || s.planType || 'monthly').toLowerCase();
+
+                // Convert to monthly equivalent
+                if (cycle.includes('annual') || cycle.includes('yearly')) {
+                    return sum + (amount / 12);
+                } else if (cycle.includes('quarter')) {
+                    return sum + (amount / 3);
+                } else if (cycle.includes('semi') || cycle.includes('6')) {
+                    return sum + (amount / 6);
+                } else {
+                    // Monthly or unknown - treat as monthly
+                    return sum + amount;
+                }
+            }, 0);
+
             const arpu = activeSubs.length > 0 ? Math.round(monthlyRevenue / activeSubs.length) : 0;
 
             setMetrics(prev => ({
                 ...prev,
-                monthlyRevenue,
+                monthlyRevenue: Math.round(monthlyRevenue),
                 avgRevenuePerUser: arpu
             }));
 

@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import { doc, updateDoc, serverTimestamp } from 'firebase/firestore';
 import { db } from '../../lib/firebase';
 import { useAuth } from '../../context/AuthContext';
-import ParentNavbar from '../../components/layout/ParentNavbar';
 import Card from '../../components/ui/Card';
 import Button from '../../components/ui/Button';
 import { toast, ToastContainer } from 'react-toastify';
@@ -89,7 +88,6 @@ const ParentSettings = () => {
 
     return (
         <div style={{ minHeight: '100vh', backgroundColor: COLORS.ivory }}>
-            <ParentNavbar />
             <ToastContainer position="top-right" autoClose={3000} />
 
             <div style={{ padding: '32px', maxWidth: '800px', margin: '0 auto' }}>

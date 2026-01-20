@@ -31,6 +31,13 @@
     letter-spacing: -0.5px;
 }
 
+.coach-.navbar-logo {
+    height: 40px;
+    width: auto;
+    mix-blend-mode: multiply;
+    border-radius: 50%;
+}
+
 .coach-navbar-links {
     display: flex;
     gap: 8px;

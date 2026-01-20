@@ -15,6 +15,7 @@ const CoachSchedule = () => {
     const [blockedSlots, setBlockedSlots] = useState([]);
     const [isScheduleModalOpen, setIsScheduleModalOpen] = useState(false);
     const [selectedClass, setSelectedClass] = useState(null);
+    const [showSuccessModal, setShowSuccessModal] = useState(false);
     const [scheduleItems, setScheduleItems] = useState([]);
     const [weekOffset, setWeekOffset] = useState(0); // 0 = current week, 1 = next week, etc.
 
@@ -242,15 +243,39 @@ const CoachSchedule = () => {
                                 }}>
                                     {time}
                                 </div>
-                                {weekDays.map(day => {
-                                    const id = `${day}-${time}`;
+                                {weekDays.map((dayName, dayIdx) => {
+                                    // Calculate the exact date for this column
+                                    const { monday } = getWeekBounds();
+                                    const columnDate = new Date(monday);
+                                    columnDate.setDate(monday.getDate() + dayIdx);
+
+                                    const id = `${dayName}-${time}`;
                                     const isBlocked = blockedSlots.includes(id);
-                                    // Find class matching this day and time hour (e.g., '10:00' matches '10:00 AM')
-                                    const existingClass = scheduleItems.find(c =>
-                                        c.day === day &&
-                                        time.split(':')[0] === c.time.split(':')[0] &&
-                                        (time.includes('AM') === c.time.includes('AM')) // Simple check, refine if needed
-                                    );
+
+                                    // Robust Matching: Compare Date string and Hour
+                                    const existingClass = scheduleItems.find(c => {
+                                        if (!c.rawDate) return false;
+
+                                        // 1. Compare Date (Day/Month/Year)
+                                        const isSameDate = c.rawDate.toDateString() === columnDate.toDateString();
+                                        if (!isSameDate) return false;
+
+                                        // 2. Compare Hour
+                                        // Parse slot time '10:00 AM'
+                                        let [slotTime, modifier] = time.split(' ');
+                                        let [slotHourStr] = slotTime.split(':');
+                                        let slotHour = parseInt(slotHourStr);
+                                        if (modifier === 'PM' && slotHour !== 12) slotHour += 12;
+                                        if (modifier === 'AM' && slotHour === 12) slotHour = 0;
+
+                                        const classHour = c.rawDate.getHours();
+
+                                        // Match if class starts within this slot's hour (or close enough for this grid)
+                                        // Simplification: exact hour match or class falls in this 2-hour block (e.g. 10:30 falls in 10:00)
+                                        // Assuming slots are 2 hours apart: 10, 12, 2...
+                                        // So we check if classHour is >= slotHour and < nextSlotHour (slotHour + 2)
+                                        return classHour >= slotHour && classHour < slotHour + 2;
+                                    });
 
                                     return (
                                         <div
@@ -268,7 +293,7 @@ const CoachSchedule = () => {
                                                 alignItems: 'center',
                                                 justifyContent: 'center'
                                             }}
-                                            onClick={() => existingClass ? setSelectedClass(existingClass) : toggleBlock(day, time)}
+                                            onClick={() => existingClass ? setSelectedClass(existingClass) : toggleBlock(dayName, time)}
                                             onMouseEnter={(e) => {
                                                 if (!existingClass) {
                                                     e.currentTarget.style.backgroundColor = isBlocked ? '#fecaca' : '#f1f5f9';
@@ -327,8 +352,34 @@ const CoachSchedule = () => {
                 onClose={() => setIsScheduleModalOpen(false)}
                 batchId="global"
                 batchName="General Session"
-                onSuccess={() => alert('Class Scheduled Successfully!')}
+                onSuccess={() => {
+                    // Show success modal instead of alert
+                    setShowSuccessModal(true);
+                    setTimeout(() => setShowSuccessModal(false), 2000);
+                }}
             />
+
+            {/* Success Modal */}
+            {showSuccessModal && (
+                <div style={{
+                    position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
+                    backgroundColor: 'rgba(0,0,0,0.5)', display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: 1000
+                }}>
+                    <div style={{
+                        background: 'white', borderRadius: '16px', padding: '40px',
+                        textAlign: 'center', boxShadow: '0 20px 60px rgba(0,0,0,0.2)', width: '400px'
+                    }}>
+                        <div style={{
+                            width: '80px', height: '80px', background: '#ecfdf5', borderRadius: '50%',
+                            display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 20px'
+                        }}>
+                            <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#10b981" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                        </div>
+                        <h2 style={{ margin: '0 0 8px', color: '#065f46' }}>Class Scheduled!</h2>
+                        <p style={{ color: '#6b7280' }}>Your session has been created successfully.</p>
+                    </div>
+                </div>
+            )}
 
             <ClassDetailsModal
                 isOpen={!!selectedClass}

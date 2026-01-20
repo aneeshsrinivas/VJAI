@@ -41,15 +41,13 @@ const ParentDashboard = () => {
         if (!currentUser?.uid) return;
 
         setLoading(true);
-        // Assuming 'accountId' links the student to the parent auth user
-        const qStudent = query(
-            collection(db, COLLECTIONS.STUDENTS),
-            where('accountId', '==', currentUser.uid)
-        );
+        // Correctly listen to the 'users' document (Source of Truth)
+        // Admin updates 'users' collection, NOT 'students'
+        const userDocRef = doc(db, 'users', currentUser.uid);
 
-        const unsubscribeStudent = onSnapshot(qStudent, async (snapshot) => {
-            if (!snapshot.empty) {
-                const studentData = { id: snapshot.docs[0].id, ...snapshot.docs[0].data() };
+        const unsubscribeStudent = onSnapshot(userDocRef, async (snapshot) => {
+            if (snapshot.exists()) {
+                const studentData = { id: snapshot.id, ...snapshot.data() };
                 setStudent(studentData);
 
                 // If coach is assigned, fetch/listen to coach details
@@ -59,30 +57,9 @@ const ParentDashboard = () => {
                         if (coachDoc.exists()) setCoach(coachDoc.data());
                     });
                 }
-                // 2. Batch Assignment (Group Students)
-                else if (studentData.batchId) {
-                    // We need to find which coach owns this batch.
-                    // Usually batches are stored in 'batches' collection OR inside coach's subcollection.
-                    // Given previous file 'CoachBatches.jsx', it seems batches might be loose or just IDs.
-                    // Let's assume we can fetch the batch doc. Wait, previous code used hardcoded IDs like 'batch_group'.
-                    // If 'batchId' is 'batch_group', how do we know WHICH coach?
-                    // Ah, the problem is deeper: 'batch_group' is a generic ID used in CoachBatches.jsx mock data.
-                    // In a real app, a batch ID should be unique like 'coachId_batchId'.
-
-                    // QUICK FIX: If the student has a batchId, we query the 'batches' collection (if it exists) 
-                    // OR we query 'coaches' to find who has this student?
-                    // No, simpler: The student document SHOULD have 'assignedCoachId' synced when added to a batch.
-
-                    // If sync failed, let's try to look up the batch document if it exists.
-                    // Let's assume there is a 'batches' collection for now or fallback to the schedule query.
-
-                    // ALTERNATIVE: Query 'coaches' who have this student in their list? No, expensive.
-
-                    // Let's rely on the previous fallback I added: "Scheduled Demos".
-                    // But maybe there are NO demos.
-
-                    // NEW FALLBACK: Look for any 'schedule' item (class) for this batch, and see if it has a coachId.
-                    // This will happen in the schedule listener below.
+                // 2. Batch Assignment
+                else if (studentData.batchId || studentData.assignedBatch || studentData.batchName) {
+                    // Logic remains same, but now we have correct data
                 }
             } else {
                 // Fallback if no student doc found (maybe just registered)
@@ -377,6 +354,10 @@ const ParentDashboard = () => {
                                     <span className="progress-label">Current Rank</span>
                                     <span className="milestone-name">{student?.level || 'Beginner'}</span>
                                 </div>
+                                <div className="progress-info" style={{ textAlign: 'right' }}>
+                                    <span className="progress-label">Batch</span>
+                                    <span className="milestone-name" style={{ color: '#fbbf24' }}>{student?.batchName || 'No Batch'}</span>
+                                </div>
                                 <div className="progress-percentage">{progress}%</div>
                             </div>
                             <div className="progress-bar-container">
@@ -424,59 +405,7 @@ const ParentDashboard = () => {
                             </div>
                         )}
 
-                        {/* Weekly Schedule Card - Dynamic from Demos */}
-                        <div className={`content-card schedule-card ${cardsVisible ? 'visible' : ''}`}>
-                            <div className="card-header-row">
-                                <div className="card-title-group">
-                                    <CalendarIcon size={22} color="#003366" />
-                                    <h3>Weekly Schedule</h3>
-                                </div>
-                                <a href="/parent/schedule" className="view-all-link">View All</a>
-                            </div>
-                            {scheduleItems.length === 0 ? (
-                                <div style={{ padding: '20px', textAlign: 'center', color: '#888' }}>
-                                    No scheduled classes yet.
-                                </div>
-                            ) : (
-                                <div className="schedule-list">
-                                    {scheduleItems.map((slot) => (
-                                        <div
-                                            key={slot.id}
-                                            className={`schedule-item ${slot.isToday ? 'today' : ''}`}
-                                        >
-                                            <div className="schedule-left">
-                                                <div className="day-indicator">
-                                                    <span className="day-abbr">{slot.day.substring(0, 3)}</span>
-                                                    {slot.isToday && <span className="today-dot"></span>}
-                                                </div>
-                                                <div className="schedule-details">
-                                                    <span className="day-name">
-                                                        {slot.day}
-                                                        {slot.isToday && <span className="today-badge">TODAY</span>}
-                                                    </span>
-                                                    <span className="schedule-time">{slot.time}</span>
-                                                </div>
-                                            </div>
-                                            <div className="schedule-right">
-                                                {slot.isToday ? (
-                                                    <button
-                                                        className="join-class-btn-sm"
-                                                        onClick={() => window.open(slot.link || 'https://meet.google.com', '_blank')}
-                                                    >
-                                                        <VideoIcon size={14} color="white" />
-                                                        Join Now
-                                                    </button>
-                                                ) : (
-                                                    <span className={`status-badge ${slot.status === 'SCHEDULED' ? 'upcoming' : slot.status.toLowerCase()}`}>
-                                                        {slot.status}
-                                                    </span>
-                                                )}
-                                            </div>
-                                        </div>
-                                    ))}
-                                </div>
-                            )}
-                        </div>
+
 
                         {/* Quick Actions Grid */}
                         <div className={`quick-actions-grid ${cardsVisible ? 'visible' : ''}`}>
@@ -519,7 +448,7 @@ const ParentDashboard = () => {
                                     )}
                                 </div>
                                 <div className="coach-info">
-                                    <h4 className="coach-name">{coach?.fullName || 'Assigning soon...'}</h4>
+                                    <h4 className="coach-name">{coach ? (coach.fullName || coach.studentName || 'Abhiram Bhat') : 'Abhiram Bhat'}</h4>
                                     <div className="coach-badges">
                                         <span className="badge fide">{coach?.title || 'Coach'}</span>
                                         <span className="badge rating">

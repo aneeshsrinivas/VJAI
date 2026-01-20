@@ -1,10 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { collection, getDocs } from 'firebase/firestore';
+import { collection, getDocs, doc, deleteDoc } from 'firebase/firestore';
 import { db } from '../../lib/firebase';
 import Card from '../../components/ui/Card';
 import Button from '../../components/ui/Button';
 import AddCoachModal from '../../components/features/admin/AddCoachModal';
-import { User, Mail, Phone, Star } from 'lucide-react';
+import ManageBatchesModal from '../../components/features/admin/ManageBatchesModal';
+import { User, Mail, Phone, Star, Trash2, BookOpen } from 'lucide-react';
+import { toast, ToastContainer } from 'react-toastify';
 import '../../pages/Dashboard.css';
 
 import AdminCoachApplications from './AdminCoachApplications';
@@ -12,6 +14,7 @@ import AdminCoachApplications from './AdminCoachApplications';
 const CoachRoster = () => {
     const [activeTab, setActiveTab] = useState('roster'); // 'roster' or 'applications'
     const [isAddModalOpen, setAddModalOpen] = useState(false);
+    const [selectedCoachForBatches, setSelectedCoachForBatches] = useState(null);
     const [coaches, setCoaches] = useState([]);
     const [loading, setLoading] = useState(true);
 
@@ -66,8 +69,32 @@ const CoachRoster = () => {
         fetchCoaches();
     };
 
+    const handleDeleteCoach = async (coach) => {
+        const confirmMsg = `Delete coach "${coach.name || coach.coachName || 'Unknown'}"?\n\nThis will remove them from the roster but NOT delete their Firebase Auth account.`;
+        if (!window.confirm(confirmMsg)) return;
+
+        try {
+            // Delete from users collection
+            await deleteDoc(doc(db, 'users', coach.id));
+
+            // Also try to delete from coaches collection if exists
+            try {
+                await deleteDoc(doc(db, 'coaches', coach.id));
+            } catch (e) {
+                // May not exist in coaches collection
+            }
+
+            toast.success('Coach removed from roster');
+            fetchCoaches();
+        } catch (error) {
+            console.error('Error deleting coach:', error);
+            toast.error('Failed to delete coach');
+        }
+    };
+
     return (
         <div className="dashboard-container">
+            <ToastContainer position="top-right" autoClose={3000} />
             <div className="dashboard-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <div>
                     <h1 className="welcome-text">Coach Management</h1>
@@ -170,6 +197,52 @@ const CoachRoster = () => {
                                             {coach.phone || '-'}
                                         </div>
                                     </div>
+
+                                    {/* Action Buttons */}
+                                    <div style={{ display: 'flex', gap: '10px', marginTop: '12px' }}>
+                                        <button
+                                            onClick={() => setSelectedCoachForBatches(coach)}
+                                            style={{
+                                                padding: '8px 12px',
+                                                background: '#E0F2FE',
+                                                color: '#0284C7',
+                                                border: 'none',
+                                                borderRadius: '6px',
+                                                cursor: 'pointer',
+                                                display: 'flex',
+                                                alignItems: 'center',
+                                                gap: '6px',
+                                                fontSize: '12px',
+                                                fontWeight: '500',
+                                                flex: 1,
+                                                justifyContent: 'center'
+                                            }}
+                                        >
+                                            <BookOpen size={14} />
+                                            Batches
+                                        </button>
+                                        <button
+                                            onClick={() => handleDeleteCoach(coach)}
+                                            style={{
+                                                padding: '8px 12px',
+                                                background: '#FEE2E2',
+                                                color: '#DC2626',
+                                                border: 'none',
+                                                borderRadius: '6px',
+                                                cursor: 'pointer',
+                                                display: 'flex',
+                                                alignItems: 'center',
+                                                gap: '6px',
+                                                fontSize: '12px',
+                                                fontWeight: '500',
+                                                flex: 1,
+                                                justifyContent: 'center'
+                                            }}
+                                        >
+                                            <Trash2 size={14} />
+                                            Remove
+                                        </button>
+                                    </div>
                                 </Card>
                             ))}
                         </div>
@@ -183,6 +256,12 @@ const CoachRoster = () => {
                 isOpen={isAddModalOpen}
                 onClose={() => setAddModalOpen(false)}
                 onSuccess={handleAddSuccess}
+            />
+
+            <ManageBatchesModal
+                isOpen={!!selectedCoachForBatches}
+                coach={selectedCoachForBatches}
+                onClose={() => setSelectedCoachForBatches(null)}
             />
         </div>
     );
