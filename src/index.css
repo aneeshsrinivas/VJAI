@@ -1,0 +1,310 @@
+/* Sidebar Logic handled in component */
+
+:root {
+  /* Brand Color System */
+  --color-deep-blue: #003366;
+  --color-warm-orange: #FC8A24;
+  --color-ivory: #FFFEF3;
+  --color-olive-green: #6B8E23;
+
+  /* Secondary & Functional */
+  --color-neutral-brown: #B49885;
+  --color-light-sand: #EBD6C3;
+  --color-dark-brown: #68300B;
+  --color-white: #FFFFFF;
+
+  --color-error: #D32F2F;
+  --color-warning: #F9A825;
+  --color-success: #22C55E;
+  --color-info: #1976D2;
+  --color-disabled: #BDBDBD;
+  --color-text-primary: #003366;
+
+  /* Fonts */
+  --font-primary: 'Figtree', sans-serif;
+  --font-display: 'Figtree', sans-serif;
+
+  /* Spacing */
+  --spacing-xs: 8px;
+  --spacing-sm: 16px;
+  --spacing-md: 24px;
+  --spacing-lg: 32px;
+  --spacing-xl: 48px;
+
+  /* UI Tokens */
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+  --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.08);
+  --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.12);
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+/* Prevent white flash on page load */
+html,
+body {
+  background-color: var(--color-ivory);
+  min-height: 100vh;
+}
+
+body {
+  font-family: var(--font-primary);
+  color: var(--color-text-primary);
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Smooth page transitions - apply to all main page containers */
+.page-transition,
+.landing-page-home,
+.login-page,
+.registration-page,
+.demo-booking-page,
+.role-selection-page,
+.about-page,
+.services-page,
+.contact-page,
+.faq-page {
+  animation: pageEnter 0.4s ease-out;
+}
+
+@keyframes pageEnter {
+  from {
+    opacity: 0.85;
+  }
+
+  to {
+    opacity: 1;
+  }
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  font-family: var(--font-display);
+  color: var(--color-deep-blue);
+  margin-bottom: var(--spacing-sm);
+}
+
+h1 {
+  font-size: 48px;
+  line-height: 56px;
+  font-weight: 700;
+}
+
+h2 {
+  font-size: 36px;
+  line-height: 44px;
+  font-weight: 600;
+}
+
+h3 {
+  font-size: 24px;
+  line-height: 32px;
+  font-weight: 600;
+  font-family: var(--font-primary);
+}
+
+/* H3 is Figtree per brief */
+h4 {
+  font-size: 18px;
+  line-height: 24px;
+  font-weight: 600;
+  font-family: var(--font-primary);
+}
+
+p {
+  margin-bottom: 1em;
+  font-size: 14px;
+}
+
+button {
+  font-family: var(--font-primary);
+  cursor: pointer;
+  border: none;
+  transition: all 0.2s ease;
+}
+
+/* Utilities */
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 var(--spacing-sm);
+}
+
+.text-center {
+  text-align: center;
+}
+
+.flex {
+  display: flex;
+}
+
+.flex-col {
+  display: flex;
+  flex-direction: column;
+}
+
+.items-center {
+  align-items: center;
+}
+
+.justify-center {
+  justify-content: center;
+}
+
+.justify-between {
+  justify-content: space-between;
+}
+
+.gap-sm {
+  gap: var(--spacing-sm);
+}
+
+.gap-md {
+  gap: var(--spacing-md);
+}
+
+/* Chess Pattern Background Utility - 8x8 Grid 2% Opacity (Subtle) */
+.bg-chess-pattern {
+  background-image:
+    linear-gradient(45deg, #00000005 25%, transparent 25%),
+    linear-gradient(-45deg, #00000005 25%, transparent 25%),
+    linear-gradient(45deg, transparent 75%, #00000005 75%),
+    linear-gradient(-45deg, transparent 75%, #00000005 75%);
+  background-size: 40px 40px;
+  background-position: 0 0, 0 20px, 20px -20px, -20px 0px;
+}
+
+/* Indian Heritage Motifs - Simplified Professional Line */
+.rangoli-border-top {
+  position: relative;
+}
+
+.rangoli-border-top::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: linear-gradient(90deg, var(--color-deep-blue), var(--color-warm-orange));
+}
+
+/* Animations */
+
+
+/* Landing Page Specifics */
+/* ... existing pawn styles ... */
+
+/* FAQ Accordion */
+details>summary {
+  list-style: none;
+  cursor: pointer;
+  padding: 16px;
+  background-color: #f5f5f5;
+  border-radius: 8px;
+  margin-bottom: 8px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  transition: all 0.2s;
+}
+
+details>summary:hover {
+  background-color: #eee;
+}
+
+details[open]>summary {
+  background-color: var(--color-deep-blue);
+  color: #fff;
+  margin-bottom: 0;
+  border-bottom-left-radius: 0;
+  border-bottom-right-radius: 0;
+}
+
+details>div {
+  padding: 16px;
+  background-color: #fff;
+  border: 1px solid #eee;
+  border-top: none;
+  border-bottom-left-radius: 8px;
+  border-bottom-right-radius: 8px;
+  margin-bottom: 8px;
+}
+
+/* Testimonial Card */
+.testimonial-card {
+  background: #f9f9f9;
+  padding: 24px;
+  border-radius: 12px;
+  text-align: center;
+  border: 1px solid #eee;
+  transition: transform 0.2s;
+}
+
+.testimonial-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.05);
+}
+
+/* Service Card */
+.service-card {
+  background-color: #000;
+  border: 1px solid #333;
+  border-radius: 16px;
+  padding: 32px;
+  text-align: center;
+  transition: all 0.3s ease;
+  cursor: pointer;
+  position: relative;
+  overflow: hidden;
+}
+
+.service-card:hover {
+  background-color: #111;
+  transform: translateY(-5px);
+  border-color: var(--color-warm-orange);
+  box-shadow: 0 10px 30px rgba(252, 138, 36, 0.2);
+}
+
+.service-card h3 {
+  color: #fff;
+  margin-bottom: 16px;
+  font-size: 20px;
+}
+
+.service-card p {
+  color: #888;
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+.service-card:hover h3 {
+  color: var(--color-warm-orange);
+}
+
+/* Contact Form Input */
+.contact-input {
+  width: 100%;
+  padding: 12px 16px;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  font-family: var(--font-primary);
+  font-size: 14px;
+  transition: border-color 0.2s;
+  outline: none;
+}
+
+.contact-input:focus {
+  border-color: var(--color-warm-orange);
+}

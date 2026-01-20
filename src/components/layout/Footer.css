@@ -1,0 +1,127 @@
+/* Import Figtree font */
+@import url('https://fonts.googleapis.com/css2?family=Figtree:wght@300;400;500;600;700;800;900&display=swap');
+
+.shared-footer {
+    background: #000000;
+    padding: 64px 0 32px;
+    color: white;
+    font-family: 'Figtree', sans-serif;
+}
+
+.footer-content {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 0 48px;
+    display: grid;
+    grid-template-columns: 200px 1fr;
+    gap: 64px;
+    margin-bottom: 48px;
+}
+
+.footer-logo-section {
+    display: flex;
+    align-items: flex-start;
+}
+
+.footer-logo-large {
+    width: 280px;
+    height: auto;
+    transition: transform 0.3s ease;
+}
+
+.footer-logo-large:hover {
+    transform: scale(1.05);
+}
+
+.footer-columns {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 48px;
+}
+
+.footer-column h4 {
+    font-family: 'Figtree', sans-serif;
+    font-size: 18px;
+    font-weight: 700;
+    margin-bottom: 20px;
+    color: #FC8A24;
+}
+
+.footer-column a {
+    display: block;
+    color: #EBD6C3;
+    text-decoration: none;
+    margin-bottom: 12px;
+    font-size: 14px;
+    transition: color 0.3s ease;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.footer-column a:hover {
+    color: #FC8A24;
+}
+
+.social-link {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.social-link svg {
+    flex-shrink: 0;
+    transition: all 0.3s ease;
+}
+
+.social-link:hover svg {
+    transform: scale(1.1);
+}
+
+.social-link:hover svg path {
+    fill: #FC8A24;
+}
+
+.footer-bottom {
+    text-align: center;
+    padding-top: 32px;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.footer-bottom p {
+    color: #B49885;
+    font-size: 14px;
+    margin: 0;
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 0 48px;
+}
+
+/* RESPONSIVE */
+@media (max-width: 1024px) {
+    .footer-content {
+        grid-template-columns: 1fr;
+        gap: 32px;
+    }
+
+    .footer-logo-section {
+        justify-content: center;
+    }
+
+    .footer-columns {
+        grid-template-columns: 1fr;
+        gap: 32px;
+    }
+}
+
+@media (max-width: 768px) {
+
+    .footer-content,
+    .footer-bottom p {
+        padding: 0 24px;
+    }
+
+    .footer-logo-large {
+        width: 140px;
+    }
+}

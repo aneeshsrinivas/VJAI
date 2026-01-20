@@ -1,0 +1,90 @@
+/* ParentNavbar.css */
+@import url('https://fonts.googleapis.com/css2?family=Figtree:wght@300;400;500;600;700;800;900&display=swap');
+
+.dashboard-navbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 32px;
+    background: #003366;
+    /* Premium Deep Blue */
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    font-family: 'Figtree', sans-serif;
+}
+
+.navbar-brand {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    cursor: default;
+    /* Changed from pointer since we removed redirect */
+    transition: transform 0.3s ease;
+}
+
+.navbar-brand:hover {
+    transform: scale(1.02);
+}
+
+.navbar-logo {
+    height: 44px;
+    width: auto;
+    /* mix-blend-mode: multiply; - Removed to make logo visible on dark bg */
+    /* border-radius: 50%; - Replaced with clip-path for tighter crop */
+    clip-path: circle(46% at 50% 50%);
+    position: relative;
+    z-index: 10;
+}
+
+.navbar-title {
+    font-size: 18px;
+    font-weight: 700;
+    color: white;
+    letter-spacing: 0.5px;
+}
+
+.navbar-links {
+    display: flex;
+    gap: 8px;
+}
+
+.nav-link {
+    padding: 10px 20px;
+    color: rgba(255, 255, 255, 0.7);
+    text-decoration: none;
+    font-weight: 500;
+    font-size: 14px;
+    border-radius: 8px;
+    transition: all 0.3s ease;
+    position: relative;
+    cursor: pointer;
+}
+
+.nav-link:hover {
+    color: white;
+    background: rgba(255, 255, 255, 0.1);
+}
+
+.nav-link.active {
+    color: white;
+    background: linear-gradient(135deg, #FC8A24, #ff9d4d);
+    box-shadow: 0 4px 15px rgba(252, 138, 36, 0.4);
+}
+
+/* Respond to mobile */
+@media (max-width: 768px) {
+    .dashboard-navbar {
+        padding: 12px 16px;
+    }
+
+    .navbar-links {
+        display: none;
+        /* In a real app we'd add a hamburger menu */
+    }
+
+    .navbar-title {
+        font-size: 16px;
+    }
+}
