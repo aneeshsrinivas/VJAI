@@ -31,6 +31,7 @@ import AccountsPage from './pages/admin/AccountsPage';
 import AnalyticsPage from './pages/admin/AnalyticsPage';
 import LiveAnalytics from './pages/admin/LiveAnalytics';
 import AdminCoachApplications from './pages/admin/AdminCoachApplications';
+import SkillSetsPage from './pages/admin/SkillSetsPage';
 import ChatPage from './pages/common/ChatPage';
 import PlanSelection from './pages/PlanSelection';
 import PaymentCheckout from './pages/PaymentCheckout';
@@ -136,6 +137,7 @@ const App = () => {
               <Route path="/admin/analytics" element={<AnalyticsPage />} />
               <Route path="/admin/live-analytics" element={<LiveAnalytics />} />
               <Route path="/admin/applications" element={<AdminCoachApplications />} />
+              <Route path="/admin/skillsets" element={<SkillSetsPage />} />
             </Route>
 
           </Routes>

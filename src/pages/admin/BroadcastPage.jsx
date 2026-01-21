@@ -10,7 +10,6 @@ import { Send, FileText, Clock, Users } from 'lucide-react';
 
 const BroadcastPage = () => {
     const { currentUser } = useAuth();
-    const [batches, setBatches] = useState([]);
     const [broadcasts, setBroadcasts] = useState([]);
     const [loading, setLoading] = useState(true);
     const [sending, setSending] = useState(false);
@@ -19,25 +18,11 @@ const BroadcastPage = () => {
     const [formData, setFormData] = useState({
         studentType: 'ALL',
         level: 'ALL',
-        timezone: 'ALL',
-        batchId: 'ALL',
         subject: '',
         message: ''
     });
 
-    // Fetch batches for dropdown
-    useEffect(() => {
-        const fetchBatches = async () => {
-            try {
-                const snapshot = await getDocs(collection(db, 'batches'));
-                const batchList = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-                setBatches(batchList);
-            } catch (error) {
-                console.error('Error fetching batches:', error);
-            }
-        };
-        fetchBatches();
-    }, []);
+
 
     // Real-time listener for broadcasts
     useEffect(() => {
@@ -68,14 +53,12 @@ const BroadcastPage = () => {
         setSending(true);
         try {
             // Save broadcast to Firestore
-            const broadcastRef = await addDoc(collection(db, 'broadcasts'), {
+            await addDoc(collection(db, 'broadcasts'), {
                 subject: formData.subject,
                 message: formData.message,
                 audience: {
                     studentType: formData.studentType,
-                    level: formData.level,
-                    timezone: formData.timezone,
-                    batchId: formData.batchId
+                    level: formData.level
                 },
                 sentBy: currentUser?.uid || 'admin',
                 sentByEmail: currentUser?.email || 'admin@system',
@@ -83,30 +66,10 @@ const BroadcastPage = () => {
                 createdAt: serverTimestamp()
             });
 
-            // Also send to group chat if a specific batch is selected
-            if (formData.batchId !== 'ALL') {
-                // Find chat for this batch and add message
-                const chatsSnapshot = await getDocs(collection(db, 'chats'));
-                const batchChat = chatsSnapshot.docs.find(doc => doc.data().batchId === formData.batchId);
-
-                if (batchChat) {
-                    await addDoc(collection(db, 'messages'), {
-                        chatId: batchChat.id,
-                        senderId: currentUser?.uid || 'admin',
-                        senderName: 'Admin Broadcast',
-                        senderRole: 'ADMIN',
-                        content: `[ANNOUNCEMENT] ${formData.subject}\n\n${formData.message}`,
-                        createdAt: serverTimestamp()
-                    });
-                }
-            }
-
             toast.success('Broadcast sent successfully');
             setFormData({
                 studentType: 'ALL',
                 level: 'ALL',
-                timezone: 'ALL',
-                batchId: 'ALL',
                 subject: '',
                 message: ''
             });
@@ -129,9 +92,7 @@ const BroadcastPage = () => {
                 message: formData.message,
                 audience: {
                     studentType: formData.studentType,
-                    level: formData.level,
-                    timezone: formData.timezone,
-                    batchId: formData.batchId
+                    level: formData.level
                 },
                 sentBy: currentUser?.uid || 'admin',
                 status: 'DRAFT',
@@ -203,37 +164,6 @@ const BroadcastPage = () => {
                                 <option value="BEGINNER">Beginner</option>
                                 <option value="INTERMEDIATE">Intermediate</option>
                                 <option value="ADVANCED">Advanced</option>
-                            </select>
-                        </div>
-                        <div>
-                            <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500' }}>Timezone</label>
-                            <select
-                                name="timezone"
-                                value={formData.timezone}
-                                onChange={handleInputChange}
-                                style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid #ccc' }}
-                            >
-                                <option value="ALL">All Timezones</option>
-                                <option value="IST">India (IST)</option>
-                                <option value="EST">USA (EST)</option>
-                                <option value="PST">USA (PST)</option>
-                                <option value="GMT">Europe (GMT)</option>
-                            </select>
-                        </div>
-                        <div>
-                            <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500' }}>Specific Batch</label>
-                            <select
-                                name="batchId"
-                                value={formData.batchId}
-                                onChange={handleInputChange}
-                                style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid #ccc' }}
-                            >
-                                <option value="ALL">All Active Batches</option>
-                                {batches.map(batch => (
-                                    <option key={batch.id} value={batch.id}>
-                                        {batch.name || batch.id}
-                                    </option>
-                                ))}
                             </select>
                         </div>
                     </div>
