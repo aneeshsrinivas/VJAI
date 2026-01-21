@@ -27,6 +27,7 @@ import FinanceReports from './pages/admin/FinanceReports';
 import DemosPage from './pages/admin/DemosPage';
 import BroadcastPage from './pages/admin/BroadcastPage';
 import SubscriptionPage from './pages/admin/SubscriptionPage';
+import SubscriptionPlansManager from './pages/admin/SubscriptionPlansManager';
 import AccountsPage from './pages/admin/AccountsPage';
 import AnalyticsPage from './pages/admin/AnalyticsPage';
 import LiveAnalytics from './pages/admin/LiveAnalytics';
@@ -133,6 +134,7 @@ const App = () => {
               <Route path="/admin/broadcast" element={<BroadcastPage />} />
               <Route path="/admin/messages" element={<ChatPage userRole="ADMIN" />} />
               <Route path="/admin/subscriptions" element={<SubscriptionPage />} />
+              <Route path="/admin/subscription-plans" element={<SubscriptionPlansManager />} />
               <Route path="/admin/accounts" element={<AccountsPage />} />
               <Route path="/admin/analytics" element={<AnalyticsPage />} />
               <Route path="/admin/live-analytics" element={<LiveAnalytics />} />

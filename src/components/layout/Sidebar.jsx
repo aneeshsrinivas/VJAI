@@ -4,7 +4,7 @@ import { signOut } from 'firebase/auth';
 import { auth } from '../../lib/firebase';
 import {
     LayoutDashboard, Users, GraduationCap, Wallet, Radio, MessageSquare,
-    CreditCard, Calendar, BookOpen, Layers, Shield, BarChart3, FileText, LogOut, ChevronRight, Target
+    CreditCard, Calendar, BookOpen, Layers, Shield, BarChart3, FileText, LogOut, ChevronRight, Target, Package
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { doc, getDoc, collection, query, where, getDocs } from 'firebase/firestore';
@@ -27,6 +27,7 @@ const Sidebar = ({ role = 'admin', activePath = '/dashboard' }) => {
         { label: 'Broadcast', icon: <Radio size={20} />, path: '/admin/broadcast' },
         { label: 'Messages', icon: <MessageSquare size={20} />, path: '/chat' },
         { label: 'Subscriptions', icon: <CreditCard size={20} />, path: '/admin/subscriptions' },
+        { label: 'Subscription Plans', icon: <Package size={20} />, path: '/admin/subscription-plans' },
         { label: 'Accounts', icon: <Shield size={20} />, path: '/admin/accounts' },
     ] : [
         { label: 'Dashboard', icon: <LayoutDashboard size={20} />, path: '/coach' },
