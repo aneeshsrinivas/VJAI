@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { collection, getDocs, updateDoc, doc, serverTimestamp, addDoc, query, where, deleteDoc } from 'firebase/firestore';
+import { collection, getDocs, updateDoc, doc, serverTimestamp, addDoc, query, where, deleteDoc, setDoc } from 'firebase/firestore';
 import { db } from '../../lib/firebase';
 import Card from '../../components/ui/Card';
 import Button from '../../components/ui/Button';
@@ -132,11 +132,29 @@ const CoachRoster = () => {
             </div>
 
             <div className="tabs" style={{ display: 'flex', gap: '20px', marginBottom: '24px', borderBottom: '1px solid #eee' }}>
-                <div onClick={() => setActiveTab('roster')}>
+                <div
+                    onClick={() => setActiveTab('roster')}
+                    style={{
+                        paddingBottom: '12px',
+                        cursor: 'pointer',
+                        borderBottom: activeTab === 'roster' ? '2px solid #1E3A8A' : 'none',
+                        color: activeTab === 'roster' ? '#1E3A8A' : '#666',
+                        fontWeight: activeTab === 'roster' ? '600' : '500'
+                    }}
+                >
                     Active Roster
                 </div>
 
-                <div onClick={() => setActiveTab('applications')}>
+                <div
+                    onClick={() => setActiveTab('applications')}
+                    style={{
+                        paddingBottom: '12px',
+                        cursor: 'pointer',
+                        borderBottom: activeTab === 'applications' ? '2px solid #1E3A8A' : 'none',
+                        color: activeTab === 'applications' ? '#1E3A8A' : '#666',
+                        fontWeight: activeTab === 'applications' ? '600' : '500'
+                    }}
+                >
                     Applications
                 </div>
             </div>
@@ -172,11 +190,11 @@ const CoachRoster = () => {
                                             fontSize: '22px',
                                             flexShrink: 0
                                         }}>
-                                            {(coach.name || 'C').charAt(0).toUpperCase()}
+                                            {(coach.name || coach.fullName || coach.coachName || 'C').charAt(0).toUpperCase()}
                                         </div>
                                         <div style={{ flex: 1 }}>
                                             <h3 style={{ margin: '0 0 4px 0', fontSize: '18px', fontWeight: '700', color: '#1E3A8A' }}>
-                                                {coach.name || 'Unknown'}
+                                                {coach.name || coach.fullName || coach.coachName || 'Unknown'}
                                             </h3>
                                             <p style={{ margin: 0, fontSize: '13px', color: '#666' }}>
                                                 {coach.title || 'Coach'}
@@ -630,8 +648,13 @@ const CoachRoster = () => {
                                         const coachRef = doc(db, 'coaches', editingCoach.id);
                                         const selectedBatchIds = editingCoach.assignedBatchIds || [];
 
+<<<<<<< HEAD
+                                        await setDoc(coachRef, {
+                                            fullName: editingCoach.name,
+=======
                                         await updateDoc(coachRef, {
                                             fullName: editingCoach.name || editingCoach.fullName,
+>>>>>>> 92d90e2bfcb879f1028c55802b39a50110e3b3cd
                                             email: editingCoach.email,
                                             personalEmail: editingCoach.personalEmail || '',
                                             phone: editingCoach.phone || '',
@@ -643,7 +666,7 @@ const CoachRoster = () => {
                                             assignedBatchIds: selectedBatchIds,
                                             assignedBatchId: selectedBatchIds[0] || null,
                                             updatedAt: serverTimestamp()
-                                        });
+                                        }, { merge: true });
 
                                         // Also update the users collection
                                         const userRef = doc(db, 'users', editingCoach.id);
@@ -942,9 +965,9 @@ const CoachRoster = () => {
                                         const ref = await addDoc(collection(db, 'coaches', editingCoach.id, 'batches'), payload);
                                         const created = { id: ref.id, ...payload };
                                         setBatches(prev => [created, ...prev]);
-                                        setEditingCoach(prev => ({ 
-                                            ...prev, 
-                                            assignedBatchIds: [...(prev.assignedBatchIds || []), ref.id] 
+                                        setEditingCoach(prev => ({
+                                            ...prev,
+                                            assignedBatchIds: [...(prev.assignedBatchIds || []), ref.id]
                                         }));
                                         setIsCreateBatchModalOpen(false);
                                         alert('Batch created successfully!');

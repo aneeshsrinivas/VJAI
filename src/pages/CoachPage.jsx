@@ -20,6 +20,7 @@ const CoachPage = () => {
 
     // Real-time State
     const [demos, setDemos] = useState([]);
+    const [schedule, setSchedule] = useState([]); // New state for classes
     const [students, setStudents] = useState([]);
     const [todayClasses, setTodayClasses] = useState([]);
     const [selectedDemo, setSelectedDemo] = useState(null); // Modal state
@@ -55,30 +56,20 @@ const CoachPage = () => {
             });
             setDemos(demoList);
 
-            // Today's Classes
-            const today = new Date();
-            const todayStart = new Date(today.setHours(0, 0, 0, 0));
-            const todayEnd = new Date(today.setHours(23, 59, 59, 999));
-
-            const todays = demoList.filter(d => {
-                if (!d.scheduledAt) return false;
-                const date = d.scheduledAt.toDate ? d.scheduledAt.toDate() : new Date(d.scheduledAt);
-                return date >= todayStart && date <= todayEnd;
-            });
-            setTodayClasses(todays);
+            setDemos(demoList);
             setLoading(false);
             setTimeout(() => setCardsVisible(true), 100);
         }, () => {
             setDemos([]);
-            setTodayClasses([]);
             setLoading(false);
             setTimeout(() => setCardsVisible(true), 100);
         });
 
         // Listen to Students
         const qStudents = query(
-            collection(db, COLLECTIONS.STUDENTS),
-            where('assignedCoachId', '==', currentUser.uid)
+            collection(db, 'users'),
+            where('assignedCoachId', '==', currentUser.uid),
+            where('role', '==', 'customer')
         );
 
         const unsubStudents = onSnapshot(qStudents, (snapshot) => {
@@ -90,6 +81,86 @@ const CoachPage = () => {
             unsubStudents();
         };
     }, [currentUser]);
+
+    // Fetch Schedule (Classes)
+    useEffect(() => {
+        if (!currentUser?.uid) return;
+
+        const qSchedule = query(
+            collection(db, COLLECTIONS.SCHEDULE),
+            where('coachId', '==', currentUser.uid)
+        );
+
+        const unsubSchedule = onSnapshot(qSchedule, (snapshot) => {
+            const list = snapshot.docs.map(doc => {
+                const data = doc.data();
+                return {
+                    id: doc.id,
+                    ...data,
+                    scheduledAt: data.scheduledAt // Ensure consistency
+                };
+            });
+            setSchedule(list);
+        });
+
+        return () => unsubSchedule();
+    }, [currentUser]);
+
+    // Update todayClasses when demos or schedule change
+    useEffect(() => {
+        const today = new Date();
+        const start = new Date(today.setHours(0, 0, 0, 0));
+        const end = new Date(today.setHours(23, 59, 59, 999));
+
+        const getDate = (d) => d.scheduledAt?.toDate ? d.scheduledAt.toDate() : new Date(d.scheduledAt || 0);
+
+        const todaysDemos = demos.filter(d => {
+            const date = getDate(d);
+            return date >= start && date <= end;
+        }).map(d => ({ ...d, type: 'demo' }));
+
+        const todaysClasses = schedule.filter(c => {
+            const date = getDate(c);
+            return date >= start && date <= end;
+        }).map(c => ({
+            ...c,
+            type: 'class',
+            studentName: c.batchName || c.topic || 'Class',
+            chessExperience: 'Batch Class',
+            studentAge: 'N/A'
+        }));
+
+        const combined = [...todaysDemos, ...todaysClasses];
+
+        // Filter out items without valid scheduledAt
+        const validCombined = combined.filter(item => {
+            if (!item.scheduledAt) return false;
+            const date = item.scheduledAt.toDate ? item.scheduledAt.toDate() : new Date(item.scheduledAt);
+            return !isNaN(date.getTime()) && date.getFullYear() > 1970;
+        });
+
+        // Deduplicate by ID and (Title + Time)
+        const uniqueMap = new Map();
+        validCombined.forEach(item => {
+            const timeKey = item.scheduledAt?.seconds || new Date(item.scheduledAt).getTime();
+            const key = `${item.title || item.studentName}-${timeKey}`;
+
+            const isDuplicateKey = Array.from(uniqueMap.values()).some(existing => {
+                const existingTime = existing.scheduledAt?.seconds || new Date(existing.scheduledAt).getTime();
+                const existingKey = `${existing.title || existing.studentName}-${existingTime}`;
+                return existingKey === key;
+            });
+
+            if (!uniqueMap.has(item.id) && !isDuplicateKey) {
+                uniqueMap.set(item.id, item);
+            }
+        });
+
+        const uniqueCombined = Array.from(uniqueMap.values());
+        uniqueCombined.sort((a, b) => getDate(a) - getDate(b));
+
+        setTodayClasses(uniqueCombined);
+    }, [demos, schedule]);
 
     const getGreeting = () => {
         const hour = new Date().getHours();
@@ -253,16 +324,20 @@ const CoachPage = () => {
                                             <span className="time">{formatTime(session.scheduledAt)}</span>
                                         </div>
                                         <div className="session-details">
-                                            <h4>{session.studentName || 'Student'}</h4>
+                                            <h4>
+                                                {session.type === 'class' ? '📚' : '🎯'} {session.studentName || 'Student'}
+                                            </h4>
                                             <p>
-                                                <span className="badge demo">Demo</span>
-                                                <span className="meta">• {session.studentAge} yrs • {session.chessExperience || 'Beginner'}</span>
+                                                <span className={`badge ${session.type === 'class' ? 'class' : 'demo'}`}>
+                                                    {session.type === 'class' ? 'Class' : 'Demo'}
+                                                </span>
+                                                <span className="meta">• {session.studentAge === 'N/A' ? '' : `${session.studentAge} yrs •`} {session.chessExperience || 'Beginner'}</span>
                                             </p>
                                         </div>
-                                        {session.meetingLink && (
+                                        {((session.type === 'demo' && session.meetingLink) || (session.type === 'class' && session.meetLink)) && (
                                             <button
                                                 className="btn-join"
-                                                onClick={() => window.open(session.meetingLink, '_blank')}
+                                                onClick={() => window.open(session.meetingLink || session.meetLink, '_blank')}
                                             >
                                                 <Video size={16} />
                                                 Join

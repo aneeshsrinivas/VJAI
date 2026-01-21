@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { addDoc, collection, serverTimestamp } from 'firebase/firestore';
 import { db } from '../lib/firebase';
 import { toast, ToastContainer } from 'react-toastify';
+import emailService from '../services/emailService';
 import Navbar from '../components/layout/Navbar';
 import Footer from '../components/layout/Footer';
 import CTASection from '../components/shared/CTASection';
@@ -34,6 +35,10 @@ const ContactUs = () => {
                 status: 'NEW',
                 createdAt: serverTimestamp()
             });
+
+            // Send Email Notification
+            await emailService.sendContactFormEmail(formData);
+
             toast.success('Thank you! We will get back to you shortly.');
             setFormData({ name: '', email: '', phone: '', message: '' });
         } catch (error) {

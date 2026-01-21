@@ -29,6 +29,52 @@ const CoachDashboard = () => {
     const [uploadingFile, setUploadingFile] = useState(false);
     const [selectedBatchForUpload, setSelectedBatchForUpload] = useState('');
     const [activeTab, setActiveTab] = useState('overview');
+    const [schedule, setSchedule] = useState([]);
+
+    // Fetch Schedule (Classes)
+    useEffect(() => {
+        if (!currentUser?.uid) return;
+
+        const scheduleQuery = query(
+            collection(db, COLLECTIONS.SCHEDULE),
+            where('coachId', '==', currentUser.uid)
+        );
+
+        const unsubSchedule = onSnapshot(scheduleQuery, (snapshot) => {
+            const list = snapshot.docs.map(doc => {
+                const data = doc.data();
+                const date = data.scheduledAt?.toDate ? data.scheduledAt.toDate() : new Date();
+                return {
+                    id: doc.id,
+                    type: 'class',
+                    title: data.batchName || data.topic || 'Class',
+                    studentName: data.batchName || 'Group Class',
+                    chessExperience: 'Batch',
+                    scheduledStart: date,
+                    meetingLink: data.meetLink
+                };
+            });
+            setSchedule(list);
+        });
+
+        return () => unsubSchedule();
+    }, [currentUser]);
+
+    // Combine Demos and Schedule
+    const combinedSchedule = [...demos.map(d => ({ ...d, type: 'demo' })), ...schedule].sort((a, b) => {
+        const dateA = new Date(a.scheduledStart || 0);
+        const dateB = new Date(b.scheduledStart || 0);
+        return dateA - dateB;
+    });
+
+    const upcomingEvents = combinedSchedule.filter(e => {
+        const eventDate = new Date(e.scheduledStart || 0);
+        const now = new Date();
+        now.setHours(now.getHours() - 2);
+        return eventDate > now;
+    }).slice(0, 5);
+
+    console.log('CoachDashboard Schedule:', { schedule, demos, combinedSchedule, upcomingEvents });
 
     // Fetch Coach Profile and related data
     useEffect(() => {
@@ -274,46 +320,52 @@ const CoachDashboard = () => {
             <div className="content-grid">
                 {/* LEFT - Main Content */}
                 <div className="main-section">
-                    {/* Demos Card */}
+                    {/* Schedule Card (Replaces Demos Card) */}
                     <div className={`glass-card demos-section ${cardsVisible ? 'visible' : ''}`}>
                         <div className="card-header">
                             <div className="header-title">
-                                <Zap size={20} className="icon-accent" />
-                                <h2>🎯 Upcoming Demo Classes</h2>
+                                <Calendar size={20} className="icon-accent" />
+                                <h2>📅 Your Schedule</h2>
                             </div>
                             <button className="btn-link" onClick={() => navigate('/coach/schedule')}>
                                 View All <ChevronRight size={16} />
                             </button>
                         </div>
 
-                        {demos.length === 0 ? (
+                        {upcomingEvents.length === 0 ? (
                             <div className="empty-state glass">
                                 <div className="empty-icon">📅</div>
-                                <p>No demos scheduled yet</p>
-                                <span>Admin will assign demos when parents book</span>
+                                <p>No classes or demos scheduled</p>
+                                <span>Check your calendar for details</span>
                             </div>
                         ) : (
                             <div className="demos-list">
-                                {demos.map((demo, index) => (
-                                    <div key={demo.id} className="demo-card" style={{ animationDelay: `${index * 0.1}s` }}>
+                                {upcomingEvents.map((event, index) => (
+                                    <div key={event.id} className={`demo-card ${event.type === 'demo' ? 'demo-event' : 'class-event'}`} style={{ animationDelay: `${index * 0.1}s`, borderLeft: event.type === 'demo' ? '4px solid #10B981' : '4px solid #3B82F6' }}>
                                         <div className="demo-time">
                                             <span className="time-badge">
-                                                {demo.scheduledStart
-                                                    ? new Date(demo.scheduledStart).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+                                                {event.scheduledStart
+                                                    ? new Date(event.scheduledStart).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
                                                     : 'TBD'}
                                             </span>
                                             <span className="date-text">
-                                                {demo.scheduledStart
-                                                    ? new Date(demo.scheduledStart).toLocaleDateString([], { weekday: 'short', month: 'short', day: 'numeric' })
+                                                {event.scheduledStart
+                                                    ? new Date(event.scheduledStart).toLocaleDateString([], { weekday: 'short', month: 'short', day: 'numeric' })
                                                     : ''}
                                             </span>
                                         </div>
                                         <div className="demo-info">
-                                            <h4>🎓 {demo.studentName}</h4>
-                                            <p>{demo.chessExperience || 'Beginner'} • {demo.timezone || 'IST'}</p>
+                                            <h4>
+                                                {event.type === 'demo' ? '🎯' : '📚'} {event.studentName}
+                                            </h4>
+                                            <p>
+                                                {event.type === 'demo'
+                                                    ? `${event.chessExperience || 'Beginner'} • Demo`
+                                                    : `${event.title} • Class`}
+                                            </p>
                                         </div>
-                                        {demo.meetingLink && (
-                                            <button className="btn-join" onClick={() => window.open(demo.meetingLink, '_blank')}>
+                                        {event.meetingLink && (
+                                            <button className="btn-join" onClick={() => window.open(event.meetingLink, '_blank')}>
                                                 <Play size={16} /> Join
                                             </button>
                                         )}

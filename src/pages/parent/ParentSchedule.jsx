@@ -12,7 +12,7 @@ const ParentSchedule = () => {
     const [demos, setDemos] = useState([]);
     const [loading, setLoading] = useState(true);
     const [studentData, setStudentData] = useState(null);
-    const { currentUser } = useAuth();
+    const { currentUser, userData } = useAuth();
 
     useEffect(() => {
         if (!currentUser?.uid) return;
@@ -25,9 +25,9 @@ const ParentSchedule = () => {
                 if (userDoc.exists()) {
                     const student = userDoc.data();
                     setStudentData(student);
-                    
+
                     const batchId = student.assignedBatchId || student.assignedBatch;
-                    
+
                     if (batchId) {
                         // Fetch classes filtered by batchId and status SCHEDULED
                         const qClasses = query(
@@ -51,7 +51,7 @@ const ParentSchedule = () => {
                                 const dateB = b.scheduledAt?.seconds ? b.scheduledAt.seconds : new Date(b.scheduledAt).getTime() / 1000;
                                 return dateA - dateB;
                             });
-                            
+
                             setClasses(list);
                         }, (error) => {
                             // If composite index error, fetch without status filter and filter client-side
@@ -79,7 +79,7 @@ const ParentSchedule = () => {
 
                         return () => unsubscribeClasses();
                     }
-                }else{
+                } else {
                     console.log("No student document found for user:", currentUser.uid);
                 }
             } catch (error) {
@@ -110,7 +110,43 @@ const ParentSchedule = () => {
         };
     }, [currentUser]);
 
-    const allSessions = [...classes, ...demos].sort((a, b) => {
+    const allSessions = [...classes, ...demos].filter(session => {
+        // If no user data, show nothing (or all? Safer to show nothing to avoid leak)
+        if (!userData) return false;
+
+        // Admin or Coach sees all (if they view this page, though usually they have their own)
+        if (userData.role === 'admin' || userData.role === 'coach') return true;
+
+        // Student Filtering Logic
+        const userBatch = userData.assignedBatchName || userData.assignedBatch;
+        const userLevel = userData.level || userData.learningLevel;
+
+        // 1. If session has a specific batch name, match it
+        if (session.batchName && userBatch) {
+            return session.batchName.toLowerCase() === userBatch.toLowerCase();
+        }
+
+        // 2. If session has no batch name but has level, match level (Fallback)
+        if (session.level && userLevel) {
+            return session.level.toLowerCase() === userLevel.toLowerCase();
+        }
+
+        // 3. Global sessions (optional, e.g. "Global" batch)
+        if (session.batchName === 'Global') return true;
+
+        // Default: If exact batch match required, return false. 
+        // But for 'Beginner Batch' vs 'Beginner', allow level match if batch not set?
+        // User said: "student has taken beginner batch, so he should only see beginner"
+        // Let's assume if batch is assigned, MUST match batch. If not, match level.
+        if (userBatch) return false; // Has batch, didn't match above -> Hide.
+
+        // No batch assigned yet? Maybe show nothing?
+        // User complained "new student... doesnt have batch... cant see". 
+        // Actually user said "student new... doesnt have batch... cant edit... fix that."
+        // And "student has taken beginner batch... should only see beginner".
+        // If I fixed Admin Edit, Admin assigns batch. Then this works.
+        return true;
+    }).sort((a, b) => {
         const dateA = a.scheduledAt?.seconds ? new Date(a.scheduledAt.seconds * 1000) : new Date(a.scheduledAt);
         const dateB = b.scheduledAt?.seconds ? new Date(b.scheduledAt.seconds * 1000) : new Date(b.scheduledAt);
         return dateA - dateB;

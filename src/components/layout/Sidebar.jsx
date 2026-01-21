@@ -72,17 +72,7 @@ const Sidebar = ({ role = 'admin', activePath = '/dashboard' }) => {
 
             <div className="sidebar-footer">
                 <div className="user-compact">
-                    <div className="user-avatar">
-                        {role === 'admin' ? 'A' : 'C'}
-                    </div>
-                    <div>
-                        <div className="user-name">
-                            {role === 'admin' ? 'System Admin' : 'Coach'}
-                        </div>
-                        <div className="user-role">
-                            {role === 'admin' ? 'Operations' : 'Senior Coach'}
-                        </div>
-                    </div>
+
 
                     <button
                         className={`user-profile-btn ${showDropdown ? 'active' : ''}`}

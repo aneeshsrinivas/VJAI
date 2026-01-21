@@ -75,13 +75,15 @@ const RegistrationPage = () => {
         e.preventDefault();
         setError('');
 
-        // Require Very Strong password
-        if (passwordStrength.level < 4) {
-            return setError('Password must be Very Strong. Include 12+ characters with uppercase, lowercase, numbers, and special characters.');
-        }
+        // Require Very Strong password (SKIP FOR COACH)
+        if (role !== 'coach') {
+            if (passwordStrength.level < 4) {
+                return setError('Password must be Very Strong. Include 12+ characters with uppercase, lowercase, numbers, and special characters.');
+            }
 
-        if (formData.password !== formData.confirmPassword) {
-            return setError('Passwords do not match');
+            if (formData.password !== formData.confirmPassword) {
+                return setError('Passwords do not match');
+            }
         }
 
         if (formData.studentAge && Number(formData.studentAge) <= 5) {
@@ -342,44 +344,9 @@ const RegistrationPage = () => {
                             </div>
                         </div>
                         <Input label="Experience (Years)" name="experience" type="number" required value={formData.experience} onChange={handleChange} />
-                        <Input label="Password" name="password" type="password" required value={formData.password} onChange={handleChange} />
-                        {/* Password Strength Indicator for Coach */}
-                        {formData.password && (
-                            <div style={{ marginTop: '-8px', marginBottom: '16px' }}>
-                                <div style={{ display: 'flex', gap: '4px', marginBottom: '6px' }}>
-                                    {[1, 2, 3, 4].map(level => (
-                                        <div
-                                            key={level}
-                                            style={{
-                                                flex: 1,
-                                                height: '4px',
-                                                borderRadius: '2px',
-                                                background: passwordStrength.level >= level ? passwordStrength.color : '#e5e7eb',
-                                                transition: 'all 0.3s'
-                                            }}
-                                        />
-                                    ))}
-                                </div>
-                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                                    <span style={{ fontSize: '12px', fontWeight: '600', color: passwordStrength.color }}>
-                                        {passwordStrength.label}
-                                    </span>
-                                    {passwordStrength.level < 4 && (
-                                        <span style={{ fontSize: '11px', color: '#666' }}>
-                                            Needs: {formData.password.length < 12 ? '12+ chars, ' : ''}{!/[A-Z]/.test(formData.password) ? 'UPPERCASE, ' : ''}{!/[0-9]/.test(formData.password) ? 'numbers, ' : ''}{!/[^a-zA-Z0-9]/.test(formData.password) ? 'special char' : ''}
-                                        </span>
-                                    )}
-                                </div>
-                            </div>
-                        )}
-                        <Input label="Confirm Password" name="confirmPassword" type="password" required placeholder="Confirm your password" value={formData.confirmPassword} onChange={handleChange} />
-                        <div style={{ marginBottom: '16px' }}>
-                            <label style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '14px' }}>
-                                <input type="checkbox" required /> I understand I will not see parent contact info directly.
-                            </label>
-                        </div>
                     </>
                 );
+
             case 'admin':
                 return (
                     <>
