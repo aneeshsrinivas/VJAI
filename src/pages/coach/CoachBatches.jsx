@@ -49,13 +49,13 @@ const CoachBatches = () => {
         }
 
         console.log("Fetching batches for coach:", currentUser.uid);
-        
+
         // Fetch from coach's subcollection: coaches/{coachId}/batches
         const batchesRef = collection(db, 'coaches', currentUser.uid, 'batches');
 
         const unsubscribe = onSnapshot(batchesRef, (snapshot) => {
-            const batchList = snapshot.docs.map(d => ({ 
-                id: d.id, 
+            const batchList = snapshot.docs.map(d => ({
+                id: d.id,
                 ...d.data(),
                 color: getColorForLevel(d.data().level),
                 students: (d.data().studentsId || []).length
@@ -81,7 +81,8 @@ const CoachBatches = () => {
         );
 
         const unsubscribeAssignments = onSnapshot(qAssignments, (snapshot) => {
-            setUploadLog(snapshot.docs.map(d => ({ id: d.id, ...d.data() })));
+            const logs = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
+            setUploadLog(logs.sort((a, b) => (b.createdAt?.seconds || 0) - (a.createdAt?.seconds || 0)));
         });
 
         return () => unsubscribeAssignments();
