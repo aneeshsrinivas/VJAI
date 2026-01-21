@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { collection, query, where, getDocs, addDoc, deleteDoc, doc, serverTimestamp } from 'firebase/firestore';
+import { collection, getDocs, addDoc, deleteDoc, doc, serverTimestamp } from 'firebase/firestore';
 import { db } from '../../../lib/firebase';
-import { COLLECTIONS } from '../../../config/firestoreCollections';
 import Button from '../../ui/Button';
 import { Trash2, Plus, Calendar, Clock, BarChart } from 'lucide-react';
 
@@ -21,8 +20,8 @@ const ManageBatchesModal = ({ isOpen, onClose, coach }) => {
     const fetchBatches = async () => {
         setLoading(true);
         try {
-            const q = query(collection(db, COLLECTIONS.BATCHES), where('coachId', '==', coach.id));
-            const snap = await getDocs(q);
+            // Fetch from coach's subcollection
+            const snap = await getDocs(collection(db, 'coaches', coach.id, 'batches'));
             setBatches(snap.docs.map(d => ({ id: d.id, ...d.data() })));
         } catch (e) {
             console.error("Error fetching batches:", e);
@@ -33,11 +32,18 @@ const ManageBatchesModal = ({ isOpen, onClose, coach }) => {
     const handleAdd = async () => {
         if (!newBatch.name) return;
         try {
-            await addDoc(collection(db, COLLECTIONS.BATCHES), {
-                ...newBatch,
-                coachId: coach.id,
-                coachName: coach.name || coach.coachName,
-                students: 0, // Initial count
+            // Add to coach's subcollection
+            await addDoc(collection(db, 'coaches', coach.id, 'batches'), {
+                name: newBatch.name,
+                schedule: newBatch.schedule,
+                level: newBatch.level.toLowerCase(),
+                daysOfWeek: [],
+                time: '',
+                duration: 1,
+                description: '',
+                studentsId: [],
+                assignments: [],
+                reports: [],
                 createdAt: serverTimestamp()
             });
             setNewBatch({ name: '', schedule: '', level: 'Intermediate' });
@@ -51,7 +57,8 @@ const ManageBatchesModal = ({ isOpen, onClose, coach }) => {
     const handleDelete = async (id) => {
         if (!window.confirm('Are you sure you want to delete this batch?')) return;
         try {
-            await deleteDoc(doc(db, COLLECTIONS.BATCHES, id));
+            // Delete from coach's subcollection
+            await deleteDoc(doc(db, 'coaches', coach.id, 'batches', id));
             fetchBatches();
         } catch (e) {
             console.error("Error deleting batch:", e);

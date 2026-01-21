@@ -88,13 +88,13 @@ const AddCoachModal = ({ isOpen, onClose, onSuccess }) => {
 
     return (
         <div className="modal-overlay">
-            <div className="modal-content" style={{ width: '600px', maxWidth: '90%' }}>
+            <div className="modal-content" style={{ width: '600px', maxWidth: '90%', maxHeight: '90vh', display: 'flex', flexDirection: 'column' }}>
                 <button className="modal-close" onClick={onClose}>&times;</button>
                 <h2 className="modal-title">Add New Coach</h2>
 
                 {error && <div className="error-message" style={{ color: 'red', marginBottom: '16px' }}>{error}</div>}
 
-                <form onSubmit={handleSubmit} className="evaluation-form">
+                <form onSubmit={handleSubmit} className="evaluation-form" style={{ overflowY: 'auto', flex: 1, paddingRight: '8px' }}>
                     <div className="form-row">
                         <Input
                             label="Full Name"
