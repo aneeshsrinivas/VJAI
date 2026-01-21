@@ -108,6 +108,41 @@ VJ AI Chess Academy Team
             console.error('Failed to send welcome email:', error);
             return { success: false, error: error.message };
         }
+    },
+    /**
+     * Send Contact Form Submission
+     */
+    sendContactFormEmail: async ({ name, email, phone, message }) => {
+        try {
+            const response = await fetch(API_ENDPOINT, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json'
+                },
+                body: JSON.stringify({
+                    access_key: WEB3FORMS_API_KEY,
+                    subject: `New Contact Inquiry from ${name}`,
+                    from_name: 'VJ AI Website Contact',
+                    to: 'indianchessacademy@gmail.com', // Sent to Admin
+                    message: `
+Name: ${name}
+Email: ${email}
+Phone: ${phone || 'N/A'}
+
+Message:
+${message}
+                    `.trim(),
+                    replyto: email
+                })
+            });
+
+            const result = await response.json();
+            return result.success ? { success: true } : { success: false, error: result.message };
+        } catch (error) {
+            console.error('Failed to send contact email:', error);
+            return { success: false, error: error.message };
+        }
     }
 };
 

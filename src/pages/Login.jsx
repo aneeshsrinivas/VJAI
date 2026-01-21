@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { Crown, Users, GraduationCap } from 'lucide-react';
@@ -11,13 +11,35 @@ const Login = () => {
     const [password, setPassword] = useState('');
     const [error, setError] = useState('');
     const [loading, setLoading] = useState(false);
+    const [rememberMe, setRememberMe] = useState(false);
+    const [savedAccounts, setSavedAccounts] = useState([]);
+    const [showAccounts, setShowAccounts] = useState(false);
+
+    useEffect(() => {
+        try {
+            const saved = JSON.parse(localStorage.getItem('vjai_saved_accounts') || '[]');
+            if (Array.isArray(saved)) {
+                setSavedAccounts(saved);
+            }
+        } catch (err) {
+            console.error("Failed to load accounts", err);
+        }
+    }, []);
 
     const handleLogin = async (e) => {
         e.preventDefault();
         setError('');
         setLoading(true);
         try {
-            const { role } = await login(email, password);
+            const { role, user } = await login(email, password); // assuming login returns user obj too, or just role
+
+            // Handle Remember Me (Multi-account)
+            if (rememberMe) {
+                const newAccount = { e: email, p: password, role: role, name: email.split('@')[0] };
+                const updated = [newAccount, ...savedAccounts.filter(a => a.e !== email)].slice(0, 5); // Keep max 5
+                localStorage.setItem('vjai_saved_accounts', JSON.stringify(updated));
+                setSavedAccounts(updated);
+            }
 
             // Navigate immediately based on returned role
             if (role === 'admin') {
@@ -40,6 +62,13 @@ const Login = () => {
             }
             setLoading(false);
         }
+    };
+
+    const selectAccount = (acc) => {
+        setEmail(acc.e);
+        setPassword(acc.p);
+        setRememberMe(true);
+        setShowAccounts(false);
     };
 
     return (
@@ -86,15 +115,59 @@ const Login = () => {
                     {error && <div className="error-message" style={{ color: '#DC2626', marginBottom: '1rem', textAlign: 'center', padding: '12px', backgroundColor: '#FEE2E2', borderRadius: '8px' }}>{error}</div>}
 
                     <form onSubmit={handleLogin} className="login-form">
-                        <div className="form-group">
+                        <div className="form-group" style={{ position: 'relative' }}>
                             <label>Email Address</label>
                             <input
                                 type="email"
                                 placeholder="yourname@gmail.com"
                                 value={email}
                                 onChange={(e) => setEmail(e.target.value)}
+                                onFocus={() => setShowAccounts(true)}
+                                onBlur={() => setTimeout(() => setShowAccounts(false), 200)}
                                 required
+                                autoComplete="off"
                             />
+                            {/* Saved Accounts Dropdown */}
+                            {showAccounts && savedAccounts.length > 0 && (
+                                <div style={{
+                                    position: 'absolute',
+                                    top: '100%',
+                                    left: 0,
+                                    right: 0,
+                                    backgroundColor: 'white',
+                                    border: '1px solid #e5e7eb',
+                                    borderRadius: '8px',
+                                    boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)',
+                                    zIndex: 50,
+                                    marginTop: '4px',
+                                    maxHeight: '200px',
+                                    overflowY: 'auto'
+                                }}>
+                                    {savedAccounts.map((acc, idx) => (
+                                        <div
+                                            key={idx}
+                                            onClick={() => selectAccount(acc)}
+                                            style={{
+                                                padding: '10px 12px',
+                                                cursor: 'pointer',
+                                                borderBottom: idx < savedAccounts.length - 1 ? '1px solid #f3f4f6' : 'none',
+                                                display: 'flex',
+                                                justifyContent: 'space-between',
+                                                alignItems: 'center',
+                                                transition: 'background-color 0.2s'
+                                            }}
+                                            onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#F9FAFB'}
+                                            onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
+                                        >
+                                            <div style={{ display: 'flex', flexDirection: 'column' }}>
+                                                <span style={{ fontWeight: '500', color: '#111827', fontSize: '14px' }}>{acc.e}</span>
+                                                <span style={{ fontSize: '12px', color: '#6B7280' }}>Saved • {acc.role || 'User'}</span>
+                                            </div>
+                                            <div style={{ fontSize: '12px', color: '#3B82F6', fontWeight: '600' }}>Auth</div>
+                                        </div>
+                                    ))}
+                                </div>
+                            )}
                         </div>
                         <div className="form-group">
                             <label>Password</label>
@@ -108,8 +181,12 @@ const Login = () => {
                         </div>
 
                         <div className="form-options">
-                            <label className="remember-me">
-                                <input type="checkbox" /> Remember me
+                            <label className="remember-me" style={{ cursor: 'pointer' }}>
+                                <input
+                                    type="checkbox"
+                                    checked={rememberMe}
+                                    onChange={(e) => setRememberMe(e.target.checked)}
+                                /> Remember me
                             </label>
                             <a href="#" className="forgot-password">Forgot Password?</a>
                         </div>

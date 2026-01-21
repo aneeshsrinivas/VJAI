@@ -59,7 +59,7 @@ const AdminDashboard = () => {
                 let monthlyRevenue = 0;
                 subsSnap.docs.forEach(doc => {
                     if (doc.data().status === 'ACTIVE') {
-                        monthlyRevenue += doc.data().amount || 0;
+                        monthlyRevenue += Number(doc.data().amount) || 0;
                     }
                 });
 

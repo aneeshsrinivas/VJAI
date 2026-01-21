@@ -60,20 +60,25 @@ export const conversionService = {
             // 2. Create account ID (simplified - in production use Firebase Auth)
             const accountId = `ACC_${Date.now()}`;
 
-            // 3. Create Student Record
-            const studentRef = await addDoc(collection(db, 'students'), {
-                accountId: accountId,
+            // 3. Create Student Record in 'users' collection (so it appears in Admin/Student lists)
+            const studentRef = await addDoc(collection(db, 'users'), {
+                uid: accountId, // Placeholder UID until auth setup
                 studentName: demoData.studentName,
-                parentName: demoData.parentName,
-                parentEmail: demoData.parentEmail,
+                fullName: demoData.parentName, // Map parent name to fullName for consistency
+                email: demoData.parentEmail,
                 phone: demoData.phone,
                 timezone: demoData.timezone,
+                learningLevel: demoData.level || 'beginner', // Standardize field name
                 level: demoData.level || 'beginner',
                 createdAt: serverTimestamp(),
                 source: 'DEMO_CONVERSION',
                 demoId: demoId,
                 assignedCoachId: demoData.assignedCoachId || null,
-                status: 'ACTIVE'
+                status: 'ACTIVE',
+                role: 'customer', // CRITICAL: Makes it appear in StudentDatabase
+                studentType: 'Group',
+                assignedBatch: null,
+                assignedBatchName: null
             });
 
             // 4. Create Subscription Record

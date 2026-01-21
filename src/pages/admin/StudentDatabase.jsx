@@ -422,36 +422,7 @@ const StudentDatabase = () => {
 
                             </div>
 
-                            {/* Coach & Batch Assignment */}
-                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', borderTop: '1px solid #eee', paddingTop: '16px' }}>
-                                <div>
-                                    <label style={{ display: 'block', marginBottom: '6px', fontWeight: '600', color: COLORS.deepBlue, fontSize: '14px' }}>Assigned Coach</label>
-                                    <select
-                                        value={editingStudent.assigned_coach_id === '-' ? '' : editingStudent.assigned_coach_id}
-                                        onChange={(e) => setEditingStudent({ ...editingStudent, assigned_coach_id: e.target.value })}
-                                        style={{ width: '100%', padding: '12px', border: '1px solid #ddd', borderRadius: '8px', fontSize: '14px' }}
-                                    >
-                                        <option value="">No Coach Assigned</option>
-                                        {coaches.map(c => (
-                                            <option key={c.id} value={c.id}>{c.fullName || c.email}</option>
-                                        ))}
-                                    </select>
-                                </div>
-                                <div>
-                                    <label style={{ display: 'block', marginBottom: '6px', fontWeight: '600', color: COLORS.deepBlue, fontSize: '14px' }}>Batch Name</label>
-                                    <select
-                                        value={editingStudent.assigned_batch_id === '-' ? '' : editingStudent.assigned_batch_id}
-                                        onChange={(e) => setEditingStudent({ ...editingStudent, assigned_batch_id: e.target.value })}
-                                        style={{ width: '100%', padding: '12px', border: '1px solid #ddd', borderRadius: '8px', fontSize: '14px' }}
-                                    >
-                                        <option value="">Select Batch...</option>
-                                        <option value="Beginner Group">Beginner Group</option>
-                                        <option value="Intermediate Group">Intermediate Group</option>
-                                        <option value="Intermediate 1:1">Intermediate 1:1</option>
-                                        <option value="Advanced Group">Advanced Group</option>
-                                    </select>
-                                </div>
-                            </div>
+
                             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
                                 <div>
                                     <label style={{ display: 'block', marginBottom: '6px', fontWeight: '600', color: COLORS.deepBlue, fontSize: '14px' }}>Assigned Coach</label>
@@ -462,12 +433,12 @@ const StudentDatabase = () => {
                                 </div>
                                 <div>
                                     <label style={{ display: 'block', marginBottom: '6px', fontWeight: '600', color: COLORS.deepBlue, fontSize: '14px' }}>Assigned Batch</label>
-                                    <select 
-                                        value={editingStudent.assigned_batch_id || ''} 
+                                    <select
+                                        value={editingStudent.assigned_batch_id || ''}
                                         onChange={(e) => {
                                             const selectedBatch = batches.find(b => b.id === e.target.value);
-                                            setEditingStudent({ 
-                                                ...editingStudent, 
+                                            setEditingStudent({
+                                                ...editingStudent,
                                                 assigned_batch_id: e.target.value,
                                                 assigned_batch_name: selectedBatch?.name || ''
                                             });
@@ -476,7 +447,7 @@ const StudentDatabase = () => {
                                         style={{ width: '100%', padding: '12px', border: '1px solid #ddd', borderRadius: '8px', fontSize: '14px', backgroundColor: !editingStudent.assigned_coach_id ? '#f5f5f5' : '#fff', cursor: !editingStudent.assigned_coach_id ? 'not-allowed' : 'pointer' }}
                                     >
                                         <option value="">{!editingStudent.assigned_coach_id ? '-- Select Coach First --' : '-- No Batch --'}</option>
-                                        {batches.map(b => (<option key={b.id} value={b.id }>{b.name}</option>))}
+                                        {batches.map(b => (<option key={b.id} value={b.id}>{b.name}</option>))}
                                     </select>
                                 </div>
                             </div>

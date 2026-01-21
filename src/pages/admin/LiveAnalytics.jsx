@@ -110,7 +110,7 @@ const LiveAnalytics = () => {
 
             // Normalize revenue to monthly equivalent based on billing cycle
             const monthlyRevenue = activeSubs.reduce((sum, s) => {
-                const amount = s.amount || 0;
+                const amount = Number(s.amount) || 0;
                 const cycle = (s.billingCycle || s.planType || 'monthly').toLowerCase();
 
                 // Convert to monthly equivalent
