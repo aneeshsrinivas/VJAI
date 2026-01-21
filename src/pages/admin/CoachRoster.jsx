@@ -648,13 +648,9 @@ const CoachRoster = () => {
                                         const coachRef = doc(db, 'coaches', editingCoach.id);
                                         const selectedBatchIds = editingCoach.assignedBatchIds || [];
 
-<<<<<<< HEAD
-                                        await setDoc(coachRef, {
-                                            fullName: editingCoach.name,
-=======
+
                                         await updateDoc(coachRef, {
                                             fullName: editingCoach.name || editingCoach.fullName,
->>>>>>> 92d90e2bfcb879f1028c55802b39a50110e3b3cd
                                             email: editingCoach.email,
                                             personalEmail: editingCoach.personalEmail || '',
                                             phone: editingCoach.phone || '',
