@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { collection, query, where, onSnapshot, doc, updateDoc, serverTimestamp, addDoc } from 'firebase/firestore';
 import { db } from '../../lib/firebase';
+import { emailService } from '../../services/emailService';
 import { useAuth } from '../../context/AuthContext';
 import Card from '../../components/ui/Card';
 import Button from '../../components/ui/Button';
@@ -68,7 +69,18 @@ const AdminCoachApplications = () => {
                 createdAt: serverTimestamp()
             });
 
-            toast.success(`${selectedApp.fullName} approved as coach!`);
+            // Send Email with Credentials
+            const emailResult = await emailService.sendCoachWelcomeEmail({
+                email: selectedApp.email,
+                fullName: selectedApp.fullName,
+                password: password
+            });
+
+            if (!emailResult.success) {
+                toast.warning('Coach approved, but failed to send email: ' + emailResult.error);
+            } else {
+                toast.success(`${selectedApp.fullName} approved & email sent!`);
+            }
             setModalOpen(false);
             setSelectedApp(null);
             setPassword('');
