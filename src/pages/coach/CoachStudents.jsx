@@ -19,6 +19,7 @@ const CoachStudents = () => {
     const [loading, setLoading] = useState(true);
     const [searchQuery, setSearchQuery] = useState('');
     const [filterLevel, setFilterLevel] = useState('all');
+    const [filterBatch, setFilterBatch] = useState('all');
     const [selectedSkillStudent, setSelectedSkillStudent] = useState(null);
     const [selectedDetailStudent, setSelectedDetailStudent] = useState(null);
 
@@ -50,8 +51,16 @@ const CoachStudents = () => {
     const filteredStudents = students.filter(student => {
         const matchesSearch = (student.studentName || '').toLowerCase().includes(searchQuery.toLowerCase());
         const matchesFilter = filterLevel === 'all' || student.level === filterLevel;
-        return matchesSearch && matchesFilter;
+        const studentBatch = student.assignedBatchName || student.batchName || '';
+        const matchesBatch = filterBatch === 'all' || studentBatch === filterBatch;
+        return matchesSearch && matchesFilter && matchesBatch;
     });
+
+    // Get unique batch names for filter dropdown
+    const uniqueBatches = [...new Set(students
+        .map(s => s.assignedBatchName || s.batchName)
+        .filter(Boolean)
+    )];
 
     const getLevelBadge = (level) => {
         const badges = {
@@ -108,6 +117,15 @@ const CoachStudents = () => {
                         <option value="advanced">Advanced</option>
                     </select>
                 </div>
+                <div className="filter-group">
+                    <BookOpen size={18} />
+                    <select value={filterBatch} onChange={(e) => setFilterBatch(e.target.value)}>
+                        <option value="all">All Batches</option>
+                        {uniqueBatches.map(batch => (
+                            <option key={batch} value={batch}>{batch}</option>
+                        ))}
+                    </select>
+                </div>
             </div>
 
             {/* Students Grid */}
@@ -136,10 +154,8 @@ const CoachStudents = () => {
                                     </button>
                                 </div>
                                 <div className="card-body">
-                                    <h3>{student.studentName || 'Unknown Student'}</h3>
-                                    <p className="student-age">{student.studentAge} years old</p>
-
-                                    <div className="badges-row">
+                                    <div className="student-name-row">
+                                        <h3>{student.studentName || 'Unknown Student'}</h3>
                                         <span className={`badge level ${levelBadge.className}`}>
                                             {levelBadge.label}
                                         </span>
@@ -147,16 +163,17 @@ const CoachStudents = () => {
                                             {getStudentType(student.studentType)}
                                         </span>
                                     </div>
+                                    <p className="student-age">{student.studentAge} years old</p>
 
                                     <div className="student-meta">
                                         <div className="meta-item">
                                             <Calendar size={14} />
                                             <span>Joined {student.createdAt?.toDate?.()?.toLocaleDateString() || 'Recently'}</span>
                                         </div>
-                                        {student.batchName && (
+                                        {(student.assignedBatchName || student.batchName) && (
                                             <div className="meta-item">
                                                 <BookOpen size={14} />
-                                                <span>{student.batchName}</span>
+                                                <span>{student.assignedBatchName || student.batchName}</span>
                                             </div>
                                         )}
                                     </div>
@@ -179,6 +196,12 @@ const CoachStudents = () => {
                 isOpen={!!selectedSkillStudent}
                 onClose={() => setSelectedSkillStudent(null)}
                 student={selectedSkillStudent}
+                onUpgrade={(studentId, newLevel) => {
+                    // Update local state to reflect the level change
+                    setStudents(prev => prev.map(s => 
+                        s.id === studentId ? { ...s, level: newLevel, skillsMastered: [] } : s
+                    ));
+                }}
             />
 
             <StudentDetailsModal

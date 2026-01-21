@@ -3,9 +3,8 @@ import Button from '../ui/Button';
 import { createClass } from '../../services/firestoreService';
 import { useAuth } from '../../context/AuthContext';
 import { Calendar, Clock, Video, X, AlignLeft } from 'lucide-react';
-import { collection, query, where, getDocs } from 'firebase/firestore';
+import { collection, getDocs } from 'firebase/firestore';
 import { db } from '../../lib/firebase';
-import { COLLECTIONS } from '../../config/firestoreCollections';
 
 const ScheduleClassModal = ({ isOpen, onClose, batchId, batchName, onSuccess }) => {
     if (!isOpen) return null;
@@ -22,13 +21,14 @@ const ScheduleClassModal = ({ isOpen, onClose, batchId, batchName, onSuccess }) 
         selectedBatchId: ''
     });
 
-    // Fetch Coach's Batches
+    // Fetch Coach's Batches from subcollection
     React.useEffect(() => {
         const fetchBatches = async () => {
             if (!currentUser?.uid) return;
             try {
-                const q = query(collection(db, COLLECTIONS.BATCHES), where('coachId', '==', currentUser.uid));
-                const snap = await getDocs(q);
+                // Fetch from coaches/{coachId}/batches subcollection
+                const batchesRef = collection(db, 'coaches', currentUser.uid, 'batches');
+                const snap = await getDocs(batchesRef);
                 const list = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
                 setBatches(list);
 

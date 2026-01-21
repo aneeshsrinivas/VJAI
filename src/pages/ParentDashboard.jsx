@@ -221,19 +221,17 @@ const ParentDashboard = () => {
         };
     }, [currentUser]);
 
-    // Dynamic Progress Calculation
+    // Dynamic Progress Calculation based on skills mastered
+    const TOTAL_SKILLS = 7; // Total curriculum skills
     useEffect(() => {
-        // Prefer real student data, fall back to auth userData
-        const lvl = student?.level || userData?.learningLevel || 'Beginner';
-        let p = 15; // Beginner
-        const lvlLower = (typeof lvl === 'string' ? lvl : '').toLowerCase();
-
-        if (lvlLower.includes('intermediate') || lvlLower.includes('rated 1000')) p = 50;
-        if (lvlLower.includes('advanced') || lvlLower.includes('rated 1400')) p = 85;
+        // Calculate progress from skillsMastered array
+        const skillsMastered = student?.skillsMastered || [];
+        const completedCount = Array.isArray(skillsMastered) ? skillsMastered.length : 0;
+        const p = Math.round((completedCount / TOTAL_SKILLS) * 100);
 
         const timer = setTimeout(() => setProgress(p), 500);
         return () => clearTimeout(timer);
-    }, [student, userData]);
+    }, [student]);
 
     const getDisplayName = () => {
         // Debug log to see what userData contains
@@ -351,20 +349,17 @@ const ParentDashboard = () => {
                         <div className="progress-card-floating">
                             <div className="progress-header">
                                 <div className="progress-info">
-                                    <span className="progress-label">Current Rank</span>
-                                    <span className="milestone-name">{student?.level || 'Beginner'}</span>
-                                </div>
-                                <div className="progress-info" style={{ textAlign: 'right' }}>
-                                    <span className="progress-label">Batch</span>
-                                    <span className="milestone-name" style={{ color: '#fbbf24' }}>{student?.batchName || 'No Batch'}</span>
+                                    <span className="progress-label">Skills Mastered</span>
+                                    <span className="milestone-name">{(student?.skillsMastered || []).length} / 7</span>
                                 </div>
                                 <div className="progress-percentage">{progress}%</div>
                             </div>
                             <div className="progress-bar-container">
                                 <div className="progress-bar-fill" style={{ width: `${progress}%` }}></div>
                             </div>
-                            <div className="progress-next">
-                                Next milestone: <strong>Intermediate</strong>
+                            <div className="progress-next" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                <span>Level: <strong>{student?.level || 'Beginner'}</strong></span>
+                                <span>Batch: <strong style={{ color: '#fbbf24' }}>{student?.assignedBatchName || student?.batchName || 'No Batch'}</strong></span>
                             </div>
                         </div>
                     </div>

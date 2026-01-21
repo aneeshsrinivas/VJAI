@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import Card from '../../components/ui/Card';
 import { Calendar, Video, Clock, MapPin } from 'lucide-react';
 import Button from '../../components/ui/Button';
-import { collection, query, orderBy, onSnapshot } from 'firebase/firestore';
+import { collection, query, orderBy, onSnapshot, where, doc, getDoc } from 'firebase/firestore';
 import { db } from '../../lib/firebase';
 import { COLLECTIONS } from '../../config/firestoreCollections';
 import { useAuth } from '../../context/AuthContext';
@@ -11,28 +11,86 @@ const ParentSchedule = () => {
     const [classes, setClasses] = useState([]);
     const [demos, setDemos] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [studentData, setStudentData] = useState(null);
     const { currentUser, userData } = useAuth();
 
     useEffect(() => {
-        // Fetch Regular Classes
-        const qClasses = query(
-            collection(db, COLLECTIONS.SCHEDULE),
-            orderBy('scheduledAt', 'asc')
-        );
+        if (!currentUser?.uid) return;
 
-        const unsubscribeClasses = onSnapshot(qClasses, (snapshot) => {
-            const list = snapshot.docs.map(doc => ({
-                id: doc.id,
-                ...doc.data(),
-                type: 'Live Class',
-                classType: 'Regular'
-            }));
-            setClasses(list);
-        });
+        // First fetch student data to get batchId
+        const fetchStudentAndSchedule = async () => {
+            try {
+                // Fetch from 'students' collection (not USERS)
+                const userDoc = await getDoc(doc(db, 'users', currentUser.uid));
+                if (userDoc.exists()) {
+                    const student = userDoc.data();
+                    setStudentData(student);
 
-        // Fetch Demos (Optional: Merge if desired, useful for initial stages)
-        // Using existing Demos collection query from Dashboard idea
-        const qDemos = query(collection(db, COLLECTIONS.DEMOS), orderBy('scheduledAt', 'asc')); // Filter by user in real app
+                    const batchId = student.assignedBatchId || student.assignedBatch;
+
+                    if (batchId) {
+                        // Fetch classes filtered by batchId and status SCHEDULED
+                        const qClasses = query(
+                            collection(db, COLLECTIONS.SCHEDULE),
+                            where('batchId', '==', batchId),
+                            where('status', '==', 'SCHEDULED')
+                        );
+
+                        console.log("Setting up classes listener for batchId:", batchId);
+
+                        const unsubscribeClasses = onSnapshot(qClasses, (snapshot) => {
+                            console.log("Fetched scheduled classes for batchId:", batchId, snapshot.docs.map(doc => doc.data()));
+                            const list = snapshot.docs.map(doc => ({
+                                id: doc.id,
+                                ...doc.data(),
+                                type: 'Live Class',
+                                classType: 'Regular'
+                            })).sort((a, b) => {
+                                // Sort by scheduledAt client-side
+                                const dateA = a.scheduledAt?.seconds ? a.scheduledAt.seconds : new Date(a.scheduledAt).getTime() / 1000;
+                                const dateB = b.scheduledAt?.seconds ? b.scheduledAt.seconds : new Date(b.scheduledAt).getTime() / 1000;
+                                return dateA - dateB;
+                            });
+
+                            setClasses(list);
+                        }, (error) => {
+                            // If composite index error, fetch without status filter and filter client-side
+                            console.error("Query error, falling back to client-side filter:", error);
+                            const qClassesFallback = query(
+                                collection(db, COLLECTIONS.SCHEDULE),
+                                where('batchId', '==', batchId)
+                            );
+                            onSnapshot(qClassesFallback, (snap) => {
+                                const list = snap.docs.map(d => ({
+                                    id: d.id,
+                                    ...d.data(),
+                                    type: 'Live Class',
+                                    classType: 'Regular'
+                                })).filter(c => c.status === 'SCHEDULED').sort((a, b) => {
+                                    const dateA = a.scheduledAt?.seconds ? a.scheduledAt.seconds : new Date(a.scheduledAt).getTime() / 1000;
+                                    const dateB = b.scheduledAt?.seconds ? b.scheduledAt.seconds : new Date(b.scheduledAt).getTime() / 1000;
+                                    return dateA - dateB;
+                                });
+                                setClasses(list);
+                            });
+                        });
+
+
+
+                        return () => unsubscribeClasses();
+                    }
+                } else {
+                    console.log("No student document found for user:", currentUser.uid);
+                }
+            } catch (error) {
+                console.error("Error fetching student data:", error);
+            }
+        };
+
+        fetchStudentAndSchedule();
+
+        // Fetch Demos filtered by user email
+        const qDemos = query(collection(db, COLLECTIONS.DEMOS), orderBy('scheduledAt', 'asc'));
         const unsubscribeDemos = onSnapshot(qDemos, (snapshot) => {
             const list = snapshot.docs.map(doc => ({
                 id: doc.id,
@@ -41,14 +99,13 @@ const ParentSchedule = () => {
                 classType: 'Demo',
                 topic: 'Assessment & Intro',
                 meetLink: doc.data().meetingLink
-            })).filter(d => d.parentEmail === currentUser?.email); // Client-side filter for MVP
+            })).filter(d => d.parentEmail === currentUser?.email);
             setDemos(list);
         });
 
         setLoading(false);
 
         return () => {
-            unsubscribeClasses();
             unsubscribeDemos();
         };
     }, [currentUser]);

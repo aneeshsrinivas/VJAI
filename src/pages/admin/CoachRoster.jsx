@@ -164,7 +164,15 @@ const CoachRoster = () => {
                     {loading ? (
                         <div>Loading coaches...</div>
                     ) : (
-                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: '20px' }}>
+                        <div style={{ 
+                            display: 'grid', 
+                            gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', 
+                            gap: '20px',
+                            maxHeight: 'calc(100vh - 220px)',
+                            overflowY: 'auto',
+                            paddingRight: '8px',
+                            paddingBottom: '20px'
+                        }}>
                             {coaches.map(coach => (
                                 <Card key={coach.id} style={{ padding: '24px', borderRadius: '12px', boxShadow: '0 4px 12px rgba(0,0,0,0.08)', transition: 'all 0.3s ease', cursor: 'pointer' }}>
                                     {/* Header with Avatar */}
@@ -273,36 +281,8 @@ const CoachRoster = () => {
                                                 fontSize: '13px',
                                                 cursor: 'pointer',
                                                 transition: 'all 0.2s ease'
-                                            }}
-                                        >
+                                            }}>
                                             ✎ Edit
-                                        </Button>
-                                        <Button
-                                            size="sm"
-                                            onClick={() => {
-                                                setEditingCoach({
-                                                    ...coach,
-                                                    assignedBatchIds:
-                                                        coach.assignedBatchIds ||
-                                                        (coach.assignedBatchId ? [coach.assignedBatchId] : []) ||
-                                                        (coach.batchIds || [])
-                                                });
-                                                setEditOpen(true);
-                                            }}
-                                            style={{
-                                                flex: 1,
-                                                backgroundColor: '#E0F2FE',
-                                                color: '#0369A1',
-                                                padding: '10px 14px',
-                                                borderRadius: '8px',
-                                                border: '1px solid #BAE6FD',
-                                                fontWeight: '600',
-                                                fontSize: '13px',
-                                                cursor: 'pointer',
-                                                transition: 'all 0.2s ease'
-                                            }}
-                                        >
-                                            📦 Batches
                                         </Button>
                                     </div>
 
@@ -420,14 +400,15 @@ const CoachRoster = () => {
                             {/* Name Input */}
                             <div style={{ marginBottom: '16px' }}>
                                 <label style={{ display: 'block', fontWeight: '600', marginBottom: '6px', color: '#333', fontSize: '14px' }}>
-                                    Coach Name
+                                    Full Name
                                 </label>
                                 <input
-                                    value={editingCoach.name || ''}
+                                    value={editingCoach.name || editingCoach.fullName || ''}
                                     onChange={(e) =>
                                         setEditingCoach(prev => ({
                                             ...prev,
-                                            name: e.target.value
+                                            name: e.target.value,
+                                            fullName: e.target.value
                                         }))
                                     }
                                     style={{
@@ -442,10 +423,36 @@ const CoachRoster = () => {
                                 />
                             </div>
 
-                            {/* Email Input */}
+                            {/* Personal Email Input */}
                             <div style={{ marginBottom: '16px' }}>
                                 <label style={{ display: 'block', fontWeight: '600', marginBottom: '6px', color: '#333', fontSize: '14px' }}>
-                                    Email
+                                    Personal Email (for notifications)
+                                </label>
+                                <input
+                                    value={editingCoach.personalEmail || ''}
+                                    onChange={(e) =>
+                                        setEditingCoach(prev => ({
+                                            ...prev,
+                                            personalEmail: e.target.value
+                                        }))
+                                    }
+                                    type="email"
+                                    style={{
+                                        width: '100%',
+                                        padding: '10px 12px',
+                                        borderRadius: '8px',
+                                        border: '1px solid #ddd',
+                                        fontSize: '14px',
+                                        boxSizing: 'border-box'
+                                    }}
+                                    placeholder="coach@gmail.com"
+                                />
+                            </div>
+
+                            {/* Assigned Login Email Input */}
+                            <div style={{ marginBottom: '16px' }}>
+                                <label style={{ display: 'block', fontWeight: '600', marginBottom: '6px', color: '#333', fontSize: '14px' }}>
+                                    Assigned Login Email
                                 </label>
                                 <input
                                     value={editingCoach.email || ''}
@@ -464,153 +471,144 @@ const CoachRoster = () => {
                                         fontSize: '14px',
                                         boxSizing: 'border-box'
                                     }}
-                                    placeholder="coach@example.com"
+                                    placeholder="firstname.lastname@coach.com"
                                 />
                             </div>
 
-                            {/* Assigned Batches Section */}
-                            <div style={{
-                                marginBottom: '16px',
-                                padding: '16px',
-                                backgroundColor: '#F8F9FA',
-                                borderRadius: '8px',
-                                border: '1px solid #E9ECEF'
-                            }}>
-                                <label style={{
-                                    display: 'block',
-                                    fontWeight: '700',
-                                    marginBottom: '12px',
-                                    color: '#1E3A8A',
-                                    fontSize: '14px'
-                                }}>
-                                    📦 Assigned Batches ({editingCoach.assignedBatchIds?.length || 0})
+                            {/* Phone Input */}
+                            <div style={{ marginBottom: '16px' }}>
+                                <label style={{ display: 'block', fontWeight: '600', marginBottom: '6px', color: '#333', fontSize: '14px' }}>
+                                    Phone Number
                                 </label>
-
-                                {/* Current Batches List */}
-                                {(!editingCoach.assignedBatchIds || editingCoach.assignedBatchIds.length === 0) ? (
-                                    <div style={{ color: '#999', fontSize: '13px', padding: '12px', textAlign: 'center' }}>
-                                        No batches assigned yet
-                                    </div>
-                                ) : (
-                                    <div style={{ marginBottom: '12px' }}>
-                                        {editingCoach.assignedBatchIds.map(bid => {
-                                            const b = batches.find(x => x.id === bid) || { id: bid, name: bid };
-                                            return (
-                                                <div key={bid} style={{
-                                                    display: 'flex',
-                                                    justifyContent: 'space-between',
-                                                    alignItems: 'center',
-                                                    padding: '10px 12px',
-                                                    backgroundColor: '#fff',
-                                                    borderRadius: '6px',
-                                                    marginBottom: '6px',
-                                                    border: '1px solid #E9ECEF'
-                                                }}>
-                                                    <span style={{ fontSize: '14px', fontWeight: '500', color: '#1E3A8A' }}>
-                                                        {b.name}
-                                                    </span>
-                                                    <button
-                                                        onClick={async () => {
-                                                            try {
-                                                                // Delete from Firestore subcollection
-                                                                await deleteDoc(doc(db, 'coaches', editingCoach.id, 'batches', bid));
-                                                                // Remove from local state
-                                                                setEditingCoach(prev => ({
-                                                                    ...prev,
-                                                                    assignedBatchIds: (prev.assignedBatchIds || []).filter(x => x !== bid)
-                                                                }));
-                                                                setBatches(prev => prev.filter(b => b.id !== bid));
-                                                            } catch (err) {
-                                                                console.error('Error deleting batch:', err);
-                                                                alert('Failed to delete batch: ' + err.message);
-                                                            }
-                                                        }}
-                                                        style={{
-                                                            background: '#FEE2E2',
-                                                            border: '1px solid #FECACA',
-                                                            color: '#DC2626',
-                                                            padding: '4px 10px',
-                                                            borderRadius: '4px',
-                                                            fontSize: '12px',
-                                                            fontWeight: '600',
-                                                            cursor: 'pointer'
-                                                        }}
-                                                    >
-                                                        ✕ Remove
-                                                    </button>
-                                                </div>
-                                            );
-                                        })}
-                                    </div>
-                                )}
-
-                                {/* Batch Results */}
-                                <div style={{
-                                    maxHeight: '150px',
-                                    overflowY: 'auto',
-                                    backgroundColor: '#fff',
-                                    borderRadius: '6px',
-                                    border: '1px solid #E9ECEF',
-                                    marginBottom: '12px'
-                                }}>
-                                    {batches
-                                        .filter(b => !batchSearch || b.name?.toLowerCase().includes(batchSearch.toLowerCase()))
-                                        .filter(b => !(editingCoach.assignedBatchIds || []).includes(b.id))
-                                        .slice(0, 20)
-                                        .map(b => (
-                                            <div
-                                                key={b.id}
-                                                style={{
-                                                    display: 'flex',
-                                                    justifyContent: 'space-between',
-                                                    alignItems: 'center',
-                                                    padding: '10px 12px',
-                                                    borderBottom: '1px solid #F0F0F0'
-                                                }}
-                                            >
-                                                <span style={{ fontSize: '13px', color: '#666' }}>{b.name || b.id}</span>
-                                                <Button
-                                                    size="sm"
-                                                    onClick={() => {
-                                                        setEditingCoach(prev => {
-                                                            const arr = Array.from(new Set([...(prev.assignedBatchIds || []), b.id]));
-                                                            return { ...prev, assignedBatchIds: arr };
-                                                        });
-                                                    }}
-                                                    style={{
-                                                        backgroundColor: '#DBEAFE',
-                                                        color: '#0369A1',
-                                                        border: '1px solid #7DD3FC',
-                                                        padding: '4px 10px',
-                                                        fontSize: '12px'
-                                                    }}
-                                                >
-                                                    + Add
-                                                </Button>
-                                            </div>
-                                        ))}
-                                </div>
-
-                                {/* Create New Batch */}
-                                <Button
-                                    onClick={() => {
-                                        setBatchFormData({ name: '', level: 'beginner', daysOfWeek: [], time: '', duration: '1', description: '' });
-                                        setIsCreateBatchModalOpen(true);
-                                    }}
+                                <input
+                                    value={editingCoach.phone || ''}
+                                    onChange={(e) =>
+                                        setEditingCoach(prev => ({
+                                            ...prev,
+                                            phone: e.target.value
+                                        }))
+                                    }
                                     style={{
                                         width: '100%',
-                                        backgroundColor: '#3B82F6',
-                                        color: 'white',
-                                        border: 'none',
-                                        padding: '10px 16px',
-                                        fontSize: '13px',
-                                        borderRadius: '6px',
-                                        fontWeight: '600',
-                                        cursor: 'pointer'
+                                        padding: '10px 12px',
+                                        borderRadius: '8px',
+                                        border: '1px solid #ddd',
+                                        fontSize: '14px',
+                                        boxSizing: 'border-box'
+                                    }}
+                                    placeholder="Phone number"
+                                />
+                            </div>
+
+                            {/* Professional Title */}
+                            <div style={{ marginBottom: '16px' }}>
+                                <label style={{ display: 'block', fontWeight: '600', marginBottom: '6px', color: '#333', fontSize: '14px' }}>
+                                    Professional Title
+                                </label>
+                                <select
+                                    value={editingCoach.title || 'Trainer'}
+                                    onChange={(e) =>
+                                        setEditingCoach(prev => ({
+                                            ...prev,
+                                            title: e.target.value
+                                        }))
+                                    }
+                                    style={{
+                                        width: '100%',
+                                        padding: '10px 12px',
+                                        borderRadius: '8px',
+                                        border: '1px solid #ddd',
+                                        fontSize: '14px',
+                                        boxSizing: 'border-box',
+                                        backgroundColor: 'white'
                                     }}
                                 >
-                                    + Create New Batch
-                                </Button>
+                                    <option value="Trainer">Trainer</option>
+                                    <option value="FIDE Master (FM)">FIDE Master (FM)</option>
+                                    <option value="International Master (IM)">International Master (IM)</option>
+                                    <option value="Grandmaster (GM)">Grandmaster (GM)</option>
+                                </select>
+                            </div>
+
+                            {/* FIDE Rating and Experience Row */}
+                            <div style={{ display: 'flex', gap: '16px', marginBottom: '16px' }}>
+                                <div style={{ flex: 1 }}>
+                                    <label style={{ display: 'block', fontWeight: '600', marginBottom: '6px', color: '#333', fontSize: '14px' }}>
+                                        FIDE Rating
+                                    </label>
+                                    <input
+                                        value={editingCoach.fideRating || editingCoach.rating || ''}
+                                        onChange={(e) =>
+                                            setEditingCoach(prev => ({
+                                                ...prev,
+                                                fideRating: e.target.value,
+                                                rating: e.target.value
+                                            }))
+                                        }
+                                        type="number"
+                                        style={{
+                                            width: '100%',
+                                            padding: '10px 12px',
+                                            borderRadius: '8px',
+                                            border: '1px solid #ddd',
+                                            fontSize: '14px',
+                                            boxSizing: 'border-box'
+                                        }}
+                                        placeholder="Optional"
+                                    />
+                                </div>
+                                <div style={{ flex: 1 }}>
+                                    <label style={{ display: 'block', fontWeight: '600', marginBottom: '6px', color: '#333', fontSize: '14px' }}>
+                                        Experience (Years)
+                                    </label>
+                                    <input
+                                        value={editingCoach.experience || ''}
+                                        onChange={(e) =>
+                                            setEditingCoach(prev => ({
+                                                ...prev,
+                                                experience: e.target.value
+                                            }))
+                                        }
+                                        type="number"
+                                        style={{
+                                            width: '100%',
+                                            padding: '10px 12px',
+                                            borderRadius: '8px',
+                                            border: '1px solid #ddd',
+                                            fontSize: '14px',
+                                            boxSizing: 'border-box'
+                                        }}
+                                        placeholder="Years"
+                                    />
+                                </div>
+                            </div>
+
+                            {/* Bio */}
+                            <div style={{ marginBottom: '16px' }}>
+                                <label style={{ display: 'block', fontWeight: '600', marginBottom: '6px', color: '#333', fontSize: '14px' }}>
+                                    Professional Bio (Description)
+                                </label>
+                                <textarea
+                                    value={editingCoach.bio || ''}
+                                    onChange={(e) =>
+                                        setEditingCoach(prev => ({
+                                            ...prev,
+                                            bio: e.target.value
+                                        }))
+                                    }
+                                    rows="3"
+                                    style={{
+                                        width: '100%',
+                                        padding: '10px 12px',
+                                        borderRadius: '8px',
+                                        border: '1px solid #ddd',
+                                        fontSize: '14px',
+                                        boxSizing: 'border-box',
+                                        fontFamily: 'inherit',
+                                        resize: 'vertical'
+                                    }}
+                                    placeholder="Brief description of experience and teaching style..."
+                                />
                             </div>
                         </div>
 
@@ -650,24 +648,47 @@ const CoachRoster = () => {
                                         const coachRef = doc(db, 'coaches', editingCoach.id);
                                         const selectedBatchIds = editingCoach.assignedBatchIds || [];
 
+<<<<<<< HEAD
                                         await setDoc(coachRef, {
                                             fullName: editingCoach.name,
+=======
+                                        await updateDoc(coachRef, {
+                                            fullName: editingCoach.name || editingCoach.fullName,
+>>>>>>> 92d90e2bfcb879f1028c55802b39a50110e3b3cd
                                             email: editingCoach.email,
+                                            personalEmail: editingCoach.personalEmail || '',
+                                            phone: editingCoach.phone || '',
+                                            title: editingCoach.title || 'Trainer',
+                                            fideRating: editingCoach.fideRating || editingCoach.rating || '',
+                                            rating: editingCoach.fideRating || editingCoach.rating || '',
+                                            experience: editingCoach.experience || '',
+                                            bio: editingCoach.bio || '',
                                             assignedBatchIds: selectedBatchIds,
                                             assignedBatchId: selectedBatchIds[0] || null,
                                             updatedAt: serverTimestamp()
                                         }, { merge: true });
 
-                                        try {
-                                            // Batches are now subcollections of coaches, no need to sync assignedCoachId
-                                            // Just update the coach document with the selected batch IDs
-                                        } catch (syncErr) {
-                                            console.error('Error syncing batches:', syncErr);
-                                        }
+                                        // Also update the users collection
+                                        const userRef = doc(db, 'users', editingCoach.id);
+                                        await updateDoc(userRef, {
+                                            fullName: editingCoach.name || editingCoach.fullName,
+                                            email: editingCoach.email,
+                                            personalEmail: editingCoach.personalEmail || '',
+                                            phone: editingCoach.phone || '',
+                                            title: editingCoach.title || 'Trainer',
+                                            fideRating: editingCoach.fideRating || editingCoach.rating || '',
+                                            rating: editingCoach.fideRating || editingCoach.rating || '',
+                                            experience: editingCoach.experience || '',
+                                            bio: editingCoach.bio || '',
+                                            updatedAt: serverTimestamp()
+                                        }).catch(() => {
+                                            // User doc might not exist, ignore error
+                                        });
 
                                         setEditOpen(false);
                                         setEditingCoach(null);
                                         fetchCoaches();
+                                        toast.success('Coach updated successfully!');
 
                                     } catch (err) {
                                         alert('Failed to save coach: ' + err.message);

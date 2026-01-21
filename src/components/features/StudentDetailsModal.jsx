@@ -1,7 +1,49 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { X, Calendar, MapPin, Clipboard } from 'lucide-react';
+import { doc, getDoc } from 'firebase/firestore';
+import { db } from '../../lib/firebase';
+import { useAuth } from '../../context/AuthContext';
 
 const StudentDetailsModal = ({ isOpen, onClose, student }) => {
+    const { currentUser } = useAuth();
+    const [batchName, setBatchName] = useState(null);
+    const [loading, setLoading] = useState(false);
+
+    useEffect(() => {
+        const fetchBatchDetails = async () => {
+            if (!student || !currentUser?.uid) return;
+            
+            setLoading(true);
+            try {
+                // Get the student's assignedBatchId from the user document
+                const assignedBatchId = student.assignedBatchId || student.batchId;
+                
+                if (assignedBatchId) {
+                    // Fetch batch from coach's subcollection: coaches/{coachId}/batches/{batchId}
+                    const batchRef = doc(db, 'coaches', currentUser.uid, 'batches', assignedBatchId);
+                    const batchSnap = await getDoc(batchRef);
+                    
+                    if (batchSnap.exists()) {
+                        setBatchName(batchSnap.data().name || batchSnap.data().batchName);
+                    } else {
+                        // Fallback to student's stored batch name
+                        setBatchName(student.assignedBatchName || student.batchName || 'Batch not found');
+                    }
+                } else {
+                    setBatchName(student.assignedBatchName || student.batchName || 'No Batch Assigned');
+                }
+            } catch (error) {
+                console.error('Error fetching batch:', error);
+                setBatchName(student.assignedBatchName || student.batchName || 'Error loading batch');
+            }
+            setLoading(false);
+        };
+
+        if (isOpen && student) {
+            fetchBatchDetails();
+        }
+    }, [isOpen, student, currentUser]);
+
     if (!isOpen || !student) return null;
 
     return (
@@ -28,35 +70,97 @@ const StudentDetailsModal = ({ isOpen, onClose, student }) => {
                 </button>
 
                 <div style={{ textAlign: 'center', marginBottom: '24px' }}>
-                    <div style={{
-                        width: '80px', height: '80px', borderRadius: '24px',
-                        background: 'linear-gradient(135deg, #6366f1 0%, #a855f7 100%)',
-                        color: 'white', fontSize: '32px', fontWeight: 'bold',
-                        display: 'flex', alignItems: 'center', justifyContent: 'center',
-                        margin: '0 auto 16px', boxShadow: '0 10px 25px rgba(99, 102, 241, 0.3)'
-                    }}>
-                        {(student.studentName || 'S').charAt(0)}
+                    {/* Avatar with Circular Progress Ring */}
+                    <div style={{ position: 'relative', display: 'inline-block', marginBottom: '16px' }}>
+                        {(() => {
+                            const skillsMastered = student.skillsMastered || [];
+                            const totalSkills = 7;
+                            const progressPercent = Math.round((skillsMastered.length / totalSkills) * 100);
+                            const circumference = 2 * Math.PI * 52;
+                            const strokeDashoffset = circumference - (progressPercent / 100) * circumference;
+                            const progressColor = progressPercent >= 70 ? '#22c55e' : progressPercent >= 40 ? '#f59e0b' : '#3b82f6';
+                            
+                            return (
+                                <>
+                                    <svg width="120" height="120" style={{ position: 'absolute', top: '-10px', left: '-10px' }}>
+                                        {/* Background circle */}
+                                        <circle
+                                            cx="60"
+                                            cy="60"
+                                            r="52"
+                                            fill="none"
+                                            stroke="#e2e8f0"
+                                            strokeWidth="8"
+                                        />
+                                        {/* Progress circle */}
+                                        <circle
+                                            cx="60"
+                                            cy="60"
+                                            r="52"
+                                            fill="none"
+                                            stroke={progressColor}
+                                            strokeWidth="8"
+                                            strokeLinecap="round"
+                                            strokeDasharray={circumference}
+                                            strokeDashoffset={strokeDashoffset}
+                                            style={{ transform: 'rotate(-90deg)', transformOrigin: '60px 60px', transition: 'stroke-dashoffset 0.5s ease' }}
+                                        />
+                                    </svg>
+                                    <div style={{
+                                        width: '100px', height: '100px', borderRadius: '50%',
+                                        background: 'linear-gradient(135deg, #6366f1 0%, #a855f7 100%)',
+                                        color: 'white', fontSize: '40px', fontWeight: 'bold',
+                                        display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                        boxShadow: '0 10px 25px rgba(99, 102, 241, 0.3)',
+                                        position: 'relative'
+                                    }}>
+                                        {(student.studentName || 'S').charAt(0)}
+                                    </div>
+                                    {/* Progress percentage badge */}
+                                    <div style={{
+                                        position: 'absolute',
+                                        bottom: '-5px',
+                                        right: '-5px',
+                                        background: progressColor,
+                                        color: 'white',
+                                        fontSize: '12px',
+                                        fontWeight: '700',
+                                        padding: '4px 8px',
+                                        borderRadius: '12px',
+                                        boxShadow: '0 2px 8px rgba(0,0,0,0.15)'
+                                    }}>
+                                        {progressPercent}%
+                                    </div>
+                                </>
+                            );
+                        })()}
                     </div>
                     <h2 style={{ margin: '0 0 4px', fontSize: '24px', fontWeight: 'bold', color: '#1e293b' }}>
                         {student.studentName}
                     </h2>
-                    <p style={{ margin: 0, color: '#64748b' }}>{student.level} • {student.studentAge} Years Old</p>
+                    {/* Level badge */}
+                    <span style={{
+                        display: 'inline-block',
+                        padding: '6px 16px',
+                        borderRadius: '20px',
+                        fontSize: '13px',
+                        fontWeight: '700',
+                        background: (student.level?.toLowerCase() || '').includes('advanced') ? '#dcfce7' :
+                                   (student.level?.toLowerCase() || '').includes('intermediate') ? '#fef3c7' : '#dbeafe',
+                        color: (student.level?.toLowerCase() || '').includes('advanced') ? '#15803d' :
+                               (student.level?.toLowerCase() || '').includes('intermediate') ? '#b45309' : '#1d4ed8',
+                        marginBottom: '8px'
+                    }}>
+                        {student.level || 'Beginner'}
+                    </span>
+                    <p style={{ margin: 0, color: '#64748b' }}>{student.studentAge} Years Old</p>
+                    {/* Skills progress text */}
+                    <p style={{ margin: '8px 0 0', fontSize: '13px', color: '#64748b' }}>
+                        <strong style={{ color: '#1e293b' }}>{(student.skillsMastered || []).length}/7</strong> Skills Mastered
+                    </p>
                 </div>
 
                 <div style={{ display: 'grid', gap: '16px' }}>
-                    <div style={{ background: '#f8fafc', padding: '16px', borderRadius: '16px', display: 'flex', alignItems: 'center', gap: '12px', opacity: 0.7 }}>
-                        <div style={{ background: '#e2e8f0', padding: '8px', borderRadius: '8px' }}>
-                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#64748b" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                                <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
-                                <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
-                            </svg>
-                        </div>
-                        <div>
-                            <div style={{ fontSize: '12px', color: '#64748b' }}>Contact Information</div>
-                            <div style={{ fontWeight: '600', color: '#94a3b8' }}>Hidden for Privacy</div>
-                        </div>
-                    </div>
-
                     <div style={{ background: '#f8fafc', padding: '16px', borderRadius: '16px', display: 'flex', alignItems: 'center', gap: '12px' }}>
                         <div style={{ background: 'white', padding: '8px', borderRadius: '8px', boxShadow: '0 2px 4px rgba(0,0,0,0.05)' }}>
                             <Calendar size={18} color="#f59e0b" />
@@ -75,7 +179,9 @@ const StudentDetailsModal = ({ isOpen, onClose, student }) => {
                         </div>
                         <div>
                             <div style={{ fontSize: '12px', color: '#64748b' }}>Assigned Batch</div>
-                            <div style={{ fontWeight: '600', color: '#1e293b' }}>{student.batchName || 'No Batch Assigned'}</div>
+                            <div style={{ fontWeight: '600', color: '#1e293b' }}>
+                                {loading ? 'Loading...' : (batchName || 'No Batch Assigned')}
+                            </div>
                         </div>
                     </div>
                 </div>
