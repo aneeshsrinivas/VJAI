@@ -19,6 +19,9 @@ const firebaseConfig = {
 const secondaryApp = initializeApp(firebaseConfig, "SecondaryApp_Coach");
 const secondaryAuth = getAuth(secondaryApp);
 
+// Email API URL
+const EMAIL_API_URL = import.meta.env.VITE_EMAIL_API_URL || 'http://localhost:3001';
+
 const AddCoachModal = ({ isOpen, onClose, onSuccess }) => {
     const [formData, setFormData] = useState({
         fullName: '',
@@ -32,6 +35,7 @@ const AddCoachModal = ({ isOpen, onClose, onSuccess }) => {
     });
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
+    const [sendEmail, setSendEmail] = useState(true); // Option to send welcome email
 
     if (!isOpen) return null;
 
@@ -74,7 +78,32 @@ const AddCoachModal = ({ isOpen, onClose, onSuccess }) => {
                 status: 'ACTIVE'
             });
 
-            // 3. Success
+            // 3. Send Welcome Email with credentials
+            if (sendEmail && formData.personalEmail) {
+                try {
+                    const emailResponse = await fetch(`${EMAIL_API_URL}/api/email/coach-welcome`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            personalEmail: formData.personalEmail,
+                            fullName: formData.fullName,
+                            assignedEmail: formData.assignedEmail,
+                            password: formData.password
+                        })
+                    });
+                    const emailResult = await emailResponse.json();
+                    if (emailResult.success) {
+                        console.log('✅ Coach welcome email sent successfully');
+                    } else {
+                        console.warn('⚠️ Email sent but with warning:', emailResult.error);
+                    }
+                } catch (emailError) {
+                    console.error('⚠️ Failed to send welcome email:', emailError);
+                    // Don't fail the whole operation if email fails
+                }
+            }
+
+            // 4. Success
             setLoading(false);
             onSuccess();
             onClose();
@@ -182,6 +211,19 @@ const AddCoachModal = ({ isOpen, onClose, onSuccess }) => {
                         value={formData.password}
                         onChange={handleChange}
                     />
+
+                    <div style={{ marginBottom: '16px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <input
+                            type="checkbox"
+                            id="sendCoachEmail"
+                            checked={sendEmail}
+                            onChange={(e) => setSendEmail(e.target.checked)}
+                            style={{ width: '18px', height: '18px', cursor: 'pointer' }}
+                        />
+                        <label htmlFor="sendCoachEmail" style={{ cursor: 'pointer', fontSize: '14px' }}>
+                            📧 Send welcome email with login credentials to personal email
+                        </label>
+                    </div>
 
                     <Button type="submit" disabled={loading} className="submit-evaluation-btn">
                         {loading ? 'Registering...' : 'Register Coach'}
