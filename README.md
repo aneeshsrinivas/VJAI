@@ -2,74 +2,107 @@
 
 **VJAI** is a strategic operations platform designed for modern chess academies. It replaces chaotic spreadsheets and WhatsApp groups with a unified, role-based system for Parents, Coaches, and Admins.
 
-
 ## 🛠️ Technology Stack
 
 We built this using a **"Purist" Performance Stack** to ensure maximum speed, control, and brand alignment without bloat.
 
-- **Core Framework**: [React 18](https://react.dev/) (via [Vite](https://vitejs.dev/))
+- **Frontend**: [React 18](https://react.dev/) (via [Vite](https://vitejs.dev/))
+- **Backend**: Node.js & Express
 - **Routing**: `react-router-dom` v6
 - **Styling**: **Vanilla CSS (CSS Modules approach)**
-  - *Why?* To strictly enforce the "Strategic Elegance" design system using CSS Variables (`--color-deep-blue`, `--font-display`) without fighting framework defaults like Tailwind or Bootstrap.
 - **State Management**: React Hooks (`useState`, `useEffect`, `useContext`)
-- **Assets**: 
-  - **Icons**: Pure Unicode Chess Symbols (♔ ♕ ♖ ♗ ♘ ♙) - *Zero external SVG libraries for faster load.*
-  - **Fonts**: [Bodoni Moda](https://fonts.google.com/specimen/Bodoni+Moda) (Display) & [Figtree](https://fonts.google.com/specimen/Figtree) (Body).
+- **Assets**: Pure Unicode Chess Symbols (♔ ♕ ♖ ♗ ♘ ♙)
 
 ---
 
-## 🚀 Key Features Implemented
-
+## 🚀 Key Features
 
 ### 1. Complete Onboarding Flow
-- **Landing Page**: Premium brand introduction with role-based value props.
-- **Role Selection**: Interactive grid for Parents, Coaches, and Admins.
-- **Dynamic Registration**: Custom fields based on selected role (e.g., FIDE Rating for Coaches).
-- **Success & Login**: Polished post-registration experience with auto-redirects.
+- Landing Page & Role Selection
+- Dynamic Registration
+- Role-based value propositions
 
 ### 2. Role-Based Dashboards
-- **👑 Admin Command Center**: Central hub for financial reports (`/admin/finances`), student database (`/admin/students`), and funnel analytics.
-- **♟️ Parent Portal**: Access to class schedules, payment history, and the **Batch Chat**.
-- **♞ Coach Portal**: Tools for managing students and lesson plans.
+- **👑 Admin**: Financial reports, student database, funnel analytics.
+- **♟️ Parent**: Class schedules, payment history, assignments.
+- **♞ Coach**: Student management, lesson plans, puzzle assignment.
 
-### 3. Special Core Features
-- **Batch Chat Interface**: A 3-way messaging system (Coach-Parent-Admin) with file sharing UI.
-- **Demo Outcome Modal**: "Blocker" UI that forces admins to record results (Attended/No-Show) to prevent data leakage.
-
-### 4. Design System Highlights
-- **"Strategic Elegance" Theme**: Deep Blue (#003366), Ivory (#FFFEF3), and Warm Orange (#FC8A24).
-- **Visuals**: Subtle 5% opacity "Chess Board" backgrounds, Rangoli-inspired borders, and "Knight Move" (L-shape) animations.
+### 3. Integrated Chess Tools
+- **Stockfish Engine**: Server-side chess analysis.
+- **Puzzle Editor**: Coaches can create and assign puzzles.
+- **Game Replay**: Review student games.
 
 ---
 
 ## 📂 Project Structure
 
-```
-src/
-├── components/
-│   ├── features/       # Complex widgets (Hackathon AI tools, Modals)
-│   ├── layout/         # Sidebar, Header
-│   └── ui/             # Reusable atoms (Button, Card, Input)
-├── pages/
-│   ├── admin/          # Admin sub-pages (Student Database, Finance)
-│   ├── LandingPage.jsx
-│   ├── Login.jsx
-│   ├── RegistrationPage.jsx
-│   └── ...
-├── App.jsx             # Main routing configuration
-├── index.css           # Global Design System (Variables, Reset, Utilities)
-└── ...
+```bash
+VJAI/
+ ├── server/             # Backend (Node/Express)
+ │   ├── server.js       # Entry point
+ │   ├── .env            # Backend config (PORT, EMAILS)
+ │   └── package.json    # Backend dependencies
+ ├── src/                # Frontend (React)
+ ├── dist/               # Production build output
+ ├── package.json        # Root config & scripts
+ ├── vite.config.js      # Vite config (Proxy setup)
+ └── README.md
 ```
 
-## 🏁 How to Run
+---
 
-1. **Install Dependencies**:
-   ```bash
-   npm install
-   ```
-2. **Start Dev Server**:
-   ```bash
-   npm run dev
-   ```
-3. **Open Application**:
-   Visit `http://localhost:5173`
+## 🏁 How to Run & Deploy
+
+### 1. Setup Environment Variables
+
+**Backend (`server/.env`):**
+```env
+PORT=3001
+EMAIL_USER=your-email@gmail.com
+EMAIL_APP_PASSWORD=your-app-password
+```
+
+**Frontend (`.env`):**
+```env
+VITE_API_URL=/api  # Production (Relative path)
+# OR
+VITE_API_URL=http://localhost:3001 # Local Dev (if not using proxy)
+```
+
+### 2. Install Dependencies
+
+You need to install dependencies for **both** folders:
+
+```bash
+# Root (Frontend)
+npm install
+
+# Backend
+cd server
+npm install
+cd ..
+```
+
+### 3. Development (Run Both)
+
+Run frontend and backend concurrently with a single command:
+
+```bash
+npm run dev
+```
+- Frontend: `http://localhost:5173`
+- Backend: `http://localhost:3001`
+- API Proxy: configured in `vite.config.js` to forward `/api` -> `3001`
+
+### 4. Production Build
+
+To build the React app and have the backend serve it:
+
+```bash
+# Build Frontend
+npm run build
+
+# Start Production Server
+npm start
+```
+The application will be live at `http://localhost:3001`.
