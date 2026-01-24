@@ -105,4 +105,4 @@ npm run build
 # Start Production Server
 npm start
 ```
-The application will be live at `[http://localhost:3001](https://vjai.onrender.com/)`.
+The application will be live at `https://vjai.onrender.com/`.
