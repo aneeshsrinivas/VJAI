@@ -4,6 +4,7 @@ const http = require('http');
 const WebSocket = require('ws');
 const nodemailer = require('nodemailer');
 const { spawn } = require('child_process');
+const path = require('path');
 const STOCKFISH_PATH = require.resolve('stockfish/src/stockfish-nnue-16-no-simd.js');
 require('dotenv').config();
 
@@ -514,6 +515,18 @@ app.get('/rooms', (req, res) => {
 	const out = {};
 	for (const [room, set] of rooms.entries()) out[room] = set.size;
 	res.json(out);
+});
+
+// ==========================================
+// SERVE STATIC ASSETS (PRODUCTION)
+// ==========================================
+
+// Serve static files from the dist directory
+app.use(express.static(path.join(__dirname, '../dist')));
+
+// Handle React routing, return all requests to React app
+app.get('*', (req, res) => {
+	res.sendFile(path.join(__dirname, '../dist/index.html'));
 });
 
 const PORT = process.env.PORT || 3001;
