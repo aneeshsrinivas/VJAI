@@ -7,6 +7,8 @@ import Card from '../components/ui/Card';
 import Button from '../components/ui/Button';
 import React, { useState, useEffect } from 'react';
 
+import StudentChessAssignmentModal from '../components/features/StudentChessAssignmentModal';
+
 const StudentPage = () => {
     const { currentUser } = useAuth();
     const [student, setStudent] = useState(null);
@@ -14,6 +16,8 @@ const StudentPage = () => {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
     const [assignments, setAssignments] = useState([]);
+    const [chessAssignments, setChessAssignments] = useState([]);
+    const [selectedAssignment, setSelectedAssignment] = useState(null);
     const [scheduleLoading, setScheduleLoading] = useState(false);
     const [batchDetails, setBatchDetails] = useState(null);
 
@@ -60,6 +64,30 @@ const StudentPage = () => {
             fetchCoach();
         }
     }, [student?.assignedCoachId]);
+
+    // Fetch Chess Assignments
+    useEffect(() => {
+        if (!student?.assignedCoachId) return;
+
+        const q = query(
+            collection(db, 'chessAssignment'),
+            where('coachId', '==', student.assignedCoachId)
+        );
+
+        const unsubscribe = onSnapshot(q, (snapshot) => {
+            const list = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
+            // Similar filtering if needed, or if batchId is stored
+            if (student.batchName) {
+                setChessAssignments(list.filter(a => {
+                    return a.batchName === student.batchName || a.batchName === 'Global';
+                }));
+            } else {
+                setChessAssignments(list); // Or empty
+            }
+        });
+
+        return () => unsubscribe();
+    }, [student?.assignedCoachId, student?.batchName]);
 
     // Fetch Assignments/Resources (Strict Filtering)
     useEffect(() => {
@@ -206,6 +234,63 @@ const StudentPage = () => {
                             </div>
                         )}
                     </Card>
+
+                    {/* Chess Puzzles */}
+                    <Card title="Active Puzzles">
+                        {chessAssignments.length === 0 ? (
+                            <p style={{ color: '#666', fontStyle: 'italic', padding: '10px', textAlign: 'center' }}>
+                                No puzzles assigned yet.
+                            </p>
+                        ) : (
+                            <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '12px' }}>
+                                {chessAssignments.map((assignment) => (
+                                    <div
+                                        key={assignment.id}
+                                        onClick={() => setSelectedAssignment(assignment)}
+                                        style={{
+                                            padding: '16px',
+                                            backgroundColor: 'white',
+                                            borderRadius: '12px',
+                                            border: '1px solid #e2e8f0',
+                                            cursor: 'pointer',
+                                            transition: 'all 0.2s',
+                                            boxShadow: '0 2px 4px rgba(0,0,0,0.05)',
+                                            display: 'flex',
+                                            justifyContent: 'space-between',
+                                            alignItems: 'center'
+                                        }}
+                                        onMouseEnter={(e) => e.currentTarget.style.borderColor = '#3b82f6'}
+                                        onMouseLeave={(e) => e.currentTarget.style.borderColor = '#e2e8f0'}
+                                    >
+                                        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                                            <div style={{
+                                                width: '40px', height: '40px',
+                                                borderRadius: '8px',
+                                                background: '#f0fdf4', color: '#15803d',
+                                                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                                fontSize: '20px'
+                                            }}>
+                                                ♟️
+                                            </div>
+                                            <div>
+                                                <div style={{ fontWeight: '700', color: '#1e293b' }}>{assignment.title}</div>
+                                                <div style={{ fontSize: '12px', color: '#64748b' }}>
+                                                    {assignment.description?.substring(0, 40)}{assignment.description?.length > 40 ? '...' : ''}
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div style={{
+                                            background: '#3b82f6', color: 'white',
+                                            padding: '6px 12px', borderRadius: '20px',
+                                            fontSize: '12px', fontWeight: 'bold'
+                                        }}>
+                                            Solve
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        )}
+                    </Card>
                 </div>
 
                 {/* Sidebar */}
@@ -283,6 +368,12 @@ const StudentPage = () => {
                     </Card>
                 </div>
             </div>
+
+            <StudentChessAssignmentModal
+                isOpen={!!selectedAssignment}
+                assignment={selectedAssignment}
+                onClose={() => setSelectedAssignment(null)}
+            />
         </div>
     );
 };

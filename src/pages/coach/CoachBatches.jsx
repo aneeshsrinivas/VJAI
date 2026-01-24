@@ -7,13 +7,18 @@ import { db } from '../../lib/firebase';
 import { useAuth } from '../../context/AuthContext';
 import { COLLECTIONS } from '../../config/firestoreCollections';
 import CreateAssignmentModal from '../../components/features/CreateAssignmentModal';
-import UploadMaterialModal from '../../components/features/UploadMaterialModal'; // Replaced inline modal
+import UploadMaterialModal from '../../components/features/UploadMaterialModal';
+import CreateChessPuzzleModal from '../../components/features/CreateChessPuzzleModal';
+import CoachAssignmentDetailsModal from '../../components/features/CoachAssignmentDetailsModal';
 
 const CoachBatches = () => {
     const [selectedBatchForUpload, setSelectedBatchForUpload] = useState(null);
     const [createAssignmentBatch, setCreateAssignmentBatch] = useState(null);
+    const [createPuzzleBatch, setCreatePuzzleBatch] = useState(null);
+    const [selectedAssignment, setSelectedAssignment] = useState(null);
     const [batches, setBatches] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [assignments, setAssignments] = useState([]);
     const [uploadLog, setUploadLog] = useState([]);
     const { currentUser } = useAuth();
 
@@ -48,9 +53,6 @@ const CoachBatches = () => {
             return;
         }
 
-        console.log("Fetching batches for coach:", currentUser.uid);
-
-        // Fetch from coach's subcollection: coaches/{coachId}/batches
         const batchesRef = collection(db, 'coaches', currentUser.uid, 'batches');
 
         const unsubscribe = onSnapshot(batchesRef, (snapshot) => {
@@ -86,6 +88,23 @@ const CoachBatches = () => {
         });
 
         return () => unsubscribeAssignments();
+    }, [currentUser]);
+
+    // Fetch Chess Assignments
+    useEffect(() => {
+        if (!currentUser?.uid) return;
+
+        const q = query(
+            collection(db, 'chessAssignment'),
+            where('coachId', '==', currentUser.uid)
+        );
+
+        const unsubscribe = onSnapshot(q, (snapshot) => {
+            const list = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
+            setAssignments(list.sort((a, b) => (b.createdAt?.seconds || 0) - (a.createdAt?.seconds || 0)));
+        });
+
+        return () => unsubscribe();
     }, [currentUser]);
 
     if (loading) {
@@ -212,6 +231,22 @@ const CoachBatches = () => {
                                 }}>
                                     <Button
                                         size="sm"
+                                        onClick={() => setCreatePuzzleBatch(batch)}
+                                        style={{
+                                            background: '#f0fdf4',
+                                            border: '1px solid #bbf7d0',
+                                            color: '#15803d',
+                                            display: 'flex',
+                                            alignItems: 'center',
+                                            justifyContent: 'center',
+                                            gap: '4px',
+                                            fontSize: '12px'
+                                        }}
+                                    >
+                                        <div style={{ fontSize: '16px' }}>♟️</div> Create Puzzle
+                                    </Button>
+                                    <Button
+                                        size="sm"
                                         onClick={() => setSelectedBatchForUpload(batch)}
                                         style={{
                                             background: '#f8fafc',
@@ -226,90 +261,139 @@ const CoachBatches = () => {
                                     >
                                         <Upload size={14} /> Upload Material (PDF/PGN)
                                     </Button>
-                                    {/* Removed old 'Assign' button as it was mockup */}
                                 </div>
                             </Card>
                         )))}
                 </div>
-            </div>
 
-            {/* Upload Log Section */}
-            <div style={{ marginTop: '48px' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '24px' }}>
-                    <div style={{
-                        background: '#e0f2fe', borderRadius: '12px', padding: '10px',
-                        display: 'flex', justifyContent: 'center', alignItems: 'center'
-                    }}>
-                        <FileText size={24} color="#0284c7" />
+                {/* Chess Assignments Section */}
+                <div style={{ marginTop: '48px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '24px' }}>
+                        <div style={{
+                            background: '#f0fdf4', borderRadius: '12px', padding: '10px',
+                            display: 'flex', justifyContent: 'center', alignItems: 'center'
+                        }}>
+                            <div style={{ fontSize: '24px' }}>♟️</div>
+                        </div>
+                        <h2 style={{ fontSize: '24px', fontWeight: '800', color: '#0f172a', margin: 0 }}>Active Puzzles</h2>
                     </div>
-                    <h2 style={{ fontSize: '24px', fontWeight: '800', color: '#0f172a', margin: 0 }}>Upload History</h2>
+
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: '24px' }}>
+                        {assignments.length === 0 ? (
+                            <div style={{ gridColumn: '1 / -1', textAlign: 'center', padding: '40px', color: '#64748b' }}>
+                                <p>No puzzles created yet.</p>
+                            </div>
+                        ) : (
+                            assignments.map(assign => (
+                                <Card key={assign.id} style={{ padding: '24px', cursor: 'pointer', transition: 'all 0.2s', border: '1px solid #e2e8f0' }} onClick={() => setSelectedAssignment(assign)}>
+                                    <div style={{ marginBottom: '16px' }}>
+                                        <h3 style={{ margin: '0 0 8px', fontSize: '18px', fontWeight: '700', color: '#1e293b' }}>{assign.title}</h3>
+                                        <p style={{ margin: '0', fontSize: '13px', color: '#64748b' }}>
+                                            To: {assign.batchName}
+                                        </p>
+                                    </div>
+                                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '12px', color: '#64748b' }}>
+                                        <span>{assign.createdAt?.toDate ? assign.createdAt.toDate().toLocaleDateString() : 'Just now'}</span>
+                                        <span style={{ color: '#3b82f6', fontWeight: 'bold' }}>View Submissions →</span>
+                                    </div>
+                                </Card>
+                            ))
+                        )}
+                    </div>
                 </div>
 
-                <Card style={{ padding: '0', overflow: 'hidden', border: 'none', borderRadius: '16px', boxShadow: '0 4px 20px rgba(0,0,0,0.05)' }}>
-                    <div style={{ overflowX: 'auto' }}>
-                        <table style={{ width: '100%', borderCollapse: 'collapse', minWidth: '800px' }}>
-                            <thead style={{ background: '#f8fafc', borderBottom: '1px solid #e2e8f0' }}>
-                                <tr>
-                                    <th style={{ padding: '16px 20px', textAlign: 'left', fontSize: '13px', fontWeight: '700', color: '#64748b', textTransform: 'uppercase' }}>Document Name</th>
-                                    <th style={{ padding: '16px 20px', textAlign: 'left', fontSize: '13px', fontWeight: '700', color: '#64748b', textTransform: 'uppercase' }}>Batch</th>
-                                    <th style={{ padding: '16px 20px', textAlign: 'left', fontSize: '13px', fontWeight: '700', color: '#64748b', textTransform: 'uppercase' }}>Type</th>
-                                    <th style={{ padding: '16px 20px', textAlign: 'left', fontSize: '13px', fontWeight: '700', color: '#64748b', textTransform: 'uppercase' }}>Date Uploaded</th>
-                                    <th style={{ padding: '16px 20px', textAlign: 'left', fontSize: '13px', fontWeight: '700', color: '#64748b', textTransform: 'uppercase' }}>Action</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {uploadLog.length === 0 ? (
-                                    <tr>
-                                        <td colSpan="5" style={{ padding: '40px', textAlign: 'center', color: '#94a3b8' }}>No uploads found yet.</td>
-                                    </tr>
-                                ) : (
-                                    uploadLog.map(item => (
-                                        <tr key={item.id} style={{ borderBottom: '1px solid #f1f5f9' }}>
-                                            <td style={{ padding: '16px 20px', fontWeight: '600', color: '#334155' }}>{item.title}</td>
-                                            <td style={{ padding: '16px 20px', color: '#64748b' }}>
-                                                <span style={{ background: '#f1f5f9', padding: '4px 8px', borderRadius: '4px', fontSize: '12px', fontWeight: '600' }}>
-                                                    {item.batchName || 'General'}
-                                                </span>
-                                            </td>
-                                            <td style={{ padding: '16px 20px' }}>
-                                                <span style={{
-                                                    color: item.type === 'PGN' ? '#84cc16' : '#f43f5e',
-                                                    background: item.type === 'PGN' ? '#ecfccb' : '#ffe4e6',
-                                                    padding: '4px 10px', borderRadius: '20px', fontSize: '12px', fontWeight: '700'
-                                                }}>
-                                                    {item.type}
-                                                </span>
-                                            </td>
-                                            <td style={{ padding: '16px 20px', color: '#64748b', fontSize: '14px' }}>
-                                                {item.createdAt?.toDate ? item.createdAt.toDate().toLocaleDateString() : 'Just now'}
-                                            </td>
-                                            <td style={{ padding: '16px 20px' }}>
-                                                <Button variant="ghost" size="sm" onClick={() => window.open(item.url, '_blank')} style={{ fontSize: '12px' }}>
-                                                    View
-                                                </Button>
-                                            </td>
-                                        </tr>
-                                    ))
-                                )}
-                            </tbody>
-                        </table>
+                {/* Upload Log Section */}
+                <div style={{ marginTop: '48px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '24px' }}>
+                        <div style={{
+                            background: '#e0f2fe', borderRadius: '12px', padding: '10px',
+                            display: 'flex', justifyContent: 'center', alignItems: 'center'
+                        }}>
+                            <FileText size={24} color="#0284c7" />
+                        </div>
+                        <h2 style={{ fontSize: '24px', fontWeight: '800', color: '#0f172a', margin: 0 }}>Upload History</h2>
                     </div>
-                </Card>
+
+                    <Card style={{ padding: '0', overflow: 'hidden', border: 'none', borderRadius: '16px', boxShadow: '0 4px 20px rgba(0,0,0,0.05)' }}>
+                        <div style={{ overflowX: 'auto' }}>
+                            <table style={{ width: '100%', borderCollapse: 'collapse', minWidth: '800px' }}>
+                                <thead style={{ background: '#f8fafc', borderBottom: '1px solid #e2e8f0' }}>
+                                    <tr>
+                                        <th style={{ padding: '16px 20px', textAlign: 'left', fontSize: '13px', fontWeight: '700', color: '#64748b', textTransform: 'uppercase' }}>Document Name</th>
+                                        <th style={{ padding: '16px 20px', textAlign: 'left', fontSize: '13px', fontWeight: '700', color: '#64748b', textTransform: 'uppercase' }}>Batch</th>
+                                        <th style={{ padding: '16px 20px', textAlign: 'left', fontSize: '13px', fontWeight: '700', color: '#64748b', textTransform: 'uppercase' }}>Type</th>
+                                        <th style={{ padding: '16px 20px', textAlign: 'left', fontSize: '13px', fontWeight: '700', color: '#64748b', textTransform: 'uppercase' }}>Date Uploaded</th>
+                                        <th style={{ padding: '16px 20px', textAlign: 'left', fontSize: '13px', fontWeight: '700', color: '#64748b', textTransform: 'uppercase' }}>Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {uploadLog.length === 0 ? (
+                                        <tr>
+                                            <td colSpan="5" style={{ padding: '40px', textAlign: 'center', color: '#94a3b8' }}>No uploads found yet.</td>
+                                        </tr>
+                                    ) : (
+                                        uploadLog.map(item => (
+                                            <tr key={item.id} style={{ borderBottom: '1px solid #f1f5f9' }}>
+                                                <td style={{ padding: '16px 20px', fontWeight: '600', color: '#334155' }}>{item.title}</td>
+                                                <td style={{ padding: '16px 20px', color: '#64748b' }}>
+                                                    <span style={{ background: '#f1f5f9', padding: '4px 8px', borderRadius: '4px', fontSize: '12px', fontWeight: '600' }}>
+                                                        {item.batchName || 'General'}
+                                                    </span>
+                                                </td>
+                                                <td style={{ padding: '16px 20px' }}>
+                                                    <span style={{
+                                                        color: item.type === 'PGN' ? '#84cc16' : '#f43f5e',
+                                                        background: item.type === 'PGN' ? '#ecfccb' : '#ffe4e6',
+                                                        padding: '4px 10px', borderRadius: '20px', fontSize: '12px', fontWeight: '700'
+                                                    }}>
+                                                        {item.type}
+                                                    </span>
+                                                </td>
+                                                <td style={{ padding: '16px 20px', color: '#64748b', fontSize: '14px' }}>
+                                                    {item.createdAt?.toDate ? item.createdAt.toDate().toLocaleDateString() : 'Just now'}
+                                                </td>
+                                                <td style={{ padding: '16px 20px' }}>
+                                                    <Button variant="ghost" size="sm" onClick={() => window.open(item.url, '_blank')} style={{ fontSize: '12px' }}>
+                                                        View
+                                                    </Button>
+                                                </td>
+                                            </tr>
+                                        ))
+                                    )}
+                                </tbody>
+                            </table>
+                        </div>
+                    </Card>
+                </div>
+
+                <UploadMaterialModal
+                    isOpen={!!selectedBatchForUpload}
+                    batch={selectedBatchForUpload}
+                    onClose={() => setSelectedBatchForUpload(null)}
+                />
+
+                <CreateAssignmentModal
+                    isOpen={!!createAssignmentBatch}
+                    batchId={createAssignmentBatch?.id}
+                    batchName={createAssignmentBatch?.name}
+                    onClose={() => setCreateAssignmentBatch(null)}
+                    onSuccess={() => alert('Assignment Created Successfully!')}
+                />
+
+                <CreateChessPuzzleModal
+                    isOpen={!!createPuzzleBatch}
+                    batchId={createPuzzleBatch?.id}
+                    batchName={createPuzzleBatch?.name}
+                    onClose={() => setCreatePuzzleBatch(null)}
+                    onSuccess={() => alert('Puzzle Created Successfully!')}
+                />
+
+                <CoachAssignmentDetailsModal
+                    isOpen={!!selectedAssignment}
+                    assignment={selectedAssignment || {}}
+                    onClose={() => setSelectedAssignment(null)}
+                />
             </div>
-
-            <UploadMaterialModal
-                isOpen={!!selectedBatchForUpload}
-                batch={selectedBatchForUpload}
-                onClose={() => setSelectedBatchForUpload(null)}
-            />
-
-            <CreateAssignmentModal
-                isOpen={!!createAssignmentBatch}
-                batchId={createAssignmentBatch?.id}
-                batchName={createAssignmentBatch?.name}
-                onClose={() => setCreateAssignmentBatch(null)}
-                onSuccess={() => alert('Assignment Created Successfully!')}
-            />
         </div>
     );
 };

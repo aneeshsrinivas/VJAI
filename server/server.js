@@ -3,11 +3,121 @@ const cors = require('cors');
 const http = require('http');
 const WebSocket = require('ws');
 const nodemailer = require('nodemailer');
+const { spawn } = require('child_process');
+const STOCKFISH_PATH = require.resolve('stockfish/src/stockfish-nnue-16-no-simd.js');
 require('dotenv').config();
 
 const app = express();
 app.use(cors());
 app.use(express.json());
+
+// ==========================================
+// STOCKFISH ENGINE HELPERS (spawn no-Worker build)
+// ==========================================
+
+const runStockfish = ({ fen, depth = 12, skill = 10, movetime } = {}) => {
+	return new Promise((resolve, reject) => {
+		const nodeArgs = [STOCKFISH_PATH];
+		const engine = spawn(process.execPath, nodeArgs, { stdio: ['pipe', 'pipe', 'pipe'] });
+		let bestMove = null;
+		let score = null;
+		let lastPv = null;
+		let resolved = false;
+
+		const timeout = setTimeout(() => {
+			if (!resolved) {
+				resolved = true;
+				engine.kill();
+				reject(new Error('Engine timeout'));
+			}
+		}, 30000);
+
+		const send = (cmd) => {
+			if (engine.stdin.writable) {
+				engine.stdin.write(cmd + '\n');
+			}
+		};
+
+		const handleLine = (line) => {
+			if (!resolved) console.log('SF:', line);
+
+			if (line === 'uciok') {
+				send(`setoption name Skill Level value ${skill}`);
+				send('isready');
+				return;
+			}
+
+			if (line === 'readyok') {
+				send(`position fen ${fen || 'startpos'}`);
+				send(movetime ? `go movetime ${movetime}` : `go depth ${depth}`);
+				return;
+			}
+
+			if (typeof line === 'string' && line.startsWith('info') && line.includes('score')) {
+				const parts = line.split(' ');
+				const scoreIdx = parts.indexOf('score');
+				if (scoreIdx !== -1 && parts[scoreIdx + 1]) {
+					const type = parts[scoreIdx + 1];
+					const val = parseInt(parts[scoreIdx + 2], 10);
+					if (!Number.isNaN(val)) {
+						score = type === 'cp' ? val / 100 : `#${val}`;
+					}
+				}
+
+				// Capture principal variation if present
+				const pvIdx = parts.indexOf('pv');
+				if (pvIdx !== -1 && parts[pvIdx + 1]) {
+					lastPv = parts.slice(pvIdx + 1).join(' ');
+				}
+			}
+
+			if (typeof line === 'string' && line.startsWith('bestmove')) {
+				const tokens = line.split(' ');
+				bestMove = tokens[1];
+				if (!resolved) {
+					resolved = true;
+					clearTimeout(timeout);
+					engine.kill();
+					resolve({ bestMove, score, pv: lastPv });
+				}
+			}
+		};
+
+		let buffer = '';
+		engine.stdout.on('data', (data) => {
+			buffer += data.toString();
+			let idx;
+			while ((idx = buffer.indexOf('\n')) >= 0) {
+				const line = buffer.slice(0, idx).trim();
+				buffer = buffer.slice(idx + 1);
+				if (line) handleLine(line);
+			}
+		});
+
+		engine.stderr.on('data', (d) => {
+			console.error('SF stderr:', d.toString());
+		});
+
+		engine.on('error', (err) => {
+			console.error('Stockfish process error:', err);
+			if (!resolved) {
+				resolved = true;
+				clearTimeout(timeout);
+				reject(err);
+			}
+		});
+
+		engine.on('exit', (code) => {
+			if (!resolved && code !== 0) {
+				resolved = true;
+				clearTimeout(timeout);
+				reject(new Error(`Engine exited with code ${code}`));
+			}
+		});
+
+		send('uci');
+	});
+};
 
 const server = http.createServer(app);
 
@@ -216,6 +326,74 @@ app.post('/api/email/send', async (req, res) => {
 });
 
 // ==========================================
+// CHESS ENGINE ENDPOINTS (STOCKFISH)
+// ==========================================
+
+/**
+ * Get best move from Stockfish
+ * POST /api/chess/engine-move
+ * Body: { fen, depth?: number, skill?: 0-20, movetime?: ms, difficulty?: 'easy'|'medium'|'hard' }
+ */
+app.post('/api/chess/engine-move', async (req, res) => {
+	try {
+		const { fen, depth, skill, movetime, difficulty } = req.body || {};
+		if (!fen) return res.status(400).json({ success: false, error: 'fen is required' });
+
+		const resolvedParams = (() => {
+			if (difficulty === 'easy') return { depth: depth ?? 6, skill: skill ?? 3 };
+			if (difficulty === 'medium') return { depth: depth ?? 10, skill: skill ?? 8 };
+			if (difficulty === 'hard') return { depth: depth ?? 16, skill: skill ?? 15 };
+			return { depth: depth ?? 12, skill: skill ?? 10 };
+		})();
+
+		console.log('Engine-move request ->', { fen, difficulty, ...resolvedParams, movetime });
+		const result = await runStockfish({ fen, ...resolvedParams, movetime });
+		console.log('Engine-move response <-', { bestMove: result.bestMove, score: result.score, pv: result.pv });
+		res.json({ success: true, ...result, ...resolvedParams });
+	} catch (err) {
+		console.error('Engine move error:', err);
+		res.status(500).json({ success: false, error: err.message });
+	}
+});
+
+/**
+ * Simple puzzle suggestion: returns best move + eval for a given FEN
+ * POST /api/chess/puzzle
+ * Body: { fen, depth?: number, skill?: 0-20, difficulty?: 'easy'|'medium'|'hard' }
+ */
+app.post('/api/chess/puzzle', async (req, res) => {
+	try {
+		const { fen, depth, skill, difficulty } = req.body || {};
+		if (!fen) return res.status(400).json({ success: false, error: 'fen is required' });
+
+		const resolvedParams = (() => {
+			if (difficulty === 'easy') return { depth: depth ?? 6, skill: skill ?? 3 };
+			if (difficulty === 'medium') return { depth: depth ?? 10, skill: skill ?? 8 };
+			if (difficulty === 'hard') return { depth: depth ?? 16, skill: skill ?? 15 };
+			return { depth: depth ?? 12, skill: skill ?? 12 };
+		})();
+
+		console.log('Puzzle request ->', { fen, difficulty, depth: resolvedParams.depth, skill: resolvedParams.skill });
+		const result = await runStockfish({ fen, ...resolvedParams });
+		console.log('Puzzle response <-', { bestMove: result.bestMove, score: result.score, pv: result.pv });
+		res.json({
+			success: true,
+			puzzle: {
+				fen,
+				bestMove: result.bestMove,
+				score: result.score,
+				pv: result.pv,
+				depth: resolvedParams.depth,
+				skill: resolvedParams.skill
+			}
+		});
+	} catch (err) {
+		console.error('Puzzle generation error:', err);
+		res.status(500).json({ success: false, error: err.message });
+	}
+});
+
+// ==========================================
 // WEBSOCKET CHAT (Existing Code)
 // ==========================================
 
@@ -326,7 +504,7 @@ const interval = setInterval(() => {
 	wss.clients.forEach((ws) => {
 		if (ws.isAlive === false) return ws.terminate();
 		ws.isAlive = false;
-		ws.ping(() => {});
+		ws.ping(() => { });
 	});
 }, 30000);
 

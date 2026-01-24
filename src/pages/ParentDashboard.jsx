@@ -6,6 +6,7 @@ import { db } from '../lib/firebase';
 import { COLLECTIONS } from '../config/firestoreCollections';
 import Button from '../components/ui/Button';
 import ReviewRequestModal from '../components/features/ReviewRequestModal';
+import StudentChessAssignmentModal from '../components/features/StudentChessAssignmentModal';
 // Icons
 import CalendarIcon from '../components/icons/CalendarIcon';
 import AssignmentIcon from '../components/icons/AssignmentIcon';
@@ -30,6 +31,8 @@ const ParentDashboard = () => {
     const [coach, setCoach] = useState(null);
     const [broadcasts, setBroadcasts] = useState([]);
     const [scheduleItems, setScheduleItems] = useState([]);
+    const [chessAssignments, setChessAssignments] = useState([]);
+    const [selectedAssignment, setSelectedAssignment] = useState(null);
     const [loading, setLoading] = useState(true);
 
     // UI State
@@ -221,6 +224,59 @@ const ParentDashboard = () => {
         };
     }, [currentUser]);
 
+    // Fetch Chess Assignments
+    useEffect(() => {
+        console.log('Setting up chess assignments listener for student:', student);
+        if (!student) return;
+
+        console.log('Fetching chess assignments for student:', {
+            assignedCoachId: student.assignedCoachId,
+            assignedBatch: student.assignedBatch,
+            assignedBatchName: student.assignedBatchName,
+            batchName: student.batchName
+        });
+
+        // Query all chess assignments (we'll filter client-side)
+        const q = query(collection(db, 'chessAssignment'));
+
+        const unsubscribe = onSnapshot(q, async (snapshot) => {
+            const list = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
+            console.log('All chess assignments:', list);
+
+            const studentBatchId = student.assignedBatch;
+            const studentBatchName = student.assignedBatchName || student.batchName;
+            const coachId = student.assignedCoachId;
+
+            // Filter by coach, then by batch (ID or Name) or Global
+            const filtered = list.filter(a => {
+                const matchesCoach = !coachId || a.coachId === coachId;
+                const matchesBatchId = !studentBatchId || a.batchId === studentBatchId;
+                const matchesBatchName = !studentBatchName || a.batchName === studentBatchName;
+                const isGlobal = a.batchName === 'Global';
+
+                return matchesCoach && (matchesBatchId || matchesBatchName || isGlobal);
+            });
+
+            // Check submission status for each assignment
+            const assignmentsWithStatus = await Promise.all(filtered.map(async (a) => {
+                if (!currentUser?.uid) return { ...a, isSubmitted: false };
+                try {
+                    const subRef = doc(db, 'chessAssignment', a.id, 'submissions', currentUser.uid);
+                    const subSnap = await getDoc(subRef);
+                    return { ...a, isSubmitted: subSnap.exists() };
+                } catch (e) {
+                    console.error("Error checking submission:", e);
+                    return { ...a, isSubmitted: false };
+                }
+            }));
+
+            console.log('Filtered chess assignments with status:', assignmentsWithStatus);
+            setChessAssignments(assignmentsWithStatus);
+        });
+
+        return () => unsubscribe();
+    }, [student?.assignedCoachId, student?.assignedBatch, student?.assignedBatchName, student?.batchName]);
+
     // Dynamic Progress Calculation based on skills mastered
     const TOTAL_SKILLS = 7; // Total curriculum skills
     useEffect(() => {
@@ -402,6 +458,66 @@ const ParentDashboard = () => {
 
 
 
+                        {/* Chess Assignments Section */}
+                        {chessAssignments.length > 0 && (
+                            <div className={`content-card ${cardsVisible ? 'visible' : ''}`}>
+                                <div className="card-header-row">
+                                    <div className="card-title-group">
+                                        <ChessBishopIcon size={22} color="#003366" />
+                                        <h3>Chess Assignments</h3>
+                                    </div>
+                                </div>
+                                <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                                    {chessAssignments.map((assignment) => (
+                                        <div
+                                            key={assignment.id}
+                                            onClick={() => setSelectedAssignment(assignment)}
+                                            style={{
+                                                padding: '16px',
+                                                background: '#f8fafc',
+                                                borderRadius: '8px',
+                                                border: '1px solid #e2e8f0',
+                                                cursor: 'pointer',
+                                                transition: 'all 0.2s',
+                                            }}
+                                            onMouseEnter={(e) => {
+                                                e.currentTarget.style.background = '#eff6ff';
+                                                e.currentTarget.style.borderColor = '#3b82f6';
+                                            }}
+                                            onMouseLeave={(e) => {
+                                                e.currentTarget.style.background = '#f8fafc';
+                                                e.currentTarget.style.borderColor = '#e2e8f0';
+                                            }}
+                                        >
+                                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start', marginBottom: '8px' }}>
+                                                <div>
+                                                    <h4 style={{ margin: 0, color: '#1e293b', fontSize: '16px', fontWeight: '600' }}>
+                                                        {assignment.title}
+                                                    </h4>
+                                                    <div style={{ fontSize: '13px', color: '#64748b', marginTop: '4px' }}>
+                                                        {assignment.type} • {assignment.batchName}
+                                                    </div>
+                                                </div>
+                                                <span style={{
+                                                    padding: '4px 12px',
+                                                    background: assignment.isSubmitted ? '#dcfce7' : '#dbeafe',
+                                                    color: assignment.isSubmitted ? '#166534' : '#1e40af',
+                                                    borderRadius: '12px',
+                                                    fontSize: '12px',
+                                                    fontWeight: '600'
+                                                }}>
+                                                    {assignment.isSubmitted ? 'Submitted' : 'View'}
+                                                </span>
+                                            </div>
+                                            <p style={{ margin: 0, fontSize: '14px', color: '#475569', lineHeight: '1.5' }}>
+                                                {assignment.description?.substring(0, 80)}{assignment.description?.length > 80 ? '...' : ''}
+                                            </p>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                        )}
+
                         {/* Quick Actions Grid */}
                         <div className={`quick-actions-grid ${cardsVisible ? 'visible' : ''}`}>
                             {quickActions.map((action, index) => {
@@ -530,6 +646,28 @@ const ParentDashboard = () => {
             <ReviewRequestModal
                 isOpen={isReviewModalOpen}
                 onClose={() => setReviewModalOpen(false)}
+            />
+
+            <StudentChessAssignmentModal
+                isOpen={!!selectedAssignment}
+                onClose={async () => {
+                    // Check if the assignment was just submitted to update the UI immediately
+                    if (selectedAssignment) {
+                        try {
+                            const subRef = doc(db, 'chessAssignment', selectedAssignment.id, 'submissions', currentUser.uid);
+                            const subSnap = await getDoc(subRef);
+                            if (subSnap.exists()) {
+                                setChessAssignments(prev => prev.map(a =>
+                                    a.id === selectedAssignment.id ? { ...a, isSubmitted: true } : a
+                                ));
+                            }
+                        } catch (e) {
+                            console.error("Error refreshing submission status:", e);
+                        }
+                    }
+                    setSelectedAssignment(null);
+                }}
+                assignment={selectedAssignment}
             />
         </div>
     );

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { collection, query, where, getDocs, doc, updateDoc, serverTimestamp, arrayUnion } from 'firebase/firestore';
+import { collection, query, where, getDocs, doc, updateDoc, serverTimestamp, arrayUnion, getDoc, arrayRemove } from 'firebase/firestore';
 import { db } from '../../lib/firebase';
 import Card from '../../components/ui/Card';
 import Button from '../../components/ui/Button';
@@ -122,8 +122,34 @@ const StudentDatabase = () => {
         if (!editingStudent) return;
 
         try {
+            const studentRef = doc(db, 'users', editingStudent.id);
+
+            // 1. Fetch current data to handle batch switching
+            const currentSnap = await getDoc(studentRef);
+            if (currentSnap.exists()) {
+                const oldData = currentSnap.data();
+                const oldBatchId = oldData.assignedBatchId || oldData.assignedBatch;
+                const oldCoachId = oldData.assignedCoachId || oldData.assignedCoach;
+
+                // Check if batch changed/removed
+                if (oldBatchId && oldBatchId !== editingStudent.assigned_batch_id) {
+                    if (oldCoachId) {
+                        try {
+                            const oldBatchRef = doc(db, 'coaches', oldCoachId, 'batches', oldBatchId);
+                            await updateDoc(oldBatchRef, {
+                                studentsId: arrayRemove(editingStudent.id),
+                                updatedAt: serverTimestamp()
+                            });
+                            console.log(`Removed student from old batch: ${oldBatchId}`);
+                        } catch (err) {
+                            console.error("Error removing from old batch:", err);
+                        }
+                    }
+                }
+            }
+
             // Update the student document
-            await updateDoc(doc(db, 'users', editingStudent.id), {
+            await updateDoc(studentRef, {
                 studentName: editingStudent.student_name,
                 studentAge: editingStudent.student_age,
                 studentType: editingStudent.student_type,
