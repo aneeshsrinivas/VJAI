@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { collection, query, orderBy, onSnapshot, addDoc, serverTimestamp, getDocs, where, updateDoc, doc } from 'firebase/firestore';
+import { collection, query, orderBy, onSnapshot, addDoc, serverTimestamp, getDocs, where, updateDoc, doc, setDoc, getDoc } from 'firebase/firestore';
 import { db } from '../../lib/firebase';
 import { useAuth } from '../../context/AuthContext';
 import Button from '../../components/ui/Button';
@@ -33,7 +33,13 @@ const ChatPage = ({ userRole: propRole }) => {
     const [selectedBatchId, setSelectedBatchId] = useState('');
     const [searchQuery, setSearchQuery] = useState('');
     const messagesEndRef = useRef(null);
+    const wsRef = useRef(null);
+    const prevRoomRef = useRef(null);
+    const messagesRef = useRef([]);
+    const selectedChatRef = useRef(null);
 
+    const WS_URL = import.meta.env.VITE_WS_URL || import.meta.env.REACT_APP_WS_URL || 'ws://localhost:3001';
+    console.log('WebSocket URL:', WS_URL);
     const role = (propRole || authRole || 'CUSTOMER').toUpperCase();
 
     // Auto-scroll to bottom
@@ -43,7 +49,91 @@ const ChatPage = ({ userRole: propRole }) => {
 
     useEffect(() => {
         scrollToBottom();
+        messagesRef.current = messages;
+        selectedChatRef.current = selectedChat;
     }, [messages]);
+
+    // WebSocket connection
+    useEffect(() => {
+        if (wsRef.current) return; // already connected
+
+        let reconnectAttempts = 0;
+        const maxReconnectAttempts = 10;
+        let reconnectTimeout;
+
+        const connectWebSocket = () => {
+            try {
+                const ws = new WebSocket(WS_URL);
+                wsRef.current = ws;
+
+                ws.onopen = () => {
+                    console.log('WebSocket connected');
+                    reconnectAttempts = 0;
+                };
+
+                ws.onmessage = (ev) => {
+                    try {
+                        const data = JSON.parse(ev.data);
+                        if (data.type === 'message') {
+                            const { room, text, user, ts } = data;
+                            // Only append if viewing the same room
+                            if (selectedChatRef.current && selectedChatRef.current.id === room) {
+                                // avoid duplicates: check existing messages
+                                const exists = messagesRef.current.find(m => (m.content === text && m.senderId === user.id && Math.abs((m.createdAt?.toDate?.()?.getTime?.() || 0) - ts) < 2000));
+                                if (!exists) {
+                                    const m = {
+                                        id: `ws-${ts}-${user.id}`,
+                                        chatId: room,
+                                        content: text,
+                                        senderId: user.id,
+                                        senderName: user.name || user.id,
+                                        senderRole: user.role || 'USER',
+                                        createdAt: { toDate: () => new Date(ts) }
+                                    };
+                                    setMessages(prev => [...prev, m]);
+                                }
+                            }
+                        }
+                    } catch (e) {
+                        // ignore parse errors
+                    }
+                };
+
+                ws.onclose = (ev) => {
+                    console.warn('WebSocket closed', { code: ev.code, reason: ev.reason, wasClean: ev.wasClean });
+                    wsRef.current = null;
+
+                    // Attempt to reconnect with exponential backoff
+                    if (reconnectAttempts < maxReconnectAttempts) {
+                        reconnectAttempts += 1;
+                        const delay = Math.min(30000, 1000 * Math.pow(2, reconnectAttempts));
+                        console.log(`Reconnecting in ${delay}ms...`);
+                        reconnectTimeout = setTimeout(connectWebSocket, delay);
+                    }
+                };
+
+                ws.onerror = (ev) => {
+                    console.error('WebSocket error event', ev);
+                };
+            } catch (e) {
+                console.error('Error creating WebSocket:', e);
+            }
+        };
+
+        connectWebSocket();
+
+        return () => {
+            if (reconnectTimeout) clearTimeout(reconnectTimeout);
+            try {
+                if (wsRef.current) {
+                    wsRef.current.close();
+                    wsRef.current = null;
+                }
+            } catch (e) {
+                console.error('Error closing WebSocket:', e);
+            }
+        };
+    }, [WS_URL]);
 
     // Real-time listener for chats
     useEffect(() => {
@@ -104,9 +194,25 @@ const ChatPage = ({ userRole: propRole }) => {
             return;
         }
 
+        // If this is a group chat, join via WebSocket
+        if (wsRef.current && selectedChat.chatType === 'BATCH_GROUP') {
+            const prev = prevRoomRef.current;
+            if (prev && prev !== selectedChat.id) {
+                try { wsRef.current.send(JSON.stringify({ type: 'leave', room: prev, user: { id: currentUser?.uid, name: currentUser?.email?.split('@')[0] } })); } catch (e) {}
+            }
+            try { wsRef.current.send(JSON.stringify({ type: 'join', room: selectedChat.id, user: { id: currentUser?.uid, name: currentUser?.email?.split('@')[0] } })); } catch (e) {}
+            prevRoomRef.current = selectedChat.id;
+        } else if (wsRef.current && prevRoomRef.current && selectedChat?.id !== prevRoomRef.current) {
+            // leaving previous room when switching to a non-group chat
+            try { wsRef.current.send(JSON.stringify({ type: 'leave', room: prevRoomRef.current, user: { id: currentUser?.uid } })); } catch (e) {}
+            prevRoomRef.current = null;
+        }
+
         try {
             const messagesRef = collection(db, 'messages');
             const q = query(messagesRef, where('chatId', '==', selectedChat.id));
+
+            console.log('Setting up messages listener for chatId:', selectedChat.id);
 
             const unsubscribe = onSnapshot(q, (snapshot) => {
                 let msgList = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
@@ -117,6 +223,7 @@ const ChatPage = ({ userRole: propRole }) => {
                     return aTime - bTime;
                 });
 
+                console.log('Messages loaded for chat:', selectedChat.id, msgList);
                 setMessages(msgList);
             }, (error) => {
                 console.error('Error loading messages:', error);
@@ -129,7 +236,12 @@ const ChatPage = ({ userRole: propRole }) => {
         }
     }, [selectedChat]);
 
-    // Fetch users and batches for new chat modal
+    // keep selectedChatRef in sync
+    useEffect(() => {
+        selectedChatRef.current = selectedChat;
+    }, [selectedChat]);
+
+    // Fetch users and batches for new chat modal and coach batch list
     useEffect(() => {
         if (role === 'ADMIN') {
             getDocs(collection(db, 'users')).then(snap => {
@@ -139,18 +251,152 @@ const ChatPage = ({ userRole: propRole }) => {
             getDocs(collection(db, 'batches')).then(snap => {
                 setBatches(snap.docs.map(d => ({ id: d.id, ...d.data() })));
             }).catch(err => console.error('Error fetching batches:', err));
+        } else if (role === 'COACH' && currentUser?.uid) {
+            // Load coach's batches from subcollection
+            getDocs(collection(db, 'coaches', currentUser.uid, 'batches')).then(snap => {
+                const batchList = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+                setBatches(batchList);
+                console.log('Coach batches loaded:', batchList);
+            }).catch(err => console.error('Error fetching coach batches:', err));
+        } else if (role === 'CUSTOMER' && currentUser?.uid) {
+            // Load student's assigned batches from users collection
+            console.log('Fetching student from users collection for UID:', currentUser.uid);
+
+            const studentRef = doc(db, 'users', currentUser.uid);
+
+            getDoc(studentRef)
+                .then((snap) => {
+                    if (!snap.exists()) {
+                        console.log('No student document found in users collection');
+                        return;
+                    }
+
+                    const data = snap.data();
+
+                    console.log('Student data: in chat', data);
+                    console.log("assignedBatchName field:", data.assignedBatchName);
+                    
+                    let assignedBatchIds = data.assignedBatch || data.assignedBatchId || [];
+                    let assignedBatchNames = data.assignedBatchName || [];
+                    
+                    // Convert single ID string to array
+                    if (typeof assignedBatchIds === 'string') {
+                        assignedBatchIds = [assignedBatchIds];
+                    }
+                    
+                    // Convert single name string to array
+                    if (typeof assignedBatchNames === 'string') {
+                        assignedBatchNames = [assignedBatchNames];
+                    }
+                    
+                    if (!Array.isArray(assignedBatchIds)) {
+                        assignedBatchIds = [];
+                    }
+                    if (!Array.isArray(assignedBatchNames)) {
+                        assignedBatchNames = [];
+                    }
+                    
+                    console.log('Assigned batch IDs:', assignedBatchIds);
+                    console.log('Assigned batch Names:', assignedBatchNames);
+                    
+                    if (!assignedBatchIds || assignedBatchIds.length === 0) {
+                        console.log('No assigned batches found');
+                        return;
+                    }
+
+                    // Combine IDs and names into batch objects
+                    const batchList = assignedBatchIds.map((id, idx) => ({
+                        id: id,  // This is the room ID for WebSocket
+                        name: assignedBatchNames[idx] || id  // Display name
+                    }));
+
+                    setBatches(batchList);
+
+                    console.log('Customer batches loaded:', batchList);
+                })
+                .catch(err => console.error('Error fetching student:', err));
         }
-    }, [role]);
+    }, [role, currentUser?.uid]);
 
     const handleSendMessage = async () => {
-        if (!message.trim() || !selectedChat || sending || !currentUser) return;
+        console.log('handleSendMessage called');
+        console.log('message:', message);
+        console.log('selectedChat:', selectedChat);
+        console.log('sending:', sending);
+        console.log('currentUser:', currentUser);
+        
+        if (!message.trim()) {
+            console.log('Message is empty, returning');
+            return;
+        }
+        if (!selectedChat) {
+            console.log('No selectedChat, returning');
+            return;
+        }
+        if (sending) {
+            console.log('Already sending, returning');
+            return;
+        }
+        if (!currentUser) {
+            console.log('No currentUser, returning');
+            return;
+        }
 
         setSending(true);
         const messageText = message.trim();
         setMessage('');
 
         try {
-            await addDoc(collection(db, 'messages'), {
+            console.log('Sending message for chat:', selectedChat);
+            console.log('Current user UID:', currentUser.uid);
+            console.log('Selected chat ID:', selectedChat.id);
+            
+            // Check if chat document exists using getDoc (more efficient)
+            const chatDocRef = doc(db, 'chats', selectedChat.id);
+            const chatSnap = await getDoc(chatDocRef);
+
+            console.log('Chat document exists:', chatSnap.exists());
+
+            if (!chatSnap.exists()) {
+                // Chat doesn't exist, create it first
+                const chatData = {
+                    chatType: selectedChat.chatType || 'BATCH_GROUP',
+                    name: selectedChat.name || `Batch ${selectedChat.id}`,
+                    participants: selectedChat.participants || [currentUser.uid],
+                    createdAt: serverTimestamp(),
+                    lastMessageAt: serverTimestamp(),
+                    lastMessage: messageText
+                };
+
+                // Add admin/user specific fields for direct chats
+                if (selectedChat.chatType === 'ADMIN_PARENT' || selectedChat.chatType === 'ADMIN_COACH') {
+                    chatData.adminId = role === 'ADMIN' ? currentUser.uid : selectedChat.participants?.find(p => p !== currentUser.uid);
+                    chatData.userId = role === 'ADMIN' ? selectedChat.userId : currentUser.uid;
+                }
+
+                console.log('Creating new chat document with ID:', selectedChat.id);
+                console.log('Chat data:', chatData);
+                await setDoc(chatDocRef, chatData);
+                console.log('Chat document created successfully');
+            }
+
+            // If this is a group chat, broadcast over WebSocket for live updates
+            if (selectedChat.chatType === 'BATCH_GROUP' && wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
+                try {
+                    wsRef.current.send(JSON.stringify({
+                        type: 'message',
+                        room: selectedChat.id,
+                        text: messageText,
+                        user: { id: currentUser.uid, name: currentUser.email?.split('@')[0] },
+                        ts: Date.now()
+                    }));
+                } catch (e) {
+                    // ignore ws send error
+                }
+            }
+
+            // Add message to messages collection
+            const messageData = {
                 chatId: selectedChat.id,
                 content: messageText,
                 senderId: currentUser.uid,
@@ -158,12 +404,19 @@ const ChatPage = ({ userRole: propRole }) => {
                 senderRole: role,
                 senderName: role === 'ADMIN' ? 'Admin' : currentUser.email?.split('@')[0] || 'User',
                 createdAt: serverTimestamp()
-            });
+            };
+            
+            console.log('Adding message:', messageData);
+            
+            const msgRef = await addDoc(collection(db, 'messages'), messageData);
+            console.log('Message added successfully with ID:', msgRef.id);
 
-            await updateDoc(doc(db, 'chats', selectedChat.id), {
+            await updateDoc(chatDocRef, {
                 lastMessage: messageText,
                 lastMessageAt: serverTimestamp()
             });
+            console.log('Chat document updated with last message');
+            
         } catch (error) {
             console.error('Send message error:', error);
             toast.error('Failed to send: ' + error.message);
@@ -302,6 +555,7 @@ const ChatPage = ({ userRole: propRole }) => {
                         New Chat
                     </Button>
                 )}
+
             </div>
 
             <div className="chat-container">
@@ -316,6 +570,148 @@ const ChatPage = ({ userRole: propRole }) => {
                             onChange={(e) => setSearchQuery(e.target.value)}
                         />
                     </div>
+
+                    {role === 'ADMIN' && users.length > 0 && (
+                        <div style={{ padding: '12px', borderBottom: `1px solid ${COLORS.deepBlue}20` }}>
+                            <div style={{ fontSize: '12px', fontWeight: '600', color: COLORS.deepBlue, marginBottom: '8px' }}>All Users</div>
+                            <ul style={{ listStyle: 'none', padding: 0, margin: 0 }}>
+                                {users.map(user => (
+                                    <li
+                                        key={user.id}
+                                        onClick={() => {
+                                            const chatType = user.role === 'coach' ? 'ADMIN_COACH' : 'ADMIN_PARENT';
+                                            const userName = user.fullName || user.email?.split('@')[0] || 'User';
+                                            // Use consistent format: userId_admin
+                                            const chatId = `${user.id}_admin`;
+                                            
+                                            console.log('Admin selecting user:', { userId: user.id, chatId, chatType });
+                                            
+                                            const userChat = chats.find(c => c.id === chatId);
+                                            if (userChat) {
+                                                console.log('Found existing chat:', userChat);
+                                                setSelectedChat(userChat);
+                                            } else {
+                                                console.log('Creating new chat reference');
+                                                setSelectedChat({
+                                                    id: chatId,
+                                                    name: userName,
+                                                    chatType: chatType,
+                                                    userId: user.id,
+                                                    participants: [currentUser?.uid, user.id]
+                                                });
+                                            }
+                                        }}
+                                        style={{
+                                            padding: '8px 12px',
+                                            fontSize: '12px',
+                                            color: selectedChat?.userId === user.id ? COLORS.orange : COLORS.deepBlue,
+                                            backgroundColor: selectedChat?.userId === user.id ? `${COLORS.deepBlue}10` : 'transparent',
+                                            borderLeft: selectedChat?.userId === user.id ? `3px solid ${COLORS.orange}` : '3px solid transparent',
+                                            cursor: 'pointer',
+                                            transition: 'all 0.2s',
+                                            marginBottom: '4px',
+                                            borderRadius: '0',
+                                            listStyle: 'none',
+                                            display: 'flex',
+                                            justifyContent: 'space-between',
+                                            alignItems: 'center'
+                                        }}
+                                        onMouseOver={(e) => e.currentTarget.style.backgroundColor = `${COLORS.deepBlue}05`}
+                                        onMouseOut={(e) => e.currentTarget.style.backgroundColor = selectedChat?.userId === user.id ? `${COLORS.deepBlue}10` : 'transparent'}
+                                    >
+                                        <span>{user.fullName || user.email?.split('@')[0] || 'User'}</span>
+                                        <span style={{ fontSize: '10px', color: '#999', fontStyle: 'italic' }}>
+                                            {user.role === 'coach' ? '🏆 Coach' : '👨‍👩‍👧 Parent'}
+                                        </span>
+                                    </li>
+                                ))}
+                            </ul>
+                        </div>
+                    )}
+
+                    {role === 'CUSTOMER' && (
+                        <div style={{ padding: '12px', borderBottom: `1px solid ${COLORS.deepBlue}20` }}>
+                            <li
+                                onClick={() => {
+                                    // Use consistent format: userId_admin
+                                    const chatId = `${currentUser?.uid}_admin`;
+                                    console.log('Customer clicking admin chat, chatId:', chatId);
+                                    const adminChat = chats.find(c => c.id === chatId || c.chatType === 'ADMIN_PARENT');
+                                    if (adminChat) {
+                                        setSelectedChat(adminChat);
+                                    } else {
+                                        setSelectedChat({
+                                            id: chatId,
+                                            name: 'Admin Support',
+                                            chatType: 'ADMIN_PARENT',
+                                            userId: currentUser?.uid,
+                                            participants: [currentUser?.uid]
+                                        });
+                                    }
+                                }}
+                                style={{
+                                    padding: '8px 12px',
+                                    fontSize: '12px',
+                                    color: selectedChat?.chatType === 'ADMIN_PARENT' ? COLORS.orange : COLORS.deepBlue,
+                                    backgroundColor: selectedChat?.chatType === 'ADMIN_PARENT' ? `${COLORS.deepBlue}10` : 'transparent',
+                                    borderLeft: selectedChat?.chatType === 'ADMIN_PARENT' ? `3px solid ${COLORS.orange}` : '3px solid transparent',
+                                    cursor: 'pointer',
+                                    transition: 'all 0.2s',
+                                    marginBottom: '8px',
+                                    borderRadius: '0',
+                                    listStyle: 'none'
+                                }}
+                                onMouseOver={(e) => e.currentTarget.style.backgroundColor = `${COLORS.deepBlue}05`}
+                                onMouseOut={(e) => e.currentTarget.style.backgroundColor = selectedChat?.chatType === 'ADMIN_PARENT' ? `${COLORS.deepBlue}10` : 'transparent'}
+                            >
+                                💬 Chat with Admin
+                            </li>
+                        </div>
+                    )}
+
+                    {(role === 'COACH' || role === 'CUSTOMER') && batches.length > 0 && (
+                        <div style={{ padding: '12px', borderBottom: `1px solid ${COLORS.deepBlue}20` }}>
+                            <div style={{ fontSize: '12px', fontWeight: '600', color: COLORS.deepBlue, marginBottom: '8px' }}>
+                                {role === 'COACH' ? 'My Batches' : 'My Classes'}
+                            </div>
+                            <ul style={{ listStyle: 'none', padding: 0, margin: 0 }}>
+                                {batches.map(batch => (
+                                    <li
+                                        key={batch.id}
+                                        onClick={() => {
+                                            const batchChat = chats.find(c => c.id === batch.id);
+                                            if (batchChat) {
+                                                setSelectedChat(batchChat);
+                                            } else {
+                                                // Create quick batch chat reference
+                                                setSelectedChat({
+                                                    id: batch.id,
+                                                    name: batch.name,
+                                                    chatType: 'BATCH_GROUP',
+                                                    participants: [currentUser?.uid]
+                                                });
+                                            }
+                                        }}
+                                        style={{
+                                            padding: '8px 12px',
+                                            fontSize: '12px',
+                                            color: selectedChat?.id === batch.id ? COLORS.orange : COLORS.deepBlue,
+                                            backgroundColor: selectedChat?.id === batch.id ? `${COLORS.deepBlue}10` : 'transparent',
+                                            borderLeft: selectedChat?.id === batch.id ? `3px solid ${COLORS.orange}` : '3px solid transparent',
+                                            cursor: 'pointer',
+                                            transition: 'all 0.2s',
+                                            marginBottom: '4px',
+                                            borderRadius: '0'
+                                        }}
+                                        onMouseOver={(e) => e.currentTarget.style.backgroundColor = `${COLORS.deepBlue}05`}
+                                        onMouseOut={(e) => e.currentTarget.style.backgroundColor = selectedChat?.id === batch.id ? `${COLORS.deepBlue}10` : 'transparent'}
+                                    >
+                                        {batch.name}
+                                    </li>
+                                ))}
+                            </ul>
+                        </div>
+                    )}
 
                     <div className="chat-list">
                         {loading ? (
@@ -450,11 +846,81 @@ const ChatPage = ({ userRole: propRole }) => {
                         </>
                     ) : (
                         <div className="chat-no-selection">
-                            <div className="chat-no-selection-icon" style={{ backgroundColor: COLORS.ivory }}>
-                                <MessageSquare size={64} color={COLORS.deepBlue} />
-                            </div>
-                            <h2 style={{ color: COLORS.deepBlue }}>Select a conversation</h2>
-                            <p>Choose a chat from the sidebar to start messaging</p>
+                            {role === 'CUSTOMER' && batches.length > 0 ? (
+                                <>
+                                    <div style={{ width: '100%', maxWidth: '500px' }}>
+                                        <h2 style={{ color: COLORS.deepBlue, marginBottom: '24px', textAlign: 'center' }}>My Classes</h2>
+                                        <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                                            {batches.map(batch => (
+                                                <div
+                                                    key={batch.id}
+                                                    onClick={() => {
+                                                        const batchChat = chats.find(c => c.id === batch.id);
+                                                        if (batchChat) {
+                                                            setSelectedChat(batchChat);
+                                                        } else {
+                                                            setSelectedChat({
+                                                                id: batch.id,
+                                                                name: batch.name,
+                                                                chatType: 'BATCH_GROUP',
+                                                                participants: [currentUser?.uid]
+                                                            });
+                                                        }
+                                                    }}
+                                                    style={{
+                                                        padding: '16px',
+                                                        backgroundColor: '#fff',
+                                                        border: `2px solid ${COLORS.deepBlue}20`,
+                                                        borderRadius: '8px',
+                                                        cursor: 'pointer',
+                                                        transition: 'all 0.2s',
+                                                        display: 'flex',
+                                                        alignItems: 'center',
+                                                        gap: '12px'
+                                                    }}
+                                                    onMouseOver={(e) => {
+                                                        e.currentTarget.style.borderColor = COLORS.orange;
+                                                        e.currentTarget.style.backgroundColor = `${COLORS.orange}10`;
+                                                    }}
+                                                    onMouseOut={(e) => {
+                                                        e.currentTarget.style.borderColor = `${COLORS.deepBlue}20`;
+                                                        e.currentTarget.style.backgroundColor = '#fff';
+                                                    }}
+                                                >
+                                                    <div style={{
+                                                        width: '48px',
+                                                        height: '48px',
+                                                        backgroundColor: COLORS.oliveGreen,
+                                                        borderRadius: '8px',
+                                                        display: 'flex',
+                                                        alignItems: 'center',
+                                                        justifyContent: 'center',
+                                                        flexShrink: 0
+                                                    }}>
+                                                        <Users size={24} color="white" />
+                                                    </div>
+                                                    <div style={{ flex: 1 }}>
+                                                        <div style={{ fontSize: '16px', fontWeight: '600', color: COLORS.deepBlue }}>
+                                                            {batch.name}
+                                                        </div>
+                                                        <div style={{ fontSize: '12px', color: '#999', marginTop: '4px' }}>
+                                                            Click to view messages
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </div>
+                                </>
+                            ) : (
+                                <>
+                                    <div className="chat-no-selection-icon" style={{ backgroundColor: COLORS.ivory }}>
+                                        <MessageSquare size={64} color={COLORS.deepBlue} />
+                                    </div>
+                                    <h2 style={{ color: COLORS.deepBlue }}>Select a conversation</h2>
+                                    <p>Choose a chat from the sidebar to start messaging</p>
+                                </>
+                            )}
                         </div>
                     )}
                 </div>

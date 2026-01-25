@@ -21,6 +21,9 @@ const firebaseConfig = {
 const secondaryApp = initializeApp(firebaseConfig, "SecondaryApp");
 const secondaryAuth = getAuth(secondaryApp);
 
+// Email API URL
+const EMAIL_API_URL = import.meta.env.VITE_EMAIL_API_URL || 'http://localhost:3001';
+
 const AddStudentModal = ({ isOpen, onClose, onSuccess }) => {
     const [formData, setFormData] = useState({
         studentName: '',
@@ -35,6 +38,7 @@ const AddStudentModal = ({ isOpen, onClose, onSuccess }) => {
     });
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
+    const [sendEmail, setSendEmail] = useState(true); // Option to send welcome email
 
     if (!isOpen) return null;
 
@@ -76,7 +80,32 @@ const AddStudentModal = ({ isOpen, onClose, onSuccess }) => {
                 status: 'ACTIVE'
             });
 
-            // 3. Success
+            // 3. Send Welcome Email with credentials
+            if (sendEmail) {
+                try {
+                    const emailResponse = await fetch(`${EMAIL_API_URL}/api/email/student-welcome`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            parentEmail: formData.parentEmail,
+                            parentName: formData.parentName,
+                            studentName: formData.studentName,
+                            password: formData.password
+                        })
+                    });
+                    const emailResult = await emailResponse.json();
+                    if (emailResult.success) {
+                        console.log('✅ Welcome email sent successfully');
+                    } else {
+                        console.warn('⚠️ Email sent but with warning:', emailResult.error);
+                    }
+                } catch (emailError) {
+                    console.error('⚠️ Failed to send welcome email:', emailError);
+                    // Don't fail the whole operation if email fails
+                }
+            }
+
+            // 4. Success
             setLoading(false);
             onSuccess(); // Refresh parent list
             onClose();
@@ -90,7 +119,7 @@ const AddStudentModal = ({ isOpen, onClose, onSuccess }) => {
 
     return (
         <div className="modal-overlay">
-            <div className="modal-content" style={{ width: '600px', maxWidth: '90%' }}>
+            <div className="modal-content" style={{ width: '600px', maxWidth: '90%', maxHeight: '90vh', overflowY: 'auto' }}>
                 <button className="modal-close" onClick={onClose}>&times;</button>
                 <h2 className="modal-title">Add New Student</h2>
 
@@ -178,6 +207,19 @@ const AddStudentModal = ({ isOpen, onClose, onSuccess }) => {
                         value={formData.password}
                         onChange={handleChange}
                     />
+
+                    <div style={{ marginBottom: '16px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <input
+                            type="checkbox"
+                            id="sendEmail"
+                            checked={sendEmail}
+                            onChange={(e) => setSendEmail(e.target.checked)}
+                            style={{ width: '18px', height: '18px', cursor: 'pointer' }}
+                        />
+                        <label htmlFor="sendEmail" style={{ cursor: 'pointer', fontSize: '14px' }}>
+                            📧 Send welcome email with login credentials
+                        </label>
+                    </div>
 
                     <Button type="submit" disabled={loading} className="submit-evaluation-btn">
                         {loading ? 'Registering...' : 'Register Student'}

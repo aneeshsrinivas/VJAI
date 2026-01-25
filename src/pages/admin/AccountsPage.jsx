@@ -51,7 +51,6 @@ const AccountsPage = () => {
                     <h1 className="welcome-text">System Accounts</h1>
                     <p className="sub-text">View and audit system authentication records.</p>
                 </div>
-                <Button>+ Create Invite</Button>
             </div>
 
             <div className="dashboard-grid">

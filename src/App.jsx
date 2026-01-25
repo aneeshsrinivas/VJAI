@@ -17,6 +17,7 @@ import ParentSettings from './pages/parent/ParentSettings';
 import CoachPage from './pages/CoachPage';
 import CoachBatches from './pages/coach/CoachBatches';
 import CoachSchedule from './pages/coach/CoachSchedule';
+import CoachStudents from './pages/coach/CoachStudents';
 import StudentPage from './pages/StudentPage';
 import AdminDashboard from './pages/AdminDashboard';
 import PlaceholderPage from './pages/PlaceholderPage';
@@ -26,10 +27,12 @@ import FinanceReports from './pages/admin/FinanceReports';
 import DemosPage from './pages/admin/DemosPage';
 import BroadcastPage from './pages/admin/BroadcastPage';
 import SubscriptionPage from './pages/admin/SubscriptionPage';
+import SubscriptionPlansManager from './pages/admin/SubscriptionPlansManager';
 import AccountsPage from './pages/admin/AccountsPage';
 import AnalyticsPage from './pages/admin/AnalyticsPage';
 import LiveAnalytics from './pages/admin/LiveAnalytics';
 import AdminCoachApplications from './pages/admin/AdminCoachApplications';
+import SkillSetsPage from './pages/admin/SkillSetsPage';
 import ChatPage from './pages/common/ChatPage';
 import PlanSelection from './pages/PlanSelection';
 import PaymentCheckout from './pages/PaymentCheckout';
@@ -113,7 +116,7 @@ const App = () => {
             {/* Coach Routes */}
             <Route element={<StaffLayout role="coach" />}>
               <Route path="/coach" element={<CoachPage />} />
-              <Route path="/coach/students" element={<PlaceholderPage title="My Students" />} />
+              <Route path="/coach/students" element={<CoachStudents />} />
               <Route path="/coach/batches" element={<CoachBatches />} />
               <Route path="/coach/schedule" element={<CoachSchedule />} />
               <Route path="/coach/chat" element={<ChatPage userRole="COACH" />} />
@@ -131,10 +134,12 @@ const App = () => {
               <Route path="/admin/broadcast" element={<BroadcastPage />} />
               <Route path="/admin/messages" element={<ChatPage userRole="ADMIN" />} />
               <Route path="/admin/subscriptions" element={<SubscriptionPage />} />
+              <Route path="/admin/subscription-plans" element={<SubscriptionPlansManager />} />
               <Route path="/admin/accounts" element={<AccountsPage />} />
               <Route path="/admin/analytics" element={<AnalyticsPage />} />
               <Route path="/admin/live-analytics" element={<LiveAnalytics />} />
               <Route path="/admin/applications" element={<AdminCoachApplications />} />
+              <Route path="/admin/skillsets" element={<SkillSetsPage />} />
             </Route>
 
           </Routes>

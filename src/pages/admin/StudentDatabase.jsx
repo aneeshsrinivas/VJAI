@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { collection, query, where, getDocs, doc, updateDoc, serverTimestamp } from 'firebase/firestore';
+import { collection, query, where, getDocs, doc, updateDoc, serverTimestamp, arrayUnion, getDoc, arrayRemove } from 'firebase/firestore';
 import { db } from '../../lib/firebase';
 import Card from '../../components/ui/Card';
 import Button from '../../components/ui/Button';
@@ -23,10 +23,23 @@ const StudentDatabase = () => {
     const [isAddModalOpen, setAddModalOpen] = useState(false);
     const [editingStudent, setEditingStudent] = useState(null);
     const [students, setStudents] = useState([]);
+    const [coaches, setCoaches] = useState([]);
     const [loading, setLoading] = useState(true);
     const [searchQuery, setSearchQuery] = useState('');
     const [statusFilter, setStatusFilter] = useState('All');
     const [typeFilter, setTypeFilter] = useState('All');
+    const [batches, setBatches] = useState([]);
+
+    // Fetch Coaches for dropdown
+    const fetchCoaches = async () => {
+        try {
+            const q = query(collection(db, 'users'), where('role', '==', 'coach'));
+            const snap = await getDocs(q);
+            setCoaches(snap.docs.map(doc => ({ id: doc.id, ...doc.data() })));
+        } catch (e) {
+            console.error("Error fetching coaches:", e);
+        }
+    };
 
     const fetchStudents = async () => {
         setLoading(true);
@@ -46,8 +59,9 @@ const StudentDatabase = () => {
                     country: data.country || '-',
                     student_type: data.studentType || 'Group',
                     level: data.learningLevel || 'Beginner',
-                    assigned_batch_id: data.assignedBatch || '-',
-                    assigned_coach_id: data.assignedCoach || '-',
+                    assigned_batch_id: data.assignedBatch || data.assignedBatchId || '-',
+                    assigned_batch_name: data.assignedBatchName || '-',
+                    assigned_coach_id: data.assignedCoach || data.assignedCoachId || '-',
                     chess_usernames: data.chessUsername || '-',
                     rating: data.fideRating || 'Unrated',
                     status: data.status || 'ACTIVE'
@@ -64,13 +78,78 @@ const StudentDatabase = () => {
 
     useEffect(() => {
         fetchStudents();
+        fetchCoaches();
     }, []);
+
+    // load coaches and batches for assignment selects
+    useEffect(() => {
+        const loadCoaches = async () => {
+            try {
+                const uSnap = await getDocs(collection(db, 'users'));
+                const coachList = uSnap.docs
+                    .filter(d => d.data().role === 'coach')
+                    .map(d => ({ id: d.id, name: d.data().fullName || d.data().email?.split('@')[0] || d.id }));
+                setCoaches(coachList);
+            } catch (err) {
+                console.error('Error loading coaches:', err);
+            }
+        };
+        loadCoaches();
+    }, []);
+
+    // Fetch batches from coach subcollection when coach is selected
+    useEffect(() => {
+        const loadBatches = async () => {
+            if (!editingStudent?.assigned_coach_id) {
+                setBatches([]);
+                return;
+            }
+            try {
+                const bSnap = await getDocs(collection(db, 'coaches', editingStudent.assigned_coach_id, 'batches'));
+                const batchList = bSnap.docs.map(d => ({ id: d.id, name: d.data().name || d.id }));
+                setBatches(batchList);
+            } catch (err) {
+                console.error('Error loading batches:', err);
+                setBatches([]);
+            }
+        };
+        if (editingStudent) {
+            loadBatches();
+        }
+    }, [editingStudent?.assigned_coach_id]);
 
     const handleEditSave = async () => {
         if (!editingStudent) return;
 
         try {
-            await updateDoc(doc(db, 'users', editingStudent.id), {
+            const studentRef = doc(db, 'users', editingStudent.id);
+
+            // 1. Fetch current data to handle batch switching
+            const currentSnap = await getDoc(studentRef);
+            if (currentSnap.exists()) {
+                const oldData = currentSnap.data();
+                const oldBatchId = oldData.assignedBatchId || oldData.assignedBatch;
+                const oldCoachId = oldData.assignedCoachId || oldData.assignedCoach;
+
+                // Check if batch changed/removed
+                if (oldBatchId && oldBatchId !== editingStudent.assigned_batch_id) {
+                    if (oldCoachId) {
+                        try {
+                            const oldBatchRef = doc(db, 'coaches', oldCoachId, 'batches', oldBatchId);
+                            await updateDoc(oldBatchRef, {
+                                studentsId: arrayRemove(editingStudent.id),
+                                updatedAt: serverTimestamp()
+                            });
+                            console.log(`Removed student from old batch: ${oldBatchId}`);
+                        } catch (err) {
+                            console.error("Error removing from old batch:", err);
+                        }
+                    }
+                }
+            }
+
+            // Update the student document
+            await updateDoc(studentRef, {
                 studentName: editingStudent.student_name,
                 studentAge: editingStudent.student_age,
                 studentType: editingStudent.student_type,
@@ -79,8 +158,23 @@ const StudentDatabase = () => {
                 timezone: editingStudent.timezone,
                 status: editingStudent.status,
                 fideRating: editingStudent.rating,
+                // assignment fields (support older and newer field names)
+                assignedCoach: editingStudent.assigned_coach_id || null,
+                assignedCoachId: editingStudent.assigned_coach_id || null,
+                assignedBatch: editingStudent.assigned_batch_id || null,
+                assignedBatchId: editingStudent.assigned_batch_id || null,
+                assignedBatchName: editingStudent.assigned_batch_name || null,
                 updatedAt: serverTimestamp()
             });
+
+            // If batch is assigned, add student ID to batch's studentsId array
+            if (editingStudent.assigned_coach_id && editingStudent.assigned_batch_id) {
+                const batchRef = doc(db, 'coaches', editingStudent.assigned_coach_id, 'batches', editingStudent.assigned_batch_id);
+                await updateDoc(batchRef, {
+                    studentsId: arrayUnion(editingStudent.id),
+                    updatedAt: serverTimestamp()
+                });
+            }
 
             toast.success('Student updated successfully!');
             setEditingStudent(null);
@@ -201,7 +295,7 @@ const StudentDatabase = () => {
                                             </div>
                                         </td>
                                         <td style={{ padding: '16px 12px' }}>
-                                            <div style={{ fontSize: '14px' }}>{student.assigned_batch_id}</div>
+                                            <div style={{ fontSize: '14px', fontWeight: '600', color: COLORS.deepBlue }}>{student.assigned_batch_name}</div>
                                             <div style={{ fontSize: '12px', color: '#666' }}>{student.assigned_coach_id}</div>
                                         </td>
                                         <td style={{ padding: '16px 12px' }}>
@@ -351,6 +445,37 @@ const StudentDatabase = () => {
                                         <option value="CANCELLED">Cancelled</option>
                                     </select>
                                 </div>
+
+                            </div>
+
+
+                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+                                <div>
+                                    <label style={{ display: 'block', marginBottom: '6px', fontWeight: '600', color: COLORS.deepBlue, fontSize: '14px' }}>Assigned Coach</label>
+                                    <select value={editingStudent.assigned_coach_id || ''} onChange={(e) => setEditingStudent({ ...editingStudent, assigned_coach_id: e.target.value })} style={{ width: '100%', padding: '12px', border: '1px solid #ddd', borderRadius: '8px', fontSize: '14px' }}>
+                                        <option value="">-- No Coach --</option>
+                                        {coaches.map(c => (<option key={c.id} value={c.id}>{c.name}</option>))}
+                                    </select>
+                                </div>
+                                <div>
+                                    <label style={{ display: 'block', marginBottom: '6px', fontWeight: '600', color: COLORS.deepBlue, fontSize: '14px' }}>Assigned Batch</label>
+                                    <select
+                                        value={editingStudent.assigned_batch_id || ''}
+                                        onChange={(e) => {
+                                            const selectedBatch = batches.find(b => b.id === e.target.value);
+                                            setEditingStudent({
+                                                ...editingStudent,
+                                                assigned_batch_id: e.target.value,
+                                                assigned_batch_name: selectedBatch?.name || ''
+                                            });
+                                        }}
+                                        disabled={!editingStudent.assigned_coach_id}
+                                        style={{ width: '100%', padding: '12px', border: '1px solid #ddd', borderRadius: '8px', fontSize: '14px', backgroundColor: !editingStudent.assigned_coach_id ? '#f5f5f5' : '#fff', cursor: !editingStudent.assigned_coach_id ? 'not-allowed' : 'pointer' }}
+                                    >
+                                        <option value="">{!editingStudent.assigned_coach_id ? '-- Select Coach First --' : '-- No Batch --'}</option>
+                                        {batches.map(b => (<option key={b.id} value={b.id}>{b.name}</option>))}
+                                    </select>
+                                </div>
                             </div>
                         </div>
 
@@ -361,9 +486,9 @@ const StudentDatabase = () => {
                             </Button>
                         </div>
                     </div>
-                </div>
+                </div >
             )}
-        </div>
+        </div >
     );
 };
 

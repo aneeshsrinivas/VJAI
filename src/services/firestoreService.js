@@ -98,6 +98,8 @@ export const getDemosByStatus = async (status) => {
 export const assignCoachToDemo = async (demoId, coachId, adminId, meetingLink, scheduledStart) => {
     try {
         const demoRef = doc(db, COLLECTIONS.DEMOS, demoId);
+
+        // 1. Update Demo Document
         await updateDoc(demoRef, {
             assignedCoachId: coachId,
             assignedAdminId: adminId,
@@ -107,9 +109,45 @@ export const assignCoachToDemo = async (demoId, coachId, adminId, meetingLink, s
             updatedAt: serverTimestamp()
         });
 
+        // 2. Sync with Student Document (if exists)
+        // Fetch demo to get email
+        const demoSnap = await getDoc(demoRef);
+        if (demoSnap.exists()) {
+            const demoData = demoSnap.data();
+            if (demoData.parentEmail) {
+                const qStudent = query(
+                    collection(db, COLLECTIONS.STUDENTS),
+                    where('parentEmail', '==', demoData.parentEmail)
+                );
+                const studentSnap = await getDocs(qStudent);
+
+                if (!studentSnap.empty) {
+                    const studentDoc = studentSnap.docs[0];
+                    await updateDoc(doc(db, COLLECTIONS.STUDENTS, studentDoc.id), {
+                        assignedCoachId: coachId,
+                        updatedAt: serverTimestamp()
+                    });
+                    console.log('Synced coach assignment to student profile');
+                }
+            }
+        }
+
         return { success: true };
     } catch (error) {
         console.error('Error assigning coach to demo:', error);
+        return { success: false, error: error.message };
+    }
+};
+
+/**
+ * Delete Demo Request (Admin Action)
+ */
+export const deleteDemo = async (demoId) => {
+    try {
+        await deleteDoc(doc(db, COLLECTIONS.DEMOS, demoId));
+        return { success: true };
+    } catch (error) {
+        console.error('Error deleting demo:', error);
         return { success: false, error: error.message };
     }
 };
@@ -533,6 +571,50 @@ export const updateSubscriptionStatus = async (subscriptionId, newStatus) => {
         return { success: true };
     } catch (error) {
         console.error('Error updating subscription:', error);
+        return { success: false, error: error.message };
+    }
+};
+// ==========================================
+// ASSIGNMENT OPERATIONS
+// ==========================================
+
+export const createAssignment = async (assignmentData) => {
+    try {
+        await addDoc(collection(db, COLLECTIONS.ASSIGNMENTS), {
+            ...assignmentData,
+            status: 'Pending',
+            createdAt: serverTimestamp()
+        });
+        return { success: true };
+    } catch (error) {
+        console.error('Error creating assignment:', error);
+        return { success: false, error: error.message };
+    }
+};
+
+export const getAssignmentsByBatch = async (batchId) => { // Or studentId if handled
+    // This is a basic query. In real app, might need complex filtering
+    // For now, let's assume assignments are linked to a batch or specific student
+    // If linked to batch: where('batchId', '==', batchId)
+    // If linked to student: where('studentId', '==', studentId)
+    return { success: false, error: "Direct query preferred for real-time" };
+};
+
+
+// ==========================================
+// SCHEDULE OPERATIONS
+// ==========================================
+
+export const createClass = async (classData) => {
+    try {
+        await addDoc(collection(db, COLLECTIONS.SCHEDULE), {
+            ...classData,
+            status: 'SCHEDULED',
+            createdAt: serverTimestamp()
+        });
+        return { success: true };
+    } catch (error) {
+        console.error('Error creating class:', error);
         return { success: false, error: error.message };
     }
 };
