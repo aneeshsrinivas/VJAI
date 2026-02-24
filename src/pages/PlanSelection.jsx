@@ -1,5 +1,9 @@
 import React, { useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { useNavigate, useSearchParams } from 'react-router-dom';
+import { collection, getDocs, query, where, orderBy } from 'firebase/firestore';
+import { db } from '../lib/firebase';
 import './PlanSelection.css';
 import Button from '../components/ui/Button';
 
@@ -8,6 +12,10 @@ const PlanSelection = () => {
     const [searchParams] = useSearchParams();
     const demoId = searchParams.get('demoId');
 
+    const demoId = searchParams.get('demoId'); // Get demoId from URL if present
+
+    const [plans, setPlans] = useState([]);
+    const [loading, setLoading] = useState(true);
     const [selectedPlan, setSelectedPlan] = useState(null);
 
     // Hardcoded plans to match Landing Page Pricing Section exactly
@@ -49,6 +57,58 @@ const PlanSelection = () => {
             color: '#FFA500'
         }
     ];
+    // Fetch plans from Firestore
+    useEffect(() => {
+        const fetchPlans = async () => {
+            try {
+                const plansQuery = query(
+                    collection(db, 'subscriptionPlans'),
+                    where('isActive', '==', true),
+                    orderBy('sortOrder', 'asc')
+                );
+                const snapshot = await getDocs(plansQuery);
+                
+                if (snapshot.empty) {
+                    // Fallback to mockPlans if no plans in database
+                    setPlans(mockPlans);
+                } else {
+                    const plansList = snapshot.docs.map(doc => {
+                        const data = doc.data();
+                        return {
+                            id: doc.id,
+                            planId: data.planId || doc.id,
+                            name: data.name,
+                            type: data.classType === 'one-on-one' ? '1-on-1' : 'Group',
+                            level: data.level?.charAt(0).toUpperCase() + data.level?.slice(1) || 'Beginner',
+                            price: data.price,
+                            billingCycle: data.billingCycle?.toLowerCase() || 'month',
+                            features: data.features || [],
+                            recommended: data.isFeatured || false,
+                            description: data.description,
+                            color: data.classType === 'one-on-one' 
+                                ? (data.level === 'intermediate' ? 'var(--color-warm-orange)' : 'var(--color-olive-green)')
+                                : 'var(--color-deep-blue)'
+                        };
+                    });
+                    setPlans(plansList);
+                }
+            } catch (error) {
+                console.error('Error fetching plans:', error);
+                // Fallback to mockPlans on error
+                setPlans(mockPlans);
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchPlans();
+    }, []);
+
+    const filteredPlans = plans.filter(plan => {
+        if (filterType !== 'all' && plan.type !== filterType) return false;
+        if (filterLevel !== 'all' && plan.level !== filterLevel) return false;
+        return true;
+    });
 
     const handleSelectPlan = (plan) => {
         setSelectedPlan(plan);
@@ -65,6 +125,8 @@ const PlanSelection = () => {
                     demoId
                 }
             });
+            // Pass demoId to checkout if present
+            navigate('/payment/checkout', { state: { plan: selectedPlan, demoId } });
         }
     };
 
@@ -116,6 +178,38 @@ const PlanSelection = () => {
             </div>
 
             {/* Comparison Table (Restored & Enhanced) */}
+            {loading ? (
+                <div className="plan-empty-state">
+                    <div className="plan-empty-icon">⏳</div>
+                    <p>Loading available plans...</p>
+                </div>
+            ) : (
+                <div className="plan-grid">
+                    {filteredPlans.map((plan, index) => (
+                        <div
+                            key={plan.id}
+                            className="plan-grid-item"
+                            style={{ animationDelay: `${index * 0.1}s` }}
+                        >
+                            <PricingCard
+                                plan={plan}
+                                onSelect={handleSelectPlan}
+                                isSelected={selectedPlan?.id === plan.id}
+                                showComparison={true}
+                            />
+                        </div>
+                    ))}
+                </div>
+            )}
+
+            {!loading && filteredPlans.length === 0 && (
+                <div className="plan-empty-state">
+                    <div className="plan-empty-icon">🔍</div>
+                    <p>No plans match your filters. Try adjusting your selection.</p>
+                </div>
+            )}
+
+            {/* Comparison Table */}
             <div className="plan-comparison-section">
                 <h2 className="plan-comparison-title">Compare Features</h2>
                 <div className="plan-comparison-table-wrapper">

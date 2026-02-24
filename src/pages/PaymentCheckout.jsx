@@ -1,6 +1,9 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { toast, ToastContainer } from 'react-toastify';
+import { collection, addDoc, serverTimestamp, doc, updateDoc, getDoc } from 'firebase/firestore';
+import { db } from '../lib/firebase';
+import { useAuth } from '../context/AuthContext';
 import 'react-toastify/dist/ReactToastify.css';
 import './PaymentCheckout.css';
 import Button from '../components/ui/Button';
@@ -10,6 +13,7 @@ import { conversionService } from '../services/conversionService';
 const PaymentCheckout = () => {
     const location = useLocation();
     const navigate = useNavigate();
+    const { user } = useAuth();
     const { plan, demoId } = location.state || {};
 
     const [formData, setFormData] = useState({
@@ -31,6 +35,33 @@ const PaymentCheckout = () => {
 
     // Mock UPI details
     const UPI_ID = 'indianchessacademy@upi';
+
+    // Pre-fill form with user data if logged in
+    useEffect(() => {
+        const fetchUserData = async () => {
+            if (user?.uid) {
+                try {
+                    const userDoc = await getDoc(doc(db, 'users', user.uid));
+                    if (userDoc.exists()) {
+                        const userData = userDoc.data();
+                        setFormData(prev => ({
+                            ...prev,
+                            parentName: userData.fullName || userData.name || '',
+                            parentEmail: userData.email || user.email || ''
+                        }));
+                    } else {
+                        setFormData(prev => ({
+                            ...prev,
+                            parentEmail: user.email || ''
+                        }));
+                    }
+                } catch (error) {
+                    console.error('Error fetching user data:', error);
+                }
+            }
+        };
+        fetchUserData();
+    }, [user]);
 
     if (!plan) {
         return (
@@ -58,6 +89,47 @@ const PaymentCheckout = () => {
         setIsProcessing(true);
 
         try {
+            const parentId = user?.uid || null;
+            const paymentData = {
+                parentId,
+                parentEmail: formData.parentEmail,
+                parentName: formData.parentName,
+                studentName: formData.studentName,
+                studentAge: formData.studentAge,
+                planId: plan.id || plan.planId,
+                planName: plan.name,
+                amount: pricing.total,
+                subtotal: pricing.subtotal,
+                discount: pricing.discount,
+                familyMembers,
+                paymentMethod: formData.paymentMethod,
+                currency: 'USD',
+                status: formData.paymentMethod === 'upi' ? 'PENDING' : 'COMPLETED',
+                createdAt: serverTimestamp()
+            };
+
+            // Create payment record in Firestore
+            const paymentRef = await addDoc(collection(db, 'payments'), paymentData);
+
+            // Create or update subscription
+            const subscriptionData = {
+                parentId,
+                parentEmail: formData.parentEmail,
+                parentName: formData.parentName,
+                studentName: formData.studentName,
+                planId: plan.id || plan.planId,
+                planName: plan.name,
+                amount: pricing.total,
+                billingCycle: plan.billingCycle || 'MONTHLY',
+                status: formData.paymentMethod === 'upi' ? 'PENDING_APPROVAL' : 'ACTIVE',
+                paymentId: paymentRef.id,
+                nextDueAt: getNextDueDate(plan.billingCycle),
+                createdAt: serverTimestamp(),
+                updatedAt: serverTimestamp()
+            };
+
+            await addDoc(collection(db, 'subscriptions'), subscriptionData);
+
             if (formData.paymentMethod === 'upi') {
                 // UPI Flow: Submit payment proof and wait for admin approval
                 if (demoId) {
@@ -75,12 +147,42 @@ const PaymentCheckout = () => {
                 setTimeout(() => {
                     navigate('/payment/success', { state: { plan, pricing, manualApproval: false } });
                 }, 2000);
+                }
+                toast.success("Payment submitted! Waiting for admin approval.");
+                navigate('/payment/success', { state: { plan, pricing, manualApproval: true, paymentId: paymentRef.id } });
+            } else {
+                // Card payment - simulate processing
+                // Update payment status to completed
+                await updateDoc(doc(db, 'payments', paymentRef.id), {
+                    status: 'COMPLETED',
+                    completedAt: serverTimestamp()
+                });
+
+                toast.success("Payment successful!");
+                navigate('/payment/success', { state: { plan, pricing, manualApproval: false, paymentId: paymentRef.id } });
             }
         } catch (error) {
             console.error('Payment error:', error);
             toast.error('Payment submission failed. Please try again.');
             setIsProcessing(false);
         }
+    };
+
+    const getNextDueDate = (billingCycle) => {
+        const nextDue = new Date();
+        switch (billingCycle?.toUpperCase()) {
+            case 'YEARLY':
+                nextDue.setFullYear(nextDue.getFullYear() + 1);
+                break;
+            case 'QUARTERLY':
+                nextDue.setMonth(nextDue.getMonth() + 3);
+                break;
+            case 'MONTHLY':
+            default:
+                nextDue.setMonth(nextDue.getMonth() + 1);
+                break;
+        }
+        return nextDue;
     };
 
     const handleInputChange = (e) => {
@@ -253,6 +355,8 @@ const PaymentCheckout = () => {
                                 {formData.paymentMethod === 'upi' && (
                                     <div className="upi-details" style={{ marginTop: '20px', padding: '24px', background: 'rgba(255, 255, 255, 0.03)', borderRadius: '12px', textAlign: 'center', border: '1px solid rgba(255, 255, 255, 0.1)' }}>
                                         <h4 style={{ margin: '0 0 16px', color: '#F5EFE6' }}>Pay via UPI</h4>
+                                    <div className="upi-details" style={{ marginTop: '20px', padding: '24px', background: '#f8fafc', borderRadius: '12px', textAlign: 'center' }}>
+                                        <h4 style={{ margin: '0 0 16px', color: '#003366' }}>Pay via UPI</h4>
 
                                         {/* Mock QR Code */}
                                         <div style={{
@@ -276,16 +380,24 @@ const PaymentCheckout = () => {
                                             background: 'rgba(255, 255, 255, 0.05)',
                                             borderRadius: '8px',
                                             border: '1px solid rgba(255, 255, 255, 0.1)',
+                                        <p style={{ fontSize: '14px', color: '#666', margin: '0 0 8px' }}>Scan QR code or pay to:</p>
+                                        <div style={{
+                                            padding: '12px 20px',
+                                            background: 'white',
+                                            borderRadius: '8px',
+                                            border: '1px solid #ddd',
                                             display: 'inline-block',
                                             fontFamily: 'monospace',
                                             fontSize: '16px',
                                             fontWeight: '600',
                                             color: '#F5EFE6'
+                                            color: '#003366'
                                         }}>
                                             {UPI_ID}
                                         </div>
 
                                         <p style={{ fontSize: '13px', color: '#F88B22', marginTop: '16px', fontWeight: '600' }}>
+                                        <p style={{ fontSize: '13px', color: '#FC8A24', marginTop: '16px', fontWeight: '600' }}>
                                             Amount: ₹{(pricing.total * 83).toFixed(0)} (~${pricing.total.toFixed(2)})
                                         </p>
 
@@ -298,6 +410,8 @@ const PaymentCheckout = () => {
                                             padding: '12px 16px',
                                             background: upiConfirmed ? 'rgba(76, 175, 80, 0.2)' : 'rgba(255, 255, 255, 0.05)',
                                             border: `2px solid ${upiConfirmed ? '#4CAF50' : 'rgba(255, 255, 255, 0.1)'}`,
+                                            background: upiConfirmed ? '#dcfce7' : 'white',
+                                            border: `2px solid ${upiConfirmed ? '#22c55e' : '#ddd'}`,
                                             borderRadius: '8px',
                                             cursor: 'pointer',
                                             justifyContent: 'center'
@@ -309,6 +423,7 @@ const PaymentCheckout = () => {
                                                 style={{ width: '18px', height: '18px' }}
                                             />
                                             <span style={{ fontWeight: '500', color: upiConfirmed ? '#4CAF50' : '#CFC6B8' }}>
+                                            <span style={{ fontWeight: '500', color: upiConfirmed ? '#166534' : '#333' }}>
                                                 I have completed the UPI payment
                                             </span>
                                         </label>
@@ -345,12 +460,14 @@ const PaymentCheckout = () => {
                             <h3 className="summary-title">Order Summary</h3>
 
                             <div className="summary-plan">
-                                <div className="summary-plan-icon" style={{ color: plan.color }}>
-                                    {plan.type === '1-on-1' ? '♔' : '♟'}
+                                <div className="summary-plan-icon" style={{ color: plan.color || '#003366' }}>
+                                    {plan.type === '1-on-1' || plan.classType === 'one-on-one' ? '♔' : '♟'}
                                 </div>
                                 <div className="summary-plan-info">
                                     <div className="summary-plan-name">{plan.name}</div>
-                                    <div className="summary-plan-type">{plan.type} • {plan.level}</div>
+                                    <div className="summary-plan-type">
+                                        {plan.type || (plan.classType === 'one-on-one' ? '1-on-1' : 'Group')} • {plan.level?.charAt(0).toUpperCase() + plan.level?.slice(1) || plan.level}
+                                    </div>
                                 </div>
                             </div>
 
@@ -359,7 +476,7 @@ const PaymentCheckout = () => {
                             <div className="summary-breakdown">
                                 <div className="summary-row">
                                     <span>Plan Price</span>
-                                    <span>${plan.price}/month</span>
+                                    <span>${plan.price}/{plan.billingCycle?.toLowerCase() || 'month'}</span>
                                 </div>
                                 <div className="summary-row">
                                     <span>Number of Students</span>
@@ -387,7 +504,7 @@ const PaymentCheckout = () => {
                             <div className="summary-features">
                                 <h4>What's Included:</h4>
                                 <ul>
-                                    {plan.features.slice(0, 4).map((feature, index) => (
+                                    {(plan.features || []).slice(0, 4).map((feature, index) => (
                                         <li key={index}>
                                             <span className="feature-check">✓</span>
                                             {feature}
