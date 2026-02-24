@@ -89,7 +89,7 @@
 .registration-card {
     position: relative;
     z-index: 2;
-    background: rgba(255, 255, 255, 0.95);
+    background: rgba(239, 227, 200, 0.95);
     backdrop-filter: blur(20px);
     width: 100%;
     max-width: 650px;
@@ -141,7 +141,7 @@
     border-color: #FC8A24;
     outline: none;
     box-shadow: 0 0 0 4px rgba(252, 138, 36, 0.1);
-    background: white;
+    background: #FDFCF8;
 }
 
 .registration-form label {

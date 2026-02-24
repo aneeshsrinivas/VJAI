@@ -1,0 +1,63 @@
+.cursor-knight,
+.cursor-halo {
+    position: fixed;
+    top: 0;
+    left: 0;
+    transform: translate(-50%, -50%);
+    pointer-events: none;
+    z-index: 9999;
+    will-change: transform;
+}
+
+.cursor-dot {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 6px;
+    height: 6px;
+    background: #0c3362;
+    border: 1px solid #d4af37;
+    border-radius: 50%;
+    transform: translate(-50%, -50%);
+    box-shadow: 0 0 10px rgba(212, 175, 55, 0.35);
+    pointer-events: none;
+    z-index: 9998;
+}
+
+.cursor-knight {
+    width: 22px;
+    height: 30px;
+    background: url("data:image/svg+xml,%3Csvg width='26' height='34' viewBox='0 0 26 34' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M20.5 2c-2.5 1.2-4.4 3.2-5.8 6.2-1 2-1.7 4.3-1.9 6.7L8.8 11 4 13l7 7.2C8.8 22 7 24.5 7 27.4V32h15v-4.6c0-3.5-2.4-6.2-6.7-7.3l4.6-10.5C21 7 21.3 4.6 20.5 2z' fill='%23D4AF37' stroke='%230C3362' stroke-width='1.4'/%3E%3C/svg%3E") center/contain no-repeat;
+    filter: drop-shadow(0 4px 12px rgba(12, 51, 98, 0.35));
+}
+
+.cursor-halo {
+    width: 34px;
+    height: 34px;
+    border: 1px solid rgba(212, 175, 55, 0.4);
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(212, 175, 55, 0.2) 0%, rgba(12, 51, 98, 0.05) 70%, transparent 82%);
+    z-index: 9997;
+    transition: transform 0.25s ease, border-color 0.25s ease, box-shadow 0.25s ease;
+}
+
+.cursor-halo.hovered {
+    transform: scale(1.2);
+    border-color: #d4af37;
+    box-shadow: 0 0 18px rgba(212, 175, 55, 0.35);
+}
+
+/* Hide default cursor everywhere */
+* {
+    cursor: none !important;
+}
+
+@media (hover: none) and (pointer: coarse) {
+    .cursor-knight,
+    .cursor-halo {
+        display: none !important;
+    }
+    * {
+        cursor: auto !important;
+    }
+}

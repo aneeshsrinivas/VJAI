@@ -1,156 +1,310 @@
-/* Import Figtree font */
+/* ==========================================================================
+   SERVICES PAGE - PHASE 1
+   Dark Cinematic Theme | Editorial | Premium
+   ========================================================================== */
 @import url('https://fonts.googleapis.com/css2?family=Figtree:wght@300;400;500;600;700;800;900&display=swap');
 
-.services-page {
+.services-page-phase1 {
     font-family: 'Figtree', sans-serif;
-    background: #FFFEF3;
-    animation: pageEnter 0.4s ease-out;
+    background: #0B0B0B;
+    /* Deep Dark Background */
+    color: #F5F3EF;
+    /* Off-White Text */
+    overflow-x: hidden;
+    position: relative;
 }
 
-@keyframes pageEnter {
+/* Massive Editorial Title (White) */
+.section-title-editorial-white {
+    font-family: 'Figtree', sans-serif;
+    font-size: clamp(40px, 5vw, 60px);
+    font-weight: 800;
+    color: #FFFFFF;
+    line-height: 1.1;
+    letter-spacing: -0.02em;
+    margin-bottom: 48px;
+    text-align: left;
+}
+
+/* ==========================================================================
+   1. HERO SECTION (Full Viewport)
+   ========================================================================== */
+.services-hero-phase1 {
+    position: relative;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    padding: 0 24px;
+    background: #0B0B0B;
+}
+
+.hero-bg-wrapper {
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+    overflow: hidden;
+}
+
+.hero-bg-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    opacity: 0.8;
+    /* Subtle visibility */
+    /* Gentle drift */
+    animation: drift 30s infinite alternate ease-in-out;
+}
+
+@keyframes drift {
     from {
-        opacity: 0.85;
+        transform: scale(1);
     }
 
     to {
-        opacity: 1;
+        transform: scale(1.05);
     }
 }
 
-/* HERO SECTION */
-.services-hero {
-    padding: 180px 48px 60px;
-    background: linear-gradient(135deg, #003366 0%, #004080 100%);
-    text-align: center;
+.hero-overlay-cinematic {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(to bottom,
+            rgba(11, 11, 11, 0.85) 0%,
+            rgba(11, 11, 11, 0.65) 50%,
+            rgba(11, 11, 11, 0.95) 100%);
+    z-index: 1;
 }
 
-.services-hero-content h1 {
-    font-family: 'Figtree', sans-serif;
-    font-size: 56px;
+.hero-content h1 {
+    font-size: clamp(48px, 6vw, 80px);
     font-weight: 800;
-    color: white;
-    margin-bottom: 20px;
+    line-height: 1.1;
+    margin-bottom: 24px;
+    letter-spacing: -0.02em;
+    color: #F5F3EF;
+    text-shadow: 0 4px 24px rgba(0, 0, 0, 0.5);
 }
 
-.services-hero-content p {
-    font-size: 20px;
-    color: #EBD6C3;
+.text-highlight-orange {
+    color: #F88B22;
+    /* Premium Orange */
 }
 
-/* SERVICES CONTENT */
-.services-content {
-    padding: 60px 0 100px;
-    background: white;
+.hero-subtext {
+    font-size: clamp(18px, 2vw, 22px);
+    font-weight: 400;
+    color: #CFC6B8;
+    /* Muted Beige */
+    max-width: 600px;
+    margin: 0 auto;
+    line-height: 1.6;
+}
+
+.scroll-indicator-phase1 {
+    position: absolute;
+    bottom: 40px;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+    opacity: 0.7;
+}
+
+.scroll-indicator-phase1 span {
+    font-size: 13px;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    color: #CFC6B8;
+}
+
+.scroll-line {
+    width: 1px;
+    height: 60px;
+    background: linear-gradient(to bottom, #CFC6B8, transparent);
+}
+
+/* ==========================================================================
+   2. CORE SERVICES GRID
+   ========================================================================== */
+.services-grid-section {
+    padding: 120px 0;
+    position: relative;
+    z-index: 2;
+    background: #0B0B0B;
 }
 
 .services-container {
-    max-width: 1200px;
+    max-width: 1280px;
     margin: 0 auto;
-    padding: 0 48px;
-}
-
-.services-intro {
-    text-align: center;
-    margin-bottom: 48px;
-}
-
-.services-intro h2 {
-    font-family: 'Figtree', sans-serif;
-    font-size: 42px;
-    font-weight: 800;
-    color: #003366;
-    margin-bottom: 16px;
-}
-
-.services-intro p {
-    font-size: 18px;
-    color: #68300B;
-    line-height: 1.8;
-    max-width: 800px;
-    margin: 0 auto;
+    padding: 0 32px;
 }
 
 .services-grid {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
+    /* 3 Columns Desktop */
     gap: 32px;
+    /* Generous Spacing */
 }
 
-.service-card {
-    background: linear-gradient(135deg, #FFFEF3 0%, #EBD6C3 100%);
-    border: 3px solid #FC8A24;
-    border-radius: 20px;
-    padding: 32px;
-    transition: all 0.3s ease;
-}
-
-.service-card:hover {
-    transform: translateY(-8px);
-    box-shadow: 0 16px 40px rgba(0, 51, 102, 0.2);
-    border-color: #003366;
-}
-
-.service-card h3 {
-    font-family: 'Figtree', sans-serif;
-    font-size: 24px;
-    font-weight: 800;
-    color: #003366;
-    margin-bottom: 16px;
-}
-
-.service-description {
-    font-size: 16px;
-    color: #68300B;
-    line-height: 1.7;
-    margin-bottom: 20px;
-}
-
-.service-features {
-    list-style: none;
-    padding: 0;
-    margin: 0;
-}
-
-.service-features li {
-    font-size: 15px;
-    color: #003366;
-    line-height: 1.8;
-    padding-left: 24px;
+/* Card Design */
+.service-card-phase1 {
+    background: #151515;
+    /* Near Black */
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    border-radius: 16px;
+    /* Subtle radius */
+    padding: 40px 32px;
     position: relative;
-    margin-bottom: 8px;
-    font-weight: 500;
+    overflow: hidden;
+    transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+    /* Soft Shadow */
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    justify-content: flex-start;
+    height: 100%;
 }
 
-.service-features li::before {
-    content: '✓';
+.service-card-phase1:hover {
+    transform: translateY(-8px);
+    /* Lift */
+    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5);
+    border-color: rgba(224, 138, 46, 0.3);
+    /* Orange Hint */
+}
+
+.card-icon {
+    font-size: 32px;
+    margin-bottom: 24px;
+    color: #B08D57;
+    /* Muted Gold */
+    transition: color 0.3s ease;
+}
+
+.service-card-phase1:hover .card-icon {
+    color: #E08A2E;
+    /* Orange on Hover */
+}
+
+.service-card-phase1 h3 {
+    font-size: 24px;
+    font-weight: 700;
+    color: #F5F3EF;
+    margin-bottom: 12px;
+}
+
+.service-card-phase1 p {
+    font-size: 16px;
+    color: #888;
+    /* Dimmed Description */
+    line-height: 1.6;
+    flex-grow: 1;
+}
+
+/* Subtle Hover Glow */
+.card-hover-overlay {
     position: absolute;
-    left: 0;
-    color: #FC8A24;
-    font-weight: bold;
-    font-size: 18px;
+    inset: 0;
+    background: radial-gradient(800px circle at var(--mouse-x) var(--mouse-y),
+            rgba(255, 255, 255, 0.03),
+            transparent 40%);
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    pointer-events: none;
 }
 
-/* RESPONSIVE */
+.service-card-phase1:hover .card-hover-overlay {
+    opacity: 1;
+}
+
+/* ==========================================================================
+   3. VISUAL BREAK SECTION
+   ========================================================================== */
+.visual-break-section {
+    position: relative;
+    height: 60vh;
+    /* Full Width Break */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    margin: 80px 0;
+}
+
+.visual-break-bg {
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+}
+
+.visual-break-video {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    opacity: 0.6;
+}
+
+.visual-break-overlay {
+    position: absolute;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.6);
+}
+
+.visual-quote {
+    font-size: 32px;
+    font-weight: 300;
+    font-style: italic;
+    color: #F5F3EF;
+    text-align: center;
+    max-width: 800px;
+    margin: 0 auto;
+    position: relative;
+    z-index: 2;
+    line-height: 1.4;
+}
+
+.visual-quote footer {
+    margin-top: 24px;
+    font-size: 16px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    color: #B08D57;
+    /* Gold Accent */
+    display: block;
+    font-style: normal;
+}
+
+/* ==========================================================================
+   RESPONSIVE DESIGN
+   ========================================================================== */
 @media (max-width: 1024px) {
     .services-grid {
         grid-template-columns: repeat(2, 1fr);
+        /* 2 Columns Tablet */
     }
 }
 
 @media (max-width: 768px) {
-    .services-hero {
-        padding: 140px 24px 80px;
-    }
-
-    .services-hero-content h1 {
-        font-size: 36px;
-    }
-
-    .services-container {
-        padding: 0 24px;
-    }
-
     .services-grid {
         grid-template-columns: 1fr;
+        /* 1 Column Mobile */
+        gap: 24px;
+    }
+
+    .hero-content h1 {
+        font-size: 42px;
+    }
+
+    .visual-quote {
+        font-size: 24px;
+        padding: 0 24px;
     }
 }

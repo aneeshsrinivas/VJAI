@@ -6,7 +6,7 @@ import Button from '../components/ui/Button';
 const PaymentSuccess = () => {
     const location = useLocation();
     const navigate = useNavigate();
-    const { plan, pricing } = location.state || {};
+    const { plan, pricing, manualApproval } = location.state || {};
 
     const [showAnimation, setShowAnimation] = useState(true);
     const [showConfetti, setShowConfetti] = useState(false);
@@ -71,14 +71,23 @@ const PaymentSuccess = () => {
                 </div>
 
                 {/* Success Message */}
-                <h1 className="success-title">Payment Successful!</h1>
-                <p className="success-subtitle">Welcome to the Indian Chess Academy family</p>
+                <h1 className="success-title">
+                    {manualApproval ? 'Payment Submitted!' : 'Payment Successful!'}
+                </h1>
+                <p className="success-subtitle">
+                    {manualApproval
+                        ? 'Your payment is being verified. You will receive a confirmation email once approved.'
+                        : 'Welcome to the Indian Chess Academy family'
+                    }
+                </p>
 
                 {/* Order Details */}
                 <div className="success-details-card">
                     <div className="success-details-header">
-                        <h3>Enrollment Confirmed</h3>
-                        <div className="success-badge">Paid</div>
+                        <h3>{manualApproval ? 'Payment Submitted' : 'Enrollment Confirmed'}</h3>
+                        <div className="success-badge" style={manualApproval ? { backgroundColor: '#FEF3C7', color: '#92400E' } : {}}>
+                            {manualApproval ? 'Pending Approval' : 'Paid'}
+                        </div>
                     </div>
 
                     <div className="success-plan-info">
@@ -144,7 +153,7 @@ const PaymentSuccess = () => {
                 {/* Action Buttons */}
                 <div className="success-actions">
                     <Button
-                        onClick={() => navigate('/parent')}
+                        onClick={() => navigate('/')}
                         style={{
                             backgroundColor: 'var(--color-warm-orange)',
                             padding: '16px 48px',
@@ -152,7 +161,7 @@ const PaymentSuccess = () => {
                             fontWeight: '600'
                         }}
                     >
-                        Go to Dashboard
+                        Return to Home
                     </Button>
                     <Button
                         variant="secondary"

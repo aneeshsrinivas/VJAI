@@ -15,58 +15,30 @@ const RoleSelectionPage = () => {
             id: 'parent',
             title: 'Parent & Student',
             icon: ParentIcon,
-            desc: 'For enrolled families and students',
+            desc: 'For families looking to enroll',
             features: [
-                'Access class schedules',
-                'Track student progress',
-                'Direct chat with coaches',
-                'View performance reports'
+                'Book a free demo class',
+                'Personalized assessment',
+                'Meet our expert coaches',
+                'View subscription plans'
             ],
-            action: 'Register as Parent',
-            color: '#6B8E23'
+            action: 'Book Free Demo',
+            color: '#6B8E23',
+            highlight: true
         },
         {
             id: 'coach',
             title: 'Coach',
             icon: CoachIcon,
-            desc: 'For chess instructors and mentors',
+            desc: 'For instructors and mentors',
             features: [
+                'Join our teaching faculty',
                 'Manage student roster',
-                'Schedule classes',
                 'Upload course content',
-                'Track student performance'
+                'Track performance'
             ],
-            action: 'Register as Coach',
-            color: '#6B8E23'
-        },
-        {
-            id: 'admin',
-            title: 'Admin',
-            icon: AdminIcon,
-            desc: 'For operations and management team',
-            features: [
-                'Full academy oversight',
-                'Manage all users',
-                'Analytics dashboard',
-                'System configuration'
-            ],
-            action: 'Register as Admin',
-            color: '#003366'
-        },
-        {
-            id: 'demo',
-            title: 'Book Free Demo',
-            icon: DemoIcon,
-            desc: 'New to Indian Chess Academy?',
-            features: [
-                'Free trial class',
-                'Meet our coaches',
-                'Personalized assessment',
-                'No commitment required'
-            ],
-            action: 'Book Free Demo',
-            color: '#FC8A24',
-            highlight: true
+            action: 'Apply as Coach',
+            color: '#FC8A24' // Changed color to differentiate
         }
     ];
 
@@ -112,7 +84,7 @@ const RoleSelectionPage = () => {
                                 </ul>
 
                                 <Button
-                                    onClick={() => role.id === 'demo' ? navigate('/demo-booking') : navigate(`/register?role=${role.id}`)}
+                                    onClick={() => role.id === 'parent' ? navigate('/demo-booking') : navigate(`/register?role=${role.id}`)}
                                     style={{
                                         backgroundColor: role.color,
                                         width: '100%',

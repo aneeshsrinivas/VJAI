@@ -1,150 +1,102 @@
-import React from 'react';
-import { BrowserRouter as Router, Routes, Route, Outlet, useLocation } from 'react-router-dom';
+import React, { useEffect } from 'react';
+import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from 'react-router-dom';
+import { AuthProvider } from './context/AuthContext';
+import { AnimatePresence } from 'framer-motion';
+import Lenis from 'lenis';
+
+// Pages
 import LandingPage from './pages/LandingPage';
-import RoleSelectionPage from './pages/RoleSelectionPage';
-import RegistrationPage from './pages/RegistrationPage';
-import RegistrationSuccessPage from './pages/RegistrationSuccessPage';
-import Login from './pages/Login';
-import ParentDashboard from './pages/ParentDashboard';
-import ParentSchedule from './pages/parent/ParentSchedule';
-import ParentAssignments from './pages/parent/ParentAssignments';
-import ParentPayments from './pages/parent/ParentPayments';
-import CoachPage from './pages/CoachPage';
-import CoachBatches from './pages/coach/CoachBatches';
-import CoachSchedule from './pages/coach/CoachSchedule';
-import StudentPage from './pages/StudentPage';
-import AdminDashboard from './pages/AdminDashboard';
-import PlaceholderPage from './pages/PlaceholderPage';
-import StudentDatabase from './pages/admin/StudentDatabase';
-import CoachRoster from './pages/admin/CoachRoster';
-import FinanceReports from './pages/admin/FinanceReports';
-import DemosPage from './pages/admin/DemosPage';
-import BroadcastPage from './pages/admin/BroadcastPage';
-import DirectChatPage from './pages/admin/DirectChatPage';
-import SubscriptionPage from './pages/admin/SubscriptionPage';
-import AccountsPage from './pages/admin/AccountsPage';
-import AnalyticsPage from './pages/admin/AnalyticsPage';
-import ChatPage from './pages/common/ChatPage';
-import Settings from './pages/common/Settings';
-import BatchChat from './pages/BatchChat';
-import PlanSelection from './pages/PlanSelection';
-import PaymentCheckout from './pages/PaymentCheckout';
-import PaymentSuccess from './pages/PaymentSuccess';
-import DemoBooking from './pages/DemoBooking';
+import LoginPage from './pages/Login';
+import SelectRolePage from './pages/RoleSelectionPage';
+import RegisterPage from './pages/RegistrationPage';
+
 import AboutUs from './pages/AboutUs';
 import Services from './pages/Services';
 import ContactUs from './pages/ContactUs';
 import FAQ from './pages/FAQ';
 import TermsAndConditions from './pages/TermsAndConditions';
 import PrivacyPolicy from './pages/PrivacyPolicy';
-import Header from './components/layout/Header';
-import Sidebar from './components/layout/Sidebar';
-import ErrorBoundary from './components/ui/ErrorBoundary';
+import PlanSelection from './pages/PlanSelection';
 
-import ParentNavbar from './components/layout/ParentNavbar';
-import CoachNavbar from './components/layout/CoachNavbar';
+import DemoBooking from './pages/DemoBooking';
+import CustomCursor from './components/animated/CustomCursor';
+import PaymentPage from './pages/PaymentCheckout';
+import PaymentSuccess from './pages/PaymentSuccess';
+import PageTransition from './components/animations/PageTransition';
 
-// Layout Wrappers
-const ParentLayout = () => {
+// Components
+import Navbar from './components/layout/Navbar';
+
+// Animated Routes Component
+const AnimatedRoutes = () => {
+  const location = useLocation();
+
+  // Define routes where Navbar should be hidden
+  const hideNavbarRoutes = ['/login', '/register', '/select-role'];
+  const showNavbar = !hideNavbarRoutes.includes(location.pathname);
+
   return (
-    <div className="layout-parent">
-      <ParentNavbar />
-      <main className="main-content" style={{ padding: 0, marginTop: 0 }}>
-        <Outlet />
-      </main>
-    </div>
-  );
-};
+    <>
+      {showNavbar && <Navbar />}
+      <AnimatePresence mode="wait">
+        <Routes location={location} key={location.pathname}>
+          {/* Public Routes */}
+          <Route path="/" element={<PageTransition><LandingPage /></PageTransition>} />
+          <Route path="/login" element={<PageTransition><LoginPage /></PageTransition>} />
+          <Route path="/register" element={<PageTransition><RegisterPage /></PageTransition>} />
+          <Route path="/select-role" element={<PageTransition><SelectRolePage /></PageTransition>} />
+          <Route path="/demo-booking" element={<PageTransition><DemoBooking /></PageTransition>} />
+          <Route path="/payment" element={<PageTransition><PaymentPage /></PageTransition>} />
+          <Route path="/payment-success" element={<PageTransition><PaymentSuccess /></PageTransition>} />
 
-const CoachLayout = () => {
-  return (
-    <div className="layout-coach">
-      <CoachNavbar />
-      <main className="main-content" style={{ padding: 0, marginTop: 0 }}>
-        <Outlet />
-      </main>
-    </div>
-  );
-};
-
-const StaffLayout = ({ role }) => (
-  <div className="layout-staff" style={{ display: 'flex' }}>
-    <Sidebar role={role} />
-    <main className="main-content-staff" style={{ flex: 1, marginLeft: '260px', padding: '24px', width: 'calc(100% - 260px)' }}>
-      <Outlet />
-    </main>
-  </div>
-);
-
-const App = () => {
-  return (
-    <Router>
-      <ErrorBoundary>
-        <Routes>
-          {/* Onboarding Routes */}
-          <Route path="/" element={<LandingPage />} />
-          <Route path="/about" element={<AboutUs />} />
-          <Route path="/services" element={<Services />} />
-          <Route path="/contact" element={<ContactUs />} />
-          <Route path="/faq" element={<FAQ />} />
-          <Route path="/terms" element={<TermsAndConditions />} />
-          <Route path="/privacy" element={<PrivacyPolicy />} />
-          <Route path="/select-role" element={<RoleSelectionPage />} />
-          <Route path="/register" element={<RegistrationPage />} />
-          <Route path="/registration-success" element={<RegistrationSuccessPage />} />
-          <Route path="/login" element={<Login />} />
-          <Route path="/demo-booking" element={<DemoBooking />} />
-          <Route path="/book-demo" element={<PlaceholderPage title="Book a Free Demo" />} />
-
-          {/* Payment Routes */}
-          <Route path="/pricing" element={<PlanSelection />} />
-          <Route path="/payment/checkout" element={<PaymentCheckout />} />
-          <Route path="/payment/success" element={<PaymentSuccess />} />
-
-          {/* Parent Routes */}
-          <Route element={<ParentLayout />}>
-            <Route path="/parent" element={<ParentDashboard />} />
-            <Route path="/parent/chat" element={<ChatPage userRole="CUSTOMER" />} />
-            <Route path="/parent/schedule" element={<ParentSchedule />} />
-            <Route path="/parent/assignments" element={<ParentAssignments />} />
-            <Route path="/parent/payments" element={<ParentPayments />} />
-            <Route path="/parent/settings" element={<Settings />} />
-          </Route>
-
-          {/* Student Routes */}
-          <Route path="/student" element={<StudentPage />} />
-
-          {/* Coach Routes */}
-          <Route element={<CoachLayout />}>
-            <Route path="/coach" element={<CoachPage />} />
-            <Route path="/coach/students" element={<PlaceholderPage title="My Students" />} />
-            <Route path="/coach/batches" element={<CoachBatches />} />
-            <Route path="/coach/schedule" element={<CoachSchedule />} />
-            <Route path="/coach/chat" element={<ChatPage userRole="COACH" />} />
-            <Route path="/coach/settings" element={<Settings />} />
-          </Route>
-
-          {/* Admin Routes */}
-          <Route element={<StaffLayout role="admin" />}>
-            <Route path="/admin" element={<AdminDashboard />} />
-            <Route path="/chat" element={<ChatPage userRole="ADMIN" />} />
-            <Route path="/admin/students" element={<StudentDatabase />} />
-            <Route path="/admin/coaches" element={<CoachRoster />} />
-            <Route path="/admin/demos" element={<DemosPage />} />
-            <Route path="/admin/calendar" element={<PlaceholderPage title="Calendar Management" />} />
-            <Route path="/admin/finances" element={<FinanceReports />} />
-            <Route path="/admin/broadcast" element={<BroadcastPage />} />
-            <Route path="/admin/messages" element={<ChatPage userRole="ADMIN" />} />
-            <Route path="/admin/subscriptions" element={<SubscriptionPage />} />
-            <Route path="/admin/accounts" element={<AccountsPage />} />
-            <Route path="/admin/analytics" element={<AnalyticsPage />} />
-            <Route path="/admin/settings" element={<Settings />} />
-          </Route>
-
+          {/* Secondary Pages */}
+          <Route path="/about" element={<PageTransition><AboutUs /></PageTransition>} />
+          <Route path="/services" element={<PageTransition><Services /></PageTransition>} />
+          <Route path="/contact" element={<PageTransition><ContactUs /></PageTransition>} />
+          <Route path="/faq" element={<PageTransition><FAQ /></PageTransition>} />
+          <Route path="/terms" element={<PageTransition><TermsAndConditions /></PageTransition>} />
+          <Route path="/privacy" element={<PageTransition><PrivacyPolicy /></PageTransition>} />
+          <Route path="/pricing" element={<PageTransition><PlanSelection /></PageTransition>} />
         </Routes>
-      </ErrorBoundary>
-    </Router>
+      </AnimatePresence>
+    </>
   );
 };
+
+function App() {
+  // Initialize Smooth Scrolling
+  useEffect(() => {
+    const lenis = new Lenis({
+      duration: 1.2,
+      easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
+      direction: 'vertical',
+      gestureDirection: 'vertical',
+      smooth: true,
+      mouseMultiplier: 1,
+      smoothTouch: false,
+      touchMultiplier: 2,
+      infinite: false,
+    });
+
+    function raf(time) {
+      lenis.raf(time);
+      requestAnimationFrame(raf);
+    }
+
+    requestAnimationFrame(raf);
+
+    return () => {
+      lenis.destroy();
+    };
+  }, []);
+
+  return (
+    <AuthProvider>
+      <Router>
+        <AnimatedRoutes />
+      </Router>
+    </AuthProvider>
+  );
+}
 
 export default App;

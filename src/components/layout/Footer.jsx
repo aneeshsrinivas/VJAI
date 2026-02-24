@@ -1,4 +1,5 @@
 import React from 'react';
+import { Link } from 'react-router-dom';
 import LinkedInIcon from '../icons/LinkedInIcon';
 import InstagramIcon from '../icons/InstagramIcon';
 import FacebookIcon from '../icons/FacebookIcon';
@@ -15,22 +16,22 @@ const Footer = () => {
                 <div className="footer-columns">
                     <div className="footer-column">
                         <h4>Our Courses</h4>
-                        <a href="/pricing">All Courses</a>
-                        <a href="/pricing?level=beginner">Beginner</a>
-                        <a href="/pricing?level=intermediate">Intermediate</a>
-                        <a href="/pricing?level=advanced">Advanced</a>
-                        <a href="/pricing?type=1v1">1v1 Tutoring</a>
-                        <a href="/pricing?type=certification">Certification Programs</a>
+                        <Link to="/pricing">All Courses</Link>
+                        <Link to="/pricing?level=beginner">Beginner</Link>
+                        <Link to="/pricing?level=intermediate">Intermediate</Link>
+                        <Link to="/pricing?level=advanced">Advanced</Link>
+                        <Link to="/pricing?type=1v1">1v1 Tutoring</Link>
+                        <Link to="/pricing?type=certification">Certification Programs</Link>
                     </div>
                     <div className="footer-column">
                         <h4>Academy</h4>
-                        <a href="/">Home</a>
-                        <a href="/about">About Us</a>
-                        <a href="/services">Services</a>
-                        <a href="/contact">Contact Us</a>
-                        <a href="/faq">FAQs</a>
-                        <a href="/terms">Terms & Conditions</a>
-                        <a href="/privacy">Privacy Policy</a>
+                        <Link to="/">Home</Link>
+                        <Link to="/about">About Us</Link>
+                        <Link to="/services">Services</Link>
+                        <Link to="/contact">Contact Us</Link>
+                        <Link to="/faq">FAQs</Link>
+                        <Link to="/terms">Terms & Conditions</Link>
+                        <Link to="/privacy">Privacy Policy</Link>
                     </div>
                     <div className="footer-column">
                         <h4>Connect with us</h4>

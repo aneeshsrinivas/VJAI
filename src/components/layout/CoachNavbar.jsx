@@ -1,5 +1,6 @@
 import React from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
+import { useAuth } from '../../context/AuthContext';
 import AccountDropdown from '../ui/AccountDropdown';
 import UserGroupIcon from '../icons/UserGroupIcon';
 import './CoachNavbar.css';
@@ -7,6 +8,7 @@ import './CoachNavbar.css';
 const CoachNavbar = () => {
     const navigate = useNavigate();
     const location = useLocation();
+    const { userData } = useAuth();
 
     const navLinks = [
         { path: '/coach', label: 'Dashboard' },
@@ -38,7 +40,7 @@ const CoachNavbar = () => {
 
                 <div className="coach-navbar-account">
                     <AccountDropdown
-                        userName="Coach Ramesh Kumar"
+                        userName={userData?.fullName || "Coach"}
                         userRole="Coach"
                         customIcon={<UserGroupIcon />}
                     />

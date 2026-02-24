@@ -1,21 +1,54 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import './PlanSelection.css';
-import PricingCard from '../components/ui/PricingCard';
 import Button from '../components/ui/Button';
-import { mockPlans } from '../data/mockData';
 
 const PlanSelection = () => {
     const navigate = useNavigate();
-    const [selectedPlan, setSelectedPlan] = useState(null);
-    const [filterType, setFilterType] = useState('all'); // 'all', '1-on-1', 'Group'
-    const [filterLevel, setFilterLevel] = useState('all'); // 'all', 'Beginner', 'Intermediate'
+    const [searchParams] = useSearchParams();
+    const demoId = searchParams.get('demoId');
 
-    const filteredPlans = mockPlans.filter(plan => {
-        if (filterType !== 'all' && plan.type !== filterType) return false;
-        if (filterLevel !== 'all' && plan.level !== filterLevel) return false;
-        return true;
-    });
+    const [selectedPlan, setSelectedPlan] = useState(null);
+
+    // Hardcoded plans to match Landing Page Pricing Section exactly
+    const plans = [
+        {
+            id: 'beginner-advanced',
+            name: 'Beginner / Advanced Beginner',
+            price: '$60',
+            numericPrice: 60,
+            period: '/ Month',
+            desc: 'Perfect for those starting their chess journey or building strong foundational skills.',
+            features: [
+                '1 Month: $60',
+                '3 Months: $160',
+                '4 Months: $200'
+            ],
+            type: '1-on-1',
+            level: 'Beginner',
+            cta: 'Select Plan',
+            popular: false,
+            color: '#4CAF50'
+        },
+        {
+            id: 'intermediate-i-ii',
+            name: 'Intermediate-I / Intermediate-II',
+            price: '$70',
+            numericPrice: 70,
+            period: '/ Month',
+            desc: 'For players advancing their tactical understanding and competitive readiness.',
+            features: [
+                '1 Month: $70',
+                '3 Months: $187',
+                '4 Months: $233'
+            ],
+            type: '1-on-1',
+            level: 'Intermediate',
+            cta: 'Select Plan',
+            popular: true,
+            color: '#FFA500'
+        }
+    ];
 
     const handleSelectPlan = (plan) => {
         setSelectedPlan(plan);
@@ -23,7 +56,15 @@ const PlanSelection = () => {
 
     const handleContinue = () => {
         if (selectedPlan) {
-            navigate('/payment/checkout', { state: { plan: selectedPlan } });
+            navigate('/payment/checkout', {
+                state: {
+                    plan: {
+                        ...selectedPlan,
+                        price: selectedPlan.numericPrice // Ensure numeric price is passed for calculations
+                    },
+                    demoId
+                }
+            });
         }
     };
 
@@ -31,158 +72,106 @@ const PlanSelection = () => {
         <div className="plan-selection-page">
             {/* Hero Section */}
             <div className="plan-hero">
+                <div className="plan-hero-bg-glow"></div>
                 <div className="plan-hero-content">
-                    <div className="plan-hero-icon">♔</div>
+                    <div className="hero-icon-animate">♔</div>
                     <h1 className="plan-hero-title">Choose Your Path to Mastery</h1>
                     <p className="plan-hero-subtitle">
-                        Select the perfect training plan tailored to your chess journey
+                        Premium 1-on-1 coaching tailored to your skill level.
+                        <span className="hero-highlight">Start your journey today.</span>
                     </p>
-                </div>
-                <div className="plan-hero-pattern"></div>
-            </div>
-
-            {/* Filters */}
-            <div className="plan-filters">
-                <div className="plan-filter-group">
-                    <label className="plan-filter-label">Training Type</label>
-                    <div className="plan-filter-buttons">
-                        <button
-                            className={`plan-filter-btn ${filterType === 'all' ? 'active' : ''}`}
-                            onClick={() => setFilterType('all')}
-                        >
-                            All Plans
-                        </button>
-                        <button
-                            className={`plan-filter-btn ${filterType === '1-on-1' ? 'active' : ''}`}
-                            onClick={() => setFilterType('1-on-1')}
-                        >
-                            ♔ 1-on-1
-                        </button>
-                        <button
-                            className={`plan-filter-btn ${filterType === 'Group' ? 'active' : ''}`}
-                            onClick={() => setFilterType('Group')}
-                        >
-                            ♟ Group Classes
-                        </button>
-                    </div>
-                </div>
-
-                <div className="plan-filter-group">
-                    <label className="plan-filter-label">Skill Level</label>
-                    <div className="plan-filter-buttons">
-                        <button
-                            className={`plan-filter-btn ${filterLevel === 'all' ? 'active' : ''}`}
-                            onClick={() => setFilterLevel('all')}
-                        >
-                            All Levels
-                        </button>
-                        <button
-                            className={`plan-filter-btn ${filterLevel === 'Beginner' ? 'active' : ''}`}
-                            onClick={() => setFilterLevel('Beginner')}
-                        >
-                            Beginner
-                        </button>
-                        <button
-                            className={`plan-filter-btn ${filterLevel === 'Intermediate' ? 'active' : ''}`}
-                            onClick={() => setFilterLevel('Intermediate')}
-                        >
-                            Intermediate
-                        </button>
-                    </div>
                 </div>
             </div>
 
             {/* Pricing Cards Grid */}
             <div className="plan-grid">
-                {filteredPlans.map((plan, index) => (
+                {plans.map((plan, index) => (
                     <div
                         key={plan.id}
-                        className="plan-grid-item"
-                        style={{ animationDelay: `${index * 0.1}s` }}
+                        className={`pricing-card-glass ${selectedPlan?.id === plan.id ? 'selected' : ''}`}
+                        onClick={() => handleSelectPlan(plan)}
                     >
-                        <PricingCard
-                            plan={plan}
-                            onSelect={handleSelectPlan}
-                            isSelected={selectedPlan?.id === plan.id}
-                            showComparison={true}
-                        />
+                        {plan.popular && <span className="popular-badge">Most Popular</span>}
+
+                        <h3 className="plan-name">{plan.name}</h3>
+                        <div className="plan-price">
+                            {plan.price}
+                            <span className="plan-period">{plan.period}</span>
+                        </div>
+                        <p className="plan-desc">{plan.desc}</p>
+
+                        <ul className="plan-features">
+                            {plan.features.map((feature, i) => (
+                                <li key={i} className="feature-item">
+                                    {feature}
+                                </li>
+                            ))}
+                        </ul>
+
+                        <button className="plan-cta">
+                            {selectedPlan?.id === plan.id ? '✓ Plan Selected' : plan.cta}
+                        </button>
                     </div>
                 ))}
             </div>
 
-            {filteredPlans.length === 0 && (
-                <div className="plan-empty-state">
-                    <div className="plan-empty-icon">🔍</div>
-                    <p>No plans match your filters. Try adjusting your selection.</p>
-                </div>
-            )}
-
-            {/* Comparison Table */}
+            {/* Comparison Table (Restored & Enhanced) */}
             <div className="plan-comparison-section">
-                <h2 className="plan-comparison-title">Compare All Plans</h2>
-                <div className="plan-comparison-table">
-                    <table>
+                <h2 className="plan-comparison-title">Compare Features</h2>
+                <div className="plan-comparison-table-wrapper">
+                    <table className="plan-comparison-table">
                         <thead>
                             <tr>
                                 <th>Feature</th>
-                                <th>1-on-1 Beginner</th>
-                                <th>1-on-1 Intermediate</th>
-                                <th>Group Beginner</th>
-                                <th>Group Intermediate</th>
+                                <th>Beginner</th>
+                                <th className="highlight-col">Intermediate</th>
                             </tr>
                         </thead>
                         <tbody>
                             <tr>
-                                <td>Price/Month</td>
+                                <td>Price per Month</td>
                                 <td>$60</td>
-                                <td>$70</td>
-                                <td>$40</td>
-                                <td>$50</td>
+                                <td className="highlight-col">$70</td>
                             </tr>
                             <tr>
-                                <td>Sessions/Month</td>
-                                <td>4</td>
-                                <td>4</td>
-                                <td>12</td>
-                                <td>12</td>
+                                <td>Coach Level</td>
+                                <td>Professional Coach</td>
+                                <td className="highlight-col">FIDE Master / IM</td>
                             </tr>
                             <tr>
-                                <td>Dedicated Coach</td>
-                                <td>✓</td>
-                                <td>✓</td>
-                                <td>—</td>
-                                <td>—</td>
+                                <td>Sessions</td>
+                                <td>4 per month</td>
+                                <td className="highlight-col">4 per month</td>
                             </tr>
                             <tr>
-                                <td>Flexible Scheduling</td>
-                                <td>✓</td>
-                                <td>✓</td>
-                                <td>—</td>
-                                <td>—</td>
-                            </tr>
-                            <tr>
-                                <td>Batch Chat</td>
-                                <td>—</td>
-                                <td>—</td>
-                                <td>✓</td>
-                                <td>✓</td>
+                                <td>Curriculum</td>
+                                <td>Foundational Skills</td>
+                                <td className="highlight-col">Advanced Tactics</td>
                             </tr>
                             <tr>
                                 <td>Tournament Prep</td>
-                                <td>—</td>
-                                <td>✓</td>
-                                <td>—</td>
-                                <td>✓</td>
+                                <td><span className="text-muted">—</span></td>
+                                <td className="highlight-col"><span className="check-icon">✓</span></td>
+                            </tr>
+                            <tr>
+                                <td>Game Analysis</td>
+                                <td>Basic Review</td>
+                                <td className="highlight-col">Deep Analysis</td>
+                            </tr>
+                            <tr>
+                                <td>Personalized Plan</td>
+                                <td><span className="check-icon">✓</span></td>
+                                <td className="highlight-col"><span className="check-icon">✓</span></td>
                             </tr>
                         </tbody>
                     </table>
                 </div>
             </div>
 
-            {/* Family Plan Teaser */}
+            {/* Family Plan Banner */}
             <div className="family-plan-banner">
                 <div className="family-plan-content">
-                    <div className="family-plan-icon">👨‍👩‍👧‍👦</div>
+                    <div className="family-plan-icon" style={{ fontSize: '48px' }}>👨‍👩‍👧‍👦</div>
                     <div className="family-plan-text">
                         <h3>Have multiple children?</h3>
                         <p>Get 15% off when you enroll 2+ students. Family plans available at checkout!</p>
@@ -196,15 +185,16 @@ const PlanSelection = () => {
                     <div className="plan-sticky-content">
                         <div className="plan-sticky-info">
                             <div className="plan-sticky-name">{selectedPlan.name}</div>
-                            <div className="plan-sticky-price">${selectedPlan.price}/month</div>
+                            <div className="plan-sticky-price">{selectedPlan.price}/month</div>
                         </div>
                         <Button
                             onClick={handleContinue}
                             style={{
-                                backgroundColor: 'var(--color-warm-orange)',
+                                backgroundColor: '#F88B22',
                                 padding: '16px 48px',
                                 fontSize: '16px',
-                                fontWeight: '600'
+                                fontWeight: '600',
+                                color: 'white'
                             }}
                         >
                             Continue to Checkout →
