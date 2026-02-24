@@ -3,7 +3,6 @@ import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from 'r
 import { AuthProvider } from './context/AuthContext';
 import { AnimatePresence } from 'framer-motion';
 import Lenis from 'lenis';
-import ScrollToTop from './components/ScrollToTop';
 
 // Pages
 import LandingPage from './pages/LandingPage';
@@ -94,7 +93,6 @@ function App() {
   return (
     <AuthProvider>
       <Router>
-        <ScrollToTop />
         <AnimatedRoutes />
       </Router>
     </AuthProvider>
