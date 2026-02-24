@@ -61,6 +61,14 @@ body {
   background-color: #0B0B0B;
   color: var(--text-body-light);
   line-height: 1.6;
+  background-color: var(--color-ivory);
+  min-height: 100vh;
+}
+
+body {
+  font-family: var(--font-primary);
+  color: var(--color-text-primary);
+  line-height: 1.5;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }

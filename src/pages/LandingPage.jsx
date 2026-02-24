@@ -6,6 +6,12 @@ import { ScrollTrigger } from 'gsap/ScrollTrigger';
 
 import { toast, ToastContainer } from 'react-toastify';
 // Navbar removed - lifted to App.jsx
+import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+
+import { toast, ToastContainer } from 'react-toastify';
+import Button from '../components/ui/Button';
+import Navbar from '../components/layout/Navbar';
 import Footer from '../components/layout/Footer';
 import CTASection from '../components/shared/CTASection';
 import PricingSection from '../components/sections/PricingSection';
@@ -146,6 +152,132 @@ const LandingPage = () => {
             <div id="faq">
                 <FAQSection />
             </div>
+
+
+    return (
+        <div className="landing-page-home">
+            <ToastContainer position="top-right" autoClose={4000} />
+            {/* Navigation Header */}
+            <Navbar />
+
+            {/* Hero Section */}
+            <section className="hero-home">
+                <div className="hero-background-home">
+                    <img
+                        src="https://images.unsplash.com/photo-1529699211952-734e80c4d42b?w=1920&h=1080&fit=crop"
+                        alt="Chess"
+                        className="hero-bg-image"
+                    />
+                    <div className="hero-overlay-home"></div>
+                </div>
+                <div className="hero-content-home">
+                    <h1 className="hero-title-home">
+                        Unlock Your Potential<br />
+                        With Expert Chess Coaching
+                    </h1>
+                    <div className="hero-buttons-home">
+                        <Button onClick={() => navigate('/select-role')} className="btn-hero-primary">
+                            Get Started
+                        </Button>
+                        <Button onClick={() => navigate('/pricing')} className="btn-hero-secondary">
+                            View Pricing
+                        </Button>
+                    </div>
+                </div>
+            </section>
+
+            {/* Who We Are Section */}
+            <section className="who-we-are-home">
+                <div className="section-container-home">
+                    <div className="section-header-home">
+                        <span className="section-tag-home">Who Are We</span>
+                        <h2 className="section-title-home">About Indian Chess Academy</h2>
+                    </div>
+                    <div className="about-content-home">
+                        <p>
+                            Indian Chess Academy was founded on a simple idea: chess should be taught in a way that feels engaging, personal, and meaningful.
+                            What began as a side project by Viraj Pandit, a computer science engineer with a lifelong passion for the game, soon became a response
+                            to the overly generic and impersonal nature of most online chess classes.
+                        </p>
+                        <p>
+                            As the academy grew, Viraj teamed up with Nachiket Chitre, whose structured approach and shared love for chess helped shape the academy's direction.
+                            Together, they created an environment where students receive close, thoughtful mentoring. Every session is designed with care, allowing coaches to
+                            adapt to each student's pace and style — building not just skill, but confidence.
+                        </p>
+                    </div>
+                    <div className="features-grid-home">
+                        <div className="feature-card-home clickable" onClick={() => setActiveModal('courseware')}>
+                            <CoursewareIcon size={80} color="#D4AF37" />
+                            <h3>Courseware</h3>
+                            <p>Explore our comprehensive courseware designed to elevate your chess skills, from basics to advanced strategies.</p>
+                        </div>
+                        <div className="feature-card-home clickable" onClick={() => setActiveModal('online-classes')}>
+                            <OnlineClassesIcon size={80} color="#D4AF37" />
+                            <h3>Online Classes</h3>
+                            <p>Join our online classes and learn chess from anywhere, with personalized coaching and flexible schedules.</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            {/* Testimonials Section */}
+            <section className="testimonials-home">
+                <div className="section-container-home">
+                    <div className="section-header-home">
+                        <span className="section-tag-home">Testimonial</span>
+                        <h2 className="section-title-home">What Parents Say About Us</h2>
+                        <p className="section-subtitle-home">
+                            Discover what our students have to say about their transformative journey and growth at Indian Chess Academy.
+                        </p>
+                    </div>
+                    <div className="testimonials-grid">
+                        {testimonials.map((testimonial, index) => (
+                            <div key={index} className="testimonial-card">
+                                <div className="testimonial-header">
+                                    <div className="testimonial-info">
+                                        <h4>{testimonial.name}</h4>
+                                        <p className="testimonial-role">{testimonial.role}</p>
+                                        <div className="testimonial-rating">
+                                            {[...Array(testimonial.rating)].map((_, i) => (
+                                                <span key={i} className="star">⭐</span>
+                                            ))}
+                                        </div>
+                                    </div>
+                                </div>
+                                <p className="testimonial-text">{testimonial.text}</p>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            </section>
+
+
+
+            {/* FAQ Section */}
+            <section className="faq-home">
+                <div className="section-container-home">
+                    <div className="section-header-home">
+                        <span className="section-tag-home">FAQ's</span>
+                        <h2 className="section-title-home">Frequently Asked Questions</h2>
+                    </div>
+                    <div className="faq-list-home">
+                        {faqs.map((faq, index) => (
+                            <div key={index} className={`faq-item-home ${activeFAQ === index ? 'active' : ''}`}>
+                                <button
+                                    className="faq-question-home"
+                                    onClick={() => setActiveFAQ(activeFAQ === index ? null : index)}
+                                >
+                                    <span>{faq.question}</span>
+                                    <span className="faq-icon-home">{activeFAQ === index ? '−' : '+'}</span>
+                                </button>
+                                <div className="faq-answer-home">
+                                    <p>{faq.answer}</p>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            </section>
 
             {/* CTA Section */}
             <CTASection />

@@ -4,6 +4,8 @@ import { db } from '../lib/firebase';
 import { toast, ToastContainer } from 'react-toastify';
 import { motion } from 'framer-motion';
 import emailService from '../services/emailService';
+import emailService from '../services/emailService';
+import Navbar from '../components/layout/Navbar';
 import Footer from '../components/layout/Footer';
 import CTASection from '../components/shared/CTASection';
 import Button from '../components/ui/Button';
@@ -37,6 +39,7 @@ const ContactUs = () => {
                 createdAt: serverTimestamp()
             });
 
+            // Send Email Notification
             await emailService.sendContactFormEmail(formData);
 
             toast.success('Thank you! We will get back to you shortly.');
@@ -79,6 +82,9 @@ const ContactUs = () => {
                     >
                         We're here to help you start your chess journey.
                     </motion.p>
+        <div className="contact-us-page">
+            <ToastContainer position="top-right" autoClose={4000} />
+            <Navbar />
 
                     <motion.div
                         className="scroll-indicator"
