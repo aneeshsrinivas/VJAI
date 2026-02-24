@@ -80,6 +80,7 @@ const AddStudentModal = ({ isOpen, onClose, onSuccess }) => {
                 status: 'ACTIVE'
             });
 
+            // 3. Success
             // 3. Send Welcome Email with credentials
             if (sendEmail) {
                 try {
@@ -119,6 +120,7 @@ const AddStudentModal = ({ isOpen, onClose, onSuccess }) => {
 
     return (
         <div className="modal-overlay">
+            <div className="modal-content" style={{ width: '600px', maxWidth: '90%' }}>
             <div className="modal-content" style={{ width: '600px', maxWidth: '90%', maxHeight: '90vh', overflowY: 'auto' }}>
                 <button className="modal-close" onClick={onClose}>&times;</button>
                 <h2 className="modal-title">Add New Student</h2>

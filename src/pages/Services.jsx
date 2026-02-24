@@ -1,94 +1,221 @@
 import React from 'react';
-import Navbar from '../components/layout/Navbar';
+import { motion } from 'framer-motion';
+import { Target, Users, Trophy, Search, BookOpen, Swords } from 'lucide-react'; // Premium Icons
 import Footer from '../components/layout/Footer';
 import CTASection from '../components/shared/CTASection';
+import ChessGame from '../components/features/ChessGame'; // Phase 2 Interaction
+import VideoWithFade from '../components/shared/VideoWithFade';
 import './Services.css';
 
+// Replaced emojis with Lucide Icons for professional look
+const servicesData = [
+    {
+        title: "Private Coaching",
+        description: "One-on-one mentorship tailored to your unique playstyle and goals.",
+        icon: <Target size={32} color="#F88B22" strokeWidth={1.5} />
+    },
+    {
+        title: "Group Masterclasses",
+        description: "Small, interactive sessions fostering peer learning and healthy competition.",
+        icon: <Users size={32} color="#F88B22" strokeWidth={1.5} />
+    },
+    {
+        title: "Tournament Prep",
+        description: "Rigorous simulation and psychological conditioning for competitive play.",
+        icon: <Trophy size={32} color="#F88B22" strokeWidth={1.5} />
+    },
+    {
+        title: "Game Analysis",
+        description: "Deep-dive reviews of your games to turn mistakes into mastery.",
+        icon: <Search size={32} color="#F88B22" strokeWidth={1.5} />
+    },
+    {
+        title: "Foundations Course",
+        description: "Structured curriculum for beginners to build unbreakable core skills.",
+        icon: <BookOpen size={32} color="#F88B22" strokeWidth={1.5} />
+    },
+    {
+        title: "Advanced Strategy",
+        description: "Complex tactical training and endgame theory for rated players.",
+        icon: <Swords size={32} color="#F88B22" strokeWidth={1.5} />
+    }
+];
+
 const Services = () => {
+    const [isContentUnlocked, setIsContentUnlocked] = React.useState(false);
+    const videoRef = React.useRef(null);
+    const [isLooping, setIsLooping] = React.useState(false);
+
+    // Cinematic Fade Loop Logic
+    React.useEffect(() => {
+        const video = videoRef.current;
+        if (!video) return;
+
+        video.play().catch(() => { });
+
+        const handleTimeUpdate = () => {
+            if (!video.duration) return;
+
+            // Trigger Fade Out 0.8s before end
+            if (video.currentTime >= video.duration - 0.8) {
+                if (!isLooping) setIsLooping(true);
+            }
+
+            // Reset Fade when we are back at start
+            if (video.currentTime < 1.0 && isLooping) {
+                setTimeout(() => setIsLooping(false), 200);
+            }
+        };
+
+        video.addEventListener('timeupdate', handleTimeUpdate);
+        return () => video.removeEventListener('timeupdate', handleTimeUpdate);
+    }, [isLooping]);
+
+    const handleContentUnlock = () => {
+        setIsContentUnlocked(true);
+        // Add small delay to allow render, then scroll
+        setTimeout(() => {
+            const grid = document.getElementById('services-grid');
+            if (grid) {
+                grid.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }
+        }, 100);
+    };
+
     return (
-        <div className="services-page">
-            <Navbar />
+        <div className="services-page-phase1">
+            {/* Navbar handled globally */}
 
-            <section className="services-hero">
-                <div className="services-hero-content">
-                    <h1>Our Services</h1>
-                    <p>Comprehensive chess education tailored to every skill level</p>
+            {/* 1. HERO SECTION */}
+            <section className="services-hero-phase1">
+                <div className="hero-bg-wrapper">
+                    {/* BLACK FADE OVERLAY FOR SMOOTH LOOP */}
+                    <motion.div
+                        className="loop-fade-overlay"
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: isLooping ? 1 : 0 }}
+                        transition={{ duration: 0.5, ease: "easeInOut" }}
+                        style={{
+                            position: 'absolute', inset: 0, background: 'black', zIndex: 2, pointerEvents: 'none'
+                        }}
+                    />
+                    <video
+                        ref={videoRef}
+                        src="/chess-video2.mp4"
+                        autoPlay
+                        loop
+                        muted
+                        playsInline
+                        className="hero-bg-img"
+                    />
+                    <div className="hero-overlay-cinematic"></div>
+                </div>
+
+                <div className="services-container relative-z">
+                    <motion.div
+                        className="hero-content"
+                        initial={{ opacity: 0, y: 30 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ duration: 1, ease: "easeOut" }}
+                    >
+                        <h1>The Art of <br /><span className="text-highlight-orange">Strategic Mastery</span></h1>
+                        <p className="hero-subtext">Premium chess education tailored for the next generation of grandmasters.</p>
+                    </motion.div>
+
+                    <motion.div
+                        className="scroll-indicator-phase1"
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        transition={{ delay: 1.5, duration: 1 }}
+                    >
+                        <span>Scroll to Experience</span>
+                        <div className="scroll-line"></div>
+                    </motion.div>
                 </div>
             </section>
 
-            <section className="services-content">
-                <div className="services-container">
-                    <div className="services-intro">
-                        <h2>What We Offer</h2>
-                        <p>From beginners taking their first steps to advanced players preparing for tournaments, our structured programs are designed to nurture talent at every level. Each course is crafted with care by our experienced FIDE-certified coaches.</p>
-                    </div>
-                    <div className="services-grid">
-                        <div className="service-card">
-                            <h3>Group Classes</h3>
-                            <p>Small group sessions with maximum 6 students per class for personalized attention and interactive learning.</p>
-                            <ul>
-                                <li> Max 6 students per class</li>
-                                <li> Age-grouped batches</li>
-                                <li> Interactive sessions</li>
-                                <li> Twice weekly classes</li>
-                            </ul>
-                        </div>
-                        <div className="service-card">
-                            <h3>1v1 Tutoring</h3>
-                            <p>One-on-one coaching tailored to your specific needs and goals. Perfect for focused attention and rapid improvement.</p>
-                            <ul>
-                                <li> Personalized curriculum</li>
-                                <li> Flexible scheduling</li>
-                                <li> Focused attention</li>
-                                <li> Custom pace</li>
-                            </ul>
-                        </div>
-                        <div className="service-card">
-                            <h3>Tournament Preparation</h3>
-                            <p>Specialized training for competitive chess. Develop tournament skills, opening preparation, and game analysis.</p>
-                            <ul>
-                                <li> Opening preparation</li>
-                                <li> Game analysis</li>
-                                <li> Time management</li>
-                                <li> Psychological training</li>
-                            </ul>
-                        </div>
-                        <div className="service-card">
-                            <h3>Beginner Programs</h3>
-                            <p>Perfect introduction to chess for young learners. Build strong foundations with fun and engaging lessons.</p>
-                            <ul>
-                                <li> Basic rules & tactics</li>
-                                <li> Pattern recognition</li>
-                                <li> Simple strategies</li>
-                                <li> Confidence building</li>
-                            </ul>
-                        </div>
-                        <div className="service-card">
-                            <h3>Advanced Training</h3>
-                            <p>For serious players aiming for mastery. Deep analysis, advanced tactics, and strategic understanding.</p>
-                            <ul>
-                                <li> Deep analysis</li>
-                                <li> Advanced tactics</li>
-                                <li> Endgame mastery</li>
-                                <li> Opening repertoire</li>
-                            </ul>
-                        </div>
-                        <div className="service-card">
-                            <h3>Parent Support</h3>
-                            <p>Regular updates and guidance for parents. Stay informed about your child's progress and development.</p>
-                            <ul>
-                                <li> Progress reports</li>
-                                <li> Parent-coach meetings</li>
-                                <li> Learning resources</li>
-                                <li> Tournament guidance</li>
-                            </ul>
-                        </div>
-                    </div>
-                </div>
-            </section>
+            {/* 2. CHESS INTERACTION (Phase 2) */}
+            {/* Locks content until completed/skipped */}
+            <ChessGame onUnlock={handleContentUnlock} />
 
-            <CTASection />
-            <Footer />
+            {/* 3. CORE SERVICES GRID (Conditionally Rendered or Hidden) */}
+            {isContentUnlocked && (
+                <motion.div
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    transition={{ duration: 1 }}
+                >
+                    <section id="services-grid" className="services-grid-section">
+                        <div className="services-container">
+                            <motion.h2
+                                className="section-title-editorial-white"
+                                initial={{ opacity: 0, y: 30 }}
+                                whileInView={{ opacity: 1, y: 0 }}
+                                viewport={{ once: true }}
+                                transition={{ duration: 0.8 }}
+                            >
+                                OUR SERVICES
+                            </motion.h2>
+
+                            <motion.div
+                                className="services-grid"
+                                initial="hidden"
+                                whileInView="visible"
+                                viewport={{ once: true }}
+                                variants={{
+                                    hidden: { opacity: 0 },
+                                    visible: {
+                                        opacity: 1,
+                                        transition: { staggerChildren: 0.1 }
+                                    }
+                                }}
+                            >
+                                {servicesData.map((service, index) => (
+                                    <motion.div
+                                        key={index}
+                                        className="service-card-phase1"
+                                        variants={{
+                                            hidden: { opacity: 0, y: 20 },
+                                            visible: { opacity: 1, y: 0, transition: { duration: 0.6 } }
+                                        }}
+                                    >
+                                        <div className="card-icon">{service.icon}</div>
+                                        <h3>{service.title}</h3>
+                                        <p>{service.description}</p>
+                                        <div className="card-hover-overlay"></div>
+                                    </motion.div>
+                                ))}
+                            </motion.div>
+                        </div>
+                    </section>
+
+                    {/* 4. VISUAL BREAK SECTION */}
+                    <section className="visual-break-section">
+                        <div className="visual-break-bg">
+                            <VideoWithFade
+                                src="/chess-story.mp4"
+                                className="visual-break-video"
+                            />
+                            <div className="visual-break-overlay"></div>
+                        </div>
+                        <div className="services-container relative-z">
+                            <motion.blockquote
+                                className="visual-quote"
+                                initial={{ opacity: 0 }}
+                                whileInView={{ opacity: 1 }}
+                                transition={{ duration: 1 }}
+                            >
+                                "Chess is the gymnasium of the mind."
+                                <footer>— Blaise Pascal</footer>
+                            </motion.blockquote>
+                        </div>
+                    </section>
+
+                    {/* 5. CTA SECTION (Reused) */}
+                    <CTASection />
+                    <Footer />
+                </motion.div>
+            )}
         </div>
     );
 };

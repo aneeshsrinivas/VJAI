@@ -1,42 +1,52 @@
-/* Sidebar Logic handled in component */
+@import url('https://fonts.googleapis.com/css2?family=Figtree:wght@300;400;500;600;700;800;900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700;900&display=swap');
 
 :root {
-  /* Brand Color System */
-  --color-deep-blue: #003366;
-  --color-warm-orange: #FC8A24;
-  --color-ivory: #FFFEF3;
-  --color-olive-green: #6B8E23;
+  /* =========================================
+     CINEMATIC CHESS PALETTE (Strict)
+     ========================================= */
 
-  /* Secondary & Functional */
-  --color-neutral-brown: #B49885;
-  --color-light-sand: #EBD6C3;
-  --color-dark-brown: #68300B;
-  --color-white: #FFFFFF;
+  /* BACKGROUNDS (Dark) */
+  /* BACKGROUNDS (Dark) */
+  --bg-cinematic-dark: #111111;
+  --bg-cinematic-gradient: linear-gradient(180deg, #111111 0%, #181818 100%);
+  --bg-footer-gradient: linear-gradient(180deg, #111111 0%, #151515 100%);
 
-  --color-error: #D32F2F;
-  --color-warning: #F9A825;
-  --color-success: #22C55E;
-  --color-info: #1976D2;
-  --color-disabled: #BDBDBD;
-  --color-text-primary: #003366;
+  /* BACKGROUNDS (Light - Parchment/Editorial) */
+  --bg-parchment: #EFE3C8;
+  /* Replaces White */
+  --bg-parchment-dark: #E5DCCB;
+  /* Replaces Cream/Grey */
 
-  /* Fonts */
-  --font-primary: 'Figtree', sans-serif;
-  --font-display: 'Figtree', sans-serif;
+  /* ACCENTS */
+  --accent-gold: #F88B22;
+  /* Replaced Gold with Premium Orange */
+  --accent-orange: #F88B22;
+  /* Premium Orange */
 
-  /* Spacing */
-  --spacing-xs: 8px;
-  --spacing-sm: 16px;
-  --spacing-md: 24px;
-  --spacing-lg: 32px;
-  --spacing-xl: 48px;
+  /* TEXT */
+  --text-heading-dark: #F5F3EF;
+  /* Off-White on Dark */
+  --text-sub-dark: #CFC6B8;
+  /* Muted Beige on Dark */
+  --text-heading-light: #181818;
+  /* Near Black on Light */
+  --text-body-light: #2B2B2B;
+  /* Charcoal on Light */
 
-  /* UI Tokens */
-  --radius-sm: 8px;
-  --radius-md: 12px;
-  --radius-lg: 16px;
-  --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.08);
-  --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.12);
+  /* OVERLAYS */
+  --hero-overlay: linear-gradient(rgba(11, 11, 11, 0.85), rgba(11, 11, 11, 0.65));
+
+  /* DEPTH */
+  --shadow-depth: inset 0 0 40px rgba(0, 0, 0, 0.25);
+  --border-subtle: 1px solid rgba(248, 139, 34, 0.2);
+  /* Orange trace */
+
+  /* Legacy/Mapping Mappings to preserve existing variable usage if any */
+  --deep-blue: #0B0B0B;
+  --warm-orange: #F88B22;
+  --ivory: #F4F1EC;
+  --black: #0B0B0B;
 }
 
 * {
@@ -45,9 +55,12 @@
   padding: 0;
 }
 
-/* Prevent white flash on page load */
-html,
 body {
+  font-family: 'Figtree', sans-serif;
+  /* Default to Parchment for light theme pages, or Cinematic Dark for dark pages */
+  background-color: #0B0B0B;
+  color: var(--text-body-light);
+  line-height: 1.6;
   background-color: var(--color-ivory);
   min-height: 100vh;
 }
@@ -57,254 +70,90 @@ body {
   color: var(--color-text-primary);
   line-height: 1.5;
   -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
-/* Smooth page transitions - apply to all main page containers */
-.page-transition,
-.landing-page-home,
-.login-page,
-.registration-page,
-.demo-booking-page,
-.role-selection-page,
-.about-page,
-.services-page,
-.contact-page,
-.faq-page {
-  animation: pageEnter 0.4s ease-out;
-}
-
-@keyframes pageEnter {
-  from {
-    opacity: 0.85;
-  }
-
-  to {
-    opacity: 1;
-  }
-}
-
+/* TYPOGRAPHY */
 h1,
 h2,
 h3,
 h4,
 h5,
 h6 {
-  font-family: var(--font-display);
-  color: var(--color-deep-blue);
-  margin-bottom: var(--spacing-sm);
-}
-
-h1 {
-  font-size: 48px;
-  line-height: 56px;
+  color: inherit;
+  /* Allow sections to dictate color */
   font-weight: 700;
 }
 
-h2 {
-  font-size: 36px;
-  line-height: 44px;
-  font-weight: 600;
+/* Utility Classes for COLOR ONLY application */
+.bg-cinematic {
+  background: var(--bg-cinematic-gradient);
+  color: var(--text-heading-dark);
 }
 
-h3 {
-  font-size: 24px;
-  line-height: 32px;
-  font-weight: 600;
-  font-family: var(--font-primary);
+.bg-parchment {
+  background-color: var(--bg-parchment);
+  color: var(--text-body-light);
 }
 
-/* H3 is Figtree per brief */
-h4 {
-  font-size: 18px;
-  line-height: 24px;
-  font-weight: 600;
-  font-family: var(--font-primary);
+.text-gold {
+  color: var(--accent-gold);
 }
 
-p {
-  margin-bottom: 1em;
+.text-orange {
+  color: var(--accent-orange);
+}
+
+/* Global Button Typography (Premium) */
+button,
+.btn,
+.cta,
+.hero-cta,
+.hero-cta-primary,
+.hero-cta-secondary {
+  /* Typography */
+  font-family: 'Figtree', sans-serif;
+  font-weight: 800 !important;
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
   font-size: 14px;
-}
-
-button {
-  font-family: var(--font-primary);
-  cursor: pointer;
-  border: none;
-  transition: all 0.2s ease;
-}
-
-/* Utilities */
-.container {
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 0 var(--spacing-sm);
-}
-
-.text-center {
-  text-align: center;
-}
-
-.flex {
-  display: flex;
-}
-
-.flex-col {
-  display: flex;
-  flex-direction: column;
-}
-
-.items-center {
-  align-items: center;
-}
-
-.justify-center {
-  justify-content: center;
-}
-
-.justify-between {
-  justify-content: space-between;
-}
-
-.gap-sm {
-  gap: var(--spacing-sm);
-}
-
-.gap-md {
-  gap: var(--spacing-md);
-}
-
-/* Chess Pattern Background Utility - 8x8 Grid 2% Opacity (Subtle) */
-.bg-chess-pattern {
-  background-image:
-    linear-gradient(45deg, #00000005 25%, transparent 25%),
-    linear-gradient(-45deg, #00000005 25%, transparent 25%),
-    linear-gradient(45deg, transparent 75%, #00000005 75%),
-    linear-gradient(-45deg, transparent 75%, #00000005 75%);
-  background-size: 40px 40px;
-  background-position: 0 0, 0 20px, 20px -20px, -20px 0px;
-}
-
-/* Indian Heritage Motifs - Simplified Professional Line */
-.rangoli-border-top {
-  position: relative;
-}
-
-.rangoli-border-top::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 3px;
-  background: linear-gradient(90deg, var(--color-deep-blue), var(--color-warm-orange));
-}
-
-/* Animations */
-
-
-/* Landing Page Specifics */
-/* ... existing pawn styles ... */
-
-/* FAQ Accordion */
-details>summary {
-  list-style: none;
-  cursor: pointer;
-  padding: 16px;
-  background-color: #f5f5f5;
-  border-radius: 8px;
-  margin-bottom: 8px;
-  font-weight: 600;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  transition: all 0.2s;
-}
-
-details>summary:hover {
-  background-color: #eee;
-}
-
-details[open]>summary {
-  background-color: var(--color-deep-blue);
-  color: #fff;
-  margin-bottom: 0;
-  border-bottom-left-radius: 0;
-  border-bottom-right-radius: 0;
-}
-
-details>div {
-  padding: 16px;
-  background-color: #fff;
-  border: 1px solid #eee;
-  border-top: none;
-  border-bottom-left-radius: 8px;
-  border-bottom-right-radius: 8px;
-  margin-bottom: 8px;
-}
-
-/* Testimonial Card */
-.testimonial-card {
-  background: #f9f9f9;
-  padding: 24px;
-  border-radius: 12px;
-  text-align: center;
-  border: 1px solid #eee;
-  transition: transform 0.2s;
-}
-
-.testimonial-card:hover {
-  transform: translateY(-5px);
-  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.05);
-}
-
-/* Service Card */
-.service-card {
-  background-color: #000;
-  border: 1px solid #333;
-  border-radius: 16px;
-  padding: 32px;
-  text-align: center;
+  padding: 16px 32px;
+  /* Ensure click area */
   transition: all 0.3s ease;
+  border-radius: 4px;
+  /* Sharper corners for editorial feel */
   cursor: pointer;
-  position: relative;
-  overflow: hidden;
 }
 
-.service-card:hover {
-  background-color: #111;
-  transform: translateY(-5px);
-  border-color: var(--color-warm-orange);
-  box-shadow: 0 10px 30px rgba(252, 138, 36, 0.2);
+/* Default Solid Button (Generic) */
+button:not(.hero-cta-secondary),
+.btn,
+.cta,
+.hero-cta-primary {
+  background-color: var(--accent-orange) !important;
+  color: white !important;
+  border: none;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  /* Subtle depth */
 }
 
-.service-card h3 {
-  color: #fff;
-  margin-bottom: 16px;
-  font-size: 20px;
+button:hover,
+.btn:hover,
+.hero-cta:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(248, 139, 34, 0.3);
 }
 
-.service-card p {
-  color: #888;
-  font-size: 14px;
-  line-height: 1.6;
+/* Scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
 }
 
-.service-card:hover h3 {
-  color: var(--color-warm-orange);
+::-webkit-scrollbar-track {
+  background: #0B0B0B;
 }
 
-/* Contact Form Input */
-.contact-input {
-  width: 100%;
-  padding: 12px 16px;
-  border: 1px solid #ddd;
-  border-radius: 8px;
-  font-family: var(--font-primary);
-  font-size: 14px;
-  transition: border-color 0.2s;
-  outline: none;
-}
-
-.contact-input:focus {
-  border-color: var(--color-warm-orange);
+::-webkit-scrollbar-thumb {
+  background: var(--accent-gold);
+  border-radius: 4px;
 }

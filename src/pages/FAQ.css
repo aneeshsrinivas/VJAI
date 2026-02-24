@@ -1,158 +1,353 @@
-/* Import Figtree font */
 @import url('https://fonts.googleapis.com/css2?family=Figtree:wght@300;400;500;600;700;800;900&display=swap');
 
-.faq-page {
+.faq-page-modern {
     font-family: 'Figtree', sans-serif;
-    background: #FFFEF3;
-    animation: pageEnter 0.4s ease-out;
-}
-
-@keyframes pageEnter {
-    from {
-        opacity: 0.85;
-    }
-
-    to {
-        opacity: 1;
-    }
-}
-
-/* HERO SECTION */
-.faq-hero {
-    padding: 180px 48px 60px;
-    background: linear-gradient(135deg, #003366 0%, #004080 100%);
-    text-align: center;
-}
-
-.faq-hero-content h1 {
-    font-family: 'Figtree', sans-serif;
-    font-size: 56px;
-    font-weight: 800;
     color: white;
-    margin-bottom: 20px;
+    background: var(--bg-cinematic-dark);
+    overflow-x: hidden;
+    position: relative;
 }
 
-.faq-hero-content p {
-    font-size: 20px;
-    color: #EBD6C3;
-}
-
-/* FAQ CONTENT */
-.faq-content {
-    padding: 100px 0;
-    background: white;
-}
-
-.faq-container {
-    max-width: 900px;
-    margin: 0 auto;
-    padding: 0 48px;
-}
-
-.faq-category {
-    margin-bottom: 64px;
-}
-
-.faq-category:last-child {
-    margin-bottom: 0;
-}
-
-.faq-category-title {
-    font-family: 'Figtree', sans-serif;
-    font-size: 32px;
-    font-weight: 800;
-    color: #FC8A24;
-    margin-bottom: 32px;
-    padding-bottom: 16px;
-    border-bottom: 3px solid #FC8A24;
-}
-
-.faq-list {
+/* --- LAYER 1: FIXED HERO (Stays put, covered by content) --- */
+.fixed-hero-layer {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100vh;
+    z-index: 0;
     display: flex;
     flex-direction: column;
-    gap: 16px;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    /* Video Background */
 }
 
-.faq-item {
-    background: linear-gradient(135deg, #FFFEF3 0%, #EBD6C3 100%);
-    border: 2px solid #FC8A24;
-    border-radius: 12px;
+.faq-fullscreen-video-bg {
+    position: absolute;
+    inset: 0;
+    z-index: -1;
     overflow: hidden;
-    transition: all 0.3s ease;
 }
 
-.faq-item:hover {
-    box-shadow: 0 8px 24px rgba(252, 138, 36, 0.2);
-    border-color: #003366;
-}
-
-.faq-question {
+.background-video {
     width: 100%;
-    padding: 24px;
-    background: none;
-    border: none;
+    height: 100%;
+    object-fit: cover;
+    opacity: 0.6;
+}
+
+.video-overlay-tint {
+    position: absolute;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.1);
+    /* Minimal tint */
+}
+
+.hero-content-fixed {
+    position: relative;
+    z-index: 10;
+    padding: 0 24px;
+}
+
+.hero-content-fixed h1 {
+    font-size: 72px;
+    font-weight: 800;
+    margin-bottom: 24px;
+    letter-spacing: -2px;
+    line-height: 1.1;
+    text-shadow: 0 4px 24px rgba(0, 0, 0, 0.5);
+    color: var(--text-heading-dark);
+}
+
+.text-highlight {
+    color: var(--accent-orange);
+}
+
+.hero-subtitle {
+    font-size: 22px;
+    color: var(--text-sub-dark);
+    max-width: 700px;
+    margin: 0 auto;
+    font-weight: 400;
+    text-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+}
+
+.scroll-indicator {
+    position: relative;
+    margin-top: 60px;
+    margin-bottom: 20px;
+    margin-left: auto;
+    margin-right: auto;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    color: rgba(255, 255, 255, 0.8);
+    font-size: 14px;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    animation: fadeIn 2s ease-out;
+    z-index: 10;
+}
+
+.scroll-indicator::after {
+    content: '';
+    width: 1px;
+    height: 40px;
+    background: rgba(255, 255, 255, 0.5);
+}
+
+
+/* --- LAYER 2: SCROLLING CONTENT --- */
+.scrolling-content-layer {
+    position: relative;
+    z-index: 10;
+    width: 100%;
+    /* Default spacing defined by spacer + content */
+}
+
+/* Spacer allows seeing the Fixed Layer initially */
+.spacer-100vh {
+    height: 100vh;
+    width: 100%;
+    /* Transparent */
+    pointer-events: none;
+    /* Let clicks pass through spacer to hero? 
+       Actually, if pointer-events none, we can click hero buttons if any. 
+       But Spacer is just empty space. */
+}
+
+/* The Curtain that rises */
+.faq-content-modern {
+    position: relative;
+    width: 100%;
+    min-height: 100vh;
+
+    /* THE CURTAIN EFFECT: Glass Background covers Fixed Hero Text */
+    background: rgba(0, 0, 0, 0.6);
+    /* Semi-transparent dark curtain */
+    backdrop-filter: blur(20px);
+    /* Heavy blur to obscure Hero Text */
+    -webkit-backdrop-filter: blur(20px);
+
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    padding-bottom: 0px;
+    /* Footer handles bottom */
+    box-shadow: 0 -20px 60px rgba(0, 0, 0, 0.5);
+}
+
+.faq-timeline-wrapper {
+    position: relative;
+    max-width: 1000px;
+    margin: 0 auto;
+    padding: 120px 24px;
+}
+
+.faq-timeline-line {
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+    top: 0;
+    bottom: 0;
+    width: 2px;
+    background: linear-gradient(to bottom, transparent 0%, #FF6B00 10%, #FF4500 90%, transparent 100%);
+    z-index: 0;
+}
+
+.faq-category-block {
+    margin-bottom: 100px;
+    position: relative;
+    z-index: 1;
+}
+
+.faq-category-header {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 60px;
+    text-align: center;
+    position: relative;
+    z-index: 10;
+}
+
+.category-number {
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--accent-orange);
+    background: rgba(255, 107, 0, 0.1);
+    padding: 6px 12px;
+    border-radius: 20px;
+    border: 1px solid rgba(255, 107, 0, 0.3);
+    backdrop-filter: blur(4px);
+}
+
+.faq-category-header h2 {
+    font-size: 36px;
+    color: white;
+    font-weight: 800;
+    margin: 0;
+    text-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+}
+
+.faq-questions-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+}
+
+.faq-item-editorial {
+    position: relative;
+    width: 45%;
+    margin-bottom: 40px;
+    cursor: default;
+    /* Hover triggered */
+    z-index: 1;
+}
+
+/* Odd (Left) */
+.faq-item-editorial:nth-child(odd) {
+    align-self: flex-start;
+    text-align: right;
+    margin-right: 55%;
+}
+
+/* Even (Right) */
+.faq-item-editorial:nth-child(even) {
+    align-self: flex-end;
+    text-align: left;
+    margin-left: 55%;
+}
+
+.item-connector {
+    position: absolute;
+    top: 28px;
+    width: 14px;
+    height: 14px;
+    background: var(--bg-cinematic-dark);
+    border: 2px solid var(--accent-orange);
+    border-radius: 50%;
+    z-index: 2;
+    transition: all 0.3s ease;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+}
+
+.faq-item-editorial:nth-child(odd) .item-connector {
+    right: -11.5%;
+}
+
+.faq-item-editorial:nth-child(even) .item-connector {
+    left: -11.5%;
+}
+
+.faq-item-editorial.active .item-connector {
+    background: var(--accent-orange);
+    box-shadow: 0 0 15px #FF6B00;
+    transform: scale(1.3);
+}
+
+.question-heading {
     display: flex;
     justify-content: space-between;
     align-items: center;
+    padding: 24px;
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 16px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+    transition: background 0.3s;
     cursor: pointer;
-    font-family: 'Figtree', sans-serif;
+    /* Hover hint */
+}
+
+.faq-item-editorial:hover .question-heading {
+    background: rgba(255, 255, 255, 0.2);
+    border-color: rgba(255, 255, 255, 0.5);
+}
+
+.faq-item-editorial:nth-child(odd) .question-heading {
+    flex-direction: row-reverse;
+}
+
+.question-heading h3 {
     font-size: 18px;
     font-weight: 700;
-    color: #003366;
-    text-align: left;
-    transition: color 0.3s ease;
-}
-
-.faq-question:hover {
-    color: #FC8A24;
-}
-
-.faq-icon {
-    font-size: 28px;
-    font-weight: 300;
-    color: #FC8A24;
-    flex-shrink: 0;
-    margin-left: 16px;
-}
-
-.faq-answer {
-    max-height: 0;
-    overflow: hidden;
-    transition: max-height 0.4s ease, padding 0.4s ease;
-}
-
-.faq-item.active .faq-answer {
-    max-height: 300px;
-    padding: 0 24px 24px;
-}
-
-.faq-answer p {
-    font-size: 16px;
-    color: #68300B;
-    line-height: 1.8;
+    color: white;
     margin: 0;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+.toggle-icon {
+    font-size: 24px;
+    color: rgba(255, 255, 255, 0.7);
+    font-weight: 300;
+    transition: transform 0.3s ease;
+}
+
+.faq-item-editorial.active .toggle-icon {
+    transform: rotate(45deg);
+    color: var(--accent-orange);
+}
+
+.answer-body {
+    margin-top: 12px;
+    background: rgba(0, 0, 0, 0.4);
+    backdrop-filter: blur(12px);
+    border-radius: 16px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    padding: 0 24px;
+    overflow: hidden;
+    color: #E2E8F0;
+    cursor: text;
+}
+
+.answer-content {
+    padding: 24px 0;
+    font-size: 16px;
+    line-height: 1.7;
 }
 
 /* RESPONSIVE */
-@media (max-width: 768px) {
-    .faq-hero {
-        padding: 140px 24px 80px;
+@media (max-width: 1024px) {
+    .faq-timeline-wrapper {
+        padding: 80px 24px;
     }
 
-    .faq-hero-content h1 {
-        font-size: 36px;
+    .faq-timeline-line {
+        left: 20px;
+        transform: none;
     }
 
-    .faq-container {
-        padding: 0 24px;
+    .faq-item-editorial {
+        width: 100%;
+        margin-right: 0;
+        margin-left: 0 !important;
+        padding-left: 40px !important;
+        text-align: left !important;
+        align-self: flex-start !important;
     }
 
-    .faq-category-title {
-        font-size: 24px;
+    .faq-item-editorial:nth-child(odd) {
+        align-self: flex-start;
+        text-align: left;
+        margin-right: 0;
     }
 
-    .faq-question {
-        font-size: 16px;
-        padding: 20px;
+    .faq-item-editorial:nth-child(odd) .question-heading {
+        flex-direction: row;
+    }
+
+    .item-connector {
+        left: 14px !important;
+        right: auto !important;
+        top: 24px;
+    }
+
+    .hero-content-fixed h1 {
+        font-size: 48px;
     }
 }

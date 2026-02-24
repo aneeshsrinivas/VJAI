@@ -1,0 +1,47 @@
+/* AnimatedCounter.css */
+.animated-counter {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+}
+
+.counter-value {
+    display: flex;
+    align-items: baseline;
+    justify-content: center;
+    margin-bottom: 8px;
+}
+
+.counter-number {
+    font-family: 'Figtree', sans-serif;
+    font-size: 48px;
+    font-weight: 800;
+    color: #003366;
+    line-height: 1;
+}
+
+.counter-prefix,
+.counter-suffix {
+    font-family: 'Figtree', sans-serif;
+    font-size: 32px;
+    font-weight: 700;
+    color: #D4AF37;
+    margin: 0 4px;
+}
+
+.counter-label {
+    font-size: 14px;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    color: #68300B;
+    font-weight: 600;
+    margin: 0;
+}
+
+.counter-icon {
+    font-size: 32px;
+    margin-bottom: 12px;
+    color: #D4AF37;
+}

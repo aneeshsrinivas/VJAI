@@ -1,0 +1,46 @@
+.magnetic-button {
+    position: relative;
+    padding: 16px 40px;
+    font-family: 'Figtree', sans-serif;
+    font-size: 16px;
+    font-weight: 600;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    border: none;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+}
+
+/* Primary: Solid Orange */
+.magnetic-button-primary {
+    background: #F88B22;
+    color: #0C3362;
+    box-shadow: 0 4px 15px rgba(248, 139, 34, 0.3);
+}
+
+.magnetic-button-primary:hover {
+    background: #e67d1a;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(248, 139, 34, 0.4);
+}
+
+/* Secondary: Outlined */
+.magnetic-button-secondary {
+    background: transparent;
+    color: #F88B22;
+    border: 1px solid rgba(248, 139, 34, 0.5);
+}
+
+.magnetic-button-secondary:hover {
+    background: rgba(248, 139, 34, 0.1);
+    border-color: #F88B22;
+    color: #F88B22;
+}
+
+.magnetic-btn-text {
+    position: relative;
+    z-index: 2;
+}

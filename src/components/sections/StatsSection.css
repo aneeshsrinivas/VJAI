@@ -1,0 +1,183 @@
+/* ============================================
+   PREMIUM STATS SECTION STYLES
+   ============================================ */
+
+.stats-section-premium {
+    padding: 80px 0;
+    position: relative;
+    /* Soft Charcoal Blend (Hero #171A20 -> Stats Dark) */
+    background: linear-gradient(to bottom,
+            #171A20 0%,
+            #141922 100%);
+    color: #F5EFE6;
+    overflow: hidden;
+}
+
+/* ============================================
+   BACKGROUND
+   ============================================ */
+.stats-bg-gradient {
+    display: none;
+}
+
+.stats-bg-pattern {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23D4AF37' fill-opacity='0.04'%3E%3Cpath d='M30 30h30v30H30zM0 0h30v30H0z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+    opacity: 0.3;
+    -webkit-mask-image: linear-gradient(to bottom, transparent 0%, black 30%, black 70%, transparent 100%);
+    mask-image: linear-gradient(to bottom, transparent 0%, black 30%, black 70%, transparent 100%);
+}
+
+/* ============================================
+   PARTICLES
+   ============================================ */
+.stats-particles {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    pointer-events: none;
+}
+
+.stat-particle {
+    position: absolute;
+    width: 4px;
+    height: 4px;
+    background: #D4AF37;
+    border-radius: 50%;
+}
+
+/* ============================================
+   CONTAINER & GRID
+   ============================================ */
+.stats-container {
+    position: relative;
+    max-width: 1280px;
+    margin: 0 auto;
+    padding: 0 24px;
+    z-index: 10;
+}
+
+.stats-grid-premium {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 32px;
+}
+
+/* ============================================
+   STAT CARD
+   ============================================ */
+.stat-card-premium {
+    background: rgba(254, 255, 236, 0.05);
+    border: 1px solid rgba(212, 175, 55, 0.2);
+    border-radius: 20px;
+    padding: 40px 24px;
+    text-align: center;
+    backdrop-filter: blur(10px);
+    transition: all 0.4s cubic-bezier(0.22, 1, 0.36, 1);
+    cursor: default;
+}
+
+.stat-card-premium:hover {
+    background: rgba(254, 255, 236, 0.08);
+    border-color: rgba(212, 175, 55, 0.5);
+    box-shadow: 0 20px 60px rgba(212, 175, 55, 0.2);
+}
+
+/* ============================================
+   ICON
+   ============================================ */
+.stat-icon-wrapper {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 24px;
+}
+
+.stat-icon-wrapper svg {
+    width: 64px;
+    height: 64px;
+}
+
+/* ============================================
+   VALUE
+   ============================================ */
+.stat-value-wrapper {
+    display: flex;
+    align-items: baseline;
+    justify-content: center;
+    gap: 4px;
+    margin-bottom: 12px;
+}
+
+.stat-number {
+    font-family: 'Figtree', sans-serif;
+    font-size: 56px;
+    font-weight: 800;
+    color: #FEFFEC;
+    letter-spacing: -2px;
+    line-height: 1;
+}
+
+.stat-suffix {
+    font-family: 'Figtree', sans-serif;
+    font-size: 32px;
+    font-weight: 700;
+    color: #D4AF37;
+}
+
+/* ============================================
+   LABELS
+   ============================================ */
+.stat-label {
+    font-size: 12px;
+    font-weight: 600;
+    color: rgba(254, 255, 236, 0.6);
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    margin-bottom: 8px;
+}
+
+.stat-subtext {
+    font-size: 13px;
+    font-weight: 400;
+    color: rgba(254, 255, 236, 0.4);
+}
+
+/* ============================================
+   RESPONSIVE
+   ============================================ */
+@media (max-width: 1024px) {
+    .stats-grid-premium {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 24px;
+    }
+}
+
+@media (max-width: 600px) {
+    .stats-section-premium {
+        padding: 60px 0;
+    }
+
+    .stats-grid-premium {
+        grid-template-columns: 1fr;
+        gap: 20px;
+    }
+
+    .stat-card-premium {
+        padding: 32px 20px;
+    }
+
+    .stat-number {
+        font-size: 48px;
+    }
+
+    .stat-suffix {
+        font-size: 28px;
+    }
+}

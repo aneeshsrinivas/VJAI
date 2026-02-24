@@ -1,0 +1,343 @@
+/* ChessGame.css - Restructured Layout with Premium Typography */
+.chess-game-section {
+    position: relative;
+    width: 100%;
+    min-height: 100vh;
+    max-height: 100vh;
+    background: #111;
+    color: #F8F9FA;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    padding: 50px 24px;
+    outline: none;
+}
+
+.chess-game-container {
+    width: 100%;
+    max-width: 1400px;
+    margin: 0 auto;
+    position: relative;
+    z-index: 10;
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+}
+
+.game-section-title {
+    font-family: 'Figtree', sans-serif;
+    font-size: clamp(32px, 5vw, 48px);
+    font-weight: 800;
+    color: #F5F3EF;
+    text-align: center;
+    margin-bottom: 40px;
+    text-transform: uppercase;
+    letter-spacing: 4px;
+    text-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+}
+
+.chess-ui-layout {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 60px;
+    align-items: center;
+    flex: 1;
+    max-height: calc(100vh - 200px);
+}
+
+/* LEFT: Board */
+.chess-board-wrapper {
+    position: relative;
+    width: 100%;
+    max-width: 420px;
+    aspect-ratio: 1/1;
+    margin: 0 auto;
+    perspective: 1000px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+.chess-board-image-wrapper {
+    width: 100%;
+    flex: 0 0 auto;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+}
+
+.chess-board-image {
+    width: 100%;
+    height: auto;
+    border-radius: 6px;
+    box-shadow:
+        0 20px 60px rgba(0, 0, 0, 0.7),
+        0 0 100px rgba(212, 175, 55, 0.2);
+    border: 12px solid #1a1a1a;
+    display: block;
+}
+
+/* CHESS NAVIGATION BUTTONS */
+.chess-navigation {
+    display: flex;
+    gap: 20px;
+    justify-content: center;
+    margin-top: 32px;
+}
+
+.chess-nav-btn {
+    font-family: 'Figtree', sans-serif;
+    background: rgba(212, 175, 55, 0.08);
+    border: 2px solid rgba(212, 175, 55, 0.3);
+    color: #D4AF37;
+    padding: 16px 40px;
+    font-size: 15px;
+    font-weight: 700;
+    border-radius: 50px;
+    cursor: pointer;
+    transition: all 0.4s cubic-bezier(0.22, 1, 0.36, 1);
+    text-transform: uppercase;
+    letter-spacing: 2px;
+}
+
+.chess-nav-btn:hover:not(:disabled) {
+    background: rgba(212, 175, 55, 0.2);
+    border-color: #D4AF37;
+    transform: translateY(-3px);
+    box-shadow: 0 8px 20px rgba(212, 175, 55, 0.25);
+}
+
+.chess-nav-btn:disabled {
+    opacity: 0.25;
+    cursor: not-allowed;
+}
+
+.chess-nav-btn.prev {
+    padding-left: 36px;
+}
+
+.chess-nav-btn.next {
+    padding-right: 36px;
+}
+
+/* RIGHT: Service Reveal */
+.service-reveal-panel {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    min-height: auto;
+    position: relative;
+}
+
+.service-reveal-card {
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.05) 0%, rgba(255, 255, 255, 0.02) 100%);
+    border-left: 5px solid #F88B22;
+    padding: 40px;
+    border-radius: 0 16px 16px 0;
+    backdrop-filter: blur(20px);
+    box-shadow:
+        0 20px 60px rgba(0, 0, 0, 0.4),
+        inset 0 1px 0 rgba(255, 255, 255, 0.1);
+}
+
+.move-badge {
+    display: inline-block;
+    background: rgba(248, 139, 34, 0.2);
+    color: #F88B22;
+    padding: 8px 16px;
+    border-radius: 6px;
+    font-size: 11px;
+    font-weight: 800;
+    margin-bottom: 20px;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    font-family: 'Figtree', sans-serif;
+    border: 1px solid rgba(248, 139, 34, 0.3);
+}
+
+/* Move text in card */
+.service-reveal-card .move-text {
+    font-family: 'Figtree', sans-serif;
+    font-size: 16px;
+    font-weight: 800;
+    color: #D4AF37;
+    text-transform: uppercase;
+    letter-spacing: 3px;
+    margin-bottom: 16px;
+    display: block;
+}
+
+/* Instruction text in card */
+.service-reveal-card .instruction-text {
+    font-family: 'Figtree', sans-serif;
+    font-size: 18px;
+    font-weight: 400;
+    line-height: 1.7;
+    color: rgba(254, 255, 236, 0.7);
+    margin-bottom: 28px;
+    display: block;
+}
+
+.service-reveal-card .instruction-text.mate {
+    color: #F88B22;
+    font-weight: 900;
+    font-size: 28px;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    text-shadow: 0 4px 20px rgba(248, 139, 34, 0.5);
+}
+
+.service-reveal-card h3 {
+    font-family: 'Figtree', sans-serif;
+    font-size: clamp(28px, 4vw, 44px);
+    font-weight: 900;
+    color: #FEFFEC;
+    margin-bottom: 20px;
+    letter-spacing: -1.5px;
+    line-height: 1.1;
+    text-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+}
+
+.service-reveal-card p {
+    font-family: 'Figtree', sans-serif;
+    font-size: 18px;
+    line-height: 1.7;
+    color: rgba(254, 255, 236, 0.75);
+    font-weight: 400;
+}
+
+.service-placeholder p {
+    font-family: 'Figtree', sans-serif;
+    color: rgba(255, 255, 255, 0.3);
+    font-size: 20px;
+    text-align: center;
+    font-weight: 400;
+    font-style: italic;
+    letter-spacing: 0.5px;
+}
+
+/* END GAME CTA */
+.end-game-cta {
+    margin-top: 32px;
+    text-align: center;
+    width: 100%;
+}
+
+.explore-btn {
+    font-family: 'Figtree', sans-serif;
+    background: linear-gradient(135deg, #F88B22 0%, #FF9F45 100%);
+    color: white;
+    border: none;
+    padding: 16px 44px;
+    font-size: 15px;
+    font-weight: 800;
+    border-radius: 50px;
+    cursor: pointer;
+    transition: all 0.4s cubic-bezier(0.22, 1, 0.36, 1);
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    box-shadow: 0 10px 30px rgba(248, 139, 34, 0.3);
+}
+
+.explore-btn:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 20px 50px rgba(248, 139, 34, 0.5);
+}
+
+/* SKIP BUTTON */
+.skip-container {
+    position: absolute;
+    bottom: 24px;
+    right: 40px;
+    z-index: 20;
+}
+
+.skip-btn {
+    font-family: 'Figtree', sans-serif;
+    background: transparent;
+    border: 2px solid rgba(255, 255, 255, 0.15);
+    color: rgba(255, 255, 255, 0.5);
+    padding: 12px 32px;
+    font-size: 12px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 2.5px;
+    cursor: pointer;
+    transition: all 0.4s ease;
+    border-radius: 50px;
+}
+
+.skip-btn:hover {
+    color: white;
+    border-color: rgba(248, 139, 34, 0.6);
+    background: rgba(248, 139, 34, 0.1);
+    transform: translateY(-3px);
+}
+
+/* RESPONSIVE */
+@media (max-width: 1024px) {
+    .chess-ui-layout {
+        grid-template-columns: 1fr;
+        gap: 50px;
+    }
+
+    .service-reveal-panel {
+        min-height: auto;
+        text-align: center;
+        align-items: center;
+    }
+
+    .service-reveal-card {
+        border-left: none;
+        border-top: 5px solid #F88B22;
+        border-radius: 0 0 16px 16px;
+        text-align: left;
+        padding: 36px 28px;
+    }
+
+    .game-section-title {
+        font-size: 36px;
+        letter-spacing: 4px;
+        margin-bottom: 40px;
+    }
+
+    .chess-board-wrapper {
+        max-width: 450px;
+    }
+}
+
+@media (max-width: 640px) {
+    .game-section-title {
+        font-size: 28px;
+        letter-spacing: 3px;
+    }
+
+    .service-reveal-card h3 {
+        font-size: 24px;
+    }
+
+    .service-reveal-card p {
+        font-size: 16px;
+    }
+
+    .service-reveal-card .move-text {
+        font-size: 14px;
+        letter-spacing: 2px;
+    }
+
+    .service-reveal-card .instruction-text {
+        font-size: 16px;
+    }
+
+    .chess-nav-btn {
+        padding: 12px 28px;
+        font-size: 13px;
+    }
+
+    .chess-board-wrapper {
+        max-width: 100%;
+    }
+}

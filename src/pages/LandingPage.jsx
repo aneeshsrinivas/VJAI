@@ -1,3 +1,11 @@
+import { useState, useEffect, useRef } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { motion, AnimatePresence } from 'framer-motion';
+import gsap from 'gsap';
+import { ScrollTrigger } from 'gsap/ScrollTrigger';
+
+import { toast, ToastContainer } from 'react-toastify';
+// Navbar removed - lifted to App.jsx
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
@@ -6,39 +14,26 @@ import Button from '../components/ui/Button';
 import Navbar from '../components/layout/Navbar';
 import Footer from '../components/layout/Footer';
 import CTASection from '../components/shared/CTASection';
-import CoursewareIcon from '../components/icons/CoursewareIcon';
-import OnlineClassesIcon from '../components/icons/OnlineClassesIcon';
+import PricingSection from '../components/sections/PricingSection';
+import { HeroSection, StatsSection, AboutSection, TestimonialsSection, FAQSection } from '../components/sections';
 import './LandingPage.css';
+import '../components/shared/PremiumModal.css';
+import VideoIcon from '../components/icons/VideoIcon';
+import TrophyIcon from '../components/icons/TrophyIcon';
+import TargetIcon from '../components/icons/TargetIcon';
+import CoursewareIcon from '../components/icons/CoursewareIcon';
+import ChessKnightIcon from '../components/icons/ChessKnightIcon';
+import ChessBishopIcon from '../components/icons/ChessBishopIcon';
+
+gsap.registerPlugin(ScrollTrigger);
 
 const LandingPage = () => {
     const navigate = useNavigate();
     const [activeFAQ, setActiveFAQ] = useState(null);
     const [activeModal, setActiveModal] = useState(null);
 
-    // Mock testimonials data
-    const testimonials = [
-        {
-            name: 'Priya Menon',
-            role: 'Parent of 8-year-old student',
-            rating: 5,
-            image: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=200&h=200&fit=crop',
-            text: 'We honestly can\'t say enough good things about this academy. My son has been taking classes for a while, and his progress has been remarkable. The coaches are patient, knowledgeable, and truly care about each student\'s growth.'
-        },
-        {
-            name: 'Michael D\'Souza',
-            role: 'Parent of 10-year-old student',
-            rating: 5,
-            image: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=200&h=200&fit=crop',
-            text: 'They took a bunch of classes in the past and got bored after a few weeks. This was been different. She\'s actually excited for every session, and I can see her confidence growing. The personalized attention makes all the difference.'
-        },
-        {
-            name: 'Ayesha Khan',
-            role: 'Parent of 12-year-old student',
-            rating: 5,
-            image: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=200&h=200&fit=crop',
-            text: 'Zayn is one of those kids who needs a lot of stimulation to stay engaged. The coaches here have been amazing. They make every lesson fun and challenging, and he looks forward to class every week. We couldn\'t be happier!'
-        }
-    ];
+    // Refs for GSAP animations
+    const heroRef = useRef(null);
 
     // FAQs data
     const faqs = [
@@ -64,6 +59,99 @@ const LandingPage = () => {
         }
     ];
 
+    // GSAP Hero animations - Disabled mismatched animations
+    useEffect(() => {
+        const ctx = gsap.context(() => {
+            // NOTE: The previous animations targeted classes that do not exist in the current component structure
+            // (e.g., .hero-bg-image, .hero-title-home).
+            // These have been temporarily commented out to prevent errors.
+
+            /* 
+            // Slow hero drift to keep background alive without heavy video
+            gsap.to('.hero-bg-image', { ... });
+            // ... (rest of the mismatched animations)
+            */
+
+        }, heroRef);
+
+        return () => ctx.revert();
+    }, []);
+
+    // Prevent body/html scroll when modal is active
+    useEffect(() => {
+        if (activeModal) {
+            document.body.style.setProperty('overflow', 'hidden', 'important');
+            document.documentElement.style.setProperty('overflow', 'hidden', 'important');
+        } else {
+            document.body.style.removeProperty('overflow');
+            document.documentElement.style.removeProperty('overflow');
+        }
+        return () => {
+            document.body.style.removeProperty('overflow');
+            document.documentElement.style.removeProperty('overflow');
+        };
+    }, [activeModal]);
+
+    // Animation variants
+    const modalBackdropVariants = {
+        hidden: { opacity: 0 },
+        visible: { opacity: 1 },
+        exit: { opacity: 0 }
+    };
+
+    const modalContentVariants = {
+        hidden: { opacity: 0, scale: 0.9, y: 30 },
+        visible: {
+            opacity: 1,
+            scale: 1,
+            y: 0,
+            y: 0,
+            transition: {
+                duration: 0.3,
+                ease: 'easeOut'
+            }
+        },
+        exit: {
+            opacity: 0,
+            scale: 0.95,
+            y: 20,
+            transition: { duration: 0.2 }
+        }
+    };
+
+    return (
+        <div className="landing-page-home" ref={heroRef}>
+            <ToastContainer position="top-right" autoClose={4000} />
+            {/* Navigation Header - Removed (Handled in App.jsx) */}
+
+            {/* Premium Hero Section */}
+            <HeroSection />
+
+            {/* Premium Stats Section */}
+            <StatsSection />
+
+            {/* Premium About Section */}
+            <div id="about">
+                <AboutSection
+                    onCoursewareClick={() => setActiveModal('courseware')}
+                    onOnlineClassesClick={() => setActiveModal('online-classes')}
+                />
+            </div>
+
+            {/* Premium Testimonials Section */}
+            <div id="testimonials">
+                <TestimonialsSection />
+            </div>
+
+            {/* Premium Pricing Section */}
+            <div id="pricing">
+                <PricingSection />
+            </div>
+
+            {/* Premium FAQ Section */}
+            <div id="faq">
+                <FAQSection />
+            </div>
 
 
     return (
@@ -198,131 +286,165 @@ const LandingPage = () => {
             <Footer />
 
             {/* Courseware Modal */}
-            {activeModal === 'courseware' && (
-                <div className="modal-overlay" onClick={() => setActiveModal(null)}>
-                    <div className="modal-content" onClick={(e) => e.stopPropagation()}>
-                        <button className="modal-close" onClick={() => setActiveModal(null)}>×</button>
-                        <h2 className="modal-title">Courseware Details</h2>
-                        <div className="modal-body">
-                            <div className="course-level">
-                                <h3>Intermediate Level</h3>
-                                <p className="level-subtitle">Board and Beyond</p>
-                                <div className="course-section">
-                                    <h4>Key Lessons</h4>
-                                    <ul>
-                                        <li>Master advanced tactics and combos</li>
-                                        <li>Stronger positional planning</li>
-                                        <li>Endgame techniques</li>
-                                        <li>Exploit and premeditate openings</li>
-                                        <li>Analyze and build tournament skills</li>
-                                    </ul>
-                                </div>
-                                <div className="course-section">
-                                    <h4>Outcome</h4>
-                                    <ul>
-                                        <li>Stronger tactical and strategic balance</li>
-                                        <li>Improved positional accuracy</li>
-                                        <li>Confident in games vs. setting</li>
-                                        <li>Calculated, intuitive openings</li>
-                                        <li>Stronger awareness and adaptability</li>
-                                    </ul>
-                                </div>
+            <AnimatePresence>
+                {activeModal === 'courseware' && (
+                    <motion.div
+                        className="modal-overlay"
+                        onClick={() => setActiveModal(null)}
+                        variants={modalBackdropVariants}
+                        initial="hidden"
+                        animate="visible"
+                        exit="exit"
+                    >
+                        <motion.div
+                            className="modal-content"
+                            onClick={(e) => e.stopPropagation()}
+                            variants={modalContentVariants}
+                            initial="hidden"
+                            animate="visible"
+                            exit="exit"
+                        >
+                            {/* Fixed Header */}
+                            <div className="modal-header-fixed">
+                                <motion.button
+                                    className="modal-close"
+                                    onClick={() => setActiveModal(null)}
+                                    whileHover={{ scale: 1.1 }}
+                                    whileTap={{ scale: 0.9 }}
+                                >
+                                    ×
+                                </motion.button>
+                                <h2 className="modal-title">Comprehensive Courseware</h2>
+                                <p className="modal-description">
+                                    Our curriculum is meticulously designed by Grandmasters to guide students from their first move to tournament mastery. Each level builds upon the last, ensuring a solid foundation and continuous improvement.
+                                </p>
                             </div>
-                            <div className="course-level">
-                                <h3>Advanced Level</h3>
-                                <p className="level-subtitle">Refine and Perform</p>
-                                <div className="course-section">
-                                    <h4>Key Lessons</h4>
-                                    <ul>
-                                        <li>Sharpen advanced strategies</li>
-                                        <li>Build elite opening prep</li>
-                                        <li>Precision deep calculation/visualization</li>
-                                        <li>Play high-intensity matches</li>
-                                        <li>Keep a personal chess journal</li>
-                                    </ul>
-                                </div>
-                                <div className="course-section">
-                                    <h4>Outcome</h4>
-                                    <ul>
-                                        <li>Excellent strategy and precision</li>
-                                        <li>Refined opening mastery</li>
-                                        <li>Well-prepared and versatile openings</li>
-                                        <li>Stronger mental toughness</li>
-                                        <li>Create improvement plans with coach</li>
-                                        <li>Tournament success and achievements</li>
-                                    </ul>
-                                </div>
+
+                            {/* Scrollable Body */}
+                            <div className="modal-body">
+                                <motion.div
+                                    className="course-level"
+                                    initial={{ opacity: 0, y: 20 }}
+                                    animate={{ opacity: 1, y: 0 }}
+                                    transition={{ delay: 0.15 }}
+                                >
+                                    <div className="course-section">
+                                        <h4><ChessKnightIcon /> Beginner Level (Rating 0-1000)</h4>
+                                        <p className="level-subtitle">Foundations of Strategy</p>
+                                        <ul>
+                                            <li>Understanding piece movement and value</li>
+                                            <li>Basic tactical patterns (pins, forks, skewers)</li>
+                                            <li>Introduction to opening principles</li>
+                                            <li>Fundamental checkmate patterns</li>
+                                        </ul>
+                                    </div>
+
+                                    <div className="course-section">
+                                        <h4><ChessBishopIcon /> Intermediate Level (Rating 1000-1600)</h4>
+                                        <p className="level-subtitle">Tactical Mastery & Positional Play</p>
+                                        <ul>
+                                            <li>Advanced combination calculation</li>
+                                            <li>Middle-game planning and structure analysis</li>
+                                            <li>Endgame theory (Key squares, opposition)</li>
+                                            <li>Building a personalized opening repertoire</li>
+                                        </ul>
+                                    </div>
+
+                                    <div className="course-section">
+                                        <h4><TrophyIcon /> Advanced Level (Rating 1600+)</h4>
+                                        <p className="level-subtitle">Competitive Excellence</p>
+                                        <ul>
+                                            <li>Deep calculation and visualization training</li>
+                                            <li>Complex positional sacrifices and dynamic play</li>
+                                            <li>Prophylaxis and defensive resources</li>
+                                            <li>Grandmaster game analysis and psychology</li>
+                                        </ul>
+                                    </div>
+
+                                    <div className="course-meta">
+                                        <span>📖 500+ Lessons</span>
+                                        <span>💡 10,000+ Puzzles</span>
+                                        <span>🏅 Tournament Prep</span>
+                                    </div>
+                                </motion.div>
                             </div>
-                        </div>
-                    </div>
-                </div>
-            )}
+                        </motion.div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
 
             {/* Online Classes Modal */}
-            {activeModal === 'online-classes' && (
-                <div className="modal-overlay" onClick={() => setActiveModal(null)}>
-                    <div className="modal-content" onClick={(e) => e.stopPropagation()}>
-                        <button className="modal-close" onClick={() => setActiveModal(null)}>×</button>
-                        <h2 className="modal-title">Schedule an Evaluation</h2>
-                        <form className="evaluation-form" onSubmit={(e) => { e.preventDefault(); alert('Form submitted!'); setActiveModal(null); }}>
-                            <div className="form-row">
-                                <div className="form-group">
-                                    <label>Child's First Name</label>
-                                    <input type="text" required placeholder="First Name" />
-                                </div>
-                                <div className="form-group">
-                                    <label>Child's Last Name</label>
-                                    <input type="text" required placeholder="Last Name" />
-                                </div>
+            <AnimatePresence>
+                {activeModal === 'online-classes' && (
+                    <motion.div
+                        className="modal-overlay"
+                        onClick={() => setActiveModal(null)}
+                        variants={modalBackdropVariants}
+                        initial="hidden"
+                        animate="visible"
+                        exit="exit"
+                    >
+                        <motion.div
+                            className="modal-content"
+                            onClick={(e) => e.stopPropagation()}
+                            variants={modalContentVariants}
+                            initial="hidden"
+                            animate="visible"
+                            exit="exit"
+                        >
+                            {/* Fixed Header */}
+                            <div className="modal-header-fixed">
+                                <motion.button
+                                    className="modal-close"
+                                    onClick={() => setActiveModal(null)}
+                                    whileHover={{ scale: 1.1 }}
+                                    whileTap={{ scale: 0.9 }}
+                                >
+                                    ×
+                                </motion.button>
+                                <h2 className="modal-title">Live Online Academy</h2>
+                                <p className="modal-description">
+                                    Experience the rigor of a classical chess academy from the comfort of your home. Our live online classes are interactive, engaging, and focused on serious improvement.
+                                </p>
                             </div>
-                            <div className="form-group">
-                                <label>Email</label>
-                                <input type="email" required placeholder="Email" />
+
+                            {/* Scrollable Body */}
+                            <div className="modal-body">
+                                <motion.div
+                                    initial={{ opacity: 0, y: 20 }}
+                                    animate={{ opacity: 1, y: 0 }}
+                                    transition={{ delay: 0.15 }}
+                                >
+                                    <div className="class-feature">
+                                        <h3><VideoIcon /> Live Interactive Sessions</h3>
+                                        <p>Small group classes (max 8 students) conducted via Zoom. Interactive boards allow students to solve problems in real-time under coach supervision.</p>
+                                    </div>
+
+                                    <div className="class-feature">
+                                        <h3><TrophyIcon /> Monthly Internal Tournaments</h3>
+                                        <p>Students compete in regular academy tournaments to test their skills. Games are analyzed by coaches to identify mistakes and areas for growth.</p>
+                                    </div>
+
+                                    <div className="class-feature">
+                                        <h3><TargetIcon /> Personalized Progress Tracking</h3>
+                                        <p>We track puzzle ratings, game accuracy, and class participation to provide quarterly progress reports and personalized training recommendations.</p>
+                                    </div>
+
+                                    <div className="class-feature">
+                                        <h3><CoursewareIcon /> Recorded Library Access</h3>
+                                        <p>Missed a class? Access our library of recorded sessions and supplementary video lessons to catch up or review complex topics.</p>
+                                    </div>
+
+                                    <button className="modal-cta" onClick={() => navigate('/demo-booking')}>
+                                        Schedule Your Free Assessment
+                                    </button>
+                                </motion.div>
                             </div>
-                            <div className="form-group">
-                                <label>Phone</label>
-                                <input type="tel" required placeholder="Phone" />
-                            </div>
-                            <div className="form-row">
-                                <div className="form-group">
-                                    <label>Zip Code</label>
-                                    <input type="text" required placeholder="Zip Code" />
-                                </div>
-                                <div className="form-group">
-                                    <label>Child's Grade</label>
-                                    <select required>
-                                        <option value="">Please choose an option</option>
-                                        <option value="k">Kindergarten</option>
-                                        <option value="1">Grade 1</option>
-                                        <option value="2">Grade 2</option>
-                                        <option value="3">Grade 3</option>
-                                        <option value="4">Grade 4</option>
-                                        <option value="5">Grade 5</option>
-                                        <option value="6">Grade 6</option>
-                                        <option value="7">Grade 7</option>
-                                        <option value="8">Grade 8</option>
-                                        <option value="9">Grade 9</option>
-                                        <option value="10">Grade 10</option>
-                                        <option value="11">Grade 11</option>
-                                        <option value="12">Grade 12</option>
-                                    </select>
-                                </div>
-                            </div>
-                            <div className="form-group">
-                                <label>Location</label>
-                                <select required>
-                                    <option value="">Please choose an option</option>
-                                    <option value="online">Online</option>
-                                    <option value="in-person">In Person</option>
-                                </select>
-                            </div>
-                            <Button type="submit" className="submit-evaluation-btn">
-                                SCHEDULE Evaluation
-                            </Button>
-                        </form>
-                    </div>
-                </div>
-            )}
+                        </motion.div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
+
         </div>
     );
 };

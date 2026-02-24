@@ -1,0 +1,321 @@
+/* ============================================
+   FAQ TIMELINE SECTION
+   ============================================ */
+.faq-section-timeline {
+    padding: 100px 0;
+    /* Gradient from Pricing (#1B2027) to Darker Tone */
+    background: linear-gradient(to bottom, #1B2027 0%, #161920 100%);
+    color: #F5EFE6;
+}
+
+/* Subtle texture overlay */
+.faq-section-timeline::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-image: radial-gradient(rgba(0, 0, 0, 0.02) 1px,
+            transparent 1px);
+    background-size: 3px 3px;
+    pointer-events: none;
+    z-index: 0;
+}
+
+.faq-bg-pattern {
+    display: none;
+}
+
+/* Section Header */
+.faq-section-header {
+    max-width: 1280px;
+    margin: 0 auto 60px;
+    padding: 0 40px;
+    text-align: center;
+}
+
+.faq-section-label {
+    display: inline-block;
+    font-size: 13px;
+    font-weight: 700;
+    color: #F88B22;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    padding: 6px 16px;
+    background: rgba(248, 139, 34, 0.1);
+    border-radius: 100px;
+    border: 1px solid rgba(248, 139, 34, 0.2);
+}
+
+.faq-section-header h2 {
+    font-family: 'Figtree', sans-serif;
+    font-size: 42px;
+    font-weight: 800;
+    color: #FEFFEC;
+    margin-top: 16px;
+    line-height: 1.2;
+}
+
+.faq-timeline-container {
+    max-width: 1280px;
+    margin: 0 auto;
+    padding: 0 40px;
+    display: grid;
+    grid-template-columns: 30% 70%;
+    gap: 60px;
+    align-items: start;
+}
+
+/* ============================================
+   LEFT COLUMN - VIDEO/MEDIA
+   ============================================ */
+.faq-media-column {
+    position: sticky;
+    top: 120px;
+    height: 700px;
+}
+
+.faq-media-wrapper {
+    width: 100%;
+    height: 100%;
+    border-radius: 16px;
+    overflow: hidden;
+    box-shadow: 0 10px 40px rgba(12, 51, 98, 0.1);
+    background: #1A1A1A;
+}
+
+.faq-video {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+}
+
+/* Fallback for when video doesn't load */
+.faq-video img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+/* ============================================
+   RIGHT COLUMN - FAQ TIMELINE
+   ============================================ */
+.faq-content-column {
+    position: relative;
+}
+
+/* Vertical Timeline Spine - CENTERED in right column */
+.timeline-spine {
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+    top: 0;
+    bottom: 0;
+    width: 2px;
+    background: rgba(71, 96, 126, 0.2);
+    border-radius: 2px;
+    z-index: 1;
+}
+
+.faq-timeline-list {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+    position: relative;
+    z-index: 2;
+}
+
+/* Timeline Row (each FAQ item) */
+.faq-timeline-row {
+    display: flex;
+    align-items: flex-start;
+    position: relative;
+}
+
+/* Alternating alignment - left and right of CENTER spine */
+.faq-timeline-row.align-left {
+    justify-content: flex-start;
+    padding-right: 51%;
+    /* Leave space for spine in center */
+}
+
+.faq-timeline-row.align-right {
+    justify-content: flex-end;
+    padding-left: 51%;
+    /* Leave space for spine in center */
+}
+
+/* Subtle staggering */
+.faq-timeline-row:nth-child(2) {
+    margin-top: 16px;
+}
+
+.faq-timeline-row:nth-child(3) {
+    margin-top: -8px;
+}
+
+.faq-timeline-row:nth-child(4) {
+    margin-top: 12px;
+}
+
+.faq-timeline-row:nth-child(5) {
+    margin-top: -4px;
+}
+
+/* ============================================
+   TIMELINE NODE (Dot)
+   ============================================ */
+.timeline-node-wrapper {
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+    top: 20px;
+    z-index: 10;
+}
+
+.timeline-node {
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    background: #FEFFEC;
+    border: 3px solid #F88B22;
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 0 0 0 4px #FEFFEC;
+}
+
+.timeline-node:hover {
+    transform: scale(1.1);
+}
+
+.timeline-node.active {
+    background: #F88B22;
+    transform: scale(1.3);
+    box-shadow: 0 0 0 6px rgba(248, 139, 34, 0.15);
+}
+
+/* ============================================
+   FAQ CARD
+   ============================================ */
+.faq-card {
+    background: rgba(255, 255, 255, 0.05);
+    backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 12px;
+    padding: 24px 28px;
+    cursor: pointer;
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.2);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    width: 100%;
+}
+
+.faq-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 24px rgba(12, 51, 98, 0.12);
+}
+
+.faq-card.active {
+    border-color: rgba(248, 139, 34, 0.3);
+    box-shadow: 0 8px 24px rgba(248, 139, 34, 0.12);
+}
+
+.faq-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 16px;
+}
+
+.faq-card-header h3 {
+    font-family: 'Figtree', sans-serif;
+    font-size: 17px;
+    font-weight: 600;
+    color: #FEFFEC;
+    margin: 0;
+    line-height: 1.4;
+}
+
+.faq-icon {
+    font-size: 24px;
+    color: #F88B22;
+    font-weight: 300;
+    width: 28px;
+    height: 28px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    transition: transform 0.3s ease;
+}
+
+.faq-icon.open {
+    transform: rotate(45deg);
+}
+
+.faq-card-body {
+    overflow: hidden;
+}
+
+.faq-card-body p {
+    margin-top: 16px;
+    padding-top: 16px;
+    border-top: 1px solid rgba(254, 255, 236, 0.1);
+    color: rgba(254, 255, 236, 0.7);
+    font-size: 15px;
+    line-height: 1.7;
+    margin-bottom: 0;
+}
+
+/* ============================================
+   RESPONSIVE
+   ============================================ */
+@media (max-width: 1024px) {
+    .faq-timeline-container {
+        grid-template-columns: 1fr;
+        padding: 0 24px;
+    }
+
+    /* Hide media column completely on mobile/tablet */
+    .faq-media-column {
+        display: none;
+    }
+
+    .faq-content-column {
+        padding-left: 48px;
+    }
+
+    .timeline-spine {
+        left: 12px;
+    }
+
+    .timeline-node-wrapper {
+        left: -48px;
+    }
+
+    /* Remove alternating layout on mobile */
+    .faq-timeline-row.align-left,
+    .faq-timeline-row.align-right {
+        justify-content: flex-start;
+        padding: 0;
+    }
+
+    /* Reset staggering on mobile */
+    .faq-timeline-row:nth-child(n) {
+        margin-top: 0;
+    }
+
+    .faq-timeline-list {
+        gap: 20px;
+    }
+
+    .faq-card-header h3 {
+        font-size: 16px;
+    }
+
+    .faq-card {
+        padding: 20px 24px;
+    }
+}

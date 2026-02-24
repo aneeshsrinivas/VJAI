@@ -78,6 +78,7 @@ const AddCoachModal = ({ isOpen, onClose, onSuccess }) => {
                 status: 'ACTIVE'
             });
 
+            // 3. Success
             // 3. Send Welcome Email with credentials
             if (sendEmail && formData.personalEmail) {
                 try {

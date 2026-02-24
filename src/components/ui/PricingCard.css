@@ -1,10 +1,10 @@
 .pricing-card {
-    background: white;
-    border-radius: var(--radius-lg);
+    background: #242832;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    border-radius: 20px;
     padding: 32px;
     position: relative;
     transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-    border: 2px solid #EBD6C3;
     overflow: hidden;
 }
 
@@ -26,14 +26,16 @@
 
 .pricing-card-hovered {
     transform: translateY(-8px);
-    box-shadow: 0 12px 40px rgba(0, 51, 102, 0.15);
-    border-color: var(--color-warm-orange);
+    box-shadow: 0 12px 40px rgba(230, 92, 42, 0.25);
+    /* #E65C2A glow */
+    border-color: #E65C2A;
 }
 
 .pricing-card-recommended {
-    border-color: var(--color-warm-orange);
+    border-color: #E65C2A;
     border-width: 3px;
-    box-shadow: 0 8px 24px rgba(252, 138, 36, 0.2);
+    box-shadow: 0 8px 24px rgba(230, 92, 42, 0.3);
+    /* #E65C2A glow */
 }
 
 .pricing-card-recommended::before {
@@ -42,7 +44,7 @@
 
 .pricing-card-selected {
     border-color: var(--color-olive-green);
-    background: linear-gradient(135deg, #ffffff 0%, #f0f8f0 100%);
+    background: linear-gradient(135deg, #EFE6D8 0%, #E5DCCB 100%);
 }
 
 .pricing-badge {
@@ -63,9 +65,12 @@
 }
 
 @keyframes badgePulse {
-    0%, 100% {
+
+    0%,
+    100% {
         transform: scale(1);
     }
+
     50% {
         transform: scale(1.05);
     }
@@ -77,12 +82,16 @@
 }
 
 @keyframes badgeRotate {
-    0%, 100% {
+
+    0%,
+    100% {
         transform: rotate(0deg);
     }
+
     25% {
         transform: rotate(-10deg);
     }
+
     75% {
         transform: rotate(10deg);
     }
@@ -170,6 +179,7 @@
         opacity: 0;
         transform: translateX(-10px);
     }
+
     to {
         opacity: 1;
         transform: translateX(0);

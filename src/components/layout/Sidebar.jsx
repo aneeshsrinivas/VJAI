@@ -4,6 +4,7 @@ import { signOut } from 'firebase/auth';
 import { auth } from '../../lib/firebase';
 import {
     LayoutDashboard, Users, GraduationCap, Wallet, Radio, MessageSquare,
+    CreditCard, Calendar, BookOpen, Layers, Shield, BarChart3, FileText, LogOut, ChevronRight, Target
     CreditCard, Calendar, BookOpen, Layers, Shield, BarChart3, FileText, LogOut, ChevronRight, Target, Package
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';

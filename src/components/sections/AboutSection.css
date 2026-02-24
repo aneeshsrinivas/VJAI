@@ -1,0 +1,354 @@
+/* ============================================
+   PREMIUM ABOUT SECTION STYLES
+   ============================================ */
+
+.about-section-premium {
+    position: relative;
+    padding: 120px 0;
+    /* Cleaner Stone/Beige Base */
+    background-color: #E5DCD0;
+
+    /* Cinematic Blends: Top (Dark -> Stone), Bottom (Stone -> Muted Walnut) */
+    background-image:
+        linear-gradient(to bottom, #141922 0%, rgba(20, 25, 34, 0.8) 250px, rgba(20, 25, 34, 0) 600px),
+        linear-gradient(to top, #8C705F 0%, rgba(140, 112, 95, 0.8) 200px, rgba(140, 112, 95, 0) 500px);
+    background-repeat: no-repeat;
+
+    /* Depth Shadow */
+    box-shadow: inset 0 40px 60px rgba(0, 0, 0, 0.15);
+    color: #151515;
+    /* Near-Black Heading */
+    text-shadow: none;
+}
+
+/* Texture/Pattern Removed */
+.about-section-premium::before {
+    display: none;
+    /* Chess Pattern */
+    background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23000000' fill-opacity='1'%3E%3Cpath d='M30 30h30v30H30zM0 0h30v30H0z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+    opacity: 0.04;
+    /* 4% Opacity */
+    filter: blur(1px);
+    /* Slight Blur */
+    pointer-events: none;
+    z-index: 0;
+
+    /* Heading Text */
+    text-shadow: none;
+    /* Readable on light bottom */
+}
+
+/* Subtle texture overlay */
+/* Texture Overlay Removed for Clarity */
+
+/* ============================================
+   BACKGROUND
+   ============================================ */
+.about-bg-pattern {
+    display: none;
+    /* Explicitly removed per user request */
+}
+
+/* ============================================
+   CONTAINER
+   ============================================ */
+.about-container {
+    position: relative;
+    max-width: 1280px;
+    margin: 0 auto;
+    padding: 0 24px;
+    z-index: 10;
+}
+
+/* ============================================
+   SPLIT LAYOUT
+   ============================================ */
+.about-split-layout {
+    display: grid;
+    grid-template-columns: 1fr 0.7fr;
+    gap: 80px;
+    align-items: center;
+    margin-bottom: 80px;
+}
+
+/* REVERSED LAYOUT (Visual Left, Content Right) */
+.about-split-layout.reversed {
+    grid-template-columns: 0.8fr 1.2fr;
+    /* Slightly wider content area for text */
+}
+
+/* ============================================
+   CONTENT AREAS
+   ============================================ */
+.about-content-area {
+    /* Replaces .about-content-left */
+    /* width handled by grid */
+    position: relative;
+    z-index: 2;
+}
+
+.about-visual-area {
+    /* Replaces .about-visual-right */
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 400px;
+}
+
+.about-title-premium {
+    font-size: 3.5rem;
+    font-weight: 800;
+    letter-spacing: -2px;
+    margin-bottom: 24px;
+    background: #1A1A1A;
+    background-clip: text;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+/* Meta Label (Editorial Caption) - Replaces Badge */
+.about-meta-label {
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 4px;
+    text-transform: uppercase;
+    margin-bottom: 24px;
+    color: #2E2722;
+    /* Dark Coffee Accent */
+    opacity: 1;
+}
+
+/* Editorial Title (Massive but Reduced) */
+.about-title-editorial {
+    font-family: 'Figtree', sans-serif;
+    font-size: clamp(48px, 5vw, 72px);
+    font-weight: 900;
+    color: #FEFFEC;
+    /* Soft White Title */
+    line-height: 0.95;
+    letter-spacing: -0.04em;
+    margin-bottom: 40px;
+}
+
+.subtitle-faded {
+    display: block;
+    font-size: 0.5em;
+    /* relative to parent */
+    font-weight: 600;
+    color: #2E2722;
+    /* Dark Coffee Accent */
+    opacity: 1;
+    margin-top: 16px;
+    letter-spacing: -0.02em;
+}
+
+/* Legacy Title/Text Support - Flattened */
+.about-text,
+.about-text-p {
+    /* about-text kept for legacy, about-text-p for new flattened structure */
+    margin-bottom: 20px;
+    font-size: 18px;
+    color: #1E1B17;
+    line-height: 1.8;
+}
+
+.about-text-p:last-of-type {
+    margin-bottom: 32px;
+    /* Spacing before quote */
+}
+
+.about-text-p.lead {
+    font-size: 20px;
+    color: #1A1A1A;
+}
+
+.about-text-p.lead strong {
+    color: #2E2722;
+}
+
+/* ============================================
+   QUOTE
+   ============================================ */
+.about-quote {
+    position: relative;
+    font-size: 20px;
+    font-style: italic;
+    color: rgba(30, 27, 23, 0.7);
+    line-height: 1.7;
+    padding-left: 28px;
+    border-left: 4px solid #2E2722;
+    margin: 0;
+}
+
+.quote-mark {
+    color: #2E2722;
+    font-size: 24px;
+    font-weight: 700;
+}
+
+/* ============================================
+   VISUAL ELEMENTS (Image Overlay)
+   ============================================ */
+
+.about-image-wrapper {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    border-radius: 24px;
+    overflow: hidden;
+    /* Shadow for depth */
+    box-shadow: 0 40px 80px rgba(0, 0, 0, 0.12);
+}
+
+.about-chess-bg {
+    display: block;
+    width: 100%;
+    height: 100%;
+    min-height: 450px;
+    object-fit: cover;
+
+    /* Faded Right Border (Masking) */
+    /* Smooth blend to transparent */
+    -webkit-mask-image: linear-gradient(to right, black 50%, transparent 100%);
+    mask-image: linear-gradient(to right, black 50%, transparent 100%);
+
+    /* Cinematic Filter */
+    filter: brightness(0.95) contrast(1.1) saturate(0.9);
+}
+
+/* Fog Overlay Removed */
+
+/* ============================================
+   SERVICES GRID
+   ============================================ */
+.about-services {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 32px;
+}
+
+/* ============================================
+   SERVICE CARD
+   ============================================ */
+.about-service-card {
+    background: rgba(255, 255, 255, 0.7);
+    /* Improved Contrast */
+    backdrop-filter: blur(12px);
+    border: 1px solid rgba(46, 39, 34, 0.3);
+    /* Dark Coffee tint */
+    border-radius: 24px;
+    padding: 40px 36px;
+    cursor: pointer;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+    /* Slightly stronger shadow */
+    transition: all 0.4s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.about-service-card:hover {
+    background: rgba(0, 0, 0, 0.05);
+}
+
+.service-icon {
+    margin-bottom: 24px;
+}
+
+.about-service-card h3 {
+    font-family: 'Figtree', sans-serif;
+    font-size: 26px;
+    font-weight: 700;
+    color: #1A1A1A;
+    margin-bottom: 12px;
+    letter-spacing: -0.01em;
+}
+
+.about-description-premium {
+    font-size: 1.125rem;
+    line-height: 1.8;
+    color: #2E2E2E;
+    /* Body Text */
+    /* Subtext */
+    max-width: 600px;
+    margin-bottom: 40px;
+}
+
+.about-service-card p {
+    font-size: 16px;
+    color: #1E1B17;
+    line-height: 1.6;
+    margin-bottom: 20px;
+}
+
+.service-link {
+    font-size: 14px;
+    font-weight: 600;
+    font-weight: 600;
+    font-weight: 600;
+    color: #2E2722;
+    /* Dark Coffee Accent */
+    transition: color 0.3s ease;
+}
+
+.about-service-card:hover .service-link {
+    color: #B8960C;
+}
+
+/* ============================================
+   RESPONSIVE
+   ============================================ */
+@media (max-width: 1024px) {
+
+    .about-split-layout,
+    .about-split-layout.reversed {
+        grid-template-columns: 1fr;
+        gap: 48px;
+    }
+
+    .about-visual-area {
+        /* When reversed, Visual is first in DOM, so it stays on top naturally. 
+           If standard layout, visual is 2nd in DOM.
+           If we want Visual ALWAYS on top for mobile, order: -1. */
+        order: -1;
+        min-height: 300px;
+    }
+
+    .about-floating-king svg {
+        width: 150px;
+        height: 195px;
+    }
+}
+
+@media (max-width: 768px) {
+    .about-section-premium {
+        padding: 80px 0;
+    }
+
+    .about-services {
+        grid-template-columns: 1fr;
+        gap: 24px;
+    }
+
+    .about-service-card {
+        padding: 32px 24px;
+    }
+
+    .about-title-editorial {
+        font-size: 36px;
+        /* Override clamp for mobile specific if needed */
+    }
+}
+
+@media (max-width: 480px) {
+    .about-title-editorial {
+        font-size: 32px;
+    }
+
+    .about-text p {
+        font-size: 16px;
+    }
+
+    .about-quote {
+        font-size: 16px;
+        padding-left: 20px;
+    }
+}

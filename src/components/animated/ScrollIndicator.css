@@ -1,0 +1,53 @@
+/* ScrollIndicator.css */
+.scroll-indicator {
+    position: absolute;
+    bottom: 40px;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+    cursor: pointer;
+    z-index: 10;
+}
+
+.scroll-text {
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    color: #FEFFEC;
+    opacity: 0.8;
+}
+
+.scroll-mouse {
+    width: 26px;
+    height: 42px;
+}
+
+.mouse-body {
+    width: 100%;
+    height: 100%;
+    border: 2px solid rgba(212, 175, 55, 0.5);
+    border-radius: 14px;
+    display: flex;
+    justify-content: center;
+    padding-top: 10px;
+    transition: border-color 0.3s ease;
+}
+
+.mouse-wheel {
+    width: 4px;
+    height: 10px;
+    background: #D4AF37;
+    border-radius: 2px;
+}
+
+.scroll-indicator:hover .mouse-body {
+    border-color: #D4AF37;
+}
+
+.scroll-indicator:hover .scroll-text {
+    opacity: 1;
+    color: #D4AF37;
+}

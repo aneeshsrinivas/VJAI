@@ -1,325 +1,893 @@
 /* Import Figtree font */
 @import url('https://fonts.googleapis.com/css2?family=Figtree:wght@300;400;500;600;700;800;900&display=swap');
 
-.about-us-page {
+.about-us-page-modern {
     font-family: 'Figtree', sans-serif;
-    background: #FFFEF3;
-    animation: pageEnter 0.4s ease-out;
+    /* Dark -> Light -> Dark Gradient Narrative */
+    /* Detailed Gradient Narrative: Dark -> Brightest -> Black */
+    /* Detailed Gradient Narrative: Dark Hero -> Stone Body -> Dark Footer */
+    background: linear-gradient(to bottom,
+            #141922 0%,
+            /* Hero Dark */
+            #E5DCD0 25%,
+            /* Stone Base (Matches About Section) */
+            #E5DCD0 75%,
+            /* Extended Body */
+            #1B2027 100%
+            /* Footer Dark */
+        );
+    overflow-x: hidden;
+    color: #1A1A1A;
+    /* Text base dark for light sections */
 }
 
-@keyframes pageEnter {
-    from {
-        opacity: 0.85;
-    }
-
-    to {
-        opacity: 1;
-    }
-}
-
-/* HERO SECTION */
-.about-hero {
-    padding: 180px 48px 60px;
-    background: linear-gradient(135deg, #003366 0%, #004080 100%);
-    text-align: center;
-}
-
-.about-hero-content h1 {
-    font-family: 'Figtree', sans-serif;
-    font-size: 56px;
-    font-weight: 800;
-    color: white;
-    margin-bottom: 20px;
-}
-
-.about-hero-content p {
-    font-size: 20px;
-    color: #EBD6C3;
-}
-
-/* SECTIONS */
-.about-container {
-    max-width: 1200px;
-    margin: 0 auto;
-    padding: 0 48px;
-}
-
-.about-story,
-.about-team,
-.about-coaches,
-.about-values {
-    padding: 100px 0;
-}
-
-.about-story {
-    background: white;
-}
-
-.about-story h2,
-.about-team h2,
-.about-coaches h2,
-.about-values h2 {
-    font-family: 'Figtree', sans-serif;
-    font-size: 42px;
-    font-weight: 800;
-    color: #003366;
-    margin-bottom: 32px;
-    text-align: center;
-}
-
-.about-story p {
-    font-size: 17px;
-    line-height: 1.8;
-    color: #68300B;
-    margin-bottom: 20px;
-    max-width: 900px;
-    margin-left: auto;
-    margin-right: auto;
-}
-
-/* TEAM SECTION - FOUNDERS */
-.about-team {
-    background: linear-gradient(135deg, #FFFEF3 0%, #EBD6C3 100%);
-}
-
-.team-grid {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: 48px;
-    margin-top: 48px;
-}
-
-.team-card {
-    border-radius: 20px;
-    overflow: hidden;
-    transition: all 0.3s ease;
-}
-
-.team-card:hover {
-    transform: translateY(-8px);
-    box-shadow: 0 16px 40px rgba(0, 51, 102, 0.3);
-}
-
-.team-image-wrapper {
+/* 1. CINEMATIC HERO (Full Screen Image) */
+.about-hero-modern {
     position: relative;
-    width: 100%;
-    padding-top: 120%;
-    /* 5:6 aspect ratio */
+    /* Ensure full viewport height so next section is below fold */
+    min-height: 100vh;
+    display: flex;
+    /* Centering content vertically */
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    padding: 0 24px;
+    background: #18181c;
+    /* Matching Gradient Start */
+    color: white;
+    text-align: center;
     overflow: hidden;
-    border-radius: 20px;
-    border: 3px solid #FC8A24;
 }
 
-.team-image {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    transition: transform 0.3s ease;
-}
+/* Seamless Bottom Fade to match next section */
 
-.team-overlay {
+
+.hero-image-container {
     position: absolute;
     top: 0;
     left: 0;
     right: 0;
     bottom: 0;
-    background: linear-gradient(to top, rgba(0, 51, 102, 0.95) 0%, rgba(0, 51, 102, 0.85) 100%);
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    padding: 32px;
-    opacity: 0;
-    transition: opacity 0.3s ease;
-    text-align: center;
+    z-index: 0;
 }
 
-.team-image-wrapper:hover .team-overlay {
-    opacity: 1;
+.hero-bg-image {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    opacity: 0.9;
 }
 
-.team-image-wrapper:hover .team-image {
-    transform: scale(1.05);
+.hero-overlay-gradient {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: var(--hero-overlay);
+    z-index: 1;
 }
 
-.team-overlay h3 {
-    font-family: 'Figtree', sans-serif;
-    font-size: 28px;
-    font-weight: 800;
-    color: white;
-    margin-bottom: 8px;
+.about-container.relative-z {
+    position: relative;
+    z-index: 2;
+    padding-top: 60px;
+    /* Visual balance */
 }
 
-.team-overlay .team-role {
-    font-size: 16px;
-    color: #FC8A24;
+/* Editorial Micro Label */
+.about-meta-label {
+    font-size: 11px;
     font-weight: 700;
-    margin-bottom: 16px;
+    text-transform: uppercase;
+    letter-spacing: 2.5px;
+    color: rgba(255, 255, 255, 0.5);
+    margin-bottom: 24px;
 }
 
-.team-overlay .team-description {
-    font-size: 15px;
-    color: #EBD6C3;
+/* Editorial Manifesto Headline */
+.about-headline-editorial {
+    font-size: clamp(56px, 8vw, 100px);
+    font-weight: 800;
+    line-height: 0.95;
+    letter-spacing: -0.03em;
+    color: #FFFFFF;
+    margin-bottom: 32px;
+}
+
+/* Legacy Heading (Keep for compatibility) */
+.about-hero-modern h1 {
+    font-size: 72px;
+    /* Larger title */
+    font-weight: 800;
+    line-height: 1.1;
+    margin-bottom: 24px;
+    letter-spacing: -2px;
+}
+
+.text-highlight {
+    color: var(--accent-orange);
+}
+
+.hero-subtitle {
+    font-size: 18px;
+    font-weight: 400;
+    color: rgba(255, 255, 255, 0.7);
+    max-width: 600px;
+    margin: 0 auto 0;
     line-height: 1.7;
 }
 
-/* COACHES SECTION */
-.about-coaches {
-    background: white;
-}
-
-.coaches-grid {
-    display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    gap: 24px;
-    margin-top: 48px;
-}
-
-.coach-card {
-    border-radius: 20px;
-    overflow: hidden;
-    transition: all 0.3s ease;
-}
-
-.coach-card:hover {
-    transform: translateY(-8px);
-    box-shadow: 0 16px 40px rgba(0, 51, 102, 0.3);
-}
-
-.coach-image-wrapper {
+.scroll-indicator {
+    /* Position relatively to flow below text */
     position: relative;
-    width: 100%;
-    padding-top: 120%;
-    /* 5:6 aspect ratio */
-    overflow: hidden;
-    border-radius: 20px;
-    border: 3px solid #FC8A24;
-}
+    margin-top: 80px;
+    margin-bottom: 20px;
+    /* Center it */
+    margin-left: auto;
+    margin-right: auto;
 
-.coach-image {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    transition: transform 0.3s ease;
-}
-
-.coach-overlay {
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: linear-gradient(to top, rgba(0, 51, 102, 0.95) 0%, rgba(0, 51, 102, 0.85) 100%);
+    font-size: 14px;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    color: rgba(255, 255, 255, 0.7);
     display: flex;
     flex-direction: column;
-    justify-content: center;
     align-items: center;
-    padding: 24px;
-    opacity: 0;
-    transition: opacity 0.3s ease;
-    text-align: center;
+    gap: 8px;
 }
 
-.coach-image-wrapper:hover .coach-overlay {
-    opacity: 1;
+.scroll-indicator::after {
+    content: '';
+    width: 1px;
+    height: 40px;
+    background: rgba(255, 255, 255, 0.3);
 }
 
-.coach-image-wrapper:hover .coach-image {
-    transform: scale(1.05);
+/* 2. STORY SECTION (Scroll Text + Sticky Video Full Height) */
+.about-story-modern {
+    padding-top: 120px;
+    padding-bottom: 0;
+    /* Remove bottom padding so it touches next section */
+    background: transparent;
+    /* Let the page massive gradient show through */
+    position: relative;
 }
 
-.coach-overlay h3 {
+/* removed ::before overlay */
+
+.story-layout {
+    display: grid;
+    grid-template-columns: 1.3fr 0.8fr;
+    /* Asymmetric 62/38 Split */
+    gap: 80px;
+    align-items: stretch;
+    /* Ensure columns stretch to full height */
+    position: relative;
+    z-index: 1;
+    /* Above background */
+}
+
+/* Left: Text Content */
+.story-text-side {
+    padding-top: 40px;
+    padding-bottom: 120px;
+    /* Keep spacing for text flow */
+}
+
+/* =========================================
+   MASSIVE EDITORIAL TYPOGRAPHY (Screenshot Style)
+   ========================================= */
+
+/* Applied to: Our Origins, Founders, Coaches, Core Values */
+.story-headline-editorial,
+.section-title-center,
+.section-title-left,
+.section-title-right {
     font-family: 'Figtree', sans-serif;
-    font-size: 22px;
-    font-weight: 800;
-    color: white;
-    margin-bottom: 6px;
+    /* Massive Scaling */
+    font-size: clamp(64px, 9vw, 120px) !important;
+    font-weight: 900;
+    color: #FFFFFF;
+    line-height: 0.9;
+    letter-spacing: -0.04em;
+    margin-bottom: 40px;
+    text-transform: none;
+    /* Ensure mixed case */
+    position: relative;
+    z-index: 2;
 }
 
-.coach-overlay .coach-role {
-    font-size: 14px;
-    color: #FC8A24;
+/* Founders is on dark background, so needs white text */
+.section-title-center {
+    color: #1A1A1A !important;
+}
+
+/* Micro Labels (Screenshot Style: Wide & Small) */
+.about-meta-label {
+    font-size: 13px !important;
+    font-weight: 700 !important;
+    letter-spacing: 4px !important;
+    text-transform: uppercase;
+    margin-bottom: 24px;
+    opacity: 0.6;
+}
+
+/* =========================================
+   BLACK FOG OVERLAYS (Founders & Coaches)
+   ========================================= */
+
+.founder-overlay,
+.coach-overlay {
+    background: linear-gradient(to top,
+            rgba(0, 0, 0, 1) 0%,
+            rgba(0, 0, 0, 0.8) 30%,
+            rgba(0, 0, 0, 0) 100%) !important;
+}
+
+/* =========================================
+   NEW ORIGIN CARD STYLES (No Orange)
+   ========================================= */
+
+.story-card {
+    background: rgba(255, 255, 255, 0.05);
+    /* Restore subtle glass */
+    padding: 50px;
+    border-radius: 24px;
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
+    /* Restore shadow */
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    /* Subtle light border */
+    border-left: 4px solid #DF8F4D;
+    /* Warm Accent (Orange/Gold) restored */
+    position: relative;
+    overflow: hidden;
+    margin-bottom: 32px;
+    backdrop-filter: blur(10px);
+    /* Restore blur */
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+/* Floating Element (Quote Mark) */
+.story-card::after {
+    content: "“";
+    position: absolute;
+    top: -10px;
+    right: 20px;
+    font-size: 140px;
+    line-height: 1;
+    color: rgba(0, 0, 0, 0.04);
+    font-family: serif;
+    pointer-events: none;
+    z-index: 0;
+}
+
+.story-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 30px 60px rgba(0, 0, 0, 0.12);
+}
+
+.story-card h3 {
+    color: #1A1A1A;
+    /* Soft Black */
+    font-size: 28px;
     font-weight: 700;
-    margin-bottom: 12px;
+    margin-bottom: 16px;
+    letter-spacing: -0.02em;
 }
 
-.coach-overlay .coach-description {
-    font-size: 13px;
-    color: #EBD6C3;
+.story-card p {
+    color: #4A4A4A;
+    /* Dark Gray (Matches Intro) */
+    font-size: 18px;
+    line-height: 1.8;
+    font-weight: 500;
+}
+
+/* Remove old highlight styles */
+.story-card.highlight-card {
+    background: #1A1A1A;
+    border-left: 4px solid #D4AF37;
+    /* Gold accent line */
+}
+
+.story-header {
+    margin-bottom: 40px;
+}
+
+/* Legacy Editorial Story Headline */
+/* .story-headline-editorial {
+    font-size: clamp(48px, 5vw, 72px);
+    font-weight: 800;
+    color: #1A1A1A;
+    line-height: 1.0;
+    letter-spacing: -0.03em;
+    margin: 24px 0 24px;
+} */
+
+.subtitle-faded {
+    color: #2E2722;
+    /* Dark Coffee */
+    font-weight: 700;
+    opacity: 0.7;
+}
+
+.story-headline-editorial {
+    color: #1A1A1A !important;
+}
+
+/* Dark variant of micro label */
+.about-meta-label.dark-label {
+    color: rgba(26, 26, 26, 0.5);
+    margin-bottom: 0;
+}
+
+.story-header h2 {
+    font-size: 42px;
+    font-weight: 700;
+    color: #1A1A1A;
+    margin-bottom: 16px;
+    letter-spacing: -1px;
+}
+
+.story-intro {
+    font-size: 20px;
+    color: #4A4A4A;
+    /* Dark Gray */
+    margin-bottom: 24px;
     line-height: 1.6;
 }
 
-/* VALUES SECTION */
-.about-values {
-    background: white;
+.decorative-line {
+    width: 60px;
+    height: 4px;
+    background: var(--text-heading-light);
+    border-radius: 2px;
 }
 
-.values-grid {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: 32px;
-    margin-top: 48px;
+/* Duplicates removed - relying on earlier definitions */
+
+/* Right: Sticky Visual (Blended) */
+.story-visual-side {
+    position: relative;
+    height: auto;
+    /* Remove margins to touch bottom */
 }
 
-.value-card {
-    background: linear-gradient(135deg, #FFFEF3 0%, #EBD6C3 100%);
-    border: 2px solid #FC8A24;
-    border-radius: 16px;
-    padding: 32px;
+.sticky-video-wrapper {
+    position: sticky;
+    top: 10vh;
+    /* Slight offset */
+    height: 80vh;
+    /* Don't cover fully, let it float */
+    width: 100%;
+    /* Ensure it covers */
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    /* BLENDING MAGIC REMOVED */
+    /* mask-image: radial-gradient(circle at center, black 50%, transparent 100%); */
+    /* -webkit-mask-image: radial-gradient(circle at center, black 50%, transparent 100%); */
+    border-radius: 20px;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
+    overflow: hidden;
+}
+
+.video-frame {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    /* Fill the wrapper */
+    overflow: hidden;
+    border-radius: 0;
+    box-shadow: none;
+    /* Removed hard shadow */
+}
+
+.story-video {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    opacity: 0.85;
+    /* Slight transparency for blend */
+    transform: scale(1.1);
+    /* Slight zoom for parallax feel */
+}
+
+.video-overlay-tint {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(135deg, rgba(53, 44, 23, 0.3), rgba(0, 0, 0, 0.1));
+}
+
+.video-caption {
+    /* Reposition for blended look */
+    position: absolute;
+    bottom: 20%;
+    left: 50%;
+    transform: translateX(-50%);
     text-align: center;
-    transition: all 0.3s ease;
+    /* Minimalist text */
+    background: transparent;
+    backdrop-filter: none;
+    padding: 0;
+    border: none;
+    text-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+    z-index: 10;
 }
 
-.value-card:hover {
-    transform: translateY(-8px);
-    box-shadow: 0 12px 32px rgba(252, 138, 36, 0.2);
-    border-color: #003366;
+.video-caption span {
+    color: white;
+    font-weight: 600;
+    letter-spacing: 2px;
+    font-size: 12px;
+    text-transform: uppercase;
 }
 
-.value-card svg {
-    margin-bottom: 20px;
+/* 3. FOUNDERS (Asymmetric + Chess Board BG) */
+.about-founders-modern {
+    padding: 120px 0;
+    background: transparent;
+    /* Reveals gradient #5c5462 area */
+    position: relative;
+    overflow: hidden;
 }
 
-.value-card h3 {
-    font-family: 'Figtree', sans-serif;
-    font-size: 22px;
+/* Chess Overlay Image (3D Blended Element) */
+.about-founders-modern::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-image: url('/chess-board-subtle.jpg');
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    opacity: 0.08;
+    mix-blend-mode: lighten;
+    pointer-events: none;
+    z-index: 0;
+}
+
+/* Depth gradient overlay */
+.about-founders-modern::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: transparent;
+    pointer-events: none;
+    z-index: 1;
+}
+
+.section-title-center {
+    font-size: 48px;
+    font-weight: 800;
+    color: white;
+    text-align: center;
+    margin-bottom: 80px;
+    position: relative;
+    /* z-index fix over pattern */
+    z-index: 1;
+}
+
+.founders-asymmetric-grid {
+    display: grid;
+    grid-template-columns: 1fr 60px 1fr;
+    max-width: 1000px;
+    margin: 0 auto;
+    position: relative;
+    z-index: 1;
+}
+
+.secondary-founder {
+    margin-top: 120px;
+}
+
+.founder-img-container {
+    position: relative;
+    border-radius: 24px;
+    overflow: hidden;
+    box-shadow: 0 20px 50px rgba(12, 51, 98, 0.15);
+    margin-bottom: 32px;
+}
+
+.founder-img-container img {
+    width: 100%;
+    height: auto;
+    display: block;
+    transition: transform 0.6s ease;
+}
+
+.founder-img-container:hover img {
+    transform: scale(1.05);
+}
+
+.founder-overlay {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: linear-gradient(to top, #18181c, transparent);
+    padding: 40px 24px 24px;
+    color: white;
+}
+
+.founder-overlay h3 {
+    font-size: 24px;
     font-weight: 700;
-    color: #003366;
+    margin-bottom: 4px;
+}
+
+.founder-overlay span {
+    font-size: 14px;
+    color: var(--accent-orange);
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.founder-info p,
+.founder-info-top p {
+    font-size: 18px;
+    color: #333333;
+    line-height: 1.6;
+    margin-bottom: 24px;
+    font-weight: 500;
+}
+
+.founder-info-top p {
+    text-align: right;
+    margin-bottom: 32px;
+}
+
+/* 4. COACHES (Cinematic Transition) */
+.about-coaches-modern {
+    padding: 480px 0 120px;
+    /* Massive breathing room for gradient (400px+) */
+    position: relative;
+    color: #FFFFFF;
+    margin-top: -350px;
+    /* Deep overlap */
+    background: linear-gradient(to bottom,
+            rgba(229, 220, 208, 0) 0%,
+            rgba(197, 178, 157, 0.4) 10%,
+            /* Subtle entry */
+            #C5B29D 20%,
+            /* Mid-Tone Bridge (Breathing) */
+            #2A3443 35%,
+            /* Deep Blue-Gray Transition */
+            #1B2027 50%,
+            /* Pure Dark start (Solid by Title) */
+            #161920 100%);
+    z-index: 2;
+
+    /* Magic Fix for Hard Lines: Mask the top edge */
+    mask-image: linear-gradient(to bottom, transparent 0%, black 250px);
+    -webkit-mask-image: linear-gradient(to bottom, transparent 0%, black 250px);
+}
+
+/* Atmospheric Radial Glow at Transition */
+.about-coaches-modern::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 900px;
+    /* extended glow to match new height */
+    background: radial-gradient(circle at top center,
+            rgba(197, 178, 157, 0.25) 0%,
+            transparent 70%);
+    pointer-events: none;
+    z-index: 0;
+    mix-blend-mode: soft-light;
+    /* Softer blend than overlay */
+}
+
+.section-title-left {
+    font-size: 48px;
+    font-weight: 800;
+    color: #FFFFFF;
+    /* White Title on Dark BG */
+    margin-bottom: 16px;
+    text-align: left;
+    position: relative;
+    z-index: 1;
+}
+
+.section-desc {
+    font-size: 20px;
+    color: rgba(255, 255, 255, 0.8);
+    /* Light Desc */
+    margin-bottom: 60px;
+    max-width: 600px;
+    text-align: left;
+    position: relative;
+    z-index: 1;
+}
+
+.coaches-horizontal-scroll {
+    display: flex;
+    gap: 24px;
+    /* Tighter gap */
+    overflow-x: auto;
+    padding-bottom: 40px;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+    padding-left: 2px;
+    /* Prevent cutoff shadow */
+}
+
+.coaches-horizontal-scroll::-webkit-scrollbar {
+    display: none;
+}
+
+.coach-minimal-card {
+    min-width: 250px;
+    /* Reduced from 300px */
+    width: 250px;
+    height: 350px;
+    /* Fixed height for consistency */
+    position: relative;
+    border-radius: 16px;
+    overflow: hidden;
+    flex-shrink: 0;
+    background: var(--bg-cinematic-dark);
+}
+
+.coach-minimal-card img {
+    width: 100%;
+    height: 100%;
+    /* Adjusted height */
+    object-fit: cover;
+    border-radius: 16px;
+    filter: grayscale(10%);
+    transition: all 0.5s ease;
+}
+
+.coach-minimal-card:hover img {
+    filter: grayscale(0%);
+    transform: scale(1.1);
+}
+
+/* Slide-in Details */
+/* Slide-in Details (Black Fog) */
+.coach-details {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    padding: 24px;
+    background: linear-gradient(to top,
+            rgba(0, 0, 0, 0.95) 20%,
+            rgba(0, 0, 0, 0) 100%);
+    transform: translateY(100%);
+    /* Hidden initially */
+    transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+    z-index: 2;
+    display: flex;
+    /* Ensure content layout */
+    flex-direction: column;
+    justify-content: flex-end;
+    height: 50%;
+    /* Cover bottom half */
+}
+
+/* Show on hover */
+.coach-minimal-card:hover .coach-details {
+    transform: translateY(0);
+}
+
+.coach-details h4 {
+    font-size: 20px;
+    font-weight: 700;
+    color: white;
+    /* White text on dark overlay */
+    margin-bottom: 4px;
+}
+
+.coach-details span {
+    font-size: 12px;
+    color: var(--accent-orange);
+    font-weight: 600;
+    text-transform: uppercase;
+}
+
+/* 5. VALUES */
+.about-values-modern {
+    padding: 80px 0 120px;
+    /* Consolidated padding */
+    background: #161920;
+    /* Continue Dark BG */
+    color: #FFFFFF;
+    position: relative;
+}
+
+/* Removed separate top fade from values as it's now on coaches */
+
+.section-title-right {
+    font-size: 48px;
+    font-weight: 800;
+    color: #FFFFFF;
+    text-align: right;
+    margin-bottom: 80px;
+}
+
+.values-offset-layout {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 32px;
+}
+
+.value-modern-card {
+    background: rgba(255, 255, 255, 0.03);
+    /* Dark Glass */
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    padding: 40px 24px;
+    border-radius: 24px;
+    position: relative;
+    overflow: hidden;
+    backdrop-filter: blur(10px);
+    transition: all 0.4s ease;
+}
+
+.offset-down {
+    transform: translateY(60px);
+}
+
+.value-modern-card:hover {
+    background: rgba(255, 255, 255, 0.08);
+    border-color: rgba(255, 255, 255, 0.2);
+    transform: translateY(-8px) scale(1.02);
+}
+
+.offset-down:hover {
+    transform: translateY(52px) scale(1.02);
+}
+
+.value-icon-bg {
+    position: absolute;
+    top: -20px;
+    right: -20px;
+    opacity: 0.2;
+    transform: rotate(15deg);
+}
+
+.value-content {
+    position: relative;
+    z-index: 2;
+}
+
+.value-content h3 {
+    margin-top: 24px;
+    font-size: 20px;
+    font-weight: 700;
     margin-bottom: 12px;
 }
 
-.value-card p {
+.value-content p {
     font-size: 15px;
-    color: #68300B;
-    line-height: 1.7;
+    color: #A0A0A0;
+    /* Light Gray */
+    line-height: 1.6;
+}
+
+/* UTILS - Container Max Width Increased */
+.about-container {
+    max-width: 1400px;
+    /* Wider for premium feel */
+    margin: 0 auto;
+    padding: 0 32px;
 }
 
 /* RESPONSIVE */
 @media (max-width: 1024px) {
-
-    .team-grid,
-    .coaches-grid,
-    .values-grid {
+    .story-layout {
         grid-template-columns: 1fr;
-    }
-}
-
-@media (max-width: 768px) {
-    .about-hero {
-        padding: 140px 24px 80px;
+        gap: 40px;
     }
 
-    .about-hero-content h1 {
-        font-size: 36px;
+    .story-visual-side {
+        height: auto;
+        margin-top: 40px;
+    }
+
+    .sticky-video-wrapper {
+        position: static;
+        height: auto;
+        width: 100%;
+        aspect-ratio: 16/9;
+    }
+
+    .video-frame {
+        border-radius: 20px;
+        box-shadow: none;
+        height: auto;
+        aspect-ratio: 16/9;
+    }
+
+    .founders-asymmetric-grid {
+        grid-template-columns: 1fr;
+        gap: 60px;
+        max-width: 600px;
+    }
+
+    .secondary-founder {
+        margin-top: 0;
+    }
+
+    .scroll-indicator {
+        display: none;
+    }
+
+    /* Hide on tablet/mobile often nice */
+
+    .values-offset-layout {
+        grid-template-columns: 1fr 1fr;
+    }
+
+    .offset-down {
+        transform: none;
+    }
+
+    .offset-down:hover {
+        transform: translateY(-8px);
     }
 
     .about-container {
         padding: 0 24px;
+    }
+
+    .about-hero-modern h1 {
+        font-size: 48px;
+    }
+}
+
+@media (max-width: 768px) {
+    .about-hero-modern {
+        min-height: 80vh;
+        padding-top: 100px;
+    }
+
+    .about-hero-modern h1 {
+        font-size: 40px;
+    }
+
+    .values-offset-layout {
+        grid-template-columns: 1fr;
+    }
+
+    .about-story-modern,
+    .about-founders-modern,
+    .about-coaches-modern,
+    .about-values-modern {
+        padding: 80px 0;
+    }
+
+    .section-title-left,
+    .section-title-right,
+    .section-title-center {
+        text-align: center;
+        font-size: 32px;
+    }
+
+    .section-desc {
+        text-align: center;
+        margin: 0 auto 40px;
+    }
+
+    .story-header h2 {
+        font-size: 36px;
+        text-align: center;
+    }
+
+    .story-intro {
+        text-align: center;
+    }
+
+    .decorative-line {
+        margin: 0 auto;
     }
 }
