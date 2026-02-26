@@ -4,7 +4,6 @@ import { db } from '../lib/firebase';
 import { toast, ToastContainer } from 'react-toastify';
 import { motion } from 'framer-motion';
 import emailService from '../services/emailService';
-import emailService from '../services/emailService';
 import Navbar from '../components/layout/Navbar';
 import Footer from '../components/layout/Footer';
 import CTASection from '../components/shared/CTASection';
@@ -54,6 +53,7 @@ const ContactUs = () => {
 
     return (
         <div className="contact-us-page-modern">
+            <Navbar />
             <ToastContainer position="top-right" autoClose={4000} />
 
             {/* LAYER 1: FIXED HERO (Video + Title) */}
@@ -82,9 +82,6 @@ const ContactUs = () => {
                     >
                         We're here to help you start your chess journey.
                     </motion.p>
-        <div className="contact-us-page">
-            <ToastContainer position="top-right" autoClose={4000} />
-            <Navbar />
 
                     <motion.div
                         className="scroll-indicator"

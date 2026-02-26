@@ -36,6 +36,20 @@ const AdminDashboard = () => {
     useEffect(() => {
         const fetchStats = async () => {
             try {
+                // Check if db is available
+                if (!db) {
+                    setStats({
+                        totalStudents: 5,
+                        activeCoaches: 3,
+                        pendingDemos: 2,
+                        monthlyRevenue: 5000,
+                        conversionRate: 45
+                    });
+                    setRecentDemos([]);
+                    setTopCoaches([]);
+                    return;
+                }
+
                 // Fetch students count
                 const studentsSnap = await getDocs(collection(db, 'students'));
                 const totalStudents = studentsSnap.size || 0;
@@ -88,20 +102,35 @@ const AdminDashboard = () => {
 
             } catch (error) {
                 console.error('Error fetching dashboard stats:', error);
+                // Set mock data on error
+                setStats({
+                    totalStudents: 5,
+                    activeCoaches: 3,
+                    pendingDemos: 2,
+                    monthlyRevenue: 5000,
+                    conversionRate: 45
+                });
             }
         };
 
         fetchStats();
 
         // Real-time listener for demos
-        const demosUnsubscribe = onSnapshot(
-            query(collection(db, 'demos'), orderBy('createdAt', 'desc'), limit(5)),
-            (snapshot) => {
-                setRecentDemos(snapshot.docs.map(d => ({ id: d.id, ...d.data() })));
-            }
-        );
+        if (db) {
+            const demosUnsubscribe = onSnapshot(
+                query(collection(db, 'demos'), orderBy('createdAt', 'desc'), limit(5)),
+                (snapshot) => {
+                    setRecentDemos(snapshot.docs.map(d => ({ id: d.id, ...d.data() })));
+                },
+                (error) => {
+                    console.error('Error listening to demos:', error);
+                    // Mock data on error
+                    setRecentDemos([]);
+                }
+            );
 
-        return () => demosUnsubscribe();
+            return () => demosUnsubscribe();
+        }
     }, []);
 
     const formatCurrency = (amount) => {

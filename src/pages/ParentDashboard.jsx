@@ -44,49 +44,80 @@ const ParentDashboard = () => {
         if (!currentUser?.uid) return;
 
         setLoading(true);
-        // Correctly listen to the 'users' document (Source of Truth)
-        // Admin updates 'users' collection, NOT 'students'
-        const userDocRef = doc(db, 'users', currentUser.uid);
 
-        const unsubscribeStudent = onSnapshot(userDocRef, async (snapshot) => {
-            if (snapshot.exists()) {
-                const studentData = { id: snapshot.id, ...snapshot.data() };
-                setStudent(studentData);
-
-                // If coach is assigned, fetch/listen to coach details
-                // 1. Direct Assignment
-                if (studentData.assignedCoachId) {
-                    getDoc(doc(db, COLLECTIONS.COACHES, studentData.assignedCoachId)).then(coachDoc => {
-                        if (coachDoc.exists()) setCoach(coachDoc.data());
-                    });
-                }
-                // 2. Batch Assignment
-                else if (studentData.batchId || studentData.assignedBatch || studentData.batchName) {
-                    // Logic remains same, but now we have correct data
-                }
-            } else {
-                // Fallback if no student doc found (maybe just registered)
-                setStudent(null);
-            }
+        // Mock data for dev mode
+        if (!db) {
+            setStudent({
+                id: currentUser.uid,
+                email: currentUser.email,
+                fullName: 'Student User',
+                level: 'Intermediate',
+                rating: 1450,
+                assignedCoachId: 'coach-123'
+            });
+            setCoach({
+                id: 'coach-123',
+                fullName: 'Coach Name',
+                email: 'coach@coach.com'
+            });
             setLoading(false);
-            // Trigger animation
             setTimeout(() => setCardsVisible(true), 100);
-        });
+            return;
+        }
 
-        // 2. Listen to Schedule (Demos for now, later Batches/Classes)
-        // Query Demos where parent email matches
-        const qDemos = query(
-            collection(db, COLLECTIONS.DEMOS),
-            where('email', '==', currentUser.email), // Assuming demo is linked by email
-            orderBy('scheduledAt', 'desc'),
-            limit(5)
-        );
+        try {
+            // Correctly listen to the 'users' document (Source of Truth)
+            // Admin updates 'users' collection, NOT 'students'
+            const userDocRef = doc(db, 'users', currentUser.uid);
 
-        const unsubscribeDemos = onSnapshot(qDemos, (snapshot) => {
-            const items = snapshot.docs.map(doc => {
-                const data = doc.data();
-                const date = data.scheduledAt?.toDate ? data.scheduledAt.toDate() : new Date();
-                const isToday = new Date().toDateString() === date.toDateString();
+            const unsubscribeStudent = onSnapshot(userDocRef, async (snapshot) => {
+                if (snapshot.exists()) {
+                    const studentData = { id: snapshot.id, ...snapshot.data() };
+                    setStudent(studentData);
+
+                    // If coach is assigned, fetch/listen to coach details
+                    // 1. Direct Assignment
+                    if (studentData.assignedCoachId) {
+                        getDoc(doc(db, COLLECTIONS.COACHES, studentData.assignedCoachId)).then(coachDoc => {
+                            if (coachDoc.exists()) setCoach(coachDoc.data());
+                        });
+                    }
+                    // 2. Batch Assignment
+                    else if (studentData.batchId || studentData.assignedBatch || studentData.batchName) {
+                        // Logic remains same, but now we have correct data
+                    }
+                } else {
+                    // Fallback if no student doc found (maybe just registered)
+                    setStudent(null);
+                }
+                setLoading(false);
+                // Trigger animation
+                setTimeout(() => setCardsVisible(true), 100);
+            }, (error) => {
+                console.error('Error fetching student data:', error);
+                // Use mock data on error
+                setStudent({
+                    fullName: 'Test Student',
+                    level: 'Beginner'
+                });
+                setLoading(false);
+                setTimeout(() => setCardsVisible(true), 100);
+            });
+
+            // 2. Listen to Schedule (Demos for now, later Batches/Classes)
+            // Query Demos where parent email matches
+            const qDemos = query(
+                collection(db, COLLECTIONS.DEMOS),
+                where('email', '==', currentUser.email), // Assuming demo is linked by email
+                orderBy('scheduledAt', 'desc'),
+                limit(5)
+            );
+
+            const unsubscribeDemos = onSnapshot(qDemos, (snapshot) => {
+                const items = snapshot.docs.map(doc => {
+                    const data = doc.data();
+                    const date = data.scheduledAt?.toDate ? data.scheduledAt.toDate() : new Date();
+                    const isToday = new Date().toDateString() === date.toDateString();
 
                 return {
                     id: doc.id,
@@ -207,21 +238,40 @@ const ParentDashboard = () => {
             limit(3)
         );
 
-        const unsubscribeBroadcasts = onSnapshot(qBroadcasts, (snapshot) => {
-            const list = snapshot.docs.map(doc => ({
-                id: doc.id,
-                ...doc.data()
-            }));
-            // In a real app, filter by student level/batch here if needed
-            setBroadcasts(list);
-        });
 
-        return () => {
-            unsubscribeStudent();
-            unsubscribeDemos();
-            if (unsubscribeSchedule) unsubscribeSchedule();
-            unsubscribeBroadcasts();
-        };
+            const unsubscribeBroadcasts = onSnapshot(qBroadcasts, (snapshot) => {
+                const list = snapshot.docs.map(doc => ({
+                    id: doc.id,
+                    ...doc.data()
+                }));
+                // In a real app, filter by student level/batch here if needed
+                setBroadcasts(list);
+            }, (error) => {
+                console.error('Error fetching broadcasts:', error);
+                // Use mock broadcasts on error
+                setBroadcasts([]);
+            });
+
+            return () => {
+                unsubscribeStudent();
+                unsubscribeDemos();
+                if (unsubscribeSchedule) unsubscribeSchedule();
+                unsubscribeBroadcasts();
+            };
+        } catch (error) {
+            console.error('Error setting up dashboard listeners:', error);
+            // Set mock data on error
+            setStudent({
+                fullName: currentUser?.email?.split('@')[0] || 'Student',
+                level: 'Beginner',
+                rating: 1200
+            });
+            setScheduleItems([]);
+            setBroadcasts([]);
+            setLoading(false);
+            setTimeout(() => setCardsVisible(true), 100);
+            return () => { };
+        }
     }, [currentUser]);
 
     // Fetch Chess Assignments
@@ -229,53 +279,73 @@ const ParentDashboard = () => {
         console.log('Setting up chess assignments listener for student:', student);
         if (!student) return;
 
-        console.log('Fetching chess assignments for student:', {
-            assignedCoachId: student.assignedCoachId,
-            assignedBatch: student.assignedBatch,
-            assignedBatchName: student.assignedBatchName,
-            batchName: student.batchName
-        });
-
-        // Query all chess assignments (we'll filter client-side)
-        const q = query(collection(db, 'chessAssignment'));
-
-        const unsubscribe = onSnapshot(q, async (snapshot) => {
-            const list = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
-            console.log('All chess assignments:', list);
-
-            const studentBatchId = student.assignedBatch;
-            const studentBatchName = student.assignedBatchName || student.batchName;
-            const coachId = student.assignedCoachId;
-
-            // Filter by coach, then by batch (ID or Name) or Global
-            const filtered = list.filter(a => {
-                const matchesCoach = !coachId || a.coachId === coachId;
-                const matchesBatchId = !studentBatchId || a.batchId === studentBatchId;
-                const matchesBatchName = !studentBatchName || a.batchName === studentBatchName;
-                const isGlobal = a.batchName === 'Global';
-
-                return matchesCoach && (matchesBatchId || matchesBatchName || isGlobal);
+        try {
+            console.log('Fetching chess assignments for student:', {
+                assignedCoachId: student.assignedCoachId,
+                assignedBatch: student.assignedBatch,
+                assignedBatchName: student.assignedBatchName,
+                batchName: student.batchName
             });
 
-            // Check submission status for each assignment
-            const assignmentsWithStatus = await Promise.all(filtered.map(async (a) => {
-                if (!currentUser?.uid) return { ...a, isSubmitted: false };
+            // Check if db is available
+            if (!db) {
+                setChessAssignments([]);
+                return;
+            }
+
+            // Query all chess assignments (we'll filter client-side)
+            const q = query(collection(db, 'chessAssignment'));
+
+            const unsubscribe = onSnapshot(q, async (snapshot) => {
+                const list = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
+                console.log('All chess assignments:', list);
+
+                const studentBatchId = student.assignedBatch;
+                const studentBatchName = student.assignedBatchName || student.batchName;
+                const coachId = student.assignedCoachId;
+
+                // Filter by coach, then by batch (ID or Name) or Global
+                const filtered = list.filter(a => {
+                    const matchesCoach = !coachId || a.coachId === coachId;
+                    const matchesBatchId = !studentBatchId || a.batchId === studentBatchId;
+                    const matchesBatchName = !studentBatchName || a.batchName === studentBatchName;
+                    const isGlobal = a.batchName === 'Global';
+
+                    return matchesCoach && (matchesBatchId || matchesBatchName || isGlobal);
+                });
+
+                // Check submission status for each assignment
                 try {
-                    const subRef = doc(db, 'chessAssignment', a.id, 'submissions', currentUser.uid);
-                    const subSnap = await getDoc(subRef);
-                    return { ...a, isSubmitted: subSnap.exists() };
+                    const assignmentsWithStatus = await Promise.all(filtered.map(async (a) => {
+                        if (!currentUser?.uid) return { ...a, isSubmitted: false };
+                        try {
+                            const subRef = doc(db, 'chessAssignment', a.id, 'submissions', currentUser.uid);
+                            const subSnap = await getDoc(subRef);
+                            return { ...a, isSubmitted: subSnap.exists() };
+                        } catch (e) {
+                            console.error("Error checking submission:", e);
+                            return { ...a, isSubmitted: false };
+                        }
+                    }));
+
+                    console.log('Filtered chess assignments with status:', assignmentsWithStatus);
+                    setChessAssignments(assignmentsWithStatus);
                 } catch (e) {
-                    console.error("Error checking submission:", e);
-                    return { ...a, isSubmitted: false };
+                    console.error('Error processing assignments:', e);
+                    setChessAssignments(filtered.map(a => ({ ...a, isSubmitted: false })));
                 }
-            }));
+            }, (error) => {
+                console.error('Error fetching assignments:', error);
+                setChessAssignments([]);
+            });
 
-            console.log('Filtered chess assignments with status:', assignmentsWithStatus);
-            setChessAssignments(assignmentsWithStatus);
-        });
-
-        return () => unsubscribe();
-    }, [student?.assignedCoachId, student?.assignedBatch, student?.assignedBatchName, student?.batchName]);
+            return () => unsubscribe();
+        } catch (error) {
+            console.error('Error in chess assignments setup:', error);
+            setChessAssignments([]);
+            return () => { };
+        }
+    }, [student?.assignedCoachId, student?.assignedBatch, student?.assignedBatchName, student?.batchName, currentUser?.uid]);
 
     // Dynamic Progress Calculation based on skills mastered
     const TOTAL_SKILLS = 7; // Total curriculum skills

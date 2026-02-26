@@ -30,80 +30,116 @@ const CoachPage = () => {
 
         setLoading(true);
 
-        // Listen to Demos
-        const qDemos = query(
-            collection(db, COLLECTIONS.DEMOS),
-            where('assignedCoachId', '==', currentUser.uid),
-            where('status', 'in', [DEMO_STATUS.SCHEDULED, DEMO_STATUS.PENDING])
-        );
+        // Try-catch to handle Firebase errors gracefully
+        try {
+            // Check if db is available
+            if (!db) {
+                // Mock data for dev mode
+                setDemos([]);
+                setStudents([]);
+                setLoading(false);
+                setTimeout(() => setCardsVisible(true), 100);
+                return () => { };
+            }
 
-        const unsubDemos = onSnapshot(qDemos, (snapshot) => {
-            const demoList = snapshot.docs.map(doc => {
-                const data = doc.data();
-                return {
-                    id: doc.id,
-                    ...data,
-                    // Normalize date field: fallback to scheduledStart if scheduledAt is missing
-                    scheduledAt: data.scheduledAt || data.scheduledStart || data.preferredDateTime
-                };
-            });
-            demoList.sort((a, b) => {
-                const getDate = (d) => {
-                    if (!d.scheduledAt) return 0;
-                    return d.scheduledAt.toDate ? d.scheduledAt.toDate().getTime() : new Date(d.scheduledAt).getTime();
-                };
-                return getDate(a) - getDate(b);
-            });
-            setDemos(demoList);
+            // Listen to Demos
+            const qDemos = query(
+                collection(db, COLLECTIONS.DEMOS),
+                where('assignedCoachId', '==', currentUser.uid),
+                where('status', 'in', [DEMO_STATUS.SCHEDULED, DEMO_STATUS.PENDING])
+            );
 
-            setDemos(demoList);
-            setLoading(false);
-            setTimeout(() => setCardsVisible(true), 100);
-        }, () => {
+            const unsubDemos = onSnapshot(qDemos, (snapshot) => {
+                const demoList = snapshot.docs.map(doc => {
+                    const data = doc.data();
+                    return {
+                        id: doc.id,
+                        ...data,
+                        // Normalize date field: fallback to scheduledStart if scheduledAt is missing
+                        scheduledAt: data.scheduledAt || data.scheduledStart || data.preferredDateTime
+                    };
+                });
+                demoList.sort((a, b) => {
+                    const getDate = (d) => {
+                        if (!d.scheduledAt) return 0;
+                        return d.scheduledAt.toDate ? d.scheduledAt.toDate().getTime() : new Date(d.scheduledAt).getTime();
+                    };
+                    return getDate(a) - getDate(b);
+                });
+                setDemos(demoList);
+                setLoading(false);
+                setTimeout(() => setCardsVisible(true), 100);
+            }, (error) => {
+                console.error('Error fetching demos:', error);
+                setDemos([]);
+                setLoading(false);
+                setTimeout(() => setCardsVisible(true), 100);
+            });
+
+            // Listen to Students
+            const qStudents = query(
+                collection(db, 'users'),
+                where('assignedCoachId', '==', currentUser.uid),
+                where('role', '==', 'customer')
+            );
+
+            const unsubStudents = onSnapshot(qStudents, (snapshot) => {
+                setStudents(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })));
+            }, (error) => {
+                console.error('Error fetching students:', error);
+                setStudents([]);
+            });
+
+            return () => {
+                unsubDemos();
+                unsubStudents();
+            };
+        } catch (error) {
+            console.error('Error in coach dashboard setup:', error);
             setDemos([]);
+            setStudents([]);
             setLoading(false);
             setTimeout(() => setCardsVisible(true), 100);
-        });
-
-        // Listen to Students
-        const qStudents = query(
-            collection(db, 'users'),
-            where('assignedCoachId', '==', currentUser.uid),
-            where('role', '==', 'customer')
-        );
-
-        const unsubStudents = onSnapshot(qStudents, (snapshot) => {
-            setStudents(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })));
-        }, () => setStudents([]));
-
-        return () => {
-            unsubDemos();
-            unsubStudents();
-        };
+            return () => { };
+        }
     }, [currentUser]);
 
     // Fetch Schedule (Classes)
     useEffect(() => {
         if (!currentUser?.uid) return;
 
-        const qSchedule = query(
-            collection(db, COLLECTIONS.SCHEDULE),
-            where('coachId', '==', currentUser.uid)
-        );
+        try {
+            if (!db) {
+                setSchedule([]);
+                return () => { };
+            }
 
-        const unsubSchedule = onSnapshot(qSchedule, (snapshot) => {
-            const list = snapshot.docs.map(doc => {
-                const data = doc.data();
-                return {
-                    id: doc.id,
-                    ...data,
-                    scheduledAt: data.scheduledAt // Ensure consistency
-                };
+            const qSchedule = query(
+                collection(db, COLLECTIONS.SCHEDULE),
+                where('coachId', '==', currentUser.uid)
+            );
+
+            const unsubSchedule = onSnapshot(qSchedule, (snapshot) => {
+                const list = snapshot.docs.map(doc => {
+                    const data = doc.data();
+                    return {
+                        id: doc.id,
+                        ...data,
+                        scheduledAt: data.scheduledAt // Ensure consistency
+                    };
+                });
+                setSchedule(list);
+            }, (error) => {
+                console.error('Error fetching schedule:', error);
+                setSchedule([]);
             });
-            setSchedule(list);
-        });
 
-        return () => unsubSchedule();
+            return () => unsubSchedule();
+        } catch (error) {
+            console.error('Error in schedule setup:', error);
+            setSchedule([]);
+            return () => { };
+        }
     }, [currentUser]);
 
     // Update todayClasses when demos or schedule change
