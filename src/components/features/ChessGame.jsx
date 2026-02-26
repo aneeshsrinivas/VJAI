@@ -90,16 +90,17 @@ const ChessGame = ({ onUnlock }) => {
                     {/* LEFT: Board */}
                     <div className="chess-board-wrapper" ref={boardRef}>
                         <div className="chess-board-image-wrapper">
-                            <AnimatePresence mode='wait'>
+                            <AnimatePresence mode='sync'>
                                 <motion.img
                                     key={stepIndex}
                                     src={`/step${stepIndex}.png`}
                                     alt={`Chess position step ${stepIndex}`}
                                     className="chess-board-image"
+                                    style={{ position: 'absolute', inset: 0 }}
                                     initial={{ opacity: 0 }}
                                     animate={{ opacity: 1 }}
                                     exit={{ opacity: 0 }}
-                                    transition={{ duration: 0.4, ease: 'easeInOut' }}
+                                    transition={{ duration: 0.25, ease: [0.22, 1, 0.36, 1] }}
                                 />
                             </AnimatePresence>
                         </div>

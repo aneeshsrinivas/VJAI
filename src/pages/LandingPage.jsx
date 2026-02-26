@@ -110,6 +110,7 @@ const LandingPage = () => {
                     >
                         <motion.div
                             className="modal-content"
+                            data-lenis-prevent
                             onClick={(e) => e.stopPropagation()}
                             variants={modalContentVariants}
                             initial="hidden"
@@ -192,6 +193,7 @@ const LandingPage = () => {
                     >
                         <motion.div
                             className="modal-content"
+                            data-lenis-prevent
                             onClick={(e) => e.stopPropagation()}
                             variants={modalContentVariants}
                             initial="hidden"

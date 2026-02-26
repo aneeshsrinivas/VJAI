@@ -10,7 +10,7 @@
     background: rgba(11, 11, 11, 0.85);
     backdrop-filter: blur(12px);
     /* Premium Glass Effect */
-    padding: 10px 0;
+    padding: 16px 0;
     /* Extended height */
     z-index: 1000;
     box-shadow: 0 4px 30px rgba(0, 0, 0, 0.25);
@@ -35,7 +35,7 @@
 }
 
 .navbar-logo-image {
-    height: 80px;
+    height: 60px;
     width: auto;
     transition: transform 0.3s ease;
     border-radius: 50%;
