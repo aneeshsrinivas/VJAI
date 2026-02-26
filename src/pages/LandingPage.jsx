@@ -36,6 +36,12 @@ const LandingPage = () => {
         if (activeModal) {
             document.body.style.setProperty('overflow', 'hidden', 'important');
             document.documentElement.style.setProperty('overflow', 'hidden', 'important');
+
+            // Scroll About section into view when modal opens
+            const aboutSection = document.getElementById('about');
+            if (aboutSection) {
+                aboutSection.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }
         } else {
             document.body.style.removeProperty('overflow');
             document.documentElement.style.removeProperty('overflow');
