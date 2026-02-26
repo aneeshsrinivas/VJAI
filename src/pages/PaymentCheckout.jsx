@@ -144,14 +144,6 @@ const PaymentCheckout = () => {
                 navigate('/payment/success', { state: { plan, pricing, manualApproval: true } });
             } else {
                 // Card payment - simulate processing
-                setTimeout(() => {
-                    navigate('/payment/success', { state: { plan, pricing, manualApproval: false } });
-                }, 2000);
-                }
-                toast.success("Payment submitted! Waiting for admin approval.");
-                navigate('/payment/success', { state: { plan, pricing, manualApproval: true, paymentId: paymentRef.id } });
-            } else {
-                // Card payment - simulate processing
                 // Update payment status to completed
                 await updateDoc(doc(db, 'payments', paymentRef.id), {
                     status: 'COMPLETED',
@@ -353,10 +345,8 @@ const PaymentCheckout = () => {
                                 )}
 
                                 {formData.paymentMethod === 'upi' && (
-                                    <div className="upi-details" style={{ marginTop: '20px', padding: '24px', background: 'rgba(255, 255, 255, 0.03)', borderRadius: '12px', textAlign: 'center', border: '1px solid rgba(255, 255, 255, 0.1)' }}>
-                                        <h4 style={{ margin: '0 0 16px', color: '#F5EFE6' }}>Pay via UPI</h4>
                                     <div className="upi-details" style={{ marginTop: '20px', padding: '24px', background: '#f8fafc', borderRadius: '12px', textAlign: 'center' }}>
-                                        <h4 style={{ margin: '0 0 16px', color: '#003366' }}>Pay via UPI</h4>
+                                        <h4 style={{ margin: '0 0 16px', color: '#181818' }}>Pay via UPI</h4>
 
                                         {/* Mock QR Code */}
                                         <div style={{
@@ -374,12 +364,6 @@ const PaymentCheckout = () => {
                                             📱
                                         </div>
 
-                                        <p style={{ fontSize: '14px', color: '#CFC6B8', margin: '0 0 8px' }}>Scan QR code or pay to:</p>
-                                        <div style={{
-                                            padding: '12px 20px',
-                                            background: 'rgba(255, 255, 255, 0.05)',
-                                            borderRadius: '8px',
-                                            border: '1px solid rgba(255, 255, 255, 0.1)',
                                         <p style={{ fontSize: '14px', color: '#666', margin: '0 0 8px' }}>Scan QR code or pay to:</p>
                                         <div style={{
                                             padding: '12px 20px',
@@ -390,13 +374,11 @@ const PaymentCheckout = () => {
                                             fontFamily: 'monospace',
                                             fontSize: '16px',
                                             fontWeight: '600',
-                                            color: '#F5EFE6'
-                                            color: '#003366'
+                                            color: '#181818'
                                         }}>
                                             {UPI_ID}
                                         </div>
 
-                                        <p style={{ fontSize: '13px', color: '#F88B22', marginTop: '16px', fontWeight: '600' }}>
                                         <p style={{ fontSize: '13px', color: '#FC8A24', marginTop: '16px', fontWeight: '600' }}>
                                             Amount: ₹{(pricing.total * 83).toFixed(0)} (~${pricing.total.toFixed(2)})
                                         </p>
@@ -408,8 +390,6 @@ const PaymentCheckout = () => {
                                             gap: '10px',
                                             marginTop: '20px',
                                             padding: '12px 16px',
-                                            background: upiConfirmed ? 'rgba(76, 175, 80, 0.2)' : 'rgba(255, 255, 255, 0.05)',
-                                            border: `2px solid ${upiConfirmed ? '#4CAF50' : 'rgba(255, 255, 255, 0.1)'}`,
                                             background: upiConfirmed ? '#dcfce7' : 'white',
                                             border: `2px solid ${upiConfirmed ? '#22c55e' : '#ddd'}`,
                                             borderRadius: '8px',
@@ -422,7 +402,6 @@ const PaymentCheckout = () => {
                                                 onChange={(e) => setUpiConfirmed(e.target.checked)}
                                                 style={{ width: '18px', height: '18px' }}
                                             />
-                                            <span style={{ fontWeight: '500', color: upiConfirmed ? '#4CAF50' : '#CFC6B8' }}>
                                             <span style={{ fontWeight: '500', color: upiConfirmed ? '#166534' : '#333' }}>
                                                 I have completed the UPI payment
                                             </span>
@@ -460,7 +439,7 @@ const PaymentCheckout = () => {
                             <h3 className="summary-title">Order Summary</h3>
 
                             <div className="summary-plan">
-                                <div className="summary-plan-icon" style={{ color: plan.color || '#003366' }}>
+                                <div className="summary-plan-icon" style={{ color: plan.color || '#181818' }}>
                                     {plan.type === '1-on-1' || plan.classType === 'one-on-one' ? '♔' : '♟'}
                                 </div>
                                 <div className="summary-plan-info">

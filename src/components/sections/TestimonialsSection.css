@@ -86,7 +86,21 @@
 
 .stat-label {
     font-size: 14px;
-    color: rgba(254, 255, 236, 0.6);
+    color: rgb(254, 255, 236);
+    line-height: 1.2;
+}
+
+.testi-num {
+    font-family: 'Figtree', sans-serif;
+    font-size: 60px;
+    font-weight: 800;
+    color: #F88B22;
+}
+
+.testi-label {
+    font-size: 24px;
+    color: #ffffff;
+    font-weight: 600;
     line-height: 1.2;
 }
 

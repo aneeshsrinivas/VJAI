@@ -114,8 +114,8 @@ const TestimonialsSection = () => {
                         viewport={{ once: true, margin: "-100px" }}
                         transition={{ delay: 0.35, duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
                     >
-                        <span className="stat-number">500+</span>
-                        <span className="stat-label">Students<br />Trained</span>
+                        <span className="testi-num">500+</span>
+                        <span className="testi-label">Students<br />Trained</span>
                     </motion.div>
                 </div>
 

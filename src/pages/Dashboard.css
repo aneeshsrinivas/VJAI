@@ -25,7 +25,7 @@
     font-family: var(--font-display);
     font-size: 36px;
     font-weight: 800;
-    background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%);
+    background: linear-gradient(135deg, #181818 0%, #F88B22 100%);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     margin-bottom: 8px;
@@ -78,7 +78,7 @@
 .stat-value {
     font-size: 42px;
     font-weight: 800;
-    background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%);
+    background: linear-gradient(135deg, #181818 0%, #F88B22 100%);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     font-family: var(--font-display);

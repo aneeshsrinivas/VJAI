@@ -1,17 +1,10 @@
-import { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
-
-import { toast, ToastContainer } from 'react-toastify';
-// Navbar removed - lifted to App.jsx
-import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-
-import { toast, ToastContainer } from 'react-toastify';
+import { ToastContainer } from 'react-toastify';
 import Button from '../components/ui/Button';
-import Navbar from '../components/layout/Navbar';
 import Footer from '../components/layout/Footer';
 import CTASection from '../components/shared/CTASection';
 import PricingSection from '../components/sections/PricingSection';
@@ -32,52 +25,13 @@ const LandingPage = () => {
     const [activeFAQ, setActiveFAQ] = useState(null);
     const [activeModal, setActiveModal] = useState(null);
 
-    // Refs for GSAP animations
     const heroRef = useRef(null);
 
-    // FAQs data
-    const faqs = [
-        {
-            question: 'What is Indian Chess Academy?',
-            answer: 'Indian Chess Academy is a premier platform offering live online chess coaching for children. Our structured programs are designed to build skills from the beginner to tournament level.'
-        },
-        {
-            question: 'Who are the coaches?',
-            answer: 'Our coaches are experienced players and educators who are passionate about teaching and have a proven track record of mentoring young chess talents.'
-        },
-        {
-            question: 'What age groups do you teach?',
-            answer: 'We offer classes for children aged 5 and above, grouped by age and skill level.'
-        },
-        {
-            question: 'How are classes conducted?',
-            answer: 'All classes are conducted live on Zoom in small groups to ensure individual attention.'
-        },
-        {
-            question: 'What is the class schedule?',
-            answer: 'Classes are held twice a week, each session lasting 60 minutes.'
-        }
-    ];
-
-    // GSAP Hero animations - Disabled mismatched animations
     useEffect(() => {
-        const ctx = gsap.context(() => {
-            // NOTE: The previous animations targeted classes that do not exist in the current component structure
-            // (e.g., .hero-bg-image, .hero-title-home).
-            // These have been temporarily commented out to prevent errors.
-
-            /* 
-            // Slow hero drift to keep background alive without heavy video
-            gsap.to('.hero-bg-image', { ... });
-            // ... (rest of the mismatched animations)
-            */
-
-        }, heroRef);
-
+        const ctx = gsap.context(() => {}, heroRef);
         return () => ctx.revert();
     }, []);
 
-    // Prevent body/html scroll when modal is active
     useEffect(() => {
         if (activeModal) {
             document.body.style.setProperty('overflow', 'hidden', 'important');
@@ -92,7 +46,6 @@ const LandingPage = () => {
         };
     }, [activeModal]);
 
-    // Animation variants
     const modalBackdropVariants = {
         hidden: { opacity: 0 },
         visible: { opacity: 1 },
@@ -105,11 +58,7 @@ const LandingPage = () => {
             opacity: 1,
             scale: 1,
             y: 0,
-            y: 0,
-            transition: {
-                duration: 0.3,
-                ease: 'easeOut'
-            }
+            transition: { duration: 0.3, ease: 'easeOut' }
         },
         exit: {
             opacity: 0,
@@ -122,15 +71,10 @@ const LandingPage = () => {
     return (
         <div className="landing-page-home" ref={heroRef}>
             <ToastContainer position="top-right" autoClose={4000} />
-            {/* Navigation Header - Removed (Handled in App.jsx) */}
 
-            {/* Premium Hero Section */}
             <HeroSection />
-
-            {/* Premium Stats Section */}
             <StatsSection />
 
-            {/* Premium About Section */}
             <div id="about">
                 <AboutSection
                     onCoursewareClick={() => setActiveModal('courseware')}
@@ -138,151 +82,19 @@ const LandingPage = () => {
                 />
             </div>
 
-            {/* Premium Testimonials Section */}
             <div id="testimonials">
                 <TestimonialsSection />
             </div>
 
-            {/* Premium Pricing Section */}
             <div id="pricing">
                 <PricingSection />
             </div>
 
-            {/* Premium FAQ Section */}
             <div id="faq">
                 <FAQSection />
             </div>
 
-
-    return (
-        <div className="landing-page-home">
-            <ToastContainer position="top-right" autoClose={4000} />
-            {/* Navigation Header */}
-            <Navbar />
-
-            {/* Hero Section */}
-            <section className="hero-home">
-                <div className="hero-background-home">
-                    <img
-                        src="https://images.unsplash.com/photo-1529699211952-734e80c4d42b?w=1920&h=1080&fit=crop"
-                        alt="Chess"
-                        className="hero-bg-image"
-                    />
-                    <div className="hero-overlay-home"></div>
-                </div>
-                <div className="hero-content-home">
-                    <h1 className="hero-title-home">
-                        Unlock Your Potential<br />
-                        With Expert Chess Coaching
-                    </h1>
-                    <div className="hero-buttons-home">
-                        <Button onClick={() => navigate('/select-role')} className="btn-hero-primary">
-                            Get Started
-                        </Button>
-                        <Button onClick={() => navigate('/pricing')} className="btn-hero-secondary">
-                            View Pricing
-                        </Button>
-                    </div>
-                </div>
-            </section>
-
-            {/* Who We Are Section */}
-            <section className="who-we-are-home">
-                <div className="section-container-home">
-                    <div className="section-header-home">
-                        <span className="section-tag-home">Who Are We</span>
-                        <h2 className="section-title-home">About Indian Chess Academy</h2>
-                    </div>
-                    <div className="about-content-home">
-                        <p>
-                            Indian Chess Academy was founded on a simple idea: chess should be taught in a way that feels engaging, personal, and meaningful.
-                            What began as a side project by Viraj Pandit, a computer science engineer with a lifelong passion for the game, soon became a response
-                            to the overly generic and impersonal nature of most online chess classes.
-                        </p>
-                        <p>
-                            As the academy grew, Viraj teamed up with Nachiket Chitre, whose structured approach and shared love for chess helped shape the academy's direction.
-                            Together, they created an environment where students receive close, thoughtful mentoring. Every session is designed with care, allowing coaches to
-                            adapt to each student's pace and style — building not just skill, but confidence.
-                        </p>
-                    </div>
-                    <div className="features-grid-home">
-                        <div className="feature-card-home clickable" onClick={() => setActiveModal('courseware')}>
-                            <CoursewareIcon size={80} color="#D4AF37" />
-                            <h3>Courseware</h3>
-                            <p>Explore our comprehensive courseware designed to elevate your chess skills, from basics to advanced strategies.</p>
-                        </div>
-                        <div className="feature-card-home clickable" onClick={() => setActiveModal('online-classes')}>
-                            <OnlineClassesIcon size={80} color="#D4AF37" />
-                            <h3>Online Classes</h3>
-                            <p>Join our online classes and learn chess from anywhere, with personalized coaching and flexible schedules.</p>
-                        </div>
-                    </div>
-                </div>
-            </section>
-
-            {/* Testimonials Section */}
-            <section className="testimonials-home">
-                <div className="section-container-home">
-                    <div className="section-header-home">
-                        <span className="section-tag-home">Testimonial</span>
-                        <h2 className="section-title-home">What Parents Say About Us</h2>
-                        <p className="section-subtitle-home">
-                            Discover what our students have to say about their transformative journey and growth at Indian Chess Academy.
-                        </p>
-                    </div>
-                    <div className="testimonials-grid">
-                        {testimonials.map((testimonial, index) => (
-                            <div key={index} className="testimonial-card">
-                                <div className="testimonial-header">
-                                    <div className="testimonial-info">
-                                        <h4>{testimonial.name}</h4>
-                                        <p className="testimonial-role">{testimonial.role}</p>
-                                        <div className="testimonial-rating">
-                                            {[...Array(testimonial.rating)].map((_, i) => (
-                                                <span key={i} className="star">⭐</span>
-                                            ))}
-                                        </div>
-                                    </div>
-                                </div>
-                                <p className="testimonial-text">{testimonial.text}</p>
-                            </div>
-                        ))}
-                    </div>
-                </div>
-            </section>
-
-
-
-            {/* FAQ Section */}
-            <section className="faq-home">
-                <div className="section-container-home">
-                    <div className="section-header-home">
-                        <span className="section-tag-home">FAQ's</span>
-                        <h2 className="section-title-home">Frequently Asked Questions</h2>
-                    </div>
-                    <div className="faq-list-home">
-                        {faqs.map((faq, index) => (
-                            <div key={index} className={`faq-item-home ${activeFAQ === index ? 'active' : ''}`}>
-                                <button
-                                    className="faq-question-home"
-                                    onClick={() => setActiveFAQ(activeFAQ === index ? null : index)}
-                                >
-                                    <span>{faq.question}</span>
-                                    <span className="faq-icon-home">{activeFAQ === index ? '−' : '+'}</span>
-                                </button>
-                                <div className="faq-answer-home">
-                                    <p>{faq.answer}</p>
-                                </div>
-                            </div>
-                        ))}
-                    </div>
-                </div>
-            </section>
-
-            {/* CTA Section */}
             <CTASection />
-
-            {/* Footer */}
             <Footer />
 
             {/* Courseware Modal */}
@@ -304,7 +116,6 @@ const LandingPage = () => {
                             animate="visible"
                             exit="exit"
                         >
-                            {/* Fixed Header */}
                             <div className="modal-header-fixed">
                                 <motion.button
                                     className="modal-close"
@@ -316,11 +127,9 @@ const LandingPage = () => {
                                 </motion.button>
                                 <h2 className="modal-title">Comprehensive Courseware</h2>
                                 <p className="modal-description">
-                                    Our curriculum is meticulously designed by Grandmasters to guide students from their first move to tournament mastery. Each level builds upon the last, ensuring a solid foundation and continuous improvement.
+                                    Our curriculum is meticulously designed by Grandmasters to guide students from their first move to tournament mastery.
                                 </p>
                             </div>
-
-                            {/* Scrollable Body */}
                             <div className="modal-body">
                                 <motion.div
                                     className="course-level"
@@ -338,7 +147,6 @@ const LandingPage = () => {
                                             <li>Fundamental checkmate patterns</li>
                                         </ul>
                                     </div>
-
                                     <div className="course-section">
                                         <h4><ChessBishopIcon /> Intermediate Level (Rating 1000-1600)</h4>
                                         <p className="level-subtitle">Tactical Mastery & Positional Play</p>
@@ -349,7 +157,6 @@ const LandingPage = () => {
                                             <li>Building a personalized opening repertoire</li>
                                         </ul>
                                     </div>
-
                                     <div className="course-section">
                                         <h4><TrophyIcon /> Advanced Level (Rating 1600+)</h4>
                                         <p className="level-subtitle">Competitive Excellence</p>
@@ -360,7 +167,6 @@ const LandingPage = () => {
                                             <li>Grandmaster game analysis and psychology</li>
                                         </ul>
                                     </div>
-
                                     <div className="course-meta">
                                         <span>📖 500+ Lessons</span>
                                         <span>💡 10,000+ Puzzles</span>
@@ -392,7 +198,6 @@ const LandingPage = () => {
                             animate="visible"
                             exit="exit"
                         >
-                            {/* Fixed Header */}
                             <div className="modal-header-fixed">
                                 <motion.button
                                     className="modal-close"
@@ -404,11 +209,9 @@ const LandingPage = () => {
                                 </motion.button>
                                 <h2 className="modal-title">Live Online Academy</h2>
                                 <p className="modal-description">
-                                    Experience the rigor of a classical chess academy from the comfort of your home. Our live online classes are interactive, engaging, and focused on serious improvement.
+                                    Experience the rigor of a classical chess academy from the comfort of your home.
                                 </p>
                             </div>
-
-                            {/* Scrollable Body */}
                             <div className="modal-body">
                                 <motion.div
                                     initial={{ opacity: 0, y: 20 }}
@@ -417,24 +220,20 @@ const LandingPage = () => {
                                 >
                                     <div className="class-feature">
                                         <h3><VideoIcon /> Live Interactive Sessions</h3>
-                                        <p>Small group classes (max 8 students) conducted via Zoom. Interactive boards allow students to solve problems in real-time under coach supervision.</p>
+                                        <p>Small group classes (max 8 students) conducted via Zoom with interactive boards.</p>
                                     </div>
-
                                     <div className="class-feature">
                                         <h3><TrophyIcon /> Monthly Internal Tournaments</h3>
-                                        <p>Students compete in regular academy tournaments to test their skills. Games are analyzed by coaches to identify mistakes and areas for growth.</p>
+                                        <p>Students compete in regular academy tournaments to test their skills.</p>
                                     </div>
-
                                     <div className="class-feature">
                                         <h3><TargetIcon /> Personalized Progress Tracking</h3>
-                                        <p>We track puzzle ratings, game accuracy, and class participation to provide quarterly progress reports and personalized training recommendations.</p>
+                                        <p>We track puzzle ratings, game accuracy, and class participation to provide quarterly progress reports.</p>
                                     </div>
-
                                     <div className="class-feature">
                                         <h3><CoursewareIcon /> Recorded Library Access</h3>
-                                        <p>Missed a class? Access our library of recorded sessions and supplementary video lessons to catch up or review complex topics.</p>
+                                        <p>Access our library of recorded sessions and supplementary video lessons.</p>
                                     </div>
-
                                     <button className="modal-cta" onClick={() => navigate('/demo-booking')}>
                                         Schedule Your Free Assessment
                                     </button>
@@ -444,7 +243,6 @@ const LandingPage = () => {
                     </motion.div>
                 )}
             </AnimatePresence>
-
         </div>
     );
 };

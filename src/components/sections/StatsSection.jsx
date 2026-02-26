@@ -10,7 +10,7 @@ const StudentIcon = () => (
         <defs>
             <linearGradient id="studentGrad" x1="0%" y1="0%" x2="100%" y2="100%">
                 <stop offset="0%" stopColor="#D4AF37" />
-                <stop offset="100%" stopColor="#47607E" />
+                <stop offset="100%" stopColor="#F88B22" />
             </linearGradient>
         </defs>
         <circle cx="32" cy="20" r="10" stroke="url(#studentGrad)" strokeWidth="2.5" fill="none" />
@@ -24,7 +24,7 @@ const CoachIcon = () => (
         <defs>
             <linearGradient id="coachGrad" x1="0%" y1="0%" x2="100%" y2="100%">
                 <stop offset="0%" stopColor="#D4AF37" />
-                <stop offset="100%" stopColor="#47607E" />
+                <stop offset="100%" stopColor="#F88B22" />
             </linearGradient>
         </defs>
         <circle cx="32" cy="18" r="8" stroke="url(#coachGrad)" strokeWidth="2.5" fill="none" />
@@ -39,7 +39,7 @@ const TrophyIcon = () => (
         <defs>
             <linearGradient id="trophyGrad" x1="0%" y1="0%" x2="100%" y2="100%">
                 <stop offset="0%" stopColor="#D4AF37" />
-                <stop offset="100%" stopColor="#47607E" />
+                <stop offset="100%" stopColor="#F88B22" />
             </linearGradient>
         </defs>
         <path d="M20 12h24v16c0 8-5 12-12 12s-12-4-12-12V12z" stroke="url(#trophyGrad)" strokeWidth="2.5" fill="none" />
@@ -56,7 +56,7 @@ const StarIcon = () => (
         <defs>
             <linearGradient id="starGrad" x1="0%" y1="0%" x2="100%" y2="100%">
                 <stop offset="0%" stopColor="#D4AF37" />
-                <stop offset="100%" stopColor="#47607E" />
+                <stop offset="100%" stopColor="#F88B22" />
             </linearGradient>
         </defs>
         <path d="M32 8l6 18h18l-14 11 5 18-15-11-15 11 5-18L8 26h18z" stroke="url(#starGrad)" strokeWidth="2.5" fill="none" />

@@ -1,19 +1,9 @@
-import React, { useEffect } from 'react';
-import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from 'react-router-dom';
-import { AuthProvider } from './context/AuthContext';
+import React, { useEffect, useRef } from 'react';
+import { Routes, Route, Outlet, useLocation } from 'react-router-dom';
 import { AnimatePresence } from 'framer-motion';
-import Lenis from 'lenis';
-
-// Pages
-import LandingPage from './pages/LandingPage';
-import LoginPage from './pages/Login';
-import SelectRolePage from './pages/RoleSelectionPage';
-import RegisterPage from './pages/RegistrationPage';
-
-import React from 'react';
-import { BrowserRouter as Router, Routes, Route, Outlet } from 'react-router-dom';
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+import Lenis from 'lenis';
 
 // Page imports
 import LandingPage from './pages/LandingPage';
@@ -56,30 +46,22 @@ import ContactUs from './pages/ContactUs';
 import FAQ from './pages/FAQ';
 import TermsAndConditions from './pages/TermsAndConditions';
 import PrivacyPolicy from './pages/PrivacyPolicy';
-import PlanSelection from './pages/PlanSelection';
-
-import DemoBooking from './pages/DemoBooking';
-import CustomCursor from './components/animated/CustomCursor';
-import PaymentPage from './pages/PaymentCheckout';
-import PaymentSuccess from './pages/PaymentSuccess';
-import PageTransition from './components/animations/PageTransition';
 
 // Component imports
 import Sidebar from './components/layout/Sidebar';
 import ErrorBoundary from './components/ui/ErrorBoundary';
-import ParentNavbar from './components/layout/ParentNavbar';
-import { AuthProvider } from './context/AuthContext';
-
-// Components
 import Navbar from './components/layout/Navbar';
+import PageTransition from './components/animations/PageTransition';
 
-// Animated Routes Component
-const AnimatedRoutes = () => {
-  const location = useLocation();
+// Layout Components
+const ParentLayout = () => (
+  <div className="layout-parent" style={{ display: 'flex' }}>
+    <main className="main-content-parent" style={{ flex: 1, padding: '24px', width: '100%' }}>
+      <Outlet />
+    </main>
+  </div>
+);
 
-  // Define routes where Navbar should be hidden
-  const hideNavbarRoutes = ['/login', '/register', '/select-role'];
-  const showNavbar = !hideNavbarRoutes.includes(location.pathname);
 const StaffLayout = ({ role }) => (
   <div className="layout-staff" style={{ display: 'flex' }}>
     <Sidebar role={role} />
@@ -89,35 +71,10 @@ const StaffLayout = ({ role }) => (
   </div>
 );
 
-  return (
-    <>
-      {showNavbar && <Navbar />}
-      <AnimatePresence mode="wait">
-        <Routes location={location} key={location.pathname}>
-          {/* Public Routes */}
-          <Route path="/" element={<PageTransition><LandingPage /></PageTransition>} />
-          <Route path="/login" element={<PageTransition><LoginPage /></PageTransition>} />
-          <Route path="/register" element={<PageTransition><RegisterPage /></PageTransition>} />
-          <Route path="/select-role" element={<PageTransition><SelectRolePage /></PageTransition>} />
-          <Route path="/demo-booking" element={<PageTransition><DemoBooking /></PageTransition>} />
-          <Route path="/payment" element={<PageTransition><PaymentPage /></PageTransition>} />
-          <Route path="/payment-success" element={<PageTransition><PaymentSuccess /></PageTransition>} />
-
-          {/* Secondary Pages */}
-          <Route path="/about" element={<PageTransition><AboutUs /></PageTransition>} />
-          <Route path="/services" element={<PageTransition><Services /></PageTransition>} />
-          <Route path="/contact" element={<PageTransition><ContactUs /></PageTransition>} />
-          <Route path="/faq" element={<PageTransition><FAQ /></PageTransition>} />
-          <Route path="/terms" element={<PageTransition><TermsAndConditions /></PageTransition>} />
-          <Route path="/privacy" element={<PageTransition><PrivacyPolicy /></PageTransition>} />
-          <Route path="/pricing" element={<PageTransition><PlanSelection /></PageTransition>} />
-        </Routes>
-      </AnimatePresence>
-    </>
-  );
-};
-
 function App() {
+  const location = useLocation();
+  const lenisRef = useRef(null);
+
   // Initialize Smooth Scrolling
   useEffect(() => {
     const lenis = new Lenis({
@@ -132,6 +89,8 @@ function App() {
       infinite: false,
     });
 
+    lenisRef.current = lenis;
+
     function raf(time) {
       lenis.raf(time);
       requestAnimationFrame(raf);
@@ -141,87 +100,98 @@ function App() {
 
     return () => {
       lenis.destroy();
+      lenisRef.current = null;
     };
   }, []);
 
+  // Scroll to top on route change
+  useEffect(() => {
+    if (lenisRef.current) {
+      lenisRef.current.scrollTo(0, { immediate: true });
+    } else {
+      window.scrollTo(0, 0);
+    }
+  }, [location.pathname]);
+
+  // Define routes where Navbar should be hidden
+  const hideNavbarRoutes = ['/login', '/register', '/select-role'];
+  const showNavbar = !hideNavbarRoutes.includes(location.pathname) &&
+    !location.pathname.startsWith('/admin') &&
+    !location.pathname.startsWith('/coach') &&
+    !location.pathname.startsWith('/parent') &&
+    !location.pathname.startsWith('/chat');
+
   return (
-    <AuthProvider>
-      <Router>
-        <AnimatedRoutes />
-      </Router>
-    </AuthProvider>
-    <Router>
-      <AuthProvider>
-        <ErrorBoundary>
-          <ToastContainer position="top-right" autoClose={3000} hideProgressBar={false} />
-          <Routes>
-            {/* Onboarding Routes */}
-            <Route path="/" element={<LandingPage />} />
-            <Route path="/about" element={<AboutUs />} />
-            <Route path="/demo-confirmation" element={<PlaceholderPage title="Demo Request Submitted!" message="Thank you! Our team will contact you within 24 hours to schedule your free demo class." />} />
-            <Route path="/services" element={<Services />} />
-            <Route path="/contact" element={<ContactUs />} />
-            <Route path="/faq" element={<FAQ />} />
-            <Route path="/terms" element={<TermsAndConditions />} />
-            <Route path="/privacy" element={<PrivacyPolicy />} />
-            <Route path="/select-role" element={<RoleSelectionPage />} />
-            <Route path="/register" element={<RegistrationPage />} />
-            <Route path="/registration-success" element={<RegistrationSuccessPage />} />
-            <Route path="/login" element={<Login />} />
-            <Route path="/demo-booking" element={<DemoBooking />} />
-            <Route path="/book-demo" element={<PlaceholderPage title="Book a Free Demo" />} />
+    <ErrorBoundary>
+      <ToastContainer position="top-right" autoClose={3000} hideProgressBar={false} />
+      {showNavbar && <Navbar />}
+      <AnimatePresence mode="wait">
+        <Routes location={location} key={location.pathname}>
+          {/* Public Routes */}
+          <Route path="/" element={<PageTransition><LandingPage /></PageTransition>} />
+          <Route path="/about" element={<PageTransition><AboutUs /></PageTransition>} />
+          <Route path="/services" element={<PageTransition><Services /></PageTransition>} />
+          <Route path="/contact" element={<PageTransition><ContactUs /></PageTransition>} />
+          <Route path="/faq" element={<PageTransition><FAQ /></PageTransition>} />
+          <Route path="/terms" element={<PageTransition><TermsAndConditions /></PageTransition>} />
+          <Route path="/privacy" element={<PageTransition><PrivacyPolicy /></PageTransition>} />
+          <Route path="/select-role" element={<PageTransition><RoleSelectionPage /></PageTransition>} />
+          <Route path="/register" element={<PageTransition><RegistrationPage /></PageTransition>} />
+          <Route path="/registration-success" element={<PageTransition><RegistrationSuccessPage /></PageTransition>} />
+          <Route path="/login" element={<PageTransition><Login /></PageTransition>} />
+          <Route path="/demo-booking" element={<PageTransition><DemoBooking /></PageTransition>} />
+          <Route path="/demo-confirmation" element={<PageTransition><PlaceholderPage title="Demo Request Submitted!" message="Thank you! Our team will contact you within 24 hours to schedule your free demo class." /></PageTransition>} />
+          <Route path="/book-demo" element={<PageTransition><PlaceholderPage title="Book a Free Demo" /></PageTransition>} />
 
-            {/* Payment Routes */}
-            <Route path="/pricing" element={<PlanSelection />} />
-            <Route path="/payment/checkout" element={<PaymentCheckout />} />
-            <Route path="/payment/success" element={<PaymentSuccess />} />
+          {/* Payment Routes */}
+          <Route path="/pricing" element={<PageTransition><PlanSelection /></PageTransition>} />
+          <Route path="/payment/checkout" element={<PageTransition><PaymentCheckout /></PageTransition>} />
+          <Route path="/payment/success" element={<PageTransition><PaymentSuccess /></PageTransition>} />
 
-            {/* Parent Routes */}
-            <Route element={<ParentLayout />}>
-              <Route path="/parent" element={<ParentDashboard />} />
-              <Route path="/parent/chat" element={<ChatPage userRole="CUSTOMER" />} />
-              <Route path="/parent/schedule" element={<ParentSchedule />} />
-              <Route path="/parent/assignments" element={<ParentAssignments />} />
-              <Route path="/parent/payments" element={<ParentPayments />} />
-              <Route path="/parent/settings" element={<ParentSettings />} />
-            </Route>
+          {/* Parent Routes */}
+          <Route element={<ParentLayout />}>
+            <Route path="/parent" element={<ParentDashboard />} />
+            <Route path="/parent/chat" element={<ChatPage userRole="CUSTOMER" />} />
+            <Route path="/parent/schedule" element={<ParentSchedule />} />
+            <Route path="/parent/assignments" element={<ParentAssignments />} />
+            <Route path="/parent/payments" element={<ParentPayments />} />
+            <Route path="/parent/settings" element={<ParentSettings />} />
+          </Route>
 
-            {/* Student Routes */}
-            <Route path="/student" element={<StudentPage />} />
+          {/* Student Routes */}
+          <Route path="/student" element={<StudentPage />} />
 
-            {/* Coach Routes */}
-            <Route element={<StaffLayout role="coach" />}>
-              <Route path="/coach" element={<CoachPage />} />
-              <Route path="/coach/students" element={<CoachStudents />} />
-              <Route path="/coach/batches" element={<CoachBatches />} />
-              <Route path="/coach/schedule" element={<CoachSchedule />} />
-              <Route path="/coach/chat" element={<ChatPage userRole="COACH" />} />
-            </Route>
+          {/* Coach Routes */}
+          <Route element={<StaffLayout role="coach" />}>
+            <Route path="/coach" element={<CoachPage />} />
+            <Route path="/coach/students" element={<CoachStudents />} />
+            <Route path="/coach/batches" element={<CoachBatches />} />
+            <Route path="/coach/schedule" element={<CoachSchedule />} />
+            <Route path="/coach/chat" element={<ChatPage userRole="COACH" />} />
+          </Route>
 
-            {/* Admin Routes */}
-            <Route element={<StaffLayout role="admin" />}>
-              <Route path="/admin" element={<AdminDashboard />} />
-              <Route path="/chat" element={<ChatPage userRole="ADMIN" />} />
-              <Route path="/admin/students" element={<StudentDatabase />} />
-              <Route path="/admin/coaches" element={<CoachRoster />} />
-              <Route path="/admin/demos" element={<DemosPage />} />
-              <Route path="/admin/calendar" element={<PlaceholderPage title="Calendar Management" />} />
-              <Route path="/admin/finances" element={<FinanceReports />} />
-              <Route path="/admin/broadcast" element={<BroadcastPage />} />
-              <Route path="/admin/messages" element={<ChatPage userRole="ADMIN" />} />
-              <Route path="/admin/subscriptions" element={<SubscriptionPage />} />
-              <Route path="/admin/subscription-plans" element={<SubscriptionPlansManager />} />
-              <Route path="/admin/accounts" element={<AccountsPage />} />
-              <Route path="/admin/analytics" element={<AnalyticsPage />} />
-              <Route path="/admin/live-analytics" element={<LiveAnalytics />} />
-              <Route path="/admin/applications" element={<AdminCoachApplications />} />
-              <Route path="/admin/skillsets" element={<SkillSetsPage />} />
-            </Route>
-
-          </Routes>
-        </ErrorBoundary>
-      </AuthProvider>
-    </Router>
+          {/* Admin Routes */}
+          <Route element={<StaffLayout role="admin" />}>
+            <Route path="/admin" element={<AdminDashboard />} />
+            <Route path="/chat" element={<ChatPage userRole="ADMIN" />} />
+            <Route path="/admin/students" element={<StudentDatabase />} />
+            <Route path="/admin/coaches" element={<CoachRoster />} />
+            <Route path="/admin/demos" element={<DemosPage />} />
+            <Route path="/admin/calendar" element={<PlaceholderPage title="Calendar Management" />} />
+            <Route path="/admin/finances" element={<FinanceReports />} />
+            <Route path="/admin/broadcast" element={<BroadcastPage />} />
+            <Route path="/admin/messages" element={<ChatPage userRole="ADMIN" />} />
+            <Route path="/admin/subscriptions" element={<SubscriptionPage />} />
+            <Route path="/admin/subscription-plans" element={<SubscriptionPlansManager />} />
+            <Route path="/admin/accounts" element={<AccountsPage />} />
+            <Route path="/admin/analytics" element={<AnalyticsPage />} />
+            <Route path="/admin/live-analytics" element={<LiveAnalytics />} />
+            <Route path="/admin/applications" element={<AdminCoachApplications />} />
+            <Route path="/admin/skillsets" element={<SkillSetsPage />} />
+          </Route>
+        </Routes>
+      </AnimatePresence>
+    </ErrorBoundary>
   );
 }
 

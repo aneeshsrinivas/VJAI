@@ -92,7 +92,7 @@ const ParentAssignments = () => {
                     <h1 style={{
                         fontSize: '32px',
                         fontWeight: '800',
-                        color: '#003366',
+                        color: '#181818',
                         marginBottom: '8px',
                         display: 'flex',
                         alignItems: 'center',
@@ -179,7 +179,7 @@ const ParentAssignments = () => {
                                         <div style={{ paddingTop: '16px', borderTop: '1px solid #f1f5f9', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                                             <span style={{ fontSize: '13px', color: '#64748b' }}>Due: <strong style={{ color: '#334155' }}>{item.dueDate}</strong></span>
                                             {item.status === 'Graded' && (
-                                                <span style={{ fontSize: '14px', fontWeight: '800', color: '#003366' }}>Score: {item.score}</span>
+                                                <span style={{ fontSize: '14px', fontWeight: '800', color: '#181818' }}>Score: {item.score}</span>
                                             )}
                                         </div>
                                     </div>

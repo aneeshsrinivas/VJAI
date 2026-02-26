@@ -22,7 +22,7 @@ const Settings = () => {
                     <h1 style={{
                         fontSize: '32px',
                         fontWeight: '800',
-                        color: '#003366',
+                        color: '#181818',
                         marginBottom: '8px',
                         display: 'flex',
                         alignItems: 'center',
@@ -54,7 +54,7 @@ const Settings = () => {
                         boxShadow: '0 4px 20px rgba(0,0,0,0.05)',
                         padding: '24px'
                     }}>
-                        <h2 style={{ fontSize: '20px', fontWeight: '700', color: '#003366', marginBottom: '20px', display: 'flex', alignItems: 'center', gap: '10px' }}>
+                        <h2 style={{ fontSize: '20px', fontWeight: '700', color: '#181818', marginBottom: '20px', display: 'flex', alignItems: 'center', gap: '10px' }}>
                             <User size={20} /> Account Information
                         </h2>
 
@@ -137,7 +137,7 @@ const Settings = () => {
                     boxShadow: '0 4px 20px rgba(0,0,0,0.05)',
                     padding: '24px'
                 }}>
-                    <h2 style={{ fontSize: '20px', fontWeight: '700', color: '#003366', marginBottom: '20px', display: 'flex', alignItems: 'center', gap: '10px' }}>
+                    <h2 style={{ fontSize: '20px', fontWeight: '700', color: '#181818', marginBottom: '20px', display: 'flex', alignItems: 'center', gap: '10px' }}>
                         <Lock size={20} /> Security
                     </h2>
 
@@ -216,7 +216,7 @@ const Settings = () => {
                     boxShadow: '0 4px 20px rgba(0,0,0,0.05)',
                     padding: '24px'
                 }}>
-                    <h2 style={{ fontSize: '20px', fontWeight: '700', color: '#003366', marginBottom: '20px', display: 'flex', alignItems: 'center', gap: '10px' }}>
+                    <h2 style={{ fontSize: '20px', fontWeight: '700', color: '#181818', marginBottom: '20px', display: 'flex', alignItems: 'center', gap: '10px' }}>
                         <Bell size={20} /> Notification Preferences
                     </h2>
 
@@ -281,7 +281,7 @@ const Settings = () => {
                     boxShadow: '0 4px 20px rgba(0,0,0,0.05)',
                     padding: '24px'
                 }}>
-                    <h2 style={{ fontSize: '20px', fontWeight: '700', color: '#003366', marginBottom: '20px', display: 'flex', alignItems: 'center', gap: '10px' }}>
+                    <h2 style={{ fontSize: '20px', fontWeight: '700', color: '#181818', marginBottom: '20px', display: 'flex', alignItems: 'center', gap: '10px' }}>
                         <Globe size={20} /> Language & Region
                     </h2>
 

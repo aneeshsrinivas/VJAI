@@ -55,9 +55,9 @@ const ChessGame = ({ onUnlock }) => {
     const isLastStep = stepIndex === STEPS.length - 1;
     const isCheckmate = currentStep.moveText === 'Checkmate — h5 to f7';
 
-    // Auto-scroll board into view when step changes
+    // Auto-scroll board into view when step changes (not on initial mount)
     React.useEffect(() => {
-        if (boardRef.current) {
+        if (boardRef.current && stepIndex > 0) {
             boardRef.current.scrollIntoView({
                 behavior: 'smooth',
                 block: 'center'

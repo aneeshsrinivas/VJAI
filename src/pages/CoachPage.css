@@ -4,7 +4,7 @@
 .coach-page {
     min-height: 100vh;
     font-family: 'Figtree', sans-serif;
-    background: linear-gradient(180deg, #f8f9fc 0%, #f1f3f8 100%);
+    background: linear-gradient(180deg, #EFE3C8 0%, #F5F0E6 100%);
 }
 
 /* ===== LOADING STATE ===== */
@@ -15,7 +15,7 @@
     align-items: center;
     justify-content: center;
     gap: 16px;
-    background: #f8f9fc;
+    background: #EFE3C8;
 }
 
 .loading-spinner {
@@ -63,7 +63,7 @@
 .hero-overlay {
     position: absolute;
     inset: 0;
-    background: linear-gradient(135deg, rgba(0, 51, 102, 0.92) 0%, rgba(15, 23, 42, 0.88) 100%);
+    background: linear-gradient(135deg, rgba(17, 17, 17, 0.60) 0%, rgba(24, 24, 24, 0.55) 100%);
 }
 
 .coach-hero-content {
@@ -161,8 +161,7 @@
 }
 
 .stats-card-floating {
-    background: #EFE3C8;
-    background: white;
+    background: #FFFEF3;
     border-radius: 20px;
     padding: 24px;
     box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
@@ -229,8 +228,7 @@
 }
 
 .stat-card {
-    background: #EFE3C8;
-    background: white;
+    background: #FFFEF3;
     padding: 24px;
     border-radius: 16px;
     display: flex;
@@ -264,8 +262,8 @@
 }
 
 .stat-icon.blue {
-    background: linear-gradient(135deg, #dbeafe, #bfdbfe);
-    color: #3b82f6;
+    background: linear-gradient(135deg, #ffedd5, #fed7aa);
+    color: #F88B22;
 }
 
 .stat-icon.orange {
@@ -325,8 +323,7 @@
 
 /* ===== CONTENT CARDS ===== */
 .content-card {
-    background: #EFE3C8;
-    background: white;
+    background: #FFFEF3;
     border-radius: 20px;
     padding: 24px;
     box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
@@ -363,8 +360,8 @@
 }
 
 .card-badge {
-    background: linear-gradient(135deg, #dbeafe, #bfdbfe);
-    color: #3b82f6;
+    background: linear-gradient(135deg, #ffedd5, #fed7aa);
+    color: #F88B22;
     padding: 6px 12px;
     border-radius: 20px;
     font-size: 12px;
@@ -409,8 +406,7 @@
     font-size: 16px;
     font-weight: 700;
     color: #7c3aed;
-    background: #EFE3C8;
-    background: white;
+    background: #FFFEF3;
     padding: 8px 14px;
     border-radius: 10px;
     box-shadow: 0 2px 8px rgba(124, 58, 237, 0.15);
@@ -522,8 +518,7 @@
     align-items: center;
     gap: 10px;
     padding: 24px 16px;
-    background: #EFE3C8;
-    background: white;
+    background: #FFFEF3;
     border: 1px solid rgba(0, 0, 0, 0.06);
     border-radius: 16px;
     cursor: pointer;
