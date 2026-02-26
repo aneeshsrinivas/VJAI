@@ -82,8 +82,11 @@
     border-radius: 50%;
     object-fit: cover;
     box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+    image-rendering: -webkit-optimize-contrast;
     image-rendering: crisp-edges;
-    -webkit-font-smoothing: antialiased;
+    transform: translateZ(0);
+    backface-visibility: hidden;
+    -webkit-backface-visibility: hidden;
 }
 
 .login-brand span {
@@ -225,30 +228,38 @@
 
 /* Back button */
 .back-to-home-btn {
-    background: none;
+    background: none !important;
+    background-color: transparent !important;
+    box-shadow: none !important;
     border: none;
-    color: rgba(255, 255, 255, 0.65);
+    color: rgba(255, 255, 255, 0.65) !important;
     font-size: 12px;
-    font-weight: 600;
+    font-weight: 600 !important;
     cursor: pointer;
-    padding: 0;
+    padding: 0 !important;
     margin-bottom: 36px;
     display: flex;
     align-items: center;
     font-family: 'Figtree', sans-serif;
-    transition: all 0.25s ease;
+    transition: color 0.25s ease, transform 0.25s ease;
     letter-spacing: 0.3px;
     text-transform: uppercase;
 }
 
 .back-to-home-btn:hover {
-    color: rgba(255, 255, 255, 0.95);
+    color: rgba(255, 255, 255, 0.95) !important;
+    background: none !important;
+    background-color: transparent !important;
+    box-shadow: none !important;
     transform: translateX(-4px);
 }
 
-.back-to-home-btn:focus {
+.back-to-home-btn:focus,
+.back-to-home-btn:active {
     outline: none;
-    background: none;
+    background: none !important;
+    background-color: transparent !important;
+    box-shadow: none !important;
 }
 
 /* Header */
@@ -315,8 +326,8 @@
 
 .form-group label {
     font-size: 12px;
-    font-weight: 700;
-    color: #ffffff;
+    font-weight: 700 !important;
+    color: #ffffff !important;
     letter-spacing: 0.8px;
     text-transform: uppercase;
     display: block;
@@ -414,7 +425,7 @@
     color: rgba(255, 255, 255, 0.65);
     cursor: pointer;
     font-weight: 500;
-    font-size: 14px;
+    font-size: 15px;
     transition: color 0.2s;
 }
 
@@ -431,7 +442,7 @@
     color: rgba(255, 255, 255, 0.65);
     font-weight: 600;
     text-decoration: none;
-    font-size: 14px;
+    font-size: 15px;
     transition: color 0.2s;
 }
 
@@ -440,19 +451,20 @@
 /* Submit button */
 .login-btn {
     width: 100%;
-    padding: 16px;
-    background: linear-gradient(135deg, #F88B22 0%, #ff9d45 100%);
-    color: white;
+    padding: 16px !important;
+    background: linear-gradient(135deg, #F88B22 0%, #ff9d45 100%) !important;
+    color: white !important;
     border: none;
-    border-radius: 12px;
-    font-size: 15px;
-    font-weight: 700;
+    border-radius: 12px !important;
+    font-size: 15px !important;
+    font-weight: 700 !important;
     cursor: pointer;
     transition: all 0.28s cubic-bezier(0.22, 1, 0.36, 1);
-    box-shadow: 0 8px 24px rgba(248, 139, 34, 0.3);
+    box-shadow: 0 8px 24px rgba(248, 139, 34, 0.3) !important;
     font-family: 'Figtree', sans-serif;
-    letter-spacing: 0.3px;
+    letter-spacing: 0.3px !important;
     margin-top: 4px;
+    text-transform: none !important;
 }
 
 .login-btn:hover {
@@ -470,7 +482,7 @@
     padding-top: 24px;
     border-top: 1px solid rgba(255, 255, 255, 0.07);
     color: rgba(255, 255, 255, 0.55);
-    font-size: 15px;
+    font-size: 16px;
     font-weight: 400;
 }
 
@@ -509,26 +521,32 @@
 
 .dev-btn {
     flex: 1;
-    padding: 10px 6px;
-    background: rgba(255, 255, 255, 0.05);
+    padding: 10px 6px !important;
+    background: rgba(255, 255, 255, 0.05) !important;
+    background-color: rgba(255, 255, 255, 0.05) !important;
     border: 1px solid rgba(255, 255, 255, 0.1);
-    border-radius: 10px;
-    color: rgba(255, 255, 255, 0.6);
+    border-radius: 10px !important;
+    color: rgba(255, 255, 255, 0.6) !important;
     font-family: 'Figtree', sans-serif;
-    font-size: 12px;
-    font-weight: 600;
+    font-size: 12px !important;
+    font-weight: 600 !important;
     cursor: pointer;
     display: flex;
     flex-direction: column;
     align-items: center;
     gap: 5px;
     transition: all 0.2s ease;
+    text-transform: none !important;
+    letter-spacing: normal !important;
+    box-shadow: none !important;
 }
 
 .dev-btn:hover {
-    background: rgba(248, 139, 34, 0.1);
+    background: rgba(248, 139, 34, 0.1) !important;
+    background-color: rgba(248, 139, 34, 0.1) !important;
     border-color: rgba(248, 139, 34, 0.3);
-    color: #F88B22;
+    color: #F88B22 !important;
+    box-shadow: none !important;
 }
 
 /* ============================================================
