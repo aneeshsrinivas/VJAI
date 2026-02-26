@@ -34,7 +34,7 @@
   /* Charcoal on Light */
 
   /* OVERLAYS */
-  --hero-overlay: linear-gradient(rgba(11, 11, 11, 0.65), rgba(11, 11, 11, 0.45));
+  --hero-overlay: linear-gradient(rgba(11, 11, 11, 0.45), rgba(11, 11, 11, 0.25));
 
   /* DEPTH */
   --shadow-depth: inset 0 0 40px rgba(0, 0, 0, 0.25);
