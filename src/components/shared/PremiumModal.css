@@ -9,14 +9,15 @@
     right: 0;
     bottom: 0;
     background: rgba(10, 10, 10, 0.85);
-    backdrop-filter: blur(16px);
-    -webkit-backdrop-filter: blur(16px);
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
     z-index: 9999;
     display: flex;
     align-items: center;
     justify-content: center;
     padding: 32px;
     overflow: hidden;
+    will-change: opacity;
 }
 
 /* Disable body scroll when modal is open */
@@ -39,7 +40,7 @@ body.modal-open {
     overflow: hidden;
     display: flex;
     flex-direction: column;
-
+    will-change: transform, opacity;
 }
 
 /* Modal Header (Fixed) */

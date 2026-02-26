@@ -35,37 +35,40 @@ const LandingPage = () => {
 
     useEffect(() => {
         if (activeModal) {
+            const scrollbarWidth = window.innerWidth - document.documentElement.clientWidth;
             document.body.style.setProperty('overflow', 'hidden', 'important');
-            document.documentElement.style.setProperty('overflow', 'hidden', 'important');
+            if (scrollbarWidth > 0) {
+                document.body.style.setProperty('padding-right', `${scrollbarWidth}px`);
+            }
         } else {
             document.body.style.removeProperty('overflow');
-            document.documentElement.style.removeProperty('overflow');
+            document.body.style.removeProperty('padding-right');
         }
         return () => {
             document.body.style.removeProperty('overflow');
-            document.documentElement.style.removeProperty('overflow');
+            document.body.style.removeProperty('padding-right');
         };
     }, [activeModal]);
 
     const modalBackdropVariants = {
         hidden: { opacity: 0 },
-        visible: { opacity: 1 },
-        exit: { opacity: 0 }
+        visible: { opacity: 1, transition: { duration: 0.15 } },
+        exit: { opacity: 0, transition: { duration: 0.15 } }
     };
 
     const modalContentVariants = {
-        hidden: { opacity: 0, scale: 0.9, y: 30 },
+        hidden: { opacity: 0, scale: 0.95, y: 16 },
         visible: {
             opacity: 1,
             scale: 1,
             y: 0,
-            transition: { duration: 0.3, ease: 'easeOut' }
+            transition: { duration: 0.2, ease: [0.22, 1, 0.36, 1] }
         },
         exit: {
             opacity: 0,
-            scale: 0.95,
-            y: 20,
-            transition: { duration: 0.2 }
+            scale: 0.97,
+            y: 10,
+            transition: { duration: 0.15 }
         }
     };
 
