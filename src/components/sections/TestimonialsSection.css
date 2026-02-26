@@ -92,14 +92,14 @@
 
 .testi-num {
     font-family: 'Figtree', sans-serif;
-    font-size: 48px;
+    font-size: 60px;
     font-weight: 800;
-    color: #ffffff;
+    color: #F88B22;
 }
 
 .testi-label {
-    font-size: 16px;
-    color: #181818;
+    font-size: 24px;
+    color: #ffffff;
     font-weight: 600;
     line-height: 1.2;
 }
