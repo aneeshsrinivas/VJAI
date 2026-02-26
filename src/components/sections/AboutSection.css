@@ -109,8 +109,7 @@
     letter-spacing: 4px;
     text-transform: uppercase;
     margin-bottom: 24px;
-    color: #2E2722;
-    /* Dark Coffee Accent */
+    color: #2e2c2c !important;
     opacity: 1;
 }
 

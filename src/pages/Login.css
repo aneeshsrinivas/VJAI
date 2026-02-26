@@ -77,11 +77,10 @@
 }
 
 .login-brand-logo {
-    width: 64px;
     height: 64px;
-    border-radius: 50%;
-    object-fit: cover;
-    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+    width: 64px;
+    border-radius: 10px;
+    object-fit: contain;
     image-rendering: auto;
     transform: translateZ(0);
     backface-visibility: hidden;
