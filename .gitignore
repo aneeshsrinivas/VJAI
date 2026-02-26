@@ -28,3 +28,7 @@ server/.env
 *.njsproj
 *.sln
 *.sw?
+
+# Claude Code temp files
+tmpclaude-*
+.vite/
