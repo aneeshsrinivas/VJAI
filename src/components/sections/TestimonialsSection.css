@@ -90,6 +90,20 @@
     line-height: 1.2;
 }
 
+.testi-num {
+    font-family: 'Figtree', sans-serif;
+    font-size: 32px;
+    font-weight: 800;
+    color: #ffffff;
+}
+
+.testi-label {
+    font-size: 14px;
+    color: #181818;
+    font-weight: 600;
+    line-height: 1.2;
+}
+
 /* ============================================
    RIGHT COLUMN (DYNAMIC)
    ============================================ */
