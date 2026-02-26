@@ -6,7 +6,7 @@ import './Login.css';
 
 const Login = () => {
     const navigate = useNavigate();
-    const { login, userRole } = useAuth();
+    const { login, userRole, switchDevUser, isDevMode } = useAuth();
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [error, setError] = useState('');
@@ -69,6 +69,13 @@ const Login = () => {
         setPassword(acc.p);
         setRememberMe(true);
         setShowAccounts(false);
+    };
+
+    const handleDevAccess = (userType) => {
+        switchDevUser(userType);
+        if (userType === 'admin') navigate('/admin');
+        else if (userType === 'coach') navigate('/coach');
+        else navigate('/parent');
     };
 
     return (
@@ -199,6 +206,89 @@ const Login = () => {
                     <div className="register-link">
                         Don't have an account? <Link to="/select-role">Join Us</Link>
                     </div>
+
+                    {isDevMode && (
+                        <div className="quick-access">
+                            <strong>Dev Mode — Quick Access</strong>
+                            <div style={{ display: 'flex', gap: '8px', marginTop: '10px' }}>
+                                <button
+                                    onClick={() => handleDevAccess('parent')}
+                                    style={{
+                                        flex: 1,
+                                        padding: '10px 8px',
+                                        borderRadius: '10px',
+                                        border: '1.5px solid #EBD6C3',
+                                        background: '#FFFEF3',
+                                        cursor: 'pointer',
+                                        fontFamily: 'Figtree, sans-serif',
+                                        fontSize: '13px',
+                                        fontWeight: '600',
+                                        color: '#181818',
+                                        display: 'flex',
+                                        flexDirection: 'column',
+                                        alignItems: 'center',
+                                        gap: '4px',
+                                        transition: 'all 0.2s ease'
+                                    }}
+                                    onMouseEnter={e => { e.currentTarget.style.borderColor = '#FC8A24'; e.currentTarget.style.color = '#FC8A24'; }}
+                                    onMouseLeave={e => { e.currentTarget.style.borderColor = '#EBD6C3'; e.currentTarget.style.color = '#181818'; }}
+                                >
+                                    <Users size={16} />
+                                    Parent
+                                </button>
+                                <button
+                                    onClick={() => handleDevAccess('coach')}
+                                    style={{
+                                        flex: 1,
+                                        padding: '10px 8px',
+                                        borderRadius: '10px',
+                                        border: '1.5px solid #EBD6C3',
+                                        background: '#FFFEF3',
+                                        cursor: 'pointer',
+                                        fontFamily: 'Figtree, sans-serif',
+                                        fontSize: '13px',
+                                        fontWeight: '600',
+                                        color: '#181818',
+                                        display: 'flex',
+                                        flexDirection: 'column',
+                                        alignItems: 'center',
+                                        gap: '4px',
+                                        transition: 'all 0.2s ease'
+                                    }}
+                                    onMouseEnter={e => { e.currentTarget.style.borderColor = '#FC8A24'; e.currentTarget.style.color = '#FC8A24'; }}
+                                    onMouseLeave={e => { e.currentTarget.style.borderColor = '#EBD6C3'; e.currentTarget.style.color = '#181818'; }}
+                                >
+                                    <GraduationCap size={16} />
+                                    Coach
+                                </button>
+                                <button
+                                    onClick={() => handleDevAccess('admin')}
+                                    style={{
+                                        flex: 1,
+                                        padding: '10px 8px',
+                                        borderRadius: '10px',
+                                        border: '1.5px solid #EBD6C3',
+                                        background: '#FFFEF3',
+                                        cursor: 'pointer',
+                                        fontFamily: 'Figtree, sans-serif',
+                                        fontSize: '13px',
+                                        fontWeight: '600',
+                                        color: '#181818',
+                                        display: 'flex',
+                                        flexDirection: 'column',
+                                        alignItems: 'center',
+                                        gap: '4px',
+                                        transition: 'all 0.2s ease'
+                                    }}
+                                    onMouseEnter={e => { e.currentTarget.style.borderColor = '#FC8A24'; e.currentTarget.style.color = '#FC8A24'; }}
+                                    onMouseLeave={e => { e.currentTarget.style.borderColor = '#EBD6C3'; e.currentTarget.style.color = '#181818'; }}
+                                >
+                                    <Crown size={16} />
+                                    Admin
+                                </button>
+                            </div>
+                        </div>
+                    )}
                 </div>
             </div>
         </div>

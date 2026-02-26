@@ -109,7 +109,7 @@
     font-family: 'Figtree', sans-serif;
     font-size: 36px;
     font-weight: 800;
-    color: #003366;
+    color: #181818;
     margin-bottom: 12px;
 }
 
@@ -148,7 +148,7 @@
     display: block;
     margin-bottom: 8px;
     font-weight: 600;
-    color: #003366;
+    color: #181818;
     font-size: 14px;
 }
 
@@ -200,7 +200,7 @@
 }
 
 .login-link a {
-    color: #003366;
+    color: #181818;
     font-weight: 700;
     text-decoration: none;
     transition: color 0.2s;

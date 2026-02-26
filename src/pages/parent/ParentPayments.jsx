@@ -127,7 +127,7 @@ const ParentPayments = () => {
                     <h1 style={{
                         fontSize: '32px',
                         fontWeight: '800',
-                        color: '#003366',
+                        color: '#181818',
                         marginBottom: '8px',
                         display: 'flex',
                         alignItems: 'center',
@@ -157,7 +157,7 @@ const ParentPayments = () => {
                         borderRadius: '20px',
                         padding: '0',
                         overflow: 'hidden',
-                        background: subscription ? 'linear-gradient(135deg, #003366 0%, #0f3460 100%)' : 'linear-gradient(135deg, #6B7280 0%, #4B5563 100%)',
+                        background: subscription ? 'linear-gradient(135deg, #181818 0%, #0f3460 100%)' : 'linear-gradient(135deg, #6B7280 0%, #4B5563 100%)',
                         color: 'white',
                         boxShadow: '0 10px 30px rgba(0, 51, 102, 0.3)'
                     }}>
@@ -223,7 +223,7 @@ const ParentPayments = () => {
                             <Button style={{
                                 width: '100%',
                                 background: 'white',
-                                color: '#003366',
+                                color: '#181818',
                                 fontWeight: '700',
                                 border: 'none',
                                 padding: '12px'
@@ -248,7 +248,7 @@ const ParentPayments = () => {
                                 <AlertCircle size={24} color="#FC8A24" />
                             </div>
                             <div>
-                                <h3 style={{ fontSize: '18px', fontWeight: '700', color: '#003366', margin: 0 }}>Payment Method</h3>
+                                <h3 style={{ fontSize: '18px', fontWeight: '700', color: '#181818', margin: 0 }}>Payment Method</h3>
                                 <p style={{ color: '#666', fontSize: '14px', margin: '4px 0 0' }}>
                                     {subscription?.paymentMethod === 'card' 
                                         ? `Card ending in ${subscription?.cardLast4 || '****'}`
@@ -257,7 +257,7 @@ const ParentPayments = () => {
                                         : 'No payment method saved'}
                                 </p>
                             </div>
-                            <Button variant="ghost" size="sm" style={{ marginLeft: 'auto', color: '#003366' }}>Edit</Button>
+                            <Button variant="ghost" size="sm" style={{ marginLeft: 'auto', color: '#181818' }}>Edit</Button>
                         </div>
                         <div style={{ height: '1px', background: '#f0f0f0', width: '100%', marginBottom: '20px' }}></div>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
@@ -265,12 +265,12 @@ const ParentPayments = () => {
                                 <CheckCircle size={24} color={subscription?.autoRenewal !== false ? '#166534' : '#92400E'} />
                             </div>
                             <div>
-                                <h3 style={{ fontSize: '18px', fontWeight: '700', color: '#003366', margin: 0 }}>Auto-Renewal</h3>
+                                <h3 style={{ fontSize: '18px', fontWeight: '700', color: '#181818', margin: 0 }}>Auto-Renewal</h3>
                                 <p style={{ color: '#666', fontSize: '14px', margin: '4px 0 0' }}>
                                     {subscription?.autoRenewal !== false ? 'Enabled' : 'Disabled'}
                                 </p>
                             </div>
-                            <Button variant="ghost" size="sm" style={{ marginLeft: 'auto', color: '#003366' }}>Manage</Button>
+                            <Button variant="ghost" size="sm" style={{ marginLeft: 'auto', color: '#181818' }}>Manage</Button>
                         </div>
                     </Card>
                 </div>
@@ -283,7 +283,7 @@ const ParentPayments = () => {
                     overflow: 'hidden'
                 }}>
                     <div style={{ padding: '24px', borderBottom: '1px solid #f0f0f0' }}>
-                        <h3 style={{ fontSize: '18px', fontWeight: '700', color: '#003366', margin: 0 }}>Transaction History</h3>
+                        <h3 style={{ fontSize: '18px', fontWeight: '700', color: '#181818', margin: 0 }}>Transaction History</h3>
                     </div>
                     {transactions.length === 0 ? (
                         <div style={{ padding: '40px', textAlign: 'center', color: '#666' }}>
@@ -316,7 +316,7 @@ const ParentPayments = () => {
                                             onMouseLeave={(e) => e.currentTarget.style.background = 'white'}>
                                             <td style={{ padding: '16px 24px', color: '#334155', fontWeight: '500' }}>{formatDate(tx.date)}</td>
                                             <td style={{ padding: '16px 24px', color: '#334155' }}>{tx.description || tx.planName || 'Subscription Payment'}</td>
-                                            <td style={{ padding: '16px 24px', fontWeight: '700', color: '#003366' }}>₹{tx.amount?.toLocaleString() || '0'}</td>
+                                            <td style={{ padding: '16px 24px', fontWeight: '700', color: '#181818' }}>₹{tx.amount?.toLocaleString() || '0'}</td>
                                             <td style={{ padding: '16px 24px' }}>
                                                 <span style={{
                                                     display: 'inline-flex',

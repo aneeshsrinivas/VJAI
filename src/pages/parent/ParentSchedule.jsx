@@ -164,7 +164,7 @@ const ParentSchedule = () => {
                     <h1 style={{
                         fontSize: '32px',
                         fontWeight: '800',
-                        color: '#003366',
+                        color: '#181818',
                         marginBottom: '8px',
                         display: 'flex',
                         alignItems: 'center',
@@ -232,13 +232,13 @@ const ParentSchedule = () => {
                                                 <span style={{ fontSize: '13px', fontWeight: '600', color: i === 0 ? '#FC8A24' : '#666', textTransform: 'uppercase' }}>
                                                     {dayName.substring(0, 3)}
                                                 </span>
-                                                <span style={{ fontSize: '24px', fontWeight: '800', color: '#003366' }}>
+                                                <span style={{ fontSize: '24px', fontWeight: '800', color: '#181818' }}>
                                                     {dateObj.getDate()}
                                                 </span>
                                             </div>
                                             <div>
                                                 <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '4px' }}>
-                                                    <h3 style={{ fontSize: '18px', fontWeight: '700', color: '#003366', margin: 0 }}>
+                                                    <h3 style={{ fontSize: '18px', fontWeight: '700', color: '#181818', margin: 0 }}>
                                                         {slot.batchName || slot.classType || 'Chess Class'}
                                                     </h3>
                                                     <span style={{
@@ -271,8 +271,8 @@ const ParentSchedule = () => {
                                             onClick={() => slot.meetLink && window.open(slot.meetLink, '_blank')}
                                             style={{
                                                 background: i === 0 ? 'linear-gradient(135deg, #FC8A24, #ff9d4d)' : 'white',
-                                                color: i === 0 ? 'white' : '#003366',
-                                                border: i === 0 ? 'none' : '1px solid #003366',
+                                                color: i === 0 ? 'white' : '#181818',
+                                                border: i === 0 ? 'none' : '1px solid #181818',
                                                 padding: '10px 20px',
                                                 borderRadius: '10px',
                                                 fontWeight: '600',

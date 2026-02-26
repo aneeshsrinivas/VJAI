@@ -165,7 +165,7 @@
     font-family: 'Figtree', sans-serif;
     font-size: 28px;
     font-weight: 800;
-    color: #003366;
+    color: #181818;
     margin-bottom: 12px;
     text-align: center;
 }
@@ -187,7 +187,7 @@
 
 .role-card-features li {
     font-size: 15px;
-    color: #003366;
+    color: #181818;
     margin-bottom: 12px;
     display: flex;
     align-items: center;
@@ -235,7 +235,7 @@
     font-family: 'Figtree', sans-serif;
     font-size: 22px;
     font-weight: 700;
-    color: #003366;
+    color: #181818;
     margin: 0 0 12px 0;
 }
 

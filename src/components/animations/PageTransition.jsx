@@ -6,22 +6,18 @@ const PageTransition = ({ children, className = '' }) => {
     const pageVariants = {
         initial: {
             opacity: 0,
-            y: 20
         },
         animate: {
             opacity: 1,
-            y: 0,
             transition: {
-                duration: 0.4,
-                ease: [0.43, 0.13, 0.23, 0.96],
-                staggerChildren: 0.1
+                duration: 0.35,
+                ease: [0.25, 0.1, 0.25, 1],
             }
         },
         exit: {
             opacity: 0,
-            y: -20,
             transition: {
-                duration: 0.3
+                duration: 0.15
             }
         }
     };

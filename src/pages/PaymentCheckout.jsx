@@ -346,7 +346,7 @@ const PaymentCheckout = () => {
 
                                 {formData.paymentMethod === 'upi' && (
                                     <div className="upi-details" style={{ marginTop: '20px', padding: '24px', background: '#f8fafc', borderRadius: '12px', textAlign: 'center' }}>
-                                        <h4 style={{ margin: '0 0 16px', color: '#003366' }}>Pay via UPI</h4>
+                                        <h4 style={{ margin: '0 0 16px', color: '#181818' }}>Pay via UPI</h4>
 
                                         {/* Mock QR Code */}
                                         <div style={{
@@ -374,7 +374,7 @@ const PaymentCheckout = () => {
                                             fontFamily: 'monospace',
                                             fontSize: '16px',
                                             fontWeight: '600',
-                                            color: '#003366'
+                                            color: '#181818'
                                         }}>
                                             {UPI_ID}
                                         </div>
@@ -439,7 +439,7 @@ const PaymentCheckout = () => {
                             <h3 className="summary-title">Order Summary</h3>
 
                             <div className="summary-plan">
-                                <div className="summary-plan-icon" style={{ color: plan.color || '#003366' }}>
+                                <div className="summary-plan-icon" style={{ color: plan.color || '#181818' }}>
                                     {plan.type === '1-on-1' || plan.classType === 'one-on-one' ? '♔' : '♟'}
                                 </div>
                                 <div className="summary-plan-info">

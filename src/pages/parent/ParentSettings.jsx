@@ -11,7 +11,7 @@ import 'react-toastify/dist/ReactToastify.css';
 // ICA Colors
 const COLORS = {
     orange: '#FC8A24',
-    deepBlue: '#003366',
+    deepBlue: '#181818',
     oliveGreen: '#6B8E23',
     ivory: '#FFFEF3'
 };

@@ -2,7 +2,7 @@
 
 /* Global Variables (Scoped to Landing Page) */
 .landing-page-home {
-    --primary-blue: #0C3362;
+    --primary-blue: #181818;
     --accent-gold: #D4AF37;
     --text-light: #FEFFEC;
     --text-muted: rgba(254, 255, 236, 0.7);
@@ -56,7 +56,7 @@
 /* FAQ Section */
 .faq-home {
     padding: 100px 0;
-    background: #082547;
+    background: #111111;
 }
 
 .faq-list-home {
@@ -120,7 +120,7 @@
     left: 0;
     right: 0;
     bottom: 0;
-    background: rgba(12, 51, 98, 0.85);
+    background: rgba(15, 17, 21, 0.88);
     /* Dark Blue Overlay */
     backdrop-filter: blur(8px);
     z-index: 9999;
@@ -183,7 +183,7 @@
 .modal-title {
     font-size: 28px;
     font-weight: 800;
-    color: #0C3362;
+    color: #181818;
     /* Navy */
     margin-bottom: 24px;
     letter-spacing: -0.02em;
@@ -191,7 +191,7 @@
 
 .modal-body h3 {
     font-size: 20px;
-    color: #0C3362;
+    color: #181818;
     margin-bottom: 8px;
     font-weight: 700;
 }
@@ -206,7 +206,7 @@
 
 .course-section h4 {
     font-size: 16px;
-    color: #0C3362;
+    color: #181818;
     font-weight: 700;
     margin-bottom: 12px;
 }
@@ -241,7 +241,7 @@
     padding-top: 20px;
     border-top: 1px solid #EEE;
     font-weight: 600;
-    color: #0C3362;
+    color: #181818;
     flex-wrap: wrap;
 }
 
@@ -282,7 +282,7 @@
 }
 
 .modal-cta:hover {
-    background: #001f3f;
+    background: #0F1115;
 }
 
 /* Responsive */

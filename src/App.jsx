@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useRef } from 'react';
 import { Routes, Route, Outlet, useLocation } from 'react-router-dom';
 import { AnimatePresence } from 'framer-motion';
 import { ToastContainer } from 'react-toastify';
@@ -73,6 +73,7 @@ const StaffLayout = ({ role }) => (
 
 function App() {
   const location = useLocation();
+  const lenisRef = useRef(null);
 
   // Initialize Smooth Scrolling
   useEffect(() => {
@@ -88,6 +89,8 @@ function App() {
       infinite: false,
     });
 
+    lenisRef.current = lenis;
+
     function raf(time) {
       lenis.raf(time);
       requestAnimationFrame(raf);
@@ -97,12 +100,26 @@ function App() {
 
     return () => {
       lenis.destroy();
+      lenisRef.current = null;
     };
   }, []);
 
+  // Scroll to top on route change
+  useEffect(() => {
+    if (lenisRef.current) {
+      lenisRef.current.scrollTo(0, { immediate: true });
+    } else {
+      window.scrollTo(0, 0);
+    }
+  }, [location.pathname]);
+
   // Define routes where Navbar should be hidden
   const hideNavbarRoutes = ['/login', '/register', '/select-role'];
-  const showNavbar = !hideNavbarRoutes.includes(location.pathname);
+  const showNavbar = !hideNavbarRoutes.includes(location.pathname) &&
+    !location.pathname.startsWith('/admin') &&
+    !location.pathname.startsWith('/coach') &&
+    !location.pathname.startsWith('/parent') &&
+    !location.pathname.startsWith('/chat');
 
   return (
     <ErrorBoundary>

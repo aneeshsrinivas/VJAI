@@ -9,7 +9,7 @@
 /* HERO SECTION */
 .terms-hero {
     padding: 180px 48px 60px;
-    background: linear-gradient(135deg, #003366 0%, #004080 100%);
+    background: linear-gradient(135deg, #111111 0%, #1a1a1a 100%);
     text-align: center;
 }
 
@@ -46,7 +46,7 @@
     font-family: 'Figtree', sans-serif;
     font-size: 28px;
     font-weight: 800;
-    color: #003366;
+    color: #181818;
     margin-bottom: 20px;
 }
 

@@ -533,7 +533,7 @@ const ParentDashboard = () => {
                             <div className={`content-card ${cardsVisible ? 'visible' : ''}`}>
                                 <div className="card-header-row">
                                     <div className="card-title-group">
-                                        <ChessBishopIcon size={22} color="#003366" />
+                                        <ChessBishopIcon size={22} color="#181818" />
                                         <h3>Chess Assignments</h3>
                                     </div>
                                 </div>
@@ -625,7 +625,7 @@ const ParentDashboard = () => {
                                     {coach?.photoURL ? (
                                         <img src={coach.photoURL} alt="Coach" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                                     ) : (
-                                        <ChessBishopIcon size={40} color="#003366" />
+                                        <ChessBishopIcon size={40} color="#181818" />
                                     )}
                                 </div>
                                 <div className="coach-info">

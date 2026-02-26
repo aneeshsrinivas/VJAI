@@ -12,7 +12,7 @@ import './Dashboard.css';
 // Color scheme from user
 const COLORS = {
     orange: '#FC8A24',
-    deepBlue: '#003366',
+    deepBlue: '#181818',
     oliveGreen: '#6B8E23',
     ivory: '#FFFEF3'
 };
