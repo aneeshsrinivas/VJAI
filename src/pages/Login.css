@@ -77,14 +77,17 @@
 }
 
 .login-brand-logo {
-    height: 64px;
-    width: 64px;
+    height: 80px;
+    width: auto;
+    transition: transform 0.3s ease;
     border-radius: 10px;
     object-fit: contain;
     image-rendering: auto;
     transform: translateZ(0);
     backface-visibility: hidden;
     -webkit-backface-visibility: hidden;
+    position: relative;
+    z-index: 10;
 }
 
 .login-brand span {
