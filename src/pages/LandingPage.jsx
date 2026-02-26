@@ -34,10 +34,7 @@ const LandingPage = () => {
 
     useEffect(() => {
         if (activeModal) {
-            document.body.style.setProperty('overflow', 'hidden', 'important');
-            document.documentElement.style.setProperty('overflow', 'hidden', 'important');
-
-            // Scroll About section into center of viewport when modal opens
+            // Scroll About section into center of viewport FIRST
             const aboutSection = document.getElementById('about');
             if (aboutSection) {
                 const rect = aboutSection.getBoundingClientRect();
@@ -45,13 +42,17 @@ const LandingPage = () => {
                 const viewportCenter = window.innerHeight / 2;
                 const scrollPosition = absoluteTop - viewportCenter;
 
-                // Use setTimeout to ensure scroll happens after state update
+                // Scroll first
+                window.scrollTo({
+                    top: Math.max(0, scrollPosition),
+                    behavior: 'auto'
+                });
+
+                // Then lock overflow and show modal after scroll completes
                 setTimeout(() => {
-                    window.scrollTo({
-                        top: Math.max(0, scrollPosition),
-                        behavior: 'auto'
-                    });
-                }, 0);
+                    document.body.style.setProperty('overflow', 'hidden', 'important');
+                    document.documentElement.style.setProperty('overflow', 'hidden', 'important');
+                }, 100); // Wait for scroll to complete
             }
         } else {
             document.body.style.removeProperty('overflow');
