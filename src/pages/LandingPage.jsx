@@ -37,10 +37,21 @@ const LandingPage = () => {
             document.body.style.setProperty('overflow', 'hidden', 'important');
             document.documentElement.style.setProperty('overflow', 'hidden', 'important');
 
-            // Scroll About section into view when modal opens
+            // Scroll About section into center of viewport when modal opens
             const aboutSection = document.getElementById('about');
             if (aboutSection) {
-                aboutSection.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                const rect = aboutSection.getBoundingClientRect();
+                const absoluteTop = rect.top + window.scrollY;
+                const viewportCenter = window.innerHeight / 2;
+                const scrollPosition = absoluteTop - viewportCenter;
+
+                // Use setTimeout to ensure scroll happens after state update
+                setTimeout(() => {
+                    window.scrollTo({
+                        top: Math.max(0, scrollPosition),
+                        behavior: 'auto'
+                    });
+                }, 0);
             }
         } else {
             document.body.style.removeProperty('overflow');
