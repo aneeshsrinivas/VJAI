@@ -63,7 +63,7 @@
 .hero-overlay {
     position: absolute;
     inset: 0;
-    background: linear-gradient(135deg, rgba(17, 17, 17, 0.92) 0%, rgba(24, 24, 24, 0.88) 100%);
+    background: linear-gradient(135deg, rgba(17, 17, 17, 0.60) 0%, rgba(24, 24, 24, 0.55) 100%);
 }
 
 .coach-hero-content {
