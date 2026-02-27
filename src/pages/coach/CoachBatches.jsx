@@ -5,6 +5,7 @@ import { Users, Clock, Calendar, Upload, FileText, BookOpen } from 'lucide-react
 import { collection, query, where, onSnapshot } from 'firebase/firestore';
 import { db } from '../../lib/firebase';
 import { useAuth } from '../../context/AuthContext';
+import { useTheme } from '../../context/ThemeContext';
 import { COLLECTIONS } from '../../config/firestoreCollections';
 import CreateAssignmentModal from '../../components/features/CreateAssignmentModal';
 import UploadMaterialModal from '../../components/features/UploadMaterialModal';
@@ -12,6 +13,7 @@ import CreateChessPuzzleModal from '../../components/features/CreateChessPuzzleM
 import CoachAssignmentDetailsModal from '../../components/features/CoachAssignmentDetailsModal';
 
 const CoachBatches = () => {
+    const { isDark } = useTheme();
     const [selectedBatchForUpload, setSelectedBatchForUpload] = useState(null);
     const [createAssignmentBatch, setCreateAssignmentBatch] = useState(null);
     const [createPuzzleBatch, setCreatePuzzleBatch] = useState(null);
@@ -111,7 +113,7 @@ const CoachBatches = () => {
         return (
             <div style={{
                 minHeight: 'calc(100vh - 70px)',
-                background: 'linear-gradient(180deg, #f8f9fc 0%, #f0f2f5 100%)',
+                background: isDark ? 'linear-gradient(180deg, #0f1117 0%, #161b27 100%)' : 'linear-gradient(180deg, #f8f9fc 0%, #f0f2f5 100%)',
                 padding: '32px',
                 display: 'flex',
                 alignItems: 'center',
@@ -120,7 +122,7 @@ const CoachBatches = () => {
             }}>
                 <div style={{ textAlign: 'center' }}>
                     <div style={{ fontSize: '40px', marginBottom: '16px' }}>📚</div>
-                    <p style={{ color: '#64748b', fontSize: '16px' }}>Loading your batches...</p>
+                    <p style={{ color: isDark ? '#f0f0f0' : '#64748b', fontSize: '16px' }}>Loading your batches...</p>
                 </div>
             </div>
         );
@@ -129,7 +131,7 @@ const CoachBatches = () => {
     return (
         <div style={{
             minHeight: 'calc(100vh - 70px)',
-            background: 'linear-gradient(180deg, #f8f9fc 0%, #f0f2f5 100%)',
+            background: isDark ? 'linear-gradient(180deg, #0f1117 0%, #161b27 100%)' : 'linear-gradient(180deg, #f8f9fc 0%, #f0f2f5 100%)',
             padding: '32px',
             fontFamily: "'Figtree', sans-serif"
         }}>
@@ -149,10 +151,10 @@ const CoachBatches = () => {
                             <BookOpen size={28} color="white" />
                         </div>
                         <div>
-                            <h1 style={{ margin: 0, fontSize: '28px', fontWeight: '800', color: '#003366' }}>
+                            <h1 style={{ margin: 0, fontSize: '28px', fontWeight: '800', color: isDark ? '#f0f0f0' : '#003366' }}>
                                 My Batches
                             </h1>
-                            <p style={{ margin: '4px 0 0', color: '#64748b', fontSize: '15px' }}>
+                            <p style={{ margin: '4px 0 0', color: isDark ? 'rgba(255,255,255,0.65)' : '#64748b', fontSize: '15px' }}>
                                 Manage your classes and share resources
                             </p>
                         </div>
@@ -162,18 +164,19 @@ const CoachBatches = () => {
                 {/* Batches Grid */}
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(360px, 1fr))', gap: '24px' }}>
                     {loading ? (
-                        <div>Loading batches...</div>
+                        <div style={{ color: isDark ? '#f0f0f0' : 'inherit' }}>Loading batches...</div>
                     ) : batches.length === 0 ? (
-                        <div style={{ gridColumn: '1 / -1', textAlign: 'center', padding: '40px', color: '#64748b' }}>
-                            <h3>No batches assigned yet</h3>
+                        <div style={{ gridColumn: '1 / -1', textAlign: 'center', padding: '40px', color: isDark ? 'rgba(255,255,255,0.65)' : '#64748b' }}>
+                            <h3 style={{ color: isDark ? '#f0f0f0' : 'inherit' }}>No batches assigned yet</h3>
                             <p>Contact the administrator to assign batches to your profile.</p>
                         </div>
                     ) : (
                         batches.map(batch => (
                             <Card key={batch.id} style={{
-                                border: 'none',
+                                background: isDark ? '#1e2330' : '#ffffff',
+                                border: isDark ? '1px solid rgba(255,255,255,0.08)' : 'none',
                                 borderRadius: '20px',
-                                boxShadow: '0 4px 20px rgba(0,0,0,0.05)',
+                                boxShadow: isDark ? '0 4px 20px rgba(0,0,0,0.3)' : '0 4px 20px rgba(0,0,0,0.05)',
                                 padding: '24px',
                                 borderTop: `4px solid ${batch.color || '#3b82f6'}`,
                                 transition: 'all 0.3s ease',
@@ -184,13 +187,13 @@ const CoachBatches = () => {
                                         margin: '0 0 16px',
                                         fontSize: '20px',
                                         fontWeight: '800',
-                                        color: '#1e293b'
+                                        color: isDark ? '#f0f0f0' : '#1e293b'
                                     }}>
                                         {batch.name}
                                     </h3>
 
                                     <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-                                        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', color: '#64748b', fontSize: '14px' }}>
+                                        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', color: isDark ? 'rgba(255,255,255,0.65)' : '#64748b', fontSize: '14px' }}>
                                             <div style={{
                                                 width: '32px',
                                                 height: '32px',
@@ -204,9 +207,9 @@ const CoachBatches = () => {
                                             </div>
                                             <span>{batch.schedule || 'Flexible'}</span>
                                         </div>
-                                        <span>{formatSchedule(batch.daysOfWeek, batch.time)}</span>
+                                        <span style={{ color: isDark ? 'rgba(255,255,255,0.65)' : 'inherit' }}>{formatSchedule(batch.daysOfWeek, batch.time)}</span>
                                     </div>
-                                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px', color: '#64748b', fontSize: '14px' }}>
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px', color: isDark ? 'rgba(255,255,255,0.65)' : '#64748b', fontSize: '14px', marginTop: '10px' }}>
                                         <div style={{
                                             width: '32px',
                                             height: '32px',
@@ -223,7 +226,7 @@ const CoachBatches = () => {
                                 </div>
 
                                 <div style={{
-                                    borderTop: '1px solid #f1f5f9',
+                                    borderTop: isDark ? '1px solid rgba(255,255,255,0.08)' : '1px solid #f1f5f9',
                                     paddingTop: '16px',
                                     display: 'grid',
                                     gridTemplateColumns: '1fr',
@@ -233,9 +236,9 @@ const CoachBatches = () => {
                                         size="sm"
                                         onClick={() => setCreatePuzzleBatch(batch)}
                                         style={{
-                                            background: '#f0fdf4',
-                                            border: '1px solid #bbf7d0',
-                                            color: '#15803d',
+                                            background: isDark ? 'rgba(21, 128, 61, 0.15)' : '#f0fdf4',
+                                            border: isDark ? '1px solid rgba(34, 197, 94, 0.3)' : '1px solid #bbf7d0',
+                                            color: isDark ? '#4ade80' : '#15803d',
                                             display: 'flex',
                                             alignItems: 'center',
                                             justifyContent: 'center',
@@ -249,9 +252,9 @@ const CoachBatches = () => {
                                         size="sm"
                                         onClick={() => setSelectedBatchForUpload(batch)}
                                         style={{
-                                            background: '#f8fafc',
-                                            border: '1px solid #e2e8f0',
-                                            color: '#475569',
+                                            background: isDark ? 'rgba(255, 255, 255, 0.05)' : '#f8fafc',
+                                            border: isDark ? '1px solid rgba(255, 255, 255, 0.15)' : '1px solid #e2e8f0',
+                                            color: isDark ? '#e2e8f0' : '#475569',
                                             display: 'flex',
                                             alignItems: 'center',
                                             justifyContent: 'center',
@@ -270,31 +273,36 @@ const CoachBatches = () => {
                 <div style={{ marginTop: '48px' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '24px' }}>
                         <div style={{
-                            background: '#f0fdf4', borderRadius: '12px', padding: '10px',
+                            background: isDark ? 'rgba(21, 128, 61, 0.2)' : '#f0fdf4', borderRadius: '12px', padding: '10px',
                             display: 'flex', justifyContent: 'center', alignItems: 'center'
                         }}>
                             <div style={{ fontSize: '24px' }}>♟️</div>
                         </div>
-                        <h2 style={{ fontSize: '24px', fontWeight: '800', color: '#0f172a', margin: 0 }}>Active Puzzles</h2>
+                        <h2 style={{ fontSize: '24px', fontWeight: '800', color: isDark ? '#f0f0f0' : '#0f172a', margin: 0 }}>Active Puzzles</h2>
                     </div>
 
                     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: '24px' }}>
                         {assignments.length === 0 ? (
-                            <div style={{ gridColumn: '1 / -1', textAlign: 'center', padding: '40px', color: '#64748b' }}>
+                            <div style={{ gridColumn: '1 / -1', textAlign: 'center', padding: '40px', color: isDark ? 'rgba(255,255,255,0.65)' : '#64748b' }}>
                                 <p>No puzzles created yet.</p>
                             </div>
                         ) : (
                             assignments.map(assign => (
-                                <Card key={assign.id} style={{ padding: '24px', cursor: 'pointer', transition: 'all 0.2s', border: '1px solid #e2e8f0' }} onClick={() => setSelectedAssignment(assign)}>
+                                <Card key={assign.id} style={{
+                                    padding: '24px', cursor: 'pointer', transition: 'all 0.2s',
+                                    background: isDark ? '#1e2330' : '#ffffff',
+                                    border: isDark ? '1px solid rgba(255, 255, 255, 0.08)' : '1px solid #e2e8f0',
+                                    boxShadow: isDark ? '0 4px 20px rgba(0,0,0,0.3)' : '0 1px 3px rgba(0,0,0,0.1)'
+                                }} onClick={() => setSelectedAssignment(assign)}>
                                     <div style={{ marginBottom: '16px' }}>
-                                        <h3 style={{ margin: '0 0 8px', fontSize: '18px', fontWeight: '700', color: '#1e293b' }}>{assign.title}</h3>
-                                        <p style={{ margin: '0', fontSize: '13px', color: '#64748b' }}>
+                                        <h3 style={{ margin: '0 0 8px', fontSize: '18px', fontWeight: '700', color: isDark ? '#f0f0f0' : '#1e293b' }}>{assign.title}</h3>
+                                        <p style={{ margin: '0', fontSize: '13px', color: isDark ? 'rgba(255,255,255,0.65)' : '#64748b' }}>
                                             To: {assign.batchName}
                                         </p>
                                     </div>
-                                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '12px', color: '#64748b' }}>
+                                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '12px', color: isDark ? 'rgba(255,255,255,0.5)' : '#64748b' }}>
                                         <span>{assign.createdAt?.toDate ? assign.createdAt.toDate().toLocaleDateString() : 'Just now'}</span>
-                                        <span style={{ color: '#3b82f6', fontWeight: 'bold' }}>View Submissions →</span>
+                                        <span style={{ color: isDark ? '#60a5fa' : '#3b82f6', fontWeight: 'bold' }}>View Submissions →</span>
                                     </div>
                                 </Card>
                             ))
@@ -306,54 +314,58 @@ const CoachBatches = () => {
                 <div style={{ marginTop: '48px' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '24px' }}>
                         <div style={{
-                            background: '#e0f2fe', borderRadius: '12px', padding: '10px',
+                            background: isDark ? 'rgba(56, 189, 248, 0.2)' : '#e0f2fe', borderRadius: '12px', padding: '10px',
                             display: 'flex', justifyContent: 'center', alignItems: 'center'
                         }}>
-                            <FileText size={24} color="#0284c7" />
+                            <FileText size={24} color={isDark ? '#38bdf8' : "#0284c7"} />
                         </div>
-                        <h2 style={{ fontSize: '24px', fontWeight: '800', color: '#0f172a', margin: 0 }}>Upload History</h2>
+                        <h2 style={{ fontSize: '24px', fontWeight: '800', color: isDark ? '#f0f0f0' : '#0f172a', margin: 0 }}>Upload History</h2>
                     </div>
 
-                    <Card style={{ padding: '0', overflow: 'hidden', border: 'none', borderRadius: '16px', boxShadow: '0 4px 20px rgba(0,0,0,0.05)' }}>
+                    <Card style={{
+                        padding: '0', overflow: 'hidden', border: isDark ? '1px solid rgba(255,255,255,0.08)' : 'none',
+                        background: isDark ? '#1e2330' : '#ffffff',
+                        borderRadius: '16px', boxShadow: isDark ? '0 4px 20px rgba(0,0,0,0.3)' : '0 4px 20px rgba(0,0,0,0.05)'
+                    }}>
                         <div style={{ overflowX: 'auto' }}>
                             <table style={{ width: '100%', borderCollapse: 'collapse', minWidth: '800px' }}>
-                                <thead style={{ background: '#f8fafc', borderBottom: '1px solid #e2e8f0' }}>
+                                <thead style={{ background: isDark ? 'rgba(255,255,255,0.03)' : '#f8fafc', borderBottom: isDark ? '1px solid rgba(255,255,255,0.08)' : '1px solid #e2e8f0' }}>
                                     <tr>
-                                        <th style={{ padding: '16px 20px', textAlign: 'left', fontSize: '13px', fontWeight: '700', color: '#64748b', textTransform: 'uppercase' }}>Document Name</th>
-                                        <th style={{ padding: '16px 20px', textAlign: 'left', fontSize: '13px', fontWeight: '700', color: '#64748b', textTransform: 'uppercase' }}>Batch</th>
-                                        <th style={{ padding: '16px 20px', textAlign: 'left', fontSize: '13px', fontWeight: '700', color: '#64748b', textTransform: 'uppercase' }}>Type</th>
-                                        <th style={{ padding: '16px 20px', textAlign: 'left', fontSize: '13px', fontWeight: '700', color: '#64748b', textTransform: 'uppercase' }}>Date Uploaded</th>
-                                        <th style={{ padding: '16px 20px', textAlign: 'left', fontSize: '13px', fontWeight: '700', color: '#64748b', textTransform: 'uppercase' }}>Action</th>
+                                        <th style={{ padding: '16px 20px', textAlign: 'left', fontSize: '13px', fontWeight: '700', color: isDark ? 'rgba(255,255,255,0.65)' : '#64748b', textTransform: 'uppercase' }}>Document Name</th>
+                                        <th style={{ padding: '16px 20px', textAlign: 'left', fontSize: '13px', fontWeight: '700', color: isDark ? 'rgba(255,255,255,0.65)' : '#64748b', textTransform: 'uppercase' }}>Batch</th>
+                                        <th style={{ padding: '16px 20px', textAlign: 'left', fontSize: '13px', fontWeight: '700', color: isDark ? 'rgba(255,255,255,0.65)' : '#64748b', textTransform: 'uppercase' }}>Type</th>
+                                        <th style={{ padding: '16px 20px', textAlign: 'left', fontSize: '13px', fontWeight: '700', color: isDark ? 'rgba(255,255,255,0.65)' : '#64748b', textTransform: 'uppercase' }}>Date Uploaded</th>
+                                        <th style={{ padding: '16px 20px', textAlign: 'left', fontSize: '13px', fontWeight: '700', color: isDark ? 'rgba(255,255,255,0.65)' : '#64748b', textTransform: 'uppercase' }}>Action</th>
                                     </tr>
                                 </thead>
                                 <tbody>
                                     {uploadLog.length === 0 ? (
                                         <tr>
-                                            <td colSpan="5" style={{ padding: '40px', textAlign: 'center', color: '#94a3b8' }}>No uploads found yet.</td>
+                                            <td colSpan="5" style={{ padding: '40px', textAlign: 'center', color: isDark ? 'rgba(255,255,255,0.5)' : '#94a3b8' }}>No uploads found yet.</td>
                                         </tr>
                                     ) : (
                                         uploadLog.map(item => (
-                                            <tr key={item.id} style={{ borderBottom: '1px solid #f1f5f9' }}>
-                                                <td style={{ padding: '16px 20px', fontWeight: '600', color: '#334155' }}>{item.title}</td>
-                                                <td style={{ padding: '16px 20px', color: '#64748b' }}>
-                                                    <span style={{ background: '#f1f5f9', padding: '4px 8px', borderRadius: '4px', fontSize: '12px', fontWeight: '600' }}>
+                                            <tr key={item.id} style={{ borderBottom: isDark ? '1px solid rgba(255,255,255,0.05)' : '1px solid #f1f5f9' }}>
+                                                <td style={{ padding: '16px 20px', fontWeight: '600', color: isDark ? '#f0f0f0' : '#334155' }}>{item.title}</td>
+                                                <td style={{ padding: '16px 20px', color: isDark ? 'rgba(255,255,255,0.65)' : '#64748b' }}>
+                                                    <span style={{ background: isDark ? 'rgba(255,255,255,0.1)' : '#f1f5f9', color: isDark ? '#f0f0f0' : 'inherit', padding: '4px 8px', borderRadius: '4px', fontSize: '12px', fontWeight: '600' }}>
                                                         {item.batchName || 'General'}
                                                     </span>
                                                 </td>
                                                 <td style={{ padding: '16px 20px' }}>
                                                     <span style={{
-                                                        color: item.type === 'PGN' ? '#84cc16' : '#f43f5e',
-                                                        background: item.type === 'PGN' ? '#ecfccb' : '#ffe4e6',
+                                                        color: item.type === 'PGN' ? (isDark ? '#bef264' : '#84cc16') : (isDark ? '#fda4af' : '#f43f5e'),
+                                                        background: item.type === 'PGN' ? (isDark ? 'rgba(132, 204, 22, 0.2)' : '#ecfccb') : (isDark ? 'rgba(244, 63, 94, 0.2)' : '#ffe4e6'),
                                                         padding: '4px 10px', borderRadius: '20px', fontSize: '12px', fontWeight: '700'
                                                     }}>
                                                         {item.type}
                                                     </span>
                                                 </td>
-                                                <td style={{ padding: '16px 20px', color: '#64748b', fontSize: '14px' }}>
+                                                <td style={{ padding: '16px 20px', color: isDark ? 'rgba(255,255,255,0.65)' : '#64748b', fontSize: '14px' }}>
                                                     {item.createdAt?.toDate ? item.createdAt.toDate().toLocaleDateString() : 'Just now'}
                                                 </td>
                                                 <td style={{ padding: '16px 20px' }}>
-                                                    <Button variant="ghost" size="sm" onClick={() => window.open(item.url, '_blank')} style={{ fontSize: '12px' }}>
+                                                    <Button variant="ghost" size="sm" onClick={() => window.open(item.url, '_blank')} style={{ fontSize: '12px', color: isDark ? '#e2e8f0' : 'inherit' }}>
                                                         View
                                                     </Button>
                                                 </td>
