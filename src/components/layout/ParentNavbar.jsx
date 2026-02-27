@@ -50,7 +50,7 @@ const ParentNavbar = () => {
     return (
         <nav className="dashboard-navbar">
             <div className="navbar-brand">
-                <img src="/ica-logo.png" alt="ICA" className="navbar-logo" />
+                <img src="/logo.png" alt="Indian Chess Academy" className="navbar-logo" />
                 <span className="navbar-title" style={{ color: 'white' }}>ICA Student Portal</span>
             </div>
 

@@ -64,7 +64,7 @@ const Login = () => {
                 <div className="login-left-overlay" />
                 <div className="login-left-content">
                     <div className="login-brand">
-                        <img src="/ica-logo.png" alt="ICA" className="login-brand-logo" />
+                        <img src="/logo.png" alt="Indian Chess Academy" className="login-brand-logo" />
                         <span>Indian Chess Academy</span>
                     </div>
                     <h1>Master<br />Your Game.</h1>

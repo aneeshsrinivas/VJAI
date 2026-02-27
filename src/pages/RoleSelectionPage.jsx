@@ -35,7 +35,7 @@ const RoleSelectionPage = () => {
 
                 <div className="rsp-left-content">
                     <div className="rsp-brand">
-                        <img src="/ica-logo.png" alt="ICA" className="rsp-brand-logo" />
+                        <img src="/logo.png" alt="Indian Chess Academy" className="rsp-brand-logo" />
                         <span>Indian Chess Academy</span>
                     </div>
                     <h1>Choose<br />Your Path.</h1>
