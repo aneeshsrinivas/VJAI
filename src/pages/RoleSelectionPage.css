@@ -172,8 +172,11 @@
 .rsp-brand-logo {
     height: 56px;
     width: auto;
-    border-radius: 8px;
     object-fit: contain;
+    image-rendering: auto;
+    transform: translateZ(0);
+    backface-visibility: hidden;
+    -webkit-backface-visibility: hidden;
 }
 
 .rsp-brand span {

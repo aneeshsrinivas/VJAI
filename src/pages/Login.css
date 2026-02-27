@@ -126,10 +126,9 @@
 }
 
 .login-brand-logo {
-    height: 80px;
+    height: 60px;
     width: auto;
     transition: transform 0.3s ease;
-    border-radius: 10px;
     object-fit: contain;
     image-rendering: auto;
     transform: translateZ(0);

@@ -96,8 +96,9 @@ const ParentSettings = () => {
         fontSize: '14px',
         transition: 'border-color 0.2s, box-shadow 0.2s',
         outline: 'none',
-        background: c.inputBg,
+        backgroundColor: c.inputBg,
         color: c.inputColor,
+        colorScheme: isDark ? 'dark' : 'light',
     };
 
     const labelStyle = {
@@ -129,7 +130,7 @@ const ParentSettings = () => {
                 </div>
 
                 {/* Profile Card */}
-                <Card style={{ padding: '32px', marginBottom: '24px', background: c.cardBg, border: c.cardBorder, transition: 'background 0.2s ease' }}>
+                <Card style={{ padding: '32px', marginBottom: '24px', backgroundColor: c.cardBg, border: c.cardBorder, transition: 'background-color 0.2s ease' }}>
                     <h3 style={{ margin: '0 0 24px', color: c.heading, borderBottom: `2px solid ${c.divider1}`, paddingBottom: '12px', transition: 'color 0.2s ease' }}>
                         Parent Information
                     </h3>
@@ -148,7 +149,7 @@ const ParentSettings = () => {
                         </div>
                         <div>
                             <label style={labelStyle}>Email</label>
-                            <div style={{ ...inputStyle, background: c.inputDisabledBg, color: c.inputDisabledColor }}>
+                            <div style={{ ...inputStyle, backgroundColor: c.inputDisabledBg, color: c.inputDisabledColor }}>
                                 <Mail size={14} style={{ marginRight: '8px', display: 'inline' }} />
                                 {currentUser?.email || '-'}
                             </div>
@@ -179,7 +180,7 @@ const ParentSettings = () => {
                 </Card>
 
                 {/* Student Card */}
-                <Card style={{ padding: '32px', marginBottom: '24px', background: c.cardBg, border: c.cardBorder, transition: 'background 0.2s ease' }}>
+                <Card style={{ padding: '32px', marginBottom: '24px', backgroundColor: c.cardBg, border: c.cardBorder, transition: 'background-color 0.2s ease' }}>
                     <h3 style={{ margin: '0 0 24px', color: c.heading, borderBottom: `2px solid ${c.divider2}`, paddingBottom: '12px', display: 'flex', alignItems: 'center', gap: '8px', transition: 'color 0.2s ease' }}>
                         <GraduationCap size={20} /> Student Details
                     </h3>
@@ -237,7 +238,7 @@ const ParentSettings = () => {
                 </Card>
 
                 {/* Preferences Card */}
-                <Card style={{ padding: '32px', marginBottom: '24px', background: c.cardBg, border: c.cardBorder, transition: 'background 0.2s ease' }}>
+                <Card style={{ padding: '32px', marginBottom: '24px', backgroundColor: c.cardBg, border: c.cardBorder, transition: 'background-color 0.2s ease' }}>
                     <h3 style={{ margin: '0 0 24px', color: c.heading, borderBottom: `2px solid ${c.divider3}`, paddingBottom: '12px', display: 'flex', alignItems: 'center', gap: '8px', transition: 'color 0.2s ease' }}>
                         <Clock size={20} /> Preferences
                     </h3>

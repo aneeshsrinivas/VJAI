@@ -85,7 +85,7 @@ function App() {
   }, [location.pathname]);
 
   // Define routes where Navbar should be hidden
-  const hideNavbarRoutes = ['/login', '/register', '/select-role'];
+  const hideNavbarRoutes = ['/login', '/register', '/select-role', '/demo-booking'];
   const showNavbar = !hideNavbarRoutes.includes(location.pathname) &&
     !location.pathname.startsWith('/admin') &&
     !location.pathname.startsWith('/coach') &&

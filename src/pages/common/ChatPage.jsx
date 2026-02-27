@@ -835,7 +835,7 @@ const ChatPage = ({ userRole: propRole }) => {
                                     onKeyPress={handleKeyPress}
                                     placeholder="Type your message..."
                                     disabled={sending}
-                                    style={{ borderColor: COLORS.deepBlue }}
+                                    style={{ borderColor: isDark ? 'rgba(255,255,255,0.15)' : COLORS.deepBlue }}
                                 />
                                 <Button
                                     onClick={handleSendMessage}
@@ -851,7 +851,7 @@ const ChatPage = ({ userRole: propRole }) => {
                             {role === 'CUSTOMER' && batches.length > 0 ? (
                                 <>
                                     <div style={{ width: '100%', maxWidth: '500px' }}>
-                                        <h2 style={{ color: COLORS.deepBlue, marginBottom: '24px', textAlign: 'center' }}>My Classes</h2>
+                                        <h2 style={{ color: isDark ? '#f0f0f0' : COLORS.deepBlue, marginBottom: '24px', textAlign: 'center' }}>My Classes</h2>
                                         <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
                                             {batches.map(batch => (
                                                 <div
@@ -905,7 +905,7 @@ const ChatPage = ({ userRole: propRole }) => {
                                                         <div style={{ fontSize: '16px', fontWeight: '600', color: isDark ? '#e0e0e0' : COLORS.deepBlue }}>
                                                             {batch.name}
                                                         </div>
-                                                        <div style={{ fontSize: '12px', color: '#999', marginTop: '4px' }}>
+                                                        <div style={{ fontSize: '12px', color: isDark ? 'rgba(255,255,255,0.4)' : '#999', marginTop: '4px' }}>
                                                             Click to view messages
                                                         </div>
                                                     </div>
@@ -932,8 +932,8 @@ const ChatPage = ({ userRole: propRole }) => {
             {showNewChatModal && (
                 <div className="modal-overlay" onClick={() => setShowNewChatModal(false)}>
                     <div className="modal-content" onClick={e => e.stopPropagation()}>
-                        <div className="modal-header" style={{ borderBottomColor: COLORS.deepBlue }}>
-                            <h3 style={{ color: COLORS.deepBlue, margin: 0 }}>New Conversation</h3>
+                        <div className="modal-header" style={{ borderBottomColor: isDark ? 'rgba(255,255,255,0.08)' : COLORS.deepBlue }}>
+                            <h3 style={{ color: isDark ? '#f0f0f0' : COLORS.deepBlue, margin: 0 }}>New Conversation</h3>
                             <button onClick={() => setShowNewChatModal(false)} className="modal-close">
                                 <X size={20} />
                             </button>
@@ -941,7 +941,7 @@ const ChatPage = ({ userRole: propRole }) => {
 
                         <div className="modal-body">
                             <div className="form-group">
-                                <label style={{ color: COLORS.deepBlue }}>Chat Type</label>
+                                <label style={{ color: isDark ? '#c0c0c0' : COLORS.deepBlue }}>Chat Type</label>
                                 <select
                                     value={newChatType}
                                     onChange={(e) => setNewChatType(e.target.value)}
@@ -954,7 +954,7 @@ const ChatPage = ({ userRole: propRole }) => {
 
                             {newChatType === 'BATCH_GROUP' ? (
                                 <div className="form-group">
-                                    <label style={{ color: COLORS.deepBlue }}>Select Batch</label>
+                                    <label style={{ color: isDark ? '#c0c0c0' : COLORS.deepBlue }}>Select Batch</label>
                                     <select
                                         value={selectedBatchId}
                                         onChange={(e) => setSelectedBatchId(e.target.value)}
@@ -967,7 +967,7 @@ const ChatPage = ({ userRole: propRole }) => {
                                 </div>
                             ) : (
                                 <div className="form-group">
-                                    <label style={{ color: COLORS.deepBlue }}>
+                                    <label style={{ color: isDark ? '#c0c0c0' : COLORS.deepBlue }}>
                                         Select {newChatType === 'ADMIN_PARENT' ? 'Parent' : 'Coach'}
                                     </label>
                                     <select
