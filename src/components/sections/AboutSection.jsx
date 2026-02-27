@@ -96,18 +96,14 @@ const AboutSection = ({ onCoursewareClick, onOnlineClassesClick }) => {
                         viewport={{ once: true, amount: 0.3 }}
                         transition={{ duration: 0.8, ease: "easeOut" }}
                     >
-                        {/* Image Wrapper (Always Floating) */}
-                        <motion.div
-                            className="about-image-wrapper"
-                            animate={{ y: [0, -12, 0] }}
-                            transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }}
-                        >
+                        {/* Image Wrapper */}
+                        <div className="about-image-wrapper">
                             <img
                                 src="/chess-background.png"
                                 alt="Chess Atmosphere"
                                 className="about-chess-bg"
                             />
-                        </motion.div>
+                        </div>
                     </motion.div>
 
                     {/* Content Area */}

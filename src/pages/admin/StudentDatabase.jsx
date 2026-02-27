@@ -10,6 +10,7 @@ import { toast, ToastContainer } from 'react-toastify';
 import { Edit2, X, Save, Search, Users } from 'lucide-react';
 import 'react-toastify/dist/ReactToastify.css';
 import '../../pages/Dashboard.css';
+import './StudentDatabase.css';
 
 // ICA Colors
 const COLORS = {
@@ -196,28 +197,29 @@ const StudentDatabase = () => {
     });
 
     return (
-        <div className="dashboard-container" style={{ backgroundColor: COLORS.ivory, minHeight: '100vh' }}>
+        <div className="students-page-container dashboard-container" style={{ backgroundColor: COLORS.ivory, minHeight: '100vh' }}>
             <ToastContainer position="top-right" autoClose={3000} />
 
             <div className="dashboard-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
                 <div>
-                    <h1 style={{ margin: 0, color: COLORS.deepBlue, display: 'flex', alignItems: 'center', gap: '10px' }}>
+                    <h1 className="page-title" style={{ margin: 0, color: COLORS.deepBlue, display: 'flex', alignItems: 'center', gap: '10px' }}>
                         <Users size={28} /> Student Database
                     </h1>
-                    <p style={{ color: '#666', margin: '8px 0 0' }}>Manage student profiles, types, and parent details.</p>
+                    <p className="page-subtitle" style={{ color: '#666', margin: '8px 0 0' }}>Manage student profiles, types, and parent details.</p>
                 </div>
                 <Button onClick={() => setAddModalOpen(true)} style={{ backgroundColor: COLORS.orange, border: 'none' }}>
                     + Add New Student
                 </Button>
             </div>
 
-            <Card style={{ padding: '24px' }}>
+            <Card className="content-card" style={{ padding: '24px' }}>
                 {/* Filters */}
-                <div style={{ display: 'flex', gap: '16px', marginBottom: '24px', flexWrap: 'wrap' }}>
+                <div className="filters-row" style={{ display: 'flex', gap: '16px', marginBottom: '24px', flexWrap: 'wrap' }}>
                     <div style={{ position: 'relative', flex: '1', minWidth: '250px' }}>
                         <Search size={18} style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: '#999' }} />
                         <input
                             type="text"
+                            className="search-input"
                             placeholder="Search by name, email, or ID..."
                             value={searchQuery}
                             onChange={(e) => setSearchQuery(e.target.value)}
@@ -225,6 +227,7 @@ const StudentDatabase = () => {
                         />
                     </div>
                     <select
+                        className="filter-select"
                         value={statusFilter}
                         onChange={(e) => setStatusFilter(e.target.value)}
                         style={{ padding: '12px', borderRadius: '8px', border: '1px solid #ddd', minWidth: '140px' }}
@@ -235,6 +238,7 @@ const StudentDatabase = () => {
                         <option value="CANCELLED">Cancelled</option>
                     </select>
                     <select
+                        className="filter-select"
                         value={typeFilter}
                         onChange={(e) => setTypeFilter(e.target.value)}
                         style={{ padding: '12px', borderRadius: '8px', border: '1px solid #ddd', minWidth: '120px' }}
@@ -247,19 +251,19 @@ const StudentDatabase = () => {
 
                 {/* Stats */}
                 <div style={{ display: 'flex', gap: '16px', marginBottom: '24px' }}>
-                    <div style={{ padding: '12px 20px', background: '#fff', borderRadius: '8px', border: `2px solid ${COLORS.deepBlue}` }}>
-                        <span style={{ fontWeight: '700', color: COLORS.deepBlue, fontSize: '18px' }}>{students.length}</span>
-                        <span style={{ marginLeft: '8px', color: '#666', fontSize: '13px' }}>Total Students</span>
+                    <div className="stat-box count-box" style={{ padding: '12px 20px', background: '#fff', borderRadius: '8px', border: `2px solid ${COLORS.deepBlue}` }}>
+                        <span className="stat-val" style={{ fontWeight: '700', color: COLORS.deepBlue, fontSize: '18px' }}>{students.length}</span>
+                        <span className="stat-label" style={{ marginLeft: '8px', color: '#666', fontSize: '13px' }}>Total Students</span>
                     </div>
-                    <div style={{ padding: '12px 20px', background: '#fff', borderRadius: '8px', border: '2px solid #10B981' }}>
-                        <span style={{ fontWeight: '700', color: '#10B981', fontSize: '18px' }}>{students.filter(s => s.status === 'ACTIVE').length}</span>
-                        <span style={{ marginLeft: '8px', color: '#666', fontSize: '13px' }}>Active</span>
+                    <div className="stat-box active-box" style={{ padding: '12px 20px', background: '#fff', borderRadius: '8px', border: '2px solid #10B981' }}>
+                        <span className="stat-val" style={{ fontWeight: '700', color: '#10B981', fontSize: '18px' }}>{students.filter(s => s.status === 'ACTIVE').length}</span>
+                        <span className="stat-label" style={{ marginLeft: '8px', color: '#666', fontSize: '13px' }}>Active</span>
                     </div>
                 </div>
 
                 {/* Table */}
                 <div style={{ overflowX: 'auto' }}>
-                    <table style={{ width: '100%', borderCollapse: 'collapse', minWidth: '1000px' }}>
+                    <table className="students-table" style={{ width: '100%', borderCollapse: 'collapse', minWidth: '1000px' }}>
                         <thead>
                             <tr style={{ borderBottom: `2px solid ${COLORS.deepBlue}`, textAlign: 'left', color: COLORS.deepBlue, fontSize: '12px', textTransform: 'uppercase' }}>
                                 <th style={{ padding: '12px' }}>Student Info</th>
@@ -279,28 +283,28 @@ const StudentDatabase = () => {
                                 <tr><td colSpan="8" style={{ padding: '40px', textAlign: 'center', color: '#666' }}>No students found.</td></tr>
                             ) : (
                                 filteredStudents.map(student => (
-                                    <tr key={student.id} style={{ borderBottom: '1px solid #f5f5f5' }}>
+                                    <tr key={student.id} className="student-row" style={{ borderBottom: '1px solid #f5f5f5' }}>
                                         <td style={{ padding: '16px 12px' }}>
-                                            <div style={{ fontWeight: '600', color: COLORS.deepBlue }}>{student.student_name}</div>
-                                            <div style={{ fontSize: '12px', color: '#666' }}>{student.student_id} | Age: {student.student_age}</div>
+                                            <div className="primary-text" style={{ fontWeight: '600', color: COLORS.deepBlue }}>{student.student_name}</div>
+                                            <div className="secondary-text" style={{ fontSize: '12px', color: '#666' }}>{student.student_id} | Age: {student.student_age}</div>
                                         </td>
                                         <td style={{ padding: '16px 12px' }}>
-                                            <div style={{ fontSize: '14px' }}>{student.parent_name}</div>
-                                            <div style={{ fontSize: '12px', color: '#666' }}>{student.parent_email}</div>
+                                            <div className="primary-text" style={{ fontSize: '14px' }}>{student.parent_name}</div>
+                                            <div className="secondary-text" style={{ fontSize: '12px', color: '#666' }}>{student.parent_email}</div>
                                         </td>
                                         <td style={{ padding: '16px 12px' }}>
                                             <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
-                                                <span style={{ backgroundColor: '#F5F5F5', padding: '2px 6px', borderRadius: '4px', fontSize: '11px', fontWeight: 'bold' }}>{student.student_type}</span>
-                                                <span style={{ fontSize: '14px' }}>{student.level}</span>
+                                                <span className="type-badge" style={{ backgroundColor: '#F5F5F5', padding: '2px 6px', borderRadius: '4px', fontSize: '11px', fontWeight: 'bold' }}>{student.student_type}</span>
+                                                <span className="primary-text" style={{ fontSize: '14px' }}>{student.level}</span>
                                             </div>
                                         </td>
                                         <td style={{ padding: '16px 12px' }}>
-                                            <div style={{ fontSize: '14px', fontWeight: '600', color: COLORS.deepBlue }}>{student.assigned_batch_name}</div>
-                                            <div style={{ fontSize: '12px', color: '#666' }}>{student.assigned_coach_id}</div>
+                                            <div className="primary-text" style={{ fontSize: '14px', fontWeight: '600', color: COLORS.deepBlue }}>{student.assigned_batch_name}</div>
+                                            <div className="secondary-text" style={{ fontSize: '12px', color: '#666' }}>{student.assigned_coach_id}</div>
                                         </td>
                                         <td style={{ padding: '16px 12px' }}>
-                                            <div style={{ fontSize: '14px' }}>{student.country}</div>
-                                            <div style={{ fontSize: '12px', color: '#666' }}>{student.timezone}</div>
+                                            <div className="primary-text" style={{ fontSize: '14px' }}>{student.country}</div>
+                                            <div className="secondary-text" style={{ fontSize: '12px', color: '#666' }}>{student.timezone}</div>
                                         </td>
                                         <td style={{ padding: '16px 12px', fontSize: '14px' }}>
                                             {student.rating}

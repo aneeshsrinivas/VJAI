@@ -247,9 +247,9 @@
 
 /* Summary Section */
 .checkout-summary-section {
-    position: sticky;
-    top: 120px;
-    height: fit-content;
+    position: static;
+    top: auto;
+    height: auto;
 }
 
 .summary-card {

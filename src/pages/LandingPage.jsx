@@ -2,8 +2,6 @@ import React, { useState, useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import gsap from 'gsap';
-import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { ToastContainer } from 'react-toastify';
 import Button from '../components/ui/Button';
 import Footer from '../components/layout/Footer';
@@ -19,19 +17,10 @@ import CoursewareIcon from '../components/icons/CoursewareIcon';
 import ChessKnightIcon from '../components/icons/ChessKnightIcon';
 import ChessBishopIcon from '../components/icons/ChessBishopIcon';
 
-gsap.registerPlugin(ScrollTrigger);
-
 const LandingPage = () => {
     const navigate = useNavigate();
     const [activeFAQ, setActiveFAQ] = useState(null);
     const [activeModal, setActiveModal] = useState(null);
-
-    const heroRef = useRef(null);
-
-    useEffect(() => {
-        const ctx = gsap.context(() => {}, heroRef);
-        return () => ctx.revert();
-    }, []);
 
     useEffect(() => {
         if (activeModal) {
@@ -73,7 +62,7 @@ const LandingPage = () => {
     };
 
     return (
-        <div className="landing-page-home" ref={heroRef}>
+        <div className="landing-page-home">
             <ToastContainer position="top-right" autoClose={4000} />
 
             <HeroSection />

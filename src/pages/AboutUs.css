@@ -349,11 +349,9 @@
 }
 
 .sticky-video-wrapper {
-    position: sticky;
-    top: 10vh;
-    /* Slight offset */
-    height: 80vh;
-    /* Don't cover fully, let it float */
+    position: relative;
+    top: 0;
+    height: auto;
     width: 100%;
     /* Ensure it covers */
     display: flex;

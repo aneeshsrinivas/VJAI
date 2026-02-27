@@ -78,7 +78,7 @@ const StatCard = ({ end, suffix = '', decimals = 0, label, subtext, icon: Icon, 
         setHasAnimated(true);
 
         const startTime = Date.now();
-        const duration = 2000;
+        const duration = 1500;
         const endValue = parseFloat(end);
 
         const animate = () => {
@@ -96,7 +96,7 @@ const StatCard = ({ end, suffix = '', decimals = 0, label, subtext, icon: Icon, 
             }
         };
 
-        setTimeout(() => requestAnimationFrame(animate), delay * 150);
+        setTimeout(() => requestAnimationFrame(animate), delay * 100);
     }, [isInView, end, delay, hasAnimated]);
 
     const displayValue = decimals > 0
@@ -121,15 +121,10 @@ const StatCard = ({ end, suffix = '', decimals = 0, label, subtext, icon: Icon, 
         >
             <motion.div
                 className="stat-icon-wrapper"
-                animate={isInView ? {
-                    y: [0, -5, 0],
-                    rotate: [0, 3, -3, 0]
-                } : {}}
+                animate={isInView ? { opacity: 1 } : {}}
                 transition={{
-                    duration: 4,
-                    repeat: Infinity,
-                    ease: "easeInOut",
-                    delay: delay * 0.2
+                    duration: 0.6,
+                    delay: delay * 0.15
                 }}
             >
                 <Icon />
@@ -190,8 +185,8 @@ const StatsSection = () => {
             <div className="stats-bg-pattern" />
             <div className="stats-bg-gradient" />
 
-            {/* Floating Particles */}
-            <div className="stats-particles">
+            {/* Floating Particles - Disabled for smooth scroll on landing page */}
+            {/* <div className="stats-particles">
                 {[...Array(20)].map((_, i) => (
                     <motion.div
                         key={i}
@@ -211,7 +206,7 @@ const StatsSection = () => {
                         }}
                     />
                 ))}
-            </div>
+            </div> */}
 
             <div className="stats-container">
                 <div className="stats-grid-premium">

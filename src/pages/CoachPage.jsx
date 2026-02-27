@@ -387,22 +387,55 @@ const CoachPage = () => {
 
                     {/* Quick Actions */}
                     <div className={`quick-actions-grid ${cardsVisible ? 'visible' : ''}`}>
-                        <button className="quick-action" onClick={() => navigate('/coach/batches')}>
-                            <BookOpen size={24} color="#f59e0b" />
-                            <span>Materials</span>
-                        </button>
-                        <button className="quick-action" onClick={() => navigate('/coach/schedule')}>
-                            <Calendar size={24} color="#10b981" />
-                            <span>Availability</span>
-                        </button>
-                        <button className="quick-action" onClick={() => navigate('/chat')}>
-                            <MessageSquare size={24} color="#6366f1" />
-                            <span>Chat</span>
-                        </button>
-                        <button className="quick-action" onClick={() => navigate('/coach/students')}>
-                            <GraduationCap size={24} color="#ec4899" />
-                            <span>Students</span>
-                        </button>
+                        {[
+                            {
+                                icon: BookOpen,
+                                label: 'Materials',
+                                description: 'Manage batch resources',
+                                path: '/coach/batches',
+                                gradient: 'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)'
+                            },
+                            {
+                                icon: Calendar,
+                                label: 'Availability',
+                                description: 'Schedule & slots',
+                                path: '/coach/schedule',
+                                gradient: 'linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)'
+                            },
+                            {
+                                icon: MessageSquare,
+                                label: 'Chat',
+                                description: 'Messages & queries',
+                                path: '/chat',
+                                gradient: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)'
+                            },
+                            {
+                                icon: GraduationCap,
+                                label: 'Students',
+                                description: 'View student progress',
+                                path: '/coach/students',
+                                gradient: 'linear-gradient(135deg, #fa709a 0%, #fee140 100%)'
+                            }
+                        ].map((action, index) => {
+                            const IconComponent = action.icon;
+                            return (
+                                <button
+                                    key={index}
+                                    className="quick-action-card"
+                                    onClick={() => navigate(action.path)}
+                                    style={{ '--card-gradient': action.gradient }}
+                                >
+                                    <div className="action-icon-circle">
+                                        <IconComponent size={24} color="white" />
+                                    </div>
+                                    <div className="action-text">
+                                        <span className="action-title">{action.label}</span>
+                                        <span className="action-desc">{action.description}</span>
+                                    </div>
+                                    <span className="action-arrow">→</span>
+                                </button>
+                            );
+                        })}
                     </div>
                 </div>
 

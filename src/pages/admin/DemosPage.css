@@ -1,0 +1,99 @@
+/* src/pages/admin/DemosPage.css */
+
+.demos-page-container .page-title {
+    color: var(--color-deep-blue);
+}
+
+.demos-page-container .filter-btn {
+    background-color: #FFFFFF;
+    color: #666;
+}
+
+.demos-page-container .filter-btn.active {
+    background-color: var(--color-deep-blue);
+    color: #fff;
+}
+
+.demos-table th {
+    background-color: #f9fafb;
+    border-bottom: 1px solid #eee;
+    padding: 16px;
+    font-size: 13px;
+    color: #555;
+    text-transform: uppercase;
+}
+
+.demos-table tr {
+    border-bottom: 1px solid #f5f5f5;
+}
+
+.demos-table .table-cell {
+    padding: 16px;
+}
+
+.demos-table .student-name {
+    color: var(--color-deep-blue);
+}
+
+.demos-table .parent-name {
+    color: #111;
+}
+
+/* ========================================
+   DARK MODE — staff-dark overrides
+   ======================================== */
+.staff-dark .demos-page-container .page-title {
+    color: #f0f0f0 !important;
+}
+
+.staff-dark .demos-page-container .page-subtitle {
+    color: #94a3b8 !important;
+}
+
+.staff-dark .demos-page-container input[type="text"] {
+    background-color: #1e2330;
+    color: #ffffff;
+    border-color: rgba(255, 255, 255, 0.2);
+}
+
+.staff-dark .demos-page-container input[type="text"]::placeholder {
+    color: #64748b;
+}
+
+.staff-dark .demos-page-container .filter-btn {
+    background-color: #1e2330 !important;
+    border-color: rgba(255, 255, 255, 0.1) !important;
+    color: #94a3b8 !important;
+}
+
+.staff-dark .demos-page-container .filter-btn.active {
+    background-color: #FC8A24 !important;
+    color: #ffffff !important;
+    border-color: #FC8A24 !important;
+}
+
+.staff-dark .demos-table th {
+    background-color: rgba(255, 255, 255, 0.05);
+    border-bottom-color: rgba(255, 255, 255, 0.1);
+    color: #94a3b8;
+}
+
+.staff-dark .demos-table tr {
+    border-bottom-color: rgba(255, 255, 255, 0.05);
+}
+
+.staff-dark .demos-table .student-name {
+    color: #ffffff !important;
+}
+
+.staff-dark .demos-table .student-exp,
+.staff-dark .demos-table .parent-email,
+.staff-dark .demos-table .timezone-text,
+.staff-dark .demos-table .unassigned-text {
+    color: #94a3b8 !important;
+}
+
+.staff-dark .demos-table .parent-name,
+.staff-dark .demos-table .preferred-time {
+    color: #f0f0f0 !important;
+}

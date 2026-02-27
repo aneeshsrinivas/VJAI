@@ -1,218 +1,612 @@
-.plan-selection-page {
+/* ── PAGE ── */
+.ps-page {
     min-height: 100vh;
-    background: #111111;
-    /* Cinematic Dark */
-    padding-bottom: 100px;
+    background: #0A0B0E;
     color: #F5EFE6;
-}
-
-/* Hero Section */
-.plan-hero {
-    position: relative;
-    background: radial-gradient(circle at center, #1F2530 0%, #111111 70%);
-    padding: 140px 24px 100px;
-    text-align: center;
-    overflow: hidden;
-}
-
-.plan-hero-bg-glow {
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    width: 800px;
-    height: 600px;
-    background: radial-gradient(circle, rgba(248, 139, 34, 0.05) 0%, transparent 70%);
-    z-index: 0;
-    pointer-events: none;
-}
-
-.plan-hero-content {
-    position: relative;
-    z-index: 1;
-    max-width: 800px;
-    margin: 0 auto;
-}
-
-.hero-icon-animate {
-    font-size: 80px;
-    margin-bottom: 32px;
-    background: linear-gradient(135deg, #F88B22, #E6D2B5);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    display: inline-block;
-    filter: drop-shadow(0 0 20px rgba(248, 139, 34, 0.3));
-    animation: floatIcon 4s ease-in-out infinite;
-}
-
-@keyframes floatIcon {
-
-    0%,
-    100% {
-        transform: translateY(0);
-    }
-
-    50% {
-        transform: translateY(-15px);
-    }
-}
-
-.plan-hero-title {
+    padding-bottom: 160px;
     font-family: 'Figtree', sans-serif;
-    font-size: clamp(48px, 6vw, 64px);
+}
+
+/* ── HEADER ── */
+.ps-header {
+    text-align: center;
+    padding: 120px 24px 60px;
+}
+
+.ps-eyebrow {
+    display: inline-block;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.14em;
+    color: #F88B22;
+    background: rgba(248, 139, 34, 0.08);
+    border: 1px solid rgba(248, 139, 34, 0.25);
+    border-radius: 4px;
+    padding: 5px 14px;
+    margin-bottom: 28px;
+}
+
+.ps-title {
+    font-size: clamp(40px, 5.5vw, 62px);
     font-weight: 800;
-    line-height: 1.1;
     color: #F5EFE6;
-    margin-bottom: 24px;
-    letter-spacing: -0.02em;
+    letter-spacing: -0.035em;
+    line-height: 1.05;
+    margin: 0 0 20px;
 }
 
-.plan-hero-subtitle {
-    font-size: 20px;
-    color: #999;
-    max-width: 650px;
-    margin: 0 auto;
+.ps-title-accent {
+    color: #F88B22;
+}
+
+.ps-subtitle {
+    font-size: 17px;
+    color: rgba(245, 239, 230, 0.5);
     line-height: 1.6;
+    max-width: 480px;
+    margin: 0 auto;
 }
 
-.hero-highlight {
-    color: #CD7F32;
-    /* Bronze/Gold accent */
-    font-weight: 600;
-    display: block;
-    margin-top: 8px;
-}
-
-/* Pricing Grid (Centered, 2 Cards) */
-.plan-grid {
-    max-width: 1000px;
-    margin: 0 auto 100px;
-    padding: 0 24px;
+/* ── BILLING TOGGLE ── */
+.ps-toggle-wrap {
     display: flex;
     justify-content: center;
-    gap: 40px;
-    flex-wrap: wrap;
-    position: relative;
-    z-index: 2;
-}
-
-/* Comparison Table */
-.plan-comparison-section {
-    max-width: 900px;
-    margin: 0 auto 100px;
+    margin-bottom: 56px;
     padding: 0 24px;
-    position: relative;
 }
 
-.plan-comparison-title {
+.ps-toggle-group {
+    display: flex;
+    gap: 8px;
+    background: transparent;
+    border: none;
+    padding: 0;
+}
+
+.ps-toggle-btn {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 22px;
+    border: 1px solid rgba(255, 255, 255, 0.14);
+    border-radius: 8px;
+    background: #000;
+    color: rgba(255, 255, 255, 0.5);
     font-family: 'Figtree', sans-serif;
-    font-size: 36px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    white-space: nowrap;
+}
+
+.ps-toggle-btn:hover {
+    background: rgba(248, 139, 34, 0.12);
+    border-color: #F88B22;
+    color: #F88B22;
+}
+
+.ps-toggle-btn:hover .ps-save-pill {
+    color: #4ade80;
+    background: rgba(74, 222, 128, 0.12);
+    border-color: rgba(74, 222, 128, 0.25);
+}
+
+.ps-toggle-btn.active {
+    background: #0C0C0C;
+    border-color: rgba(255, 255, 255, 0.22);
+    color: #fff;
+}
+
+.ps-save-pill {
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    color: #4ade80;
+    background: rgba(74, 222, 128, 0.12);
+    border: 1px solid rgba(74, 222, 128, 0.25);
+    border-radius: 20px;
+    padding: 2px 7px;
+}
+
+.ps-toggle-btn.active .ps-save-pill {
+    color: #4ade80;
+    background: rgba(74, 222, 128, 0.15);
+    border-color: rgba(74, 222, 128, 0.3);
+}
+
+/* ── CARDS ── */
+.ps-cards {
+    display: flex;
+    justify-content: center;
+    gap: 24px;
+    flex-wrap: wrap;
+    max-width: 900px;
+    margin: 0 auto 80px;
+    padding: 0 24px;
+}
+
+.ps-card {
+    position: relative;
+    background: #111318;
+    border: 1px solid rgba(255, 255, 255, 0.07);
+    border-radius: 16px;
+    padding: 36px 32px 32px;
+    width: 100%;
+    max-width: 400px;
+    cursor: pointer;
+    transition: border-color 0.2s ease, transform 0.2s ease;
+    flex: 1 1 320px;
+}
+
+.ps-card:hover {
+    border-color: rgba(255, 255, 255, 0.14);
+    transform: translateY(-2px);
+}
+
+.ps-card--featured {
+    background: #0D1117;
+    border-color: rgba(248, 139, 34, 0.3);
+    box-shadow:
+        0 0 80px rgba(248, 139, 34, 0.08),
+        0 0 0 1px rgba(248, 139, 34, 0.3);
+}
+
+.ps-card--featured:hover {
+    border-color: rgba(248, 139, 34, 0.5);
+    box-shadow:
+        0 0 100px rgba(248, 139, 34, 0.12),
+        0 0 0 1px rgba(248, 139, 34, 0.4);
+}
+
+.ps-card--selected {
+    border-color: rgba(248, 139, 34, 0.6) !important;
+    box-shadow:
+        0 0 40px rgba(248, 139, 34, 0.15),
+        0 0 0 2px rgba(248, 139, 34, 0.5) !important;
+}
+
+/* Popular Badge */
+.ps-popular-badge {
+    position: absolute;
+    top: -1px;
+    right: 24px;
+    background: #F88B22;
+    color: #0A0B0E;
+    font-size: 10px;
+    font-weight: 800;
+    letter-spacing: 0.12em;
+    padding: 5px 12px;
+    border-radius: 0 0 8px 8px;
+}
+
+/* Level Pill */
+.ps-level-pill {
+    display: inline-block;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    color: rgba(245, 239, 230, 0.5);
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 4px;
+    padding: 4px 10px;
+    margin-bottom: 16px;
+}
+
+.ps-level-pill.featured {
+    color: #F88B22;
+    background: rgba(248, 139, 34, 0.08);
+    border-color: rgba(248, 139, 34, 0.2);
+}
+
+/* Plan Name */
+.ps-plan-name {
+    font-size: 18px;
+    font-weight: 700;
+    color: #F5EFE6;
+    margin: 0 0 28px;
+    line-height: 1.3;
+}
+
+/* Price Block */
+.ps-price-block {
+    margin-bottom: 28px;
+}
+
+.ps-price-row {
+    display: flex;
+    align-items: flex-start;
+    gap: 2px;
+    line-height: 1;
+    margin-bottom: 8px;
+}
+
+.ps-currency {
+    font-size: 22px;
+    font-weight: 700;
+    color: #F5EFE6;
+    padding-top: 10px;
+}
+
+.ps-amount {
+    font-size: 72px;
+    font-weight: 800;
+    color: #F5EFE6;
+    letter-spacing: -0.04em;
+    line-height: 1;
+}
+
+.ps-price-sub {
+    min-height: 38px;
+}
+
+.ps-monthly-eq {
+    font-size: 13px;
+    color: #4ade80;
+    font-weight: 600;
+}
+
+.ps-billing-note {
+    font-size: 13px;
+    color: rgba(245, 239, 230, 0.35);
+}
+
+/* Rule */
+.ps-rule {
+    height: 1px;
+    background: rgba(255, 255, 255, 0.06);
+    margin-bottom: 24px;
+}
+
+/* Features */
+.ps-features {
+    list-style: none;
+    margin: 0 0 28px;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.ps-feature {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 14px;
+    color: rgba(245, 239, 230, 0.75);
+    line-height: 1.4;
+}
+
+/* CTA Button */
+.ps-cta {
+    width: 100%;
+    padding: 14px 24px;
+    border-radius: 8px;
+    font-family: 'Figtree', sans-serif;
+    font-size: 14px;
+    font-weight: 700;
+    letter-spacing: 0.02em;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    border: 1.5px solid rgba(255, 255, 255, 0.15);
+    background: transparent;
+    color: rgba(245, 239, 230, 0.8);
+}
+
+.ps-cta:hover {
+    border-color: rgba(255, 255, 255, 0.3);
+    color: #F5EFE6;
+    background: rgba(255, 255, 255, 0.04);
+}
+
+.ps-cta.featured {
+    border-color: #F88B22;
+    background: #F88B22;
+    color: #fff;
+}
+
+.ps-cta.featured:hover {
+    background: #e07c1a;
+    border-color: #e07c1a;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 20px rgba(248, 139, 34, 0.35);
+}
+
+.ps-cta.selected {
+    border-color: rgba(248, 139, 34, 0.5);
+    background: rgba(248, 139, 34, 0.08);
+    color: #F88B22;
+}
+
+/* ── TRUST STRIP ── */
+.ps-trust {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 0;
+    max-width: 800px;
+    margin: 0 auto 80px;
+    padding: 28px 24px;
+    background: rgba(255, 255, 255, 0.02);
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    border-radius: 12px;
+}
+
+.ps-trust-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 13px;
+    font-weight: 600;
+    color: rgba(245, 239, 230, 0.6);
+    padding: 8px 24px;
+}
+
+.ps-trust-item svg {
+    color: rgba(245, 239, 230, 0.4);
+    flex-shrink: 0;
+}
+
+.ps-trust-sep {
+    width: 1px;
+    height: 28px;
+    background: rgba(255, 255, 255, 0.08);
+    flex-shrink: 0;
+}
+
+/* ── COMPARE TABLE ── */
+.ps-compare {
+    max-width: 800px;
+    margin: 0 auto 72px;
+    padding: 0 24px;
+}
+
+.ps-compare-title {
+    font-size: 28px;
+    font-weight: 800;
     color: #F5EFE6;
     text-align: center;
-    margin-bottom: 48px;
+    margin: 0 0 36px;
+    letter-spacing: -0.01em;
 }
 
-.plan-comparison-table-wrapper {
-    background: rgba(255, 255, 255, 0.02);
-    border-radius: 24px;
-    padding: 8px;
-    border: 1px solid rgba(255, 255, 255, 0.08);
-    backdrop-filter: blur(10px);
-    overflow: hidden;
+.ps-compare-scroll {
+    overflow-x: auto;
+    border-radius: 12px;
+    border: 1px solid rgba(255, 255, 255, 0.06);
 }
 
-.plan-comparison-table {
+.ps-table {
     width: 100%;
-    border-collapse: separate;
-    border-spacing: 0;
-    color: #CFC6B8;
+    border-collapse: collapse;
+    font-size: 14px;
+    color: rgba(245, 239, 230, 0.65);
+    min-width: 460px;
 }
 
-.plan-comparison-table th,
-.plan-comparison-table td {
-    padding: 24px;
+.ps-table thead th {
+    padding: 18px 24px;
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: rgba(245, 239, 230, 0.4);
+    background: rgba(255, 255, 255, 0.03);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.06);
     text-align: left;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
 }
 
-.plan-comparison-table th {
-    font-family: 'Figtree', sans-serif;
-    font-size: 18px;
-    color: #E6D2B5;
-    background: rgba(255, 255, 255, 0.05);
-    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+.ps-th-label {
+    text-align: left;
 }
 
-.plan-comparison-table th:first-child {
-    border-radius: 16px 0 0 0;
+.ps-th-highlight {
+    color: #F88B22 !important;
+    background: rgba(248, 139, 34, 0.06) !important;
 }
 
-.plan-comparison-table th:last-child {
-    border-radius: 0 16px 0 0;
+.ps-table tbody tr {
+    border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+    transition: background 0.15s ease;
 }
 
-.plan-comparison-table tr:last-child td {
+.ps-table tbody tr:last-child {
     border-bottom: none;
 }
 
-.plan-comparison-table td:first-child {
+.ps-table tbody tr:hover {
+    background: rgba(255, 255, 255, 0.02);
+}
+
+.ps-table td {
+    padding: 16px 24px;
+    vertical-align: middle;
+}
+
+.ps-td-label {
     font-weight: 600;
-    color: #F5EFE6;
+    color: rgba(245, 239, 230, 0.75);
 }
 
-/* Highlight Column (Intermediate) */
-.plan-comparison-table .highlight-col {
-    background: rgba(248, 139, 34, 0.05);
-    border-left: 1px solid rgba(255, 255, 255, 0.05);
+.ps-td-highlight {
+    background: rgba(248, 139, 34, 0.03);
+    border-left: 1px solid rgba(248, 139, 34, 0.08);
 }
 
-.plan-comparison-table th.highlight-col {
-    color: #F88B22;
-    background: rgba(248, 139, 34, 0.1);
+.ps-td-yes {
+    color: #4ade80;
+    font-weight: 700;
+    font-size: 16px;
 }
 
-.check-icon {
-    color: #4CAF50;
-    font-weight: 800;
-    font-size: 18px;
+.ps-td-no {
+    color: rgba(245, 239, 230, 0.2);
 }
 
-.text-muted {
-    opacity: 0.3;
+/* ── GUARANTEE BANNER ── */
+.ps-guarantee {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 10px;
+    padding: 20px 24px;
+    font-size: 13px;
+    font-weight: 500;
+    color: rgba(245, 239, 230, 0.4);
+    max-width: 600px;
+    margin: 0 auto 16px;
 }
 
-/* Family Plan Banner - Dark */
-.family-plan-banner {
-    max-width: 1000px;
-    margin: 64px auto;
+.ps-guarantee svg {
+    color: rgba(245, 239, 230, 0.3);
+}
+
+.ps-dot {
+    color: rgba(245, 239, 230, 0.2);
+}
+
+/* ── STICKY BAR (floating slide-in) ── */
+.ps-sticky-wrap {
+    position: fixed;
+    bottom: 28px;
+    left: 0;
+    right: 0;
+    display: flex;
+    justify-content: center;
     padding: 0 24px;
+    pointer-events: none;
+    z-index: 100;
 }
 
-.family-plan-content {
-    background: rgba(255, 255, 255, 0.03);
+@keyframes ps-slide-up {
+    from {
+        opacity: 0;
+        transform: translateY(120px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.ps-sticky {
+    pointer-events: auto;
+    width: 100%;
+    max-width: 720px;
+    background: rgba(18, 19, 22, 0.92);
+    backdrop-filter: blur(20px);
     border: 1px solid rgba(255, 255, 255, 0.1);
     border-radius: 16px;
-    padding: 40px;
+    box-shadow:
+        0 8px 40px rgba(0, 0, 0, 0.55),
+        0 0 0 1px rgba(248, 139, 34, 0.12);
+    padding: 18px 24px;
+    animation: ps-slide-up 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+}
+
+.ps-sticky-inner {
     display: flex;
     align-items: center;
-    gap: 32px;
+    justify-content: space-between;
+    gap: 16px;
 }
 
-.family-plan-text h3 {
+.ps-sticky-info {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.ps-sticky-name {
+    font-size: 13px;
+    font-weight: 600;
+    color: rgba(245, 239, 230, 0.55);
+}
+
+.ps-sticky-price {
+    font-size: 22px;
+    font-weight: 800;
     color: #F5EFE6;
+    letter-spacing: -0.02em;
 }
 
-.family-plan-text p {
-    color: #CFC6B8;
+.ps-sticky-period {
+    font-size: 14px;
+    font-weight: 500;
+    color: rgba(245, 239, 230, 0.4);
 }
 
-/* Sticky Bar */
-.plan-sticky-bar {
-    background: #1A1A1A;
-    border-top: 1px solid rgba(255, 255, 255, 0.1);
-    box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.2);
+/* ── RESPONSIVE ── */
+@media (max-width: 768px) {
+    .ps-header {
+        padding: 100px 24px 48px;
+    }
+
+    .ps-title {
+        font-size: clamp(28px, 7vw, 40px);
+    }
+
+    .ps-cards {
+        gap: 16px;
+    }
+
+    .ps-card {
+        padding: 28px 24px 24px;
+    }
+
+    .ps-amount {
+        font-size: 56px;
+    }
+
+    .ps-trust {
+        gap: 0;
+    }
+
+    .ps-trust-sep {
+        display: none;
+    }
+
+    .ps-trust-item {
+        padding: 6px 16px;
+        font-size: 12px;
+    }
+
+    .ps-toggle-btn {
+        padding: 9px 14px;
+        font-size: 13px;
+    }
+
+    .ps-sticky-inner {
+        flex-direction: column;
+        align-items: stretch;
+        text-align: center;
+        gap: 12px;
+    }
+
+    .ps-sticky-info {
+        align-items: center;
+    }
 }
 
-.plan-sticky-name {
-    color: #F5EFE6;
+@media (max-width: 600px) {
+    .ps-sticky-wrap {
+        bottom: 16px;
+        padding: 0 16px;
+    }
+
+    .ps-sticky {
+        border-radius: 12px;
+        padding: 14px 18px;
+    }
+}
+
+@media (max-width: 480px) {
+    .ps-toggle-group {
+        flex-direction: column;
+        width: 100%;
+        max-width: 280px;
+    }
 }

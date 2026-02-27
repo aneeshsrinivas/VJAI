@@ -138,17 +138,7 @@ const TestimonialsSection = () => {
                                 ease: [0.22, 1, 0.36, 1]
                             }}
                         >
-                            <motion.div
-                                animate={{ y: [0, -15, 0] }}
-                                transition={{
-                                    duration: t.duration,
-                                    repeat: Infinity,
-                                    ease: "easeInOut",
-                                    repeatType: "mirror"
-                                }}
-                            >
-                                <TestimonialCard {...t} />
-                            </motion.div>
+                            <TestimonialCard {...t} />
                         </motion.div>
                     ))}
                 </div>

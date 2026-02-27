@@ -71,9 +71,9 @@
    LEFT COLUMN - VIDEO/MEDIA
    ============================================ */
 .faq-media-column {
-    position: sticky;
-    top: 120px;
-    height: 700px;
+    position: relative;
+    top: 0;
+    height: auto;
 }
 
 .faq-media-wrapper {
@@ -200,8 +200,7 @@
    FAQ CARD
    ============================================ */
 .faq-card {
-    background: rgba(255, 255, 255, 0.05);
-    backdrop-filter: blur(12px);
+    background: rgba(255, 255, 255, 0.07);
     border: 1px solid rgba(255, 255, 255, 0.1);
     border-radius: 12px;
     padding: 24px 28px;

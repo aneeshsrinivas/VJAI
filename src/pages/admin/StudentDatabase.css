@@ -1,0 +1,73 @@
+/* src/pages/admin/StudentDatabase.css */
+
+/* Dark Mode Overrides for Student Database */
+.staff-dark .students-page-container {
+    background-color: transparent !important;
+}
+
+.staff-dark .dashboard-header .page-title {
+    color: #f0f0f0 !important;
+}
+
+.staff-dark .dashboard-header .page-subtitle {
+    color: #94a3b8 !important;
+}
+
+.staff-dark .content-card {
+    background: #1e2330 !important;
+    border-color: rgba(255, 255, 255, 0.05);
+}
+
+.staff-dark .search-input {
+    background-color: #0f1117 !important;
+    color: #ffffff !important;
+    border-color: rgba(255, 255, 255, 0.2) !important;
+}
+
+.staff-dark .search-input::placeholder {
+    color: #64748b;
+}
+
+.staff-dark .filter-select {
+    background-color: #0f1117 !important;
+    color: #ffffff !important;
+    border-color: rgba(255, 255, 255, 0.2) !important;
+}
+
+.staff-dark .stat-box {
+    background-color: #0f1117 !important;
+}
+
+.staff-dark .stat-box.count-box {
+    border-color: rgba(255, 255, 255, 0.1) !important;
+}
+
+.staff-dark .stat-box.count-box .stat-val {
+    color: #f0f0f0 !important;
+}
+
+.staff-dark .stat-label {
+    color: #94a3b8 !important;
+}
+
+.staff-dark .students-table th {
+    border-bottom-color: rgba(255, 255, 255, 0.2) !important;
+    color: #94a3b8 !important;
+}
+
+.staff-dark .students-table .student-row {
+    border-bottom-color: rgba(255, 255, 255, 0.05) !important;
+}
+
+.staff-dark .students-table .primary-text {
+    color: #f0f0f0 !important;
+}
+
+.staff-dark .students-table .secondary-text {
+    color: #94a3b8 !important;
+}
+
+.staff-dark .type-badge {
+    background-color: rgba(255, 255, 255, 0.1) !important;
+    color: #f0f0f0 !important;
+}

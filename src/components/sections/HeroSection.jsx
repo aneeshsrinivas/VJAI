@@ -50,11 +50,7 @@ const ScrollIndicatorPremium = ({ onClick }) => (
     >
         <motion.div className="scroll-mouse">
             <div className="mouse-body">
-                <motion.div
-                    className="mouse-wheel"
-                    animate={{ y: [0, 8, 0] }}
-                    transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
-                />
+                <div className="mouse-wheel" />
             </div>
         </motion.div>
     </motion.div>

@@ -6,7 +6,8 @@ import { useAuth } from '../../context/AuthContext';
 import { COLLECTIONS } from '../../config/firestoreCollections';
 import {
     Users, GraduationCap, Search, Filter, ChevronRight,
-    BookOpen, Target, Star, Calendar, MoreVertical
+    BookOpen, Target, Star, Calendar, MoreVertical,
+    Sprout, Book, Trophy
 } from 'lucide-react';
 import './CoachStudents.css';
 import SkillMapModal from '../../components/features/SkillMapModal';
@@ -64,9 +65,9 @@ const CoachStudents = () => {
 
     const getLevelBadge = (level) => {
         const badges = {
-            beginner: { label: '🌱 Beginner', className: 'beginner' },
-            intermediate: { label: '📚 Intermediate', className: 'intermediate' },
-            advanced: { label: '🏆 Advanced', className: 'advanced' }
+            beginner: { label: <><Sprout size={14} className="mr-1" /> Beginner</>, className: 'beginner' },
+            intermediate: { label: <><Book size={14} className="mr-1" /> Intermediate</>, className: 'intermediate' },
+            advanced: { label: <><Trophy size={14} className="mr-1" /> Advanced</>, className: 'advanced' }
         };
         return badges[level?.toLowerCase()] || badges.beginner;
     };
@@ -78,7 +79,7 @@ const CoachStudents = () => {
     if (loading) {
         return (
             <div className="coach-students-loading">
-                <div className="loading-spinner">👥</div>
+                <Users size={64} color="#94a3b8" className="loading-spinner" />
                 <p>Loading your students...</p>
             </div>
         );
@@ -131,7 +132,7 @@ const CoachStudents = () => {
             {/* Students Grid */}
             {filteredStudents.length === 0 ? (
                 <div className="empty-state">
-                    <div className="empty-icon">👥</div>
+                    <Users size={64} color="#94a3b8" className="empty-icon" />
                     <h3>No Students Found</h3>
                     <p>
                         {students.length === 0
@@ -180,7 +181,7 @@ const CoachStudents = () => {
                                 </div>
                                 <div className="card-footer">
                                     <button className="btn-view" onClick={() => setSelectedSkillStudent(student)}>
-                                        🎯 View Skills
+                                        <Target size={16} style={{ display: 'inline', marginRight: '6px' }} /> View Skills
                                     </button>
                                     <button className="btn-secondary" onClick={() => setSelectedDetailStudent(student)}>
                                         View Details <ChevronRight size={14} />
@@ -198,7 +199,7 @@ const CoachStudents = () => {
                 student={selectedSkillStudent}
                 onUpgrade={(studentId, newLevel) => {
                     // Update local state to reflect the level change
-                    setStudents(prev => prev.map(s => 
+                    setStudents(prev => prev.map(s =>
                         s.id === studentId ? { ...s, level: newLevel, skillsMastered: [] } : s
                     ));
                 }}

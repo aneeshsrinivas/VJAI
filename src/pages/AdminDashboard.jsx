@@ -213,7 +213,7 @@ const AdminDashboard = () => {
 
             {/* Stats Grid - Always show numbers, default to 0 */}
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: '16px', marginBottom: '24px' }}>
-                <div style={{ padding: '20px', backgroundColor: '#fff', borderRadius: '12px', border: `2px solid ${COLORS.deepBlue}` }}>
+                <div className="admin-metric-card" style={{ padding: '20px', backgroundColor: '#fff', borderRadius: '12px', border: `2px solid ${COLORS.deepBlue}` }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '8px' }}>
                         <div style={{ width: '40px', height: '40px', borderRadius: '10px', backgroundColor: COLORS.deepBlue, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                             <Users size={20} color="white" />
@@ -223,7 +223,7 @@ const AdminDashboard = () => {
                     <div style={{ fontSize: '28px', fontWeight: '700', color: COLORS.deepBlue }}>{stats.totalStudents}</div>
                 </div>
 
-                <div style={{ padding: '20px', backgroundColor: '#fff', borderRadius: '12px', border: `2px solid ${COLORS.oliveGreen}` }}>
+                <div className="admin-metric-card" style={{ padding: '20px', backgroundColor: '#fff', borderRadius: '12px', border: `2px solid ${COLORS.oliveGreen}` }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '8px' }}>
                         <div style={{ width: '40px', height: '40px', borderRadius: '10px', backgroundColor: COLORS.oliveGreen, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                             <UserCheck size={20} color="white" />
@@ -233,7 +233,7 @@ const AdminDashboard = () => {
                     <div style={{ fontSize: '28px', fontWeight: '700', color: COLORS.oliveGreen }}>{stats.activeCoaches}</div>
                 </div>
 
-                <div style={{ padding: '20px', backgroundColor: '#fff', borderRadius: '12px', border: `2px solid ${COLORS.orange}` }}>
+                <div className="admin-metric-card" style={{ padding: '20px', backgroundColor: '#fff', borderRadius: '12px', border: `2px solid ${COLORS.orange}` }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '8px' }}>
                         <div style={{ width: '40px', height: '40px', borderRadius: '10px', backgroundColor: COLORS.orange, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                             <Calendar size={20} color="white" />
@@ -243,7 +243,7 @@ const AdminDashboard = () => {
                     <div style={{ fontSize: '28px', fontWeight: '700', color: COLORS.orange }}>{stats.pendingDemos}</div>
                 </div>
 
-                <div style={{ padding: '20px', backgroundColor: '#fff', borderRadius: '12px', border: `2px solid ${COLORS.deepBlue}` }}>
+                <div className="admin-metric-card" style={{ padding: '20px', backgroundColor: '#fff', borderRadius: '12px', border: `2px solid ${COLORS.deepBlue}` }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '8px' }}>
                         <div style={{ width: '40px', height: '40px', borderRadius: '10px', backgroundColor: COLORS.deepBlue, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                             <DollarSign size={20} color="white" />
@@ -253,7 +253,7 @@ const AdminDashboard = () => {
                     <div style={{ fontSize: '28px', fontWeight: '700', color: COLORS.deepBlue }}>{formatCurrency(stats.monthlyRevenue)}</div>
                 </div>
 
-                <div style={{ padding: '20px', backgroundColor: '#fff', borderRadius: '12px', border: `2px solid ${COLORS.oliveGreen}` }}>
+                <div className="admin-metric-card" style={{ padding: '20px', backgroundColor: '#fff', borderRadius: '12px', border: `2px solid ${COLORS.oliveGreen}` }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '8px' }}>
                         <div style={{ width: '40px', height: '40px', borderRadius: '10px', backgroundColor: COLORS.oliveGreen, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                             <TrendingUp size={20} color="white" />
@@ -279,7 +279,7 @@ const AdminDashboard = () => {
                         ) : (
                             <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
                                 {recentDemos.map(demo => (
-                                    <div key={demo.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '12px', backgroundColor: COLORS.ivory, borderRadius: '8px' }}>
+                                    <div key={demo.id} className="admin-panel-list-item" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '12px', backgroundColor: COLORS.ivory, borderRadius: '8px' }}>
                                         <div>
                                             <div style={{ fontWeight: '600', color: COLORS.deepBlue }}>{demo.studentName || demo.parentName || 'New Request'}</div>
                                             <div style={{ fontSize: '12px', color: '#666' }}>{demo.parentEmail || demo.email || '-'}</div>
@@ -311,7 +311,7 @@ const AdminDashboard = () => {
                         ) : (
                             <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
                                 {topCoaches.map((coach, i) => (
-                                    <div key={coach.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '12px', borderBottom: i < topCoaches.length - 1 ? '1px solid #eee' : 'none' }}>
+                                    <div key={coach.id} className="admin-panel-list-item" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '12px', borderBottom: i < topCoaches.length - 1 ? '1px solid #eee' : 'none' }}>
                                         <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
                                             <div style={{ width: '32px', height: '32px', borderRadius: '8px', backgroundColor: COLORS.deepBlue, color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: '600' }}>
                                                 {(coach.name || coach.coachName || 'C').charAt(0)}

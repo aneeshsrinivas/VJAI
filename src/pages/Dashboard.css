@@ -1,8 +1,10 @@
 /* src/pages/Dashboard.css */
 .dashboard-container {
-    padding: 48px;
-    max-width: 1400px;
-    margin: 0 auto;
+    padding: 32px;
+    width: 100%;
+    min-height: 100vh;
+    box-sizing: border-box;
+    transition: background-color 0.3s ease;
 }
 
 .dashboard-header {
@@ -120,4 +122,41 @@
 
 .chess-dot.active {
     background-color: var(--color-warm-orange);
+}
+
+/* Dark Mode Overrides for Admin Dashboards sharing this CSS */
+.staff-dark .dashboard-container {
+    background-color: #0f1117 !important;
+    /* Forces the entire background to dark mode */
+}
+
+.staff-dark .welcome-text {
+    background: linear-gradient(135deg, #ffffff 0%, #F88B22 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+/* Force inline hardcoded white cards to dark in Dashboard metrics grid */
+.staff-dark .admin-metric-card,
+.staff-dark .admin-panel-card {
+    background-color: #1e2330 !important;
+    border-color: rgba(255, 255, 255, 0.05) !important;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3) !important;
+    color: #f0f0f0 !important;
+}
+
+.staff-dark .admin-metric-card span,
+.staff-dark .admin-panel-card span,
+.staff-dark .admin-panel-card h3,
+.staff-dark .admin-panel-card div {
+    color: #f0f0f0 !important;
+}
+
+.staff-dark .admin-panel-card {
+    background-color: #1e2330 !important;
+}
+
+.staff-dark .admin-panel-list-item {
+    background-color: rgba(255, 255, 255, 0.05) !important;
+    border-color: rgba(255, 255, 255, 0.05) !important;
 }
