@@ -7,6 +7,7 @@ import Button from '../../components/ui/Button';
 import { toast, ToastContainer } from 'react-toastify';
 import { User, Save, ArrowLeft, Mail, Phone, MapPin, Clock, GraduationCap } from 'lucide-react';
 import 'react-toastify/dist/ReactToastify.css';
+import { useTheme } from '../../context/ThemeContext';
 
 // ICA Colors
 const COLORS = {
@@ -19,6 +20,7 @@ const COLORS = {
 const ParentSettings = () => {
     const { currentUser, userData } = useAuth();
     const [loading, setLoading] = useState(false);
+    const { isDark } = useTheme();
     const [formData, setFormData] = useState({
         fullName: '',
         studentName: '',
@@ -29,6 +31,24 @@ const ParentSettings = () => {
         chessUsername: '',
         learningLevel: 'Beginner'
     });
+
+    const c = {
+        pageBg: isDark ? '#0f1117' : COLORS.ivory,
+        heading: isDark ? '#f0f0f0' : COLORS.deepBlue,
+        subtext: isDark ? 'rgba(255,255,255,0.5)' : '#666',
+        cardBg: isDark ? '#141820' : 'white',
+        cardBorder: isDark ? '1px solid rgba(255,255,255,0.06)' : undefined,
+        labelColor: isDark ? '#c0c0c0' : COLORS.deepBlue,
+        inputBg: isDark ? 'rgba(255,255,255,0.06)' : 'white',
+        inputBorder: isDark ? '1px solid rgba(255,255,255,0.12)' : '1px solid #ddd',
+        inputColor: isDark ? '#e0e0e0' : '#181818',
+        inputDisabledBg: isDark ? 'rgba(255,255,255,0.03)' : '#f5f5f5',
+        inputDisabledColor: isDark ? 'rgba(255,255,255,0.3)' : '#666',
+        divider1: isDark ? 'rgba(255,138,36,0.5)' : COLORS.orange,
+        divider2: isDark ? 'rgba(107,142,35,0.5)' : COLORS.oliveGreen,
+        divider3: isDark ? 'rgba(255,255,255,0.1)' : '#ddd',
+        backBtnColor: isDark ? '#e0e0e0' : COLORS.deepBlue,
+    };
 
     useEffect(() => {
         if (userData) {
@@ -71,23 +91,25 @@ const ParentSettings = () => {
     const inputStyle = {
         width: '100%',
         padding: '12px 14px',
-        border: '1px solid #ddd',
+        border: c.inputBorder,
         borderRadius: '8px',
         fontSize: '14px',
         transition: 'border-color 0.2s, box-shadow 0.2s',
-        outline: 'none'
+        outline: 'none',
+        background: c.inputBg,
+        color: c.inputColor,
     };
 
     const labelStyle = {
         display: 'block',
         marginBottom: '6px',
         fontWeight: '600',
-        color: COLORS.deepBlue,
+        color: c.labelColor,
         fontSize: '13px'
     };
 
     return (
-        <div style={{ minHeight: '100vh', backgroundColor: COLORS.ivory }}>
+        <div style={{ minHeight: '100vh', backgroundColor: c.pageBg, transition: 'background-color 0.2s ease' }}>
             <ToastContainer position="top-right" autoClose={3000} />
 
             <div style={{ padding: '32px', maxWidth: '800px', margin: '0 auto' }}>
@@ -96,19 +118,19 @@ const ParentSettings = () => {
                     <Button
                         variant="ghost"
                         onClick={() => window.history.back()}
-                        style={{ marginBottom: '16px', display: 'flex', alignItems: 'center', gap: '6px', color: COLORS.deepBlue }}
+                        style={{ marginBottom: '16px', display: 'flex', alignItems: 'center', gap: '6px', color: c.backBtnColor }}
                     >
                         <ArrowLeft size={18} /> Back
                     </Button>
-                    <h1 style={{ margin: 0, color: COLORS.deepBlue, display: 'flex', alignItems: 'center', gap: '12px' }}>
+                    <h1 style={{ margin: 0, color: c.heading, display: 'flex', alignItems: 'center', gap: '12px', transition: 'color 0.2s ease' }}>
                         <User size={28} /> Account Settings
                     </h1>
-                    <p style={{ color: '#666', marginTop: '8px' }}>Manage your profile and preferences</p>
+                    <p style={{ color: c.subtext, marginTop: '8px', transition: 'color 0.2s ease' }}>Manage your profile and preferences</p>
                 </div>
 
                 {/* Profile Card */}
-                <Card style={{ padding: '32px', marginBottom: '24px' }}>
-                    <h3 style={{ margin: '0 0 24px', color: COLORS.deepBlue, borderBottom: `2px solid ${COLORS.orange}`, paddingBottom: '12px' }}>
+                <Card style={{ padding: '32px', marginBottom: '24px', background: c.cardBg, border: c.cardBorder, transition: 'background 0.2s ease' }}>
+                    <h3 style={{ margin: '0 0 24px', color: c.heading, borderBottom: `2px solid ${c.divider1}`, paddingBottom: '12px', transition: 'color 0.2s ease' }}>
                         Parent Information
                     </h3>
 
@@ -126,7 +148,7 @@ const ParentSettings = () => {
                         </div>
                         <div>
                             <label style={labelStyle}>Email</label>
-                            <div style={{ ...inputStyle, background: '#f5f5f5', color: '#666' }}>
+                            <div style={{ ...inputStyle, background: c.inputDisabledBg, color: c.inputDisabledColor }}>
                                 <Mail size={14} style={{ marginRight: '8px', display: 'inline' }} />
                                 {currentUser?.email || '-'}
                             </div>
@@ -157,8 +179,8 @@ const ParentSettings = () => {
                 </Card>
 
                 {/* Student Card */}
-                <Card style={{ padding: '32px', marginBottom: '24px' }}>
-                    <h3 style={{ margin: '0 0 24px', color: COLORS.deepBlue, borderBottom: `2px solid ${COLORS.oliveGreen}`, paddingBottom: '12px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <Card style={{ padding: '32px', marginBottom: '24px', background: c.cardBg, border: c.cardBorder, transition: 'background 0.2s ease' }}>
+                    <h3 style={{ margin: '0 0 24px', color: c.heading, borderBottom: `2px solid ${c.divider2}`, paddingBottom: '12px', display: 'flex', alignItems: 'center', gap: '8px', transition: 'color 0.2s ease' }}>
                         <GraduationCap size={20} /> Student Details
                     </h3>
 
@@ -215,8 +237,8 @@ const ParentSettings = () => {
                 </Card>
 
                 {/* Preferences Card */}
-                <Card style={{ padding: '32px', marginBottom: '24px' }}>
-                    <h3 style={{ margin: '0 0 24px', color: COLORS.deepBlue, borderBottom: '2px solid #ddd', paddingBottom: '12px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <Card style={{ padding: '32px', marginBottom: '24px', background: c.cardBg, border: c.cardBorder, transition: 'background 0.2s ease' }}>
+                    <h3 style={{ margin: '0 0 24px', color: c.heading, borderBottom: `2px solid ${c.divider3}`, paddingBottom: '12px', display: 'flex', alignItems: 'center', gap: '8px', transition: 'color 0.2s ease' }}>
                         <Clock size={20} /> Preferences
                     </h3>
 

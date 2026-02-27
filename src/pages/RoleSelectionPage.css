@@ -1,292 +1,638 @@
-/* ANIMATED BACKGROUND */
-@keyframes kenBurns {
-    0% {
-        transform: scale(1);
+/* ============================================================
+   ROLE SELECTION PAGE — Cinematic Split Layout (No-Scroll)
+   Matches Login page aesthetic: dark, premium, chess-branded.
+   ============================================================ */
+@import url('https://fonts.googleapis.com/css2?family=Figtree:wght@300;400;500;600;700;800;900&display=swap');
+
+/* ── Keyframes ── */
+@keyframes rspFadeIn {
+    from {
+        opacity: 0
     }
 
-    100% {
-        transform: scale(1.1);
+    to {
+        opacity: 1
     }
 }
 
-@keyframes fadeIn {
+@keyframes rspSlideUp {
     from {
         opacity: 0;
+        transform: translateY(20px)
     }
 
     to {
         opacity: 1;
+        transform: translateY(0)
     }
 }
 
-.role-selection-page {
-    min-height: 100vh;
-    position: relative;
-    font-family: 'Figtree', sans-serif;
-    overflow-x: hidden;
-    background-color: #000;
-    animation: fadeIn 0.8s ease-out;
+@keyframes rspCardIn {
+    from {
+        opacity: 0;
+        transform: translateY(20px)
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0)
+    }
 }
 
-/* Background Image Container */
-.role-selection-page::before {
-    content: '';
-    position: fixed;
-    top: 0;
-    left: 0;
+@keyframes orbFloat1 {
+
+    0%,
+    100% {
+        transform: translate(0, 0) scale(1)
+    }
+
+    40% {
+        transform: translate(40px, -50px) scale(1.08)
+    }
+
+    70% {
+        transform: translate(-30px, 30px) scale(0.94)
+    }
+}
+
+@keyframes orbFloat2 {
+
+    0%,
+    100% {
+        transform: translate(0, 0) scale(1)
+    }
+
+    35% {
+        transform: translate(-50px, 40px) scale(1.1)
+    }
+
+    70% {
+        transform: translate(30px, -30px) scale(0.92)
+    }
+}
+
+@keyframes goldPulse {
+
+    0%,
+    100% {
+        box-shadow: 0 0 0 0 rgba(248, 139, 34, 0.45)
+    }
+
+    50% {
+        box-shadow: 0 0 0 8px rgba(248, 139, 34, 0)
+    }
+}
+
+/* ── Root Layout — fills exactly the viewport, no scroll ── */
+.rsp-page {
+    display: flex;
+    height: 100vh;
+    width: 100vw;
+    overflow: hidden;
+    font-family: 'Figtree', sans-serif;
+    animation: rspFadeIn 0.45s ease-out;
+}
+
+/* ============================================================
+   LEFT PANEL — Cinematic chess video
+   ============================================================ */
+.rsp-left {
+    flex: 1.1;
+    position: relative;
+    display: flex;
+    align-items: flex-end;
+    /* anchor content to bottom */
+    overflow: hidden;
+    padding: 0 56px 48px;
+}
+
+.rsp-bg-video {
+    position: absolute;
+    inset: 0;
     width: 100%;
     height: 100%;
-    background-image: url('/chess-background.png');
-    background-size: cover;
-    background-position: center;
+    object-fit: cover;
     z-index: 0;
-    animation: kenBurns 20s ease-in-out infinite alternate;
 }
 
-.role-background-overlay {
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    /* Reduced blue opacity as requested */
-    background: linear-gradient(135deg, rgba(0, 51, 102, 0.6) 0%, rgba(0, 20, 40, 0.7) 100%);
+.rsp-left-overlay {
+    position: absolute;
+    inset: 0;
+    background:
+        linear-gradient(135deg, rgba(0, 0, 0, 0.78) 0%, rgba(0, 0, 0, 0.42) 60%, rgba(0, 0, 0, 0.72) 100%),
+        linear-gradient(to top, rgba(0, 0, 0, 0.88) 0%, transparent 50%);
     z-index: 1;
-    pointer-events: none;
 }
 
-.role-content {
+/* Back button — absolute top-left of the left panel */
+.rsp-back-btn {
+    position: absolute;
+    top: 28px;
+    left: 32px;
+    z-index: 10;
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(8px);
+    border: 1px solid rgba(255, 255, 255, 0.18);
+    color: rgba(255, 255, 255, 0.8);
+    font-size: 12px;
+    font-weight: 600;
+    font-family: 'Figtree', sans-serif;
+    cursor: pointer;
+    padding: 8px 16px;
+    border-radius: 20px;
+    display: flex;
+    align-items: center;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    transition: background 0.25s, color 0.25s, transform 0.25s;
+}
+
+.rsp-back-btn:hover {
+    background: rgba(255, 255, 255, 0.18);
+    color: #ffffff;
+    transform: translateX(-3px);
+}
+
+/* Left content — sits at the bottom */
+.rsp-left-content {
     position: relative;
     z-index: 2;
-    padding: 48px 24px;
-    max-width: 1400px;
-    margin: 0 auto;
+    max-width: 480px;
+    animation: rspSlideUp 1s cubic-bezier(0.22, 1, 0.36, 1) 0.1s both;
 }
 
-/* BACK BUTTON */
-.role-back-button {
-    background: rgba(255, 255, 255, 0.15);
-    backdrop-filter: blur(10px);
-    border: 2px solid rgba(255, 255, 255, 0.3);
-    color: white;
-    font-family: 'Figtree', sans-serif;
-    font-size: 16px;
-    font-weight: 600;
-    padding: 12px 24px;
-    border-radius: 12px;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    margin-bottom: 48px;
+/* Brand */
+.rsp-brand {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 32px;
 }
 
-.role-back-button:hover {
-    background: rgba(255, 255, 255, 0.25);
-    transform: translateX(-4px);
+.rsp-brand-logo {
+    height: 56px;
+    width: auto;
+    border-radius: 8px;
+    object-fit: contain;
 }
 
-/* HEADER */
-.role-header {
-    text-align: center;
-    margin-bottom: 64px;
+.rsp-brand span {
+    font-size: 13px;
+    font-weight: 800;
+    color: rgba(255, 255, 255, 0.85);
+    letter-spacing: 1px;
+    text-transform: uppercase;
 }
 
-.role-header h1 {
-    font-family: 'Figtree', sans-serif;
-    font-size: 56px;
+/* Headline */
+.rsp-left-content h1 {
+    font-size: clamp(40px, 4.5vw, 62px);
     font-weight: 900;
-    color: white;
-    margin-bottom: 16px;
-    text-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    color: #ffffff;
+    line-height: 1.05;
+    letter-spacing: -0.03em;
+    margin-bottom: 18px;
+    text-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
 }
 
-.role-header p {
-    font-size: 20px;
-    color: #EBD6C3;
-    font-weight: 500;
+.rsp-left-content>p {
+    font-size: 16px;
+    font-weight: 400;
+    color: rgba(255, 255, 255, 0.68);
+    line-height: 1.75;
+    margin-bottom: 32px;
+    max-width: 360px;
 }
 
-/* CARDS GRID */
-.role-cards-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
-    gap: 32px;
-    margin-bottom: 64px;
+/* Stats strip */
+.rsp-stats {
+    display: flex;
+    align-items: center;
+    gap: 24px;
 }
 
-.role-card {
-    background: rgba(255, 255, 255, 0.9);
-    backdrop-filter: blur(20px);
-    border-radius: 24px;
-    padding: 40px 32px;
-    border: 3px solid rgba(235, 214, 195, 0.6);
+.rsp-stat {
     display: flex;
     flex-direction: column;
-    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
-    min-height: 520px;
+    gap: 3px;
 }
 
-.role-card:hover {
-    transform: translateY(-12px);
-    box-shadow: 0 20px 48px rgba(0, 0, 0, 0.3);
-    border-color: #FC8A24;
+.rsp-stat-num {
+    font-size: 22px;
+    font-weight: 900;
+    color: #F88B22;
+    line-height: 1;
+    letter-spacing: -0.5px;
 }
 
-.role-card-highlight {
-    border: 3px solid #FC8A24;
-    background: linear-gradient(135deg, rgba(255, 255, 255, 0.98) 0%, rgba(252, 138, 36, 0.08) 100%);
+.rsp-stat-label {
+    font-size: 11px;
+    font-weight: 600;
+    color: rgba(255, 255, 255, 0.45);
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
 }
 
-.role-card-highlight:hover {
-    border-color: #D4AF37;
+.rsp-stat-divider {
+    width: 1px;
+    height: 30px;
+    background: rgba(255, 255, 255, 0.18);
 }
 
-/* CARD ICON */
-.role-card-icon {
+/* ============================================================
+   RIGHT PANEL — Dark deep background, no scroll
+   ============================================================ */
+.rsp-right {
+    flex: 0.9;
     display: flex;
-    justify-content: center;
     align-items: center;
-    width: 120px;
-    height: 120px;
-    margin: 0 auto 24px;
-    background: linear-gradient(135deg, #EFE3C8 0%, #EBD6C3 100%);
-    border-radius: 50%;
-    border: 3px solid #D4AF37;
-    transition: all 0.3s ease;
+    justify-content: center;
+    overflow: hidden;
+    /* no scroll */
+    position: relative;
+    background: linear-gradient(160deg, #090909 0%, #0e0e10 50%, #111318 100%);
 }
 
-.role-card:hover .role-card-icon {
-    transform: scale(1.1) rotate(5deg);
-    border-color: #FC8A24;
+/* ── Ambient gradient: flows top-right → fades diagonally downward ── */
+.rsp-right-orbs {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    z-index: 0;
+    /* Main amber glow — top-right origin, elongated cone flowing down */
+    background:
+        radial-gradient(ellipse 80% 55% at 90% 8%,
+            rgba(248, 139, 34, 0.18) 0%,
+            rgba(248, 139, 34, 0.08) 40%,
+            transparent 72%),
+        radial-gradient(ellipse 60% 80% at 75% 50%,
+            rgba(212, 175, 55, 0.07) 0%,
+            transparent 70%);
+    animation: orbFloat1 24s ease-in-out infinite;
 }
 
-/* CARD CONTENT */
-.role-card-title {
-    font-family: 'Figtree', sans-serif;
-    font-size: 28px;
-    font-weight: 800;
-    color: #181818;
-    margin-bottom: 12px;
-    text-align: center;
+/* Inner wrapper */
+.rsp-right-inner {
+    position: relative;
+    z-index: 1;
+    width: 100%;
+    max-width: 560px;
+    padding: 0 48px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
 }
 
-.role-card-desc {
+/* Header */
+.rsp-header {
+    margin-bottom: 6px;
+}
+
+.rsp-eyebrow {
+    font-size: 12px;
+    font-weight: 700;
+    color: #F88B22;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    margin: 0 0 10px 0;
+}
+
+.rsp-header h2 {
+    font-size: 34px;
+    font-weight: 900;
+    color: #ffffff;
+    letter-spacing: -0.6px;
+    margin: 0 0 6px 0;
+    line-height: 1.1;
+}
+
+.rsp-subheading {
     font-size: 16px;
-    color: #68300B;
-    text-align: center;
-    margin-bottom: 24px;
+    color: rgba(255, 255, 255, 0.45);
+    margin: 0;
+}
+
+/* ── Cards ── */
+.rsp-card {
+    border-radius: 20px;
+    padding: 26px 28px 22px;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    background: rgba(255, 255, 255, 0.04);
+    backdrop-filter: blur(24px);
+    -webkit-backdrop-filter: blur(24px);
+    position: relative;
+    overflow: hidden;
+    transition: transform 0.3s cubic-bezier(0.22, 1, 0.36, 1), box-shadow 0.3s ease, border-color 0.3s ease;
+    animation: rspCardIn 0.6s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.rsp-card:nth-child(2) {
+    animation-delay: 0.1s;
+}
+
+.rsp-card:nth-child(3) {
+    animation-delay: 0.2s;
+}
+
+.rsp-card--gold {
+    border-color: rgba(248, 139, 34, 0.28);
+    background: linear-gradient(145deg, rgba(248, 139, 34, 0.06) 0%, rgba(255, 255, 255, 0.03) 100%);
+}
+
+.rsp-card--gold:hover {
+    border-color: rgba(248, 139, 34, 0.5);
+    box-shadow: 0 0 32px rgba(248, 139, 34, 0.12), 0 14px 36px rgba(0, 0, 0, 0.35);
+    transform: translateY(-3px);
+}
+
+.rsp-card--silver:hover {
+    border-color: rgba(255, 255, 255, 0.2);
+    box-shadow: 0 14px 36px rgba(0, 0, 0, 0.35);
+    transform: translateY(-3px);
+}
+
+/* Badge */
+.rsp-card-badge {
+    position: absolute;
+    top: 16px;
+    right: 16px;
+    font-size: 10px;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    color: #F88B22;
+    background: rgba(248, 139, 34, 0.12);
+    border: 1px solid rgba(248, 139, 34, 0.3);
+    border-radius: 20px;
+    padding: 4px 11px;
+}
+
+/* Card top row */
+.rsp-card-top {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin-bottom: 18px;
+}
+
+/* Icon */
+.rsp-card-icon {
+    width: 56px;
+    height: 56px;
+    border-radius: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    transition: transform 0.3s ease;
+}
+
+.rsp-card:hover .rsp-card-icon {
+    transform: scale(1.08) rotate(4deg);
+}
+
+.rsp-card-icon--gold {
+    background: rgba(248, 139, 34, 0.12);
+    border: 1px solid rgba(248, 139, 34, 0.35);
+    color: #F88B22;
+    animation: goldPulse 3.5s ease-in-out infinite;
+}
+
+.rsp-card-icon--silver {
+    background: rgba(255, 255, 255, 0.07);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    color: rgba(255, 255, 255, 0.75);
+}
+
+/* Card text */
+.rsp-card-title {
+    font-size: 22px;
+    font-weight: 800;
+    color: #ffffff;
+    margin: 0 0 4px 0;
+    letter-spacing: -0.4px;
+}
+
+.rsp-card-desc {
+    font-size: 14px;
+    color: rgba(255, 255, 255, 0.42);
+    margin: 0;
+}
+
+/* Feature list — 2-column grid */
+.rsp-features {
+    list-style: none;
+    padding: 0;
+    margin: 0 0 20px 0;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px 16px;
+}
+
+.rsp-feature {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 14px;
+    color: rgba(255, 255, 255, 0.78);
     font-weight: 500;
 }
 
-.role-card-features {
-    list-style: none;
-    padding: 0;
-    margin: 0 0 32px 0;
-    flex-grow: 1;
-}
-
-.role-card-features li {
-    font-size: 15px;
-    color: #181818;
-    margin-bottom: 12px;
+.rsp-feature-icon {
+    width: 26px;
+    height: 26px;
+    border-radius: 7px;
     display: flex;
-    align-items: center;
-    line-height: 1.6;
-}
-
-.feature-check {
-    display: inline-flex;
     align-items: center;
     justify-content: center;
-    width: 24px;
-    height: 24px;
-    background: #6B8E23;
-    color: white;
-    border-radius: 50%;
-    font-size: 14px;
-    font-weight: 700;
-    margin-right: 12px;
     flex-shrink: 0;
 }
 
-.role-card-highlight .feature-check {
-    background: #FC8A24;
+.rsp-feature-icon--gold {
+    background: rgba(248, 139, 34, 0.1);
+    border: 1px solid rgba(248, 139, 34, 0.25);
+    color: #F88B22;
 }
 
-/* NOTE SECTION */
-.role-note {
-    background: rgba(255, 255, 255, 0.95);
-    backdrop-filter: blur(20px);
-    border-radius: 20px;
-    padding: 32px;
-    border-left: 6px solid #FC8A24;
-    display: flex;
-    gap: 24px;
-    align-items: flex-start;
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
+.rsp-feature-icon--silver {
+    background: rgba(255, 255, 255, 0.06);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    color: rgba(255, 255, 255, 0.5);
 }
 
-.role-note-icon {
-    font-size: 48px;
-    flex-shrink: 0;
-}
-
-.role-note-content h4 {
-    font-family: 'Figtree', sans-serif;
-    font-size: 22px;
-    font-weight: 700;
-    color: #181818;
-    margin: 0 0 12px 0;
-}
-
-.role-note-content p {
+/* ── Buttons ── */
+.rsp-btn {
+    width: 100%;
+    padding: 14px 20px;
+    border: 1.5px solid transparent;
+    border-radius: 12px;
     font-size: 15px;
-    color: #68300B;
-    margin: 0;
-    line-height: 1.7;
+    font-weight: 700;
+    font-family: 'Figtree', sans-serif;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    transition: all 0.28s cubic-bezier(0.22, 1, 0.36, 1);
+    letter-spacing: 0.2px;
 }
 
-/* RESPONSIVE */
+.rsp-btn-arrow {
+    transition: transform 0.25s ease;
+}
+
+.rsp-btn:hover .rsp-btn-arrow {
+    transform: translateX(4px);
+}
+
+.rsp-btn--gold {
+    background: linear-gradient(135deg, #F88B22 0%, #ffaa55 100%);
+    color: #ffffff;
+    box-shadow: 0 6px 20px rgba(248, 139, 34, 0.28);
+}
+
+.rsp-btn--gold:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 12px 30px rgba(248, 139, 34, 0.42);
+}
+
+.rsp-btn--gold:active {
+    transform: translateY(-1px);
+}
+
+.rsp-btn--ghost {
+    background: transparent;
+    color: rgba(255, 255, 255, 0.88);
+    border-color: rgba(255, 255, 255, 0.32);
+}
+
+.rsp-btn--ghost:hover {
+    background: rgba(255, 255, 255, 0.07);
+    border-color: rgba(255, 255, 255, 0.55);
+    color: #ffffff;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.25);
+}
+
+.rsp-btn--ghost:active {
+    transform: translateY(-1px);
+}
+
+/* ── Footer row: security note + login CTA side by side ── */
+.rsp-footer-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding-top: 4px;
+}
+
+.rsp-note {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    flex: 1;
+}
+
+.rsp-note-icon {
+    color: rgba(255, 255, 255, 0.3);
+    flex-shrink: 0;
+    margin-top: 1px;
+}
+
+.rsp-note p {
+    font-size: 11px;
+    color: rgba(255, 255, 255, 0.35);
+    line-height: 1.5;
+    margin: 0;
+}
+
+/* Login CTA */
+.rsp-login-cta {
+    font-size: 13px;
+    color: rgba(255, 255, 255, 0.45);
+    white-space: nowrap;
+    flex-shrink: 0;
+}
+
+.rsp-login-cta a {
+    color: #F88B22;
+    font-weight: 700;
+    text-decoration: none;
+    transition: opacity 0.2s;
+}
+
+.rsp-login-cta a:hover {
+    opacity: 0.75;
+}
+
+/* ============================================================
+   RESPONSIVE
+   ============================================================ */
 @media (max-width: 1024px) {
-    .role-cards-grid {
-        grid-template-columns: repeat(2, 1fr);
+    .rsp-right-inner {
+        padding: 0 28px;
+    }
+
+    .rsp-left {
+        padding: 0 40px 40px;
     }
 }
 
 @media (max-width: 768px) {
-    .role-content {
-        padding: 32px 16px;
-    }
-
-    .role-header h1 {
-        font-size: 36px;
-    }
-
-    .role-header p {
-        font-size: 16px;
-    }
-
-    .role-cards-grid {
-        grid-template-columns: 1fr;
-        gap: 24px;
-    }
-
-    .role-card {
-        padding: 32px 24px;
-        min-height: auto;
-    }
-
-    .role-card-icon {
-        width: 100px;
-        height: 100px;
-    }
-
-    .role-note {
+    .rsp-page {
         flex-direction: column;
-        padding: 24px;
+        height: auto;
+        overflow-y: auto;
     }
 
-    .role-note-icon {
-        font-size: 36px;
+    .rsp-left {
+        min-height: 240px;
+        padding: 0 24px 24px;
+    }
+
+    .rsp-brand {
+        margin-bottom: 16px;
+    }
+
+    .rsp-left-content h1 {
+        font-size: 32px;
+    }
+
+    .rsp-left-content>p {
+        display: none;
+    }
+
+    .rsp-stats {
+        gap: 14px;
+    }
+
+    .rsp-stat-num {
+        font-size: 18px;
+    }
+
+    .rsp-right {
+        padding: 24px 0;
+        align-items: flex-start;
+    }
+
+    .rsp-right-inner {
+        padding: 0 20px;
+        max-width: 100%;
+    }
+
+    .rsp-card {
+        padding: 18px 16px;
+    }
+
+    .rsp-features {
+        grid-template-columns: 1fr;
+    }
+
+    .rsp-footer-row {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 8px;
     }
 }

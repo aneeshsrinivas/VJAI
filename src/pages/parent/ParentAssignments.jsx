@@ -7,12 +7,31 @@ import { db } from '../../lib/firebase';
 import { COLLECTIONS } from '../../config/firestoreCollections';
 import { useAuth } from '../../context/AuthContext';
 import { where } from 'firebase/firestore';
+import { useTheme } from '../../context/ThemeContext';
 
 const ParentAssignments = () => {
     const [assignments, setAssignments] = useState([]);
     const [loading, setLoading] = useState(true);
 
-    const { currentUser } = useAuth(); // Needed to find student doc
+    const { currentUser } = useAuth();
+    const { isDark } = useTheme();
+
+    const c = {
+        pageBg: isDark ? '#0f1117' : 'linear-gradient(180deg, #f8f9fc 0%, #f0f2f5 100%)',
+        heading: isDark ? '#f0f0f0' : '#181818',
+        subtext: isDark ? 'rgba(255,255,255,0.5)' : '#666',
+        cardBg: isDark ? '#141820' : 'white',
+        cardBorder: isDark ? '1px solid rgba(255,255,255,0.06)' : 'none',
+        cardTitle: isDark ? '#e0e0e0' : '#1e293b',
+        cardDesc: isDark ? 'rgba(255,255,255,0.5)' : '#64748b',
+        cardMeta: isDark ? 'rgba(255,255,255,0.4)' : '#64748b',
+        cardMetaStrong: isDark ? '#c0c0c0' : '#334155',
+        cardScore: isDark ? '#f0f0f0' : '#181818',
+        divider: isDark ? 'rgba(255,255,255,0.08)' : '#f1f5f9',
+        footerBg: isDark ? '#1a1f2e' : '#f8f9fc',
+        footerBtnColor: isDark ? 'rgba(255,255,255,0.5)' : '#64748b',
+        emptyText: isDark ? 'rgba(255,255,255,0.4)' : '#888',
+    };
 
     useEffect(() => {
         if (!currentUser?.uid) return;
@@ -23,14 +42,14 @@ const ParentAssignments = () => {
         const unsubscribeStudent = onSnapshot(userDocRef, (docSnap) => {
             if (docSnap.exists()) {
                 const student = docSnap.data();
-                
+
                 console.log('Student data:', student);
-                
+
                 // Get batch ID from user document
                 const batchId = student.assignedBatchId || student.assignedBatch;
-                
+
                 console.log('Looking for assignments with batchId:', batchId);
-                
+
                 if (batchId) {
                     // Query assignments filtered by batchId
                     const q = query(
@@ -83,20 +102,22 @@ const ParentAssignments = () => {
     return (
         <div style={{
             minHeight: '100vh',
-            background: 'linear-gradient(180deg, #f8f9fc 0%, #f0f2f5 100%)',
+            background: c.pageBg,
             padding: '40px 24px',
-            fontFamily: "'Figtree', sans-serif"
+            fontFamily: "'Figtree', sans-serif",
+            transition: 'background 0.2s ease'
         }}>
             <div style={{ maxWidth: '1000px', margin: '0 auto' }}>
                 <header style={{ marginBottom: '32px' }}>
                     <h1 style={{
                         fontSize: '32px',
                         fontWeight: '800',
-                        color: '#181818',
+                        color: c.heading,
                         marginBottom: '8px',
                         display: 'flex',
                         alignItems: 'center',
-                        gap: '12px'
+                        gap: '12px',
+                        transition: 'color 0.2s ease'
                     }}>
                         <span style={{
                             background: 'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)',
@@ -110,17 +131,17 @@ const ParentAssignments = () => {
                         </span>
                         Assignments
                     </h1>
-                    <p style={{ color: '#666', fontSize: '16px', marginLeft: '54px' }}>
+                    <p style={{ color: c.subtext, fontSize: '16px', marginLeft: '54px', transition: 'color 0.2s ease' }}>
                         Manage homework, puzzles, and quizzes to reinforce learning.
                     </p>
                 </header>
 
                 {loading ? (
-                    <div style={{ textAlign: 'center', padding: '40px', color: '#888' }}>
+                    <div style={{ textAlign: 'center', padding: '40px', color: c.emptyText }}>
                         Loading assignments...
                     </div>
                 ) : assignments.length === 0 ? (
-                    <div style={{ textAlign: 'center', padding: '40px', color: '#888' }}>
+                    <div style={{ textAlign: 'center', padding: '40px', color: c.emptyText }}>
                         No assignments assigned yet.
                     </div>
                 ) : (
@@ -131,23 +152,24 @@ const ParentAssignments = () => {
 
                             return (
                                 <Card key={item.id} className="assignment-card" style={{
-                                    border: 'none',
+                                    border: c.cardBorder,
                                     borderRadius: '16px',
                                     padding: '0',
                                     overflow: 'hidden',
-                                    transition: 'transform 0.3s ease, box-shadow 0.3s ease',
+                                    transition: 'transform 0.3s ease, box-shadow 0.3s ease, background 0.2s ease',
                                     cursor: 'pointer',
                                     height: '100%',
                                     display: 'flex',
-                                    flexDirection: 'column'
+                                    flexDirection: 'column',
+                                    background: c.cardBg
                                 }}
                                     onMouseEnter={(e) => {
                                         e.currentTarget.style.transform = 'translateY(-5px)';
-                                        e.currentTarget.style.boxShadow = '0 12px 30px rgba(0,0,0,0.1)';
+                                        e.currentTarget.style.boxShadow = isDark ? '0 12px 30px rgba(0,0,0,0.4)' : '0 12px 30px rgba(0,0,0,0.1)';
                                     }}
                                     onMouseLeave={(e) => {
                                         e.currentTarget.style.transform = 'translateY(0)';
-                                        e.currentTarget.style.boxShadow = '0 4px 6px rgba(0,0,0,0.05)';
+                                        e.currentTarget.style.boxShadow = isDark ? '0 4px 6px rgba(0,0,0,0.2)' : '0 4px 6px rgba(0,0,0,0.05)';
                                     }}
                                 >
                                     <div style={{ padding: '24px', flex: 1 }}>
@@ -166,25 +188,25 @@ const ParentAssignments = () => {
                                             }}>
                                                 {StatusIcon && <StatusIcon size={14} />} {item.status}
                                             </div>
-                                            <span style={{ fontSize: '13px', color: '#888', fontWeight: '500' }}>{item.type}</span>
+                                            <span style={{ fontSize: '13px', color: c.cardMeta, fontWeight: '500' }}>{item.type}</span>
                                         </div>
 
-                                        <h3 style={{ fontSize: '18px', fontWeight: '700', color: '#1e293b', marginBottom: '12px', lineHeight: '1.4' }}>
+                                        <h3 style={{ fontSize: '18px', fontWeight: '700', color: c.cardTitle, marginBottom: '12px', lineHeight: '1.4', transition: 'color 0.2s ease' }}>
                                             {item.title}
                                         </h3>
-                                        <p style={{ fontSize: '14px', color: '#64748b', lineHeight: '1.6', marginBottom: '20px' }}>
+                                        <p style={{ fontSize: '14px', color: c.cardDesc, lineHeight: '1.6', marginBottom: '20px', transition: 'color 0.2s ease' }}>
                                             {item.description}
                                         </p>
 
-                                        <div style={{ paddingTop: '16px', borderTop: '1px solid #f1f5f9', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                                            <span style={{ fontSize: '13px', color: '#64748b' }}>Due: <strong style={{ color: '#334155' }}>{item.dueDate}</strong></span>
+                                        <div style={{ paddingTop: '16px', borderTop: `1px solid ${c.divider}`, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                            <span style={{ fontSize: '13px', color: c.cardMeta }}>Due: <strong style={{ color: c.cardMetaStrong }}>{item.dueDate}</strong></span>
                                             {item.status === 'Graded' && (
-                                                <span style={{ fontSize: '14px', fontWeight: '800', color: '#181818' }}>Score: {item.score}</span>
+                                                <span style={{ fontSize: '14px', fontWeight: '800', color: c.cardScore }}>Score: {item.score}</span>
                                             )}
                                         </div>
                                     </div>
                                     <div style={{
-                                        background: item.status === 'Pending' ? '#f093fb' : '#f8f9fc',
+                                        background: item.status === 'Pending' ? '#f093fb' : c.footerBg,
                                         backgroundImage: item.status === 'Pending' ? 'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)' : 'none',
                                         padding: '16px 24px',
                                         display: 'flex',
@@ -215,7 +237,7 @@ const ParentAssignments = () => {
                                                 style={{
                                                     background: 'transparent',
                                                     border: 'none',
-                                                    color: '#64748b',
+                                                    color: c.footerBtnColor,
                                                     fontWeight: '600',
                                                     display: 'flex',
                                                     alignItems: 'center',

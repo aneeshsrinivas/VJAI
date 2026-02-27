@@ -6,6 +6,7 @@ import { collection, query, orderBy, onSnapshot, where, doc, getDoc } from 'fire
 import { db } from '../../lib/firebase';
 import { COLLECTIONS } from '../../config/firestoreCollections';
 import { useAuth } from '../../context/AuthContext';
+import { useTheme } from '../../context/ThemeContext';
 
 const ParentSchedule = () => {
     const [classes, setClasses] = useState([]);
@@ -13,6 +14,26 @@ const ParentSchedule = () => {
     const [loading, setLoading] = useState(true);
     const [studentData, setStudentData] = useState(null);
     const { currentUser, userData } = useAuth();
+    const { isDark } = useTheme();
+
+    const c = {
+        pageBg: isDark ? '#0f1117' : 'linear-gradient(180deg, #f8f9fc 0%, #f0f2f5 100%)',
+        cardBg: isDark ? '#141820' : 'white',
+        heading: isDark ? '#f0f0f0' : '#181818',
+        subtext: isDark ? 'rgba(255,255,255,0.5)' : '#666',
+        border: isDark ? 'rgba(255,255,255,0.08)' : '#f0f0f0',
+        rowBase: isDark ? '#141820' : 'white',
+        rowHover: isDark ? 'rgba(255,255,255,0.04)' : '#fcfcfc',
+        dateBg: isDark ? '#252b3b' : '#f8f9fc',
+        dateText: isDark ? '#f0f0f0' : '#181818',
+        metaText: isDark ? 'rgba(255,255,255,0.5)' : '#666',
+        topicText: isDark ? 'rgba(255,255,255,0.7)' : '#444',
+        topicLabel: isDark ? 'rgba(255,255,255,0.35)' : '#888',
+        btnSecBg: isDark ? '#252b3b' : 'white',
+        btnSecColor: isDark ? '#f0f0f0' : '#181818',
+        btnSecBorder: isDark ? '1px solid rgba(255,255,255,0.15)' : '1px solid #181818',
+        emptyText: isDark ? 'rgba(255,255,255,0.4)' : '#888',
+    };
 
     useEffect(() => {
         if (!currentUser?.uid) return;
@@ -134,17 +155,8 @@ const ParentSchedule = () => {
         // 3. Global sessions (optional, e.g. "Global" batch)
         if (session.batchName === 'Global') return true;
 
-        // Default: If exact batch match required, return false. 
-        // But for 'Beginner Batch' vs 'Beginner', allow level match if batch not set?
-        // User said: "student has taken beginner batch, so he should only see beginner"
-        // Let's assume if batch is assigned, MUST match batch. If not, match level.
-        if (userBatch) return false; // Has batch, didn't match above -> Hide.
+        if (userBatch) return false;
 
-        // No batch assigned yet? Maybe show nothing?
-        // User complained "new student... doesnt have batch... cant see". 
-        // Actually user said "student new... doesnt have batch... cant edit... fix that."
-        // And "student has taken beginner batch... should only see beginner".
-        // If I fixed Admin Edit, Admin assigns batch. Then this works.
         return true;
     }).sort((a, b) => {
         const dateA = a.scheduledAt?.seconds ? new Date(a.scheduledAt.seconds * 1000) : new Date(a.scheduledAt);
@@ -155,20 +167,22 @@ const ParentSchedule = () => {
     return (
         <div style={{
             minHeight: '100vh',
-            background: 'linear-gradient(180deg, #f8f9fc 0%, #f0f2f5 100%)',
+            background: c.pageBg,
             padding: '40px 24px',
-            fontFamily: "'Figtree', sans-serif"
+            fontFamily: "'Figtree', sans-serif",
+            transition: 'background 0.2s ease, color 0.2s ease'
         }}>
             <div style={{ maxWidth: '1000px', margin: '0 auto' }}>
                 <header style={{ marginBottom: '32px' }}>
                     <h1 style={{
                         fontSize: '32px',
                         fontWeight: '800',
-                        color: '#181818',
+                        color: c.heading,
                         marginBottom: '8px',
                         display: 'flex',
                         alignItems: 'center',
-                        gap: '12px'
+                        gap: '12px',
+                        transition: 'color 0.2s ease'
                     }}>
                         <span style={{
                             background: 'linear-gradient(135deg, #FC8A24, #ff9d4d)',
@@ -182,7 +196,7 @@ const ParentSchedule = () => {
                         </span>
                         Weekly Schedule
                     </h1>
-                    <p style={{ color: '#666', fontSize: '16px', marginLeft: '54px' }}>
+                    <p style={{ color: c.subtext, fontSize: '16px', marginLeft: '54px', transition: 'color 0.2s ease' }}>
                         Track your child's upcoming classes and practice sessions.
                     </p>
                 </header>
@@ -190,12 +204,14 @@ const ParentSchedule = () => {
                 <Card className="schedule-card" style={{
                     border: 'none',
                     borderRadius: '20px',
-                    boxShadow: '0 4px 20px rgba(0,0,0,0.05)',
-                    overflow: 'hidden'
+                    boxShadow: isDark ? '0 4px 20px rgba(0,0,0,0.3)' : '0 4px 20px rgba(0,0,0,0.05)',
+                    overflow: 'hidden',
+                    background: c.cardBg,
+                    transition: 'background 0.2s ease'
                 }}>
                     <div className="schedule-list">
                         {allSessions.length === 0 ? (
-                            <div style={{ padding: '40px', textAlign: 'center', color: '#888' }}>
+                            <div style={{ padding: '40px', textAlign: 'center', color: c.emptyText }}>
                                 No upcoming classes scheduled.
                             </div>
                         ) : (
@@ -211,12 +227,13 @@ const ParentSchedule = () => {
                                         justifyContent: 'space-between',
                                         alignItems: 'center',
                                         padding: '24px',
-                                        borderBottom: i < allSessions.length - 1 ? '1px solid #f0f0f0' : 'none',
-                                        transition: 'background 0.3s ease',
-                                        cursor: 'pointer'
+                                        borderBottom: i < allSessions.length - 1 ? `1px solid ${c.border}` : 'none',
+                                        transition: 'background 0.2s ease',
+                                        cursor: 'pointer',
+                                        background: c.rowBase
                                     }}
-                                        onMouseEnter={(e) => e.currentTarget.style.background = '#fcfcfc'}
-                                        onMouseLeave={(e) => e.currentTarget.style.background = 'white'}
+                                        onMouseEnter={(e) => e.currentTarget.style.background = c.rowHover}
+                                        onMouseLeave={(e) => e.currentTarget.style.background = c.rowBase}
                                     >
                                         <div style={{ display: 'flex', gap: '24px', alignItems: 'flex-start' }}>
                                             <div style={{
@@ -224,21 +241,21 @@ const ParentSchedule = () => {
                                                 flexDirection: 'column',
                                                 alignItems: 'center',
                                                 minWidth: '80px',
-                                                background: i === 0 ? 'linear-gradient(135deg, #FFF7ED, #FFF)' : '#f8f9fc',
+                                                background: i === 0 ? 'linear-gradient(135deg, #FFF7ED, #FFF)' : c.dateBg,
                                                 padding: '12px',
                                                 borderRadius: '12px',
-                                                border: i === 0 ? '1px solid #FC8A24' : '1px solid #eee'
+                                                border: i === 0 ? '1px solid #FC8A24' : `1px solid ${c.border}`
                                             }}>
-                                                <span style={{ fontSize: '13px', fontWeight: '600', color: i === 0 ? '#FC8A24' : '#666', textTransform: 'uppercase' }}>
+                                                <span style={{ fontSize: '13px', fontWeight: '600', color: i === 0 ? '#FC8A24' : c.metaText, textTransform: 'uppercase' }}>
                                                     {dayName.substring(0, 3)}
                                                 </span>
-                                                <span style={{ fontSize: '24px', fontWeight: '800', color: '#181818' }}>
+                                                <span style={{ fontSize: '24px', fontWeight: '800', color: c.dateText }}>
                                                     {dateObj.getDate()}
                                                 </span>
                                             </div>
                                             <div>
                                                 <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '4px' }}>
-                                                    <h3 style={{ fontSize: '18px', fontWeight: '700', color: '#181818', margin: 0 }}>
+                                                    <h3 style={{ fontSize: '18px', fontWeight: '700', color: c.heading, margin: 0 }}>
                                                         {slot.batchName || slot.classType || 'Chess Class'}
                                                     </h3>
                                                     <span style={{
@@ -253,7 +270,7 @@ const ParentSchedule = () => {
                                                         {slot.type}
                                                     </span>
                                                 </div>
-                                                <div style={{ display: 'flex', gap: '16px', fontSize: '14px', color: '#666', marginBottom: '8px' }}>
+                                                <div style={{ display: 'flex', gap: '16px', fontSize: '14px', color: c.metaText, marginBottom: '8px' }}>
                                                     <span style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                                                         <Clock size={14} /> {timeStr}
                                                     </span>
@@ -261,8 +278,8 @@ const ParentSchedule = () => {
                                                         <MapPin size={14} /> Online
                                                     </span>
                                                 </div>
-                                                <div style={{ fontSize: '14px', color: '#444' }}>
-                                                    <span style={{ fontWeight: '600', color: '#888' }}>Topic:</span> {slot.topic}
+                                                <div style={{ fontSize: '14px', color: c.topicText }}>
+                                                    <span style={{ fontWeight: '600', color: c.topicLabel }}>Topic:</span> {slot.topic}
                                                 </div>
                                             </div>
                                         </div>
@@ -270,9 +287,9 @@ const ParentSchedule = () => {
                                             size="sm"
                                             onClick={() => slot.meetLink && window.open(slot.meetLink, '_blank')}
                                             style={{
-                                                background: i === 0 ? 'linear-gradient(135deg, #FC8A24, #ff9d4d)' : 'white',
-                                                color: i === 0 ? 'white' : '#181818',
-                                                border: i === 0 ? 'none' : '1px solid #181818',
+                                                background: i === 0 ? 'linear-gradient(135deg, #FC8A24, #ff9d4d)' : c.btnSecBg,
+                                                color: i === 0 ? 'white' : c.btnSecColor,
+                                                border: i === 0 ? 'none' : c.btnSecBorder,
                                                 padding: '10px 20px',
                                                 borderRadius: '10px',
                                                 fontWeight: '600',

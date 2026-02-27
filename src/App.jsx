@@ -1,9 +1,8 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect } from 'react';
 import { Routes, Route, Outlet, useLocation } from 'react-router-dom';
 import { AnimatePresence } from 'framer-motion';
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
-import Lenis from 'lenis';
 import { ThemeProvider, useTheme } from './context/ThemeContext';
 import ParentNavbar from './components/layout/ParentNavbar';
 
@@ -79,44 +78,10 @@ const StaffLayout = ({ role }) => (
 
 function App() {
   const location = useLocation();
-  const lenisRef = useRef(null);
-
-  // Initialize Smooth Scrolling
-  useEffect(() => {
-    const lenis = new Lenis({
-      duration: 0.0,
-      easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
-      direction: 'vertical',
-      gestureDirection: 'vertical',
-      smooth: true,
-      mouseMultiplier: 1,
-      smoothTouch: false,
-      touchMultiplier: 2,
-      infinite: false,
-    });
-
-    lenisRef.current = lenis;
-
-    function raf(time) {
-      lenis.raf(time);
-      requestAnimationFrame(raf);
-    }
-
-    requestAnimationFrame(raf);
-
-    return () => {
-      lenis.destroy();
-      lenisRef.current = null;
-    };
-  }, []);
 
   // Scroll to top on route change
   useEffect(() => {
-    if (lenisRef.current) {
-      lenisRef.current.scrollTo(0, { immediate: true });
-    } else {
-      window.scrollTo(0, 0);
-    }
+    window.scrollTo(0, 0);
   }, [location.pathname]);
 
   // Define routes where Navbar should be hidden

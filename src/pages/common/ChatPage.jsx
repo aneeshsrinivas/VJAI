@@ -7,6 +7,7 @@ import { toast, ToastContainer } from 'react-toastify';
 import { Send, Lock, Plus, X, Users, MessageSquare, Search, User, ArrowLeft } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import './ChatPage.css';
+import { useTheme } from '../../context/ThemeContext';
 
 // ICA Color scheme
 const COLORS = {
@@ -41,6 +42,7 @@ const ChatPage = ({ userRole: propRole }) => {
     const WS_URL = import.meta.env.VITE_WS_URL || import.meta.env.REACT_APP_WS_URL || 'ws://localhost:3001';
     console.log('WebSocket URL:', WS_URL);
     const role = (propRole || authRole || 'CUSTOMER').toUpperCase();
+    const { isDark } = useTheme();
 
     // Auto-scroll to bottom
     const scrollToBottom = () => {
@@ -519,7 +521,7 @@ const ChatPage = ({ userRole: propRole }) => {
     };
 
     return (
-        <div className="chat-page" style={{ backgroundColor: COLORS.ivory }}>
+        <div className={`chat-page${isDark ? ' chat-dark' : ''}`} style={{ backgroundColor: isDark ? '#0f1117' : COLORS.ivory }}>
             <ToastContainer position="top-right" autoClose={3000} />
 
             {/* Header with Back Button */}
@@ -812,8 +814,8 @@ const ChatPage = ({ userRole: propRole }) => {
                                             <div
                                                 className="message-bubble"
                                                 style={{
-                                                    backgroundColor: msg.senderId === currentUser?.uid ? COLORS.deepBlue : '#fff',
-                                                    color: msg.senderId === currentUser?.uid ? 'white' : '#333'
+                                                    backgroundColor: msg.senderId === currentUser?.uid ? COLORS.deepBlue : (isDark ? '#252b3b' : '#fff'),
+                                                    color: msg.senderId === currentUser?.uid ? 'white' : (isDark ? '#e0e0e0' : '#333')
                                                 }}
                                             >
                                                 {msg.content}
@@ -869,8 +871,8 @@ const ChatPage = ({ userRole: propRole }) => {
                                                     }}
                                                     style={{
                                                         padding: '16px',
-                                                        backgroundColor: '#fff',
-                                                        border: `2px solid ${COLORS.deepBlue}20`,
+                                                        backgroundColor: isDark ? '#1a1f2e' : '#fff',
+                                                        border: `2px solid ${isDark ? 'rgba(255,255,255,0.1)' : `${COLORS.deepBlue}20`}`,
                                                         borderRadius: '8px',
                                                         cursor: 'pointer',
                                                         transition: 'all 0.2s',
@@ -883,8 +885,8 @@ const ChatPage = ({ userRole: propRole }) => {
                                                         e.currentTarget.style.backgroundColor = `${COLORS.orange}10`;
                                                     }}
                                                     onMouseOut={(e) => {
-                                                        e.currentTarget.style.borderColor = `${COLORS.deepBlue}20`;
-                                                        e.currentTarget.style.backgroundColor = '#fff';
+                                                        e.currentTarget.style.borderColor = isDark ? 'rgba(255,255,255,0.1)' : `${COLORS.deepBlue}20`;
+                                                        e.currentTarget.style.backgroundColor = isDark ? '#1a1f2e' : '#fff';
                                                     }}
                                                 >
                                                     <div style={{
@@ -900,7 +902,7 @@ const ChatPage = ({ userRole: propRole }) => {
                                                         <Users size={24} color="white" />
                                                     </div>
                                                     <div style={{ flex: 1 }}>
-                                                        <div style={{ fontSize: '16px', fontWeight: '600', color: COLORS.deepBlue }}>
+                                                        <div style={{ fontSize: '16px', fontWeight: '600', color: isDark ? '#e0e0e0' : COLORS.deepBlue }}>
                                                             {batch.name}
                                                         </div>
                                                         <div style={{ fontSize: '12px', color: '#999', marginTop: '4px' }}>
@@ -914,10 +916,10 @@ const ChatPage = ({ userRole: propRole }) => {
                                 </>
                             ) : (
                                 <>
-                                    <div className="chat-no-selection-icon" style={{ backgroundColor: COLORS.ivory }}>
-                                        <MessageSquare size={64} color={COLORS.deepBlue} />
+                                    <div className="chat-no-selection-icon" style={{ backgroundColor: isDark ? 'rgba(255,255,255,0.05)' : COLORS.ivory }}>
+                                        <MessageSquare size={64} color={isDark ? 'rgba(255,255,255,0.3)' : COLORS.deepBlue} />
                                     </div>
-                                    <h2 style={{ color: COLORS.deepBlue }}>Select a conversation</h2>
+                                    <h2 style={{ color: isDark ? '#e0e0e0' : COLORS.deepBlue }}>Select a conversation</h2>
                                     <p>Choose a chat from the sidebar to start messaging</p>
                                 </>
                             )}

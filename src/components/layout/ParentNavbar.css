@@ -30,7 +30,6 @@
 .navbar-logo {
     height: 52px;
     width: auto;
-    border-radius: 6px;
     object-fit: contain;
     image-rendering: auto;
     transform: translateZ(0);
@@ -63,7 +62,7 @@
     color: rgba(255, 255, 255, 0.7);
     text-decoration: none;
     font-weight: 500;
-    font-size: 14px;
+    font-size: 16px;
     border-radius: 8px;
     transition: all 0.3s ease;
     position: relative;
