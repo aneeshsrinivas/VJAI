@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { collection, getDocs, query, where, orderBy } from 'firebase/firestore';
 import { db } from '../lib/firebase';
@@ -320,8 +321,8 @@ const PlanSelection = () => {
                 <span>Cancel anytime</span>
             </div>
 
-            {/* ── STICKY BAR ── */}
-            {selectedPlan && (
+            {/* ── STICKY BAR (portalled to body to escape PageTransition transform) ── */}
+            {selectedPlan && createPortal(
                 <div className="ps-sticky-wrap">
                     <div className="ps-sticky">
                         <div className="ps-sticky-inner">
@@ -353,7 +354,8 @@ const PlanSelection = () => {
                             </Button>
                         </div>
                     </div>
-                </div>
+                </div>,
+                document.body
             )}
         </div>
     );

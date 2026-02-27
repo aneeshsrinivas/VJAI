@@ -1,5 +1,19 @@
 /* src/pages/admin/StudentDatabase.css */
 
+/* Light Mode / Base Classes */
+.students-table .primary-text {
+    color: #181818;
+}
+
+.students-table .secondary-text {
+    color: #666;
+}
+
+.students-table .type-badge {
+    background-color: #F5F5F5;
+    color: #333;
+}
+
 /* Dark Mode Overrides for Student Database */
 .staff-dark .students-page-container {
     background-color: transparent !important;
