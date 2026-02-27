@@ -1,5 +1,9 @@
 @import url('https://fonts.googleapis.com/css2?family=Figtree:wght@300;400;500;600;700;800;900&display=swap');
 
+html {
+  scroll-behavior: smooth;
+}
+
 :root {
   /* =========================================
      CINEMATIC CHESS PALETTE (Strict)
@@ -56,7 +60,7 @@
 
 body {
   font-family: 'Figtree', sans-serif;
-  background-color: #FFFEF3;
+  background-color: #0B0B0B;
   color: var(--text-body-light);
   line-height: 1.6;
   min-height: 100vh;
@@ -96,7 +100,7 @@ h6 {
 }
 
 /* Global Button Typography (Premium) */
-button,
+button:not(.rsp-back-btn):not(.rsp-btn):not(.back-to-home-btn):not(.db-back-btn):not(.db-btn):not(.reg-back-btn):not(.reg-btn-submit),
 .btn,
 .cta,
 .hero-cta,
@@ -117,7 +121,7 @@ button,
 }
 
 /* Default Solid Button (Generic) */
-button:not(.hero-cta-secondary),
+button:not(.hero-cta-secondary):not(.rsp-btn--ghost):not(.rsp-btn--gold):not(.rsp-back-btn):not(.back-to-home-btn):not(.db-btn--ghost):not(.db-btn--gold):not(.db-back-btn):not(.reg-btn-submit):not(.reg-back-btn),
 .btn,
 .cta,
 .hero-cta-primary {

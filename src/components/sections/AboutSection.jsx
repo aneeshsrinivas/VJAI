@@ -145,21 +145,20 @@ const AboutSection = ({ onCoursewareClick, onOnlineClassesClick }) => {
                     </div>
                 </div>
 
-                {/* Service Cards */}
                 <div className="about-services">
                     <ServiceCard
                         icon={CoursewareCardIcon}
                         title="Courseware"
                         description="Comprehensive curriculum from basics to advanced strategies, designed by FIDE-rated coaches."
                         onClick={onCoursewareClick}
-                        delay={0.8} // Starts after text sequence
+                        delay={0.1}
                     />
                     <ServiceCard
                         icon={OnlineClassCardIcon}
                         title="Online Classes"
                         description="Live interactive sessions with personalized coaching, flexible schedules, and progress tracking."
                         onClick={onOnlineClassesClick}
-                        delay={1.0} // Sequential
+                        delay={0.2}
                     />
                 </div>
             </div>

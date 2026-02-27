@@ -5,6 +5,7 @@ import Button from '../../components/ui/Button';
 import { collection, query, where, onSnapshot } from 'firebase/firestore';
 import { db } from '../../lib/firebase';
 import { useAuth } from '../../context/AuthContext';
+import { useTheme } from '../../context/ThemeContext';
 import { COLLECTIONS } from '../../config/firestoreCollections';
 
 import ScheduleClassModal from '../../components/features/ScheduleClassModal';
@@ -12,6 +13,7 @@ import ClassDetailsModal from '../../components/features/ClassDetailsModal';
 
 const CoachSchedule = () => {
     const { currentUser } = useAuth();
+    const { isDark } = useTheme();
     const [blockedSlots, setBlockedSlots] = useState([]);
     const [isScheduleModalOpen, setIsScheduleModalOpen] = useState(false);
     const [selectedClass, setSelectedClass] = useState(null);
@@ -142,7 +144,7 @@ const CoachSchedule = () => {
     return (
         <div style={{
             minHeight: 'calc(100vh - 70px)',
-            background: 'linear-gradient(180deg, #f8f9fc 0%, #f0f2f5 100%)',
+            background: isDark ? 'linear-gradient(180deg, #0f1117 0%, #161b27 100%)' : 'linear-gradient(180deg, #f8f9fc 0%, #f0f2f5 100%)',
             padding: '32px',
             fontFamily: "'Figtree', sans-serif"
         }}>
@@ -162,10 +164,10 @@ const CoachSchedule = () => {
                             <CalendarIcon size={28} color="white" />
                         </div>
                         <div>
-                            <h1 style={{ margin: 0, fontSize: '28px', fontWeight: '800', color: '#003366' }}>
+                            <h1 style={{ margin: 0, fontSize: '28px', fontWeight: '800', color: isDark ? '#f0f0f0' : '#003366' }}>
                                 My Schedule
                             </h1>
-                            <p style={{ margin: '4px 0 0', color: '#64748b', fontSize: '15px' }}>
+                            <p style={{ margin: '4px 0 0', color: isDark ? 'rgba(255,255,255,0.65)' : '#64748b', fontSize: '15px' }}>
                                 Manage your availability and view upcoming classes
                             </p>
                         </div>
@@ -179,7 +181,7 @@ const CoachSchedule = () => {
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
                     <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
                         <Button variant="outline" size="sm" onClick={() => setWeekOffset(weekOffset - 1)}><ChevronLeft size={16} /></Button>
-                        <span style={{ fontWeight: '700', fontSize: '15px', color: '#1e293b', minWidth: '180px', textAlign: 'center' }}>{getWeekLabel()}</span>
+                        <span style={{ fontWeight: '700', fontSize: '15px', color: isDark ? '#f0f0f0' : '#1e293b', minWidth: '180px', textAlign: 'center' }}>{getWeekLabel()}</span>
                         <Button variant="outline" size="sm" onClick={() => setWeekOffset(weekOffset + 1)}><ChevronRight size={16} /></Button>
                         {weekOffset !== 0 && (
                             <Button variant="outline" size="sm" onClick={() => setWeekOffset(0)} style={{ marginLeft: '8px', fontSize: '12px' }}>Today</Button>
@@ -187,42 +189,43 @@ const CoachSchedule = () => {
                     </div>
                     <div style={{ display: 'flex', gap: '16px', fontSize: '13px' }}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                            <div style={{ width: '16px', height: '16px', background: '#dbeafe', borderRadius: '4px', border: '2px solid #3b82f6' }}></div>
-                            <span style={{ color: '#64748b' }}>Assigned Class</span>
+                            <div style={{ width: '16px', height: '16px', background: isDark ? 'rgba(59, 130, 246, 0.2)' : '#dbeafe', borderRadius: '4px', border: isDark ? '2px solid rgba(59, 130, 246, 0.5)' : '2px solid #3b82f6' }}></div>
+                            <span style={{ color: isDark ? 'rgba(255,255,255,0.65)' : '#64748b' }}>Assigned Class</span>
                         </div>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                            <div style={{ width: '16px', height: '16px', background: '#fee2e2', borderRadius: '4px', border: '2px solid #ef4444' }}></div>
-                            <span style={{ color: '#64748b' }}>Blocked</span>
+                            <div style={{ width: '16px', height: '16px', background: isDark ? 'rgba(239, 68, 68, 0.2)' : '#fee2e2', borderRadius: '4px', border: isDark ? '2px solid rgba(239, 68, 68, 0.5)' : '2px solid #ef4444' }}></div>
+                            <span style={{ color: isDark ? 'rgba(255,255,255,0.65)' : '#64748b' }}>Blocked</span>
                         </div>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                            <div style={{ width: '16px', height: '16px', background: '#f8fafc', borderRadius: '4px', border: '2px solid #e2e8f0' }}></div>
-                            <span style={{ color: '#64748b' }}>Available</span>
+                            <div style={{ width: '16px', height: '16px', background: isDark ? '#1e2330' : '#f8fafc', borderRadius: '4px', border: isDark ? '2px solid rgba(255,255,255,0.2)' : '2px solid #e2e8f0' }}></div>
+                            <span style={{ color: isDark ? 'rgba(255,255,255,0.65)' : '#64748b' }}>Available</span>
                         </div>
                     </div>
                 </div>
 
                 {/* Calendar Card */}
                 <Card style={{
-                    border: 'none',
+                    background: isDark ? '#1e2330' : '#ffffff',
+                    border: isDark ? '1px solid rgba(255, 255, 255, 0.08)' : 'none',
                     borderRadius: '20px',
-                    boxShadow: '0 4px 20px rgba(0,0,0,0.05)',
+                    boxShadow: isDark ? '0 4px 20px rgba(0,0,0,0.3)' : '0 4px 20px rgba(0,0,0,0.05)',
                     padding: '0',
                     overflow: 'hidden'
                 }}>
-                    <div style={{ display: 'grid', gridTemplateColumns: '100px repeat(7, 1fr)', gap: '0', backgroundColor: '#f8fafc' }}>
+                    <div style={{ display: 'grid', gridTemplateColumns: '100px repeat(7, 1fr)', gap: '0', backgroundColor: isDark ? '#1e2330' : '#f8fafc' }}>
                         {/* Header Row */}
-                        <div style={{ backgroundColor: '#fff', padding: '16px', fontWeight: '700', color: '#64748b', fontSize: '13px', borderBottom: '2px solid #e2e8f0' }}>
+                        <div style={{ backgroundColor: isDark ? '#1e2330' : '#fff', padding: '16px', fontWeight: '700', color: isDark ? 'rgba(255,255,255,0.65)' : '#64748b', fontSize: '13px', borderBottom: isDark ? '2px solid rgba(255,255,255,0.08)' : '2px solid #e2e8f0' }}>
                             Time
                         </div>
                         {weekDays.map(day => (
                             <div key={day} style={{
-                                backgroundColor: '#f8fafc',
+                                backgroundColor: isDark ? '#1e2330' : '#f8fafc',
                                 padding: '16px',
                                 textAlign: 'center',
                                 fontWeight: '700',
-                                color: '#1e293b',
+                                color: isDark ? '#f0f0f0' : '#1e293b',
                                 fontSize: '14px',
-                                borderBottom: '2px solid #e2e8f0'
+                                borderBottom: isDark ? '2px solid rgba(255,255,255,0.08)' : '2px solid #e2e8f0'
                             }}>
                                 {day}
                             </div>
@@ -232,12 +235,12 @@ const CoachSchedule = () => {
                         {timeSlots.map((time, timeIdx) => (
                             <React.Fragment key={time}>
                                 <div style={{
-                                    backgroundColor: '#fff',
+                                    backgroundColor: isDark ? '#1e2330' : '#fff',
                                     padding: '16px',
                                     fontSize: '13px',
-                                    color: '#64748b',
+                                    color: isDark ? 'rgba(255,255,255,0.65)' : '#64748b',
                                     fontWeight: '600',
-                                    borderTop: timeIdx > 0 ? '1px solid #f0f0f0' : 'none',
+                                    borderTop: timeIdx > 0 ? (isDark ? '1px solid rgba(255,255,255,0.05)' : '1px solid #f0f0f0') : 'none',
                                     display: 'flex',
                                     alignItems: 'center'
                                 }}>
@@ -281,10 +284,12 @@ const CoachSchedule = () => {
                                         <div
                                             key={id}
                                             style={{
-                                                backgroundColor: isBlocked ? '#fee2e2' : existingClass ? (existingClass.type === 'demo' ? '#d1fae5' : '#dbeafe') : '#fff',
+                                                backgroundColor: isBlocked ? (isDark ? 'rgba(239, 68, 68, 0.15)' : '#fee2e2') :
+                                                    existingClass ? (existingClass.type === 'demo' ? (isDark ? 'rgba(16, 185, 129, 0.2)' : '#d1fae5') : (isDark ? 'rgba(59, 130, 246, 0.2)' : '#dbeafe')) :
+                                                        (isDark ? '#252b3b' : '#fff'),
                                                 padding: '12px',
-                                                borderTop: timeIdx > 0 ? '1px solid #f0f0f0' : 'none',
-                                                borderLeft: '1px solid #f0f0f0',
+                                                borderTop: timeIdx > 0 ? (isDark ? '1px solid rgba(255,255,255,0.05)' : '1px solid #f0f0f0') : 'none',
+                                                borderLeft: isDark ? '1px solid rgba(255,255,255,0.05)' : '1px solid #f0f0f0',
                                                 minHeight: '90px',
                                                 cursor: 'pointer',
                                                 position: 'relative',
@@ -296,13 +301,13 @@ const CoachSchedule = () => {
                                             onClick={() => existingClass ? setSelectedClass(existingClass) : toggleBlock(dayName, time)}
                                             onMouseEnter={(e) => {
                                                 if (!existingClass) {
-                                                    e.currentTarget.style.backgroundColor = isBlocked ? '#fecaca' : '#f1f5f9';
+                                                    e.currentTarget.style.backgroundColor = isBlocked ? (isDark ? 'rgba(239, 68, 68, 0.25)' : '#fecaca') : (isDark ? 'rgba(255,255,255,0.05)' : '#f1f5f9');
                                                     e.currentTarget.style.transform = 'scale(1.02)';
                                                 }
                                             }}
                                             onMouseLeave={(e) => {
                                                 if (!existingClass) {
-                                                    e.currentTarget.style.backgroundColor = isBlocked ? '#fee2e2' : '#fff';
+                                                    e.currentTarget.style.backgroundColor = isBlocked ? (isDark ? 'rgba(239, 68, 68, 0.15)' : '#fee2e2') : (isDark ? '#252b3b' : '#fff');
                                                     e.currentTarget.style.transform = 'scale(1)';
                                                 }
                                             }}
@@ -312,8 +317,9 @@ const CoachSchedule = () => {
                                                     fontSize: '12px',
                                                     fontWeight: '700',
                                                     textAlign: 'center',
-                                                    background: existingClass.type === 'demo' ? '#10b981' : '#3b82f6',
+                                                    background: existingClass.type === 'demo' ? (isDark ? 'rgba(16, 185, 129, 0.8)' : '#10b981') : (isDark ? 'rgba(59, 130, 246, 0.8)' : '#3b82f6'),
                                                     color: 'white',
+                                                    border: isDark ? '1px solid rgba(255,255,255,0.2)' : 'none',
                                                     padding: '6px 10px',
                                                     borderRadius: '8px',
                                                     boxShadow: '0 2px 8px rgba(0,0,0,0.1)'
@@ -321,7 +327,7 @@ const CoachSchedule = () => {
                                                     {existingClass.title}
                                                 </div>
                                             ) : isBlocked ? (
-                                                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', color: '#dc2626' }}>
+                                                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', color: isDark ? '#ef4444' : '#dc2626' }}>
                                                     <Ban size={20} />
                                                     <span style={{ fontSize: '10px', marginTop: '4px', fontWeight: '700' }}>BLOCKED</span>
                                                 </div>
@@ -338,10 +344,11 @@ const CoachSchedule = () => {
                 <div style={{
                     marginTop: '20px',
                     padding: '16px',
-                    background: 'linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%)',
+                    background: isDark ? 'rgba(59, 130, 246, 0.1)' : 'linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%)',
                     borderRadius: '12px',
                     fontSize: '14px',
-                    color: '#1e40af'
+                    color: isDark ? '#60a5fa' : '#1e40af',
+                    border: isDark ? '1px solid rgba(59, 130, 246, 0.2)' : 'none'
                 }}>
                     <strong>💡 Tip:</strong> Click on any available slot to mark it as unavailable. Students cannot book classes during blocked times.
                 </div>

@@ -1,111 +1,146 @@
 import React from 'react';
-import { useNavigate } from 'react-router-dom';
-import Button from '../components/ui/Button';
-import ParentIcon from '../components/icons/ParentIcon';
-import CoachIcon from '../components/icons/CoachIcon';
-import AdminIcon from '../components/icons/AdminIcon';
-import DemoIcon from '../components/icons/DemoIcon';
+import { useNavigate, Link } from 'react-router-dom';
+import { ArrowLeft, CheckCircle2, Users, GraduationCap, BookOpen, BarChart3, Calendar, Award, Shield, Zap } from 'lucide-react';
 import './RoleSelectionPage.css';
 
 const RoleSelectionPage = () => {
     const navigate = useNavigate();
 
-    const roles = [
-        {
-            id: 'parent',
-            title: 'Parent & Student',
-            icon: ParentIcon,
-            desc: 'For families looking to enroll',
-            features: [
-                'Book a free demo class',
-                'Personalized assessment',
-                'Meet our expert coaches',
-                'View subscription plans'
-            ],
-            action: 'Book Free Demo',
-            color: '#6B8E23',
-            highlight: true
-        },
-        {
-            id: 'coach',
-            title: 'Coach',
-            icon: CoachIcon,
-            desc: 'For instructors and mentors',
-            features: [
-                'Join our teaching faculty',
-                'Manage student roster',
-                'Upload course content',
-                'Track performance'
-            ],
-            action: 'Apply as Coach',
-            color: '#FC8A24' // Changed color to differentiate
-        }
+    const parentFeatures = [
+        { icon: BookOpen, text: 'Book a free demo class' },
+        { icon: Users, text: 'Personalized assessment' },
+        { icon: Award, text: 'Meet our expert coaches' },
+        { icon: Zap, text: 'View subscription plans' },
+    ];
+
+    const coachFeatures = [
+        { icon: GraduationCap, text: 'Join our teaching faculty' },
+        { icon: Users, text: 'Manage student roster' },
+        { icon: BookOpen, text: 'Upload course content' },
+        { icon: BarChart3, text: 'Track performance' },
     ];
 
     return (
-        <div className="role-selection-page">
-            <div className="role-background-overlay"></div>
+        <div className="rsp-page">
+            {/* ── LEFT — Cinematic chess visual ── */}
+            <div className="rsp-left">
+                <video className="rsp-bg-video" src="/chess-video.mp4" autoPlay loop muted playsInline />
+                <div className="rsp-left-overlay" />
 
-            <div className="role-content">
-                <button
-                    onClick={() => navigate('/')}
-                    className="role-back-button"
-                >
-                    ← Back to Home
+                {/* Back button — top left of the visual panel */}
+                <button className="rsp-back-btn" onClick={() => navigate('/')}>
+                    <ArrowLeft size={14} style={{ marginRight: 6 }} />
+                    Back to Home
                 </button>
 
-                <div className="role-header">
-                    <h1>Welcome to Indian Chess Academy</h1>
-                    <p>Select your role to access the appropriate portal</p>
+                <div className="rsp-left-content">
+                    <div className="rsp-brand">
+                        <img src="/logo.png" alt="Indian Chess Academy" className="rsp-brand-logo" />
+                        <span>Indian Chess Academy</span>
+                    </div>
+                    <h1>Choose<br />Your Path.</h1>
+                    <p>Whether you're here to learn or to teach, we have the right portal for you. Join thousands of students and coaches on their chess journey.</p>
+                    <div className="rsp-stats">
+                        <div className="rsp-stat">
+                            <span className="rsp-stat-num">2,400+</span>
+                            <span className="rsp-stat-label">Students</span>
+                        </div>
+                        <div className="rsp-stat-divider" />
+                        <div className="rsp-stat">
+                            <span className="rsp-stat-num">80+</span>
+                            <span className="rsp-stat-label">Expert Coaches</span>
+                        </div>
+                        <div className="rsp-stat-divider" />
+                        <div className="rsp-stat">
+                            <span className="rsp-stat-num">12+</span>
+                            <span className="rsp-stat-label">Years Running</span>
+                        </div>
+                    </div>
                 </div>
+            </div>
 
-                <div className="role-cards-grid">
-                    {roles.map(role => {
-                        const IconComponent = role.icon;
-                        return (
-                            <div
-                                key={role.id}
-                                className={`role-card ${role.highlight ? 'role-card-highlight' : ''}`}
-                            >
-                                <div className="role-card-icon">
-                                    <IconComponent size={72} color="#D4AF37" />
-                                </div>
+            {/* ── RIGHT — Dark portal selection ── */}
+            <div className="rsp-right">
+                <div className="rsp-right-orbs" />
 
-                                <h2 className="role-card-title">{role.title}</h2>
-                                <p className="role-card-desc">{role.desc}</p>
+                <div className="rsp-right-inner">
+                    <div className="rsp-header">
+                        <p className="rsp-eyebrow">Select Your Portal</p>
+                        <h2>Who are you?</h2>
+                        <p className="rsp-subheading">Access your personalized dashboard</p>
+                    </div>
 
-                                <ul className="role-card-features">
-                                    {role.features.map((feature, index) => (
-                                        <li key={index}>
-                                            <span className="feature-check">✓</span>
-                                            {feature}
-                                        </li>
-                                    ))}
-                                </ul>
-
-                                <Button
-                                    onClick={() => role.id === 'parent' ? navigate('/demo-booking') : navigate(`/register?role=${role.id}`)}
-                                    style={{
-                                        backgroundColor: role.color,
-                                        width: '100%',
-                                        marginTop: 'auto'
-                                    }}
-                                >
-                                    {role.action}
-                                </Button>
+                    {/* Parent & Student Card */}
+                    <div className="rsp-card rsp-card--gold">
+                        <div className="rsp-card-badge">Most Popular</div>
+                        <div className="rsp-card-top">
+                            <div className="rsp-card-icon rsp-card-icon--gold">
+                                <Users size={28} />
                             </div>
-                        );
-                    })}
-                </div>
+                            <div>
+                                <h3 className="rsp-card-title">Parent &amp; Student</h3>
+                                <p className="rsp-card-desc">For families looking to enroll</p>
+                            </div>
+                        </div>
+                        <ul className="rsp-features">
+                            {parentFeatures.map(({ icon: Icon, text }) => (
+                                <li key={text} className="rsp-feature">
+                                    <span className="rsp-feature-icon rsp-feature-icon--gold">
+                                        <Icon size={14} />
+                                    </span>
+                                    {text}
+                                </li>
+                            ))}
+                        </ul>
+                        <button
+                            className="rsp-btn rsp-btn--gold"
+                            onClick={() => navigate('/demo-booking')}
+                        >
+                            Book Free Demo
+                            <span className="rsp-btn-arrow">→</span>
+                        </button>
+                    </div>
 
-                <div className="role-note">
-                    <div className="role-note-icon">🔒</div>
-                    <div className="role-note-content">
-                        <h4>Privacy & Security</h4>
-                        <p>
-                            Strict privacy protocols are enforced. Coaches do not have access to parent contact details.
-                            Each family has a single unified account for all students.
-                        </p>
+                    {/* Coach Card */}
+                    <div className="rsp-card rsp-card--silver">
+                        <div className="rsp-card-top">
+                            <div className="rsp-card-icon rsp-card-icon--silver">
+                                <GraduationCap size={28} />
+                            </div>
+                            <div>
+                                <h3 className="rsp-card-title">Coach</h3>
+                                <p className="rsp-card-desc">For instructors and mentors</p>
+                            </div>
+                        </div>
+                        <ul className="rsp-features">
+                            {coachFeatures.map(({ icon: Icon, text }) => (
+                                <li key={text} className="rsp-feature">
+                                    <span className="rsp-feature-icon rsp-feature-icon--silver">
+                                        <Icon size={14} />
+                                    </span>
+                                    {text}
+                                </li>
+                            ))}
+                        </ul>
+                        <button
+                            className="rsp-btn rsp-btn--ghost"
+                            onClick={() => navigate('/register?role=coach')}
+                        >
+                            Apply as Coach
+                            <span className="rsp-btn-arrow">→</span>
+                        </button>
+                    </div>
+
+                    {/* Footer row: security + login */}
+                    <div className="rsp-footer-row">
+                        <div className="rsp-note">
+                            <Shield size={13} className="rsp-note-icon" />
+                            <p>Strict privacy protocols. Coaches do not have access to parent contact details.</p>
+                        </div>
+                        <div className="rsp-login-cta">
+                            Already have an account?{' '}
+                            <Link to="/login">Sign In</Link>
+                        </div>
                     </div>
                 </div>
             </div>

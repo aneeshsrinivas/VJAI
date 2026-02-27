@@ -5,14 +5,14 @@
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 12px 32px;
-    background: #003366;
-    /* Premium Deep Blue */
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+    padding: 16px 32px;
+    background: #111111;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.25);
     position: sticky;
     top: 0;
     z-index: 100;
     font-family: 'Figtree', sans-serif;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
 }
 
 .navbar-brand {
@@ -20,7 +20,6 @@
     align-items: center;
     gap: 12px;
     cursor: default;
-    /* Changed from pointer since we removed redirect */
     transition: transform 0.3s ease;
 }
 
@@ -29,20 +28,28 @@
 }
 
 .navbar-logo {
-    height: 44px;
+    height: 75px;
     width: auto;
-    /* mix-blend-mode: multiply; - Removed to make logo visible on dark bg */
-    /* border-radius: 50%; - Replaced with clip-path for tighter crop */
-    clip-path: circle(46% at 50% 50%);
+    object-fit: contain;
+    image-rendering: auto;
+    transform: translateZ(0);
+    backface-visibility: hidden;
+    -webkit-backface-visibility: hidden;
     position: relative;
     z-index: 10;
+    transition: transform 0.3s ease;
+}
+
+.navbar-logo:hover {
+    transform: scale(1.05);
 }
 
 .navbar-title {
-    font-size: 18px;
+    font-size: 16px;
     font-weight: 700;
     color: white;
     letter-spacing: 0.5px;
+    white-space: nowrap;
 }
 
 .navbar-links {
@@ -55,7 +62,7 @@
     color: rgba(255, 255, 255, 0.7);
     text-decoration: none;
     font-weight: 500;
-    font-size: 14px;
+    font-size: 16px;
     border-radius: 8px;
     transition: all 0.3s ease;
     position: relative;
@@ -71,6 +78,38 @@
     color: white;
     background: linear-gradient(135deg, #FC8A24, #ff9d4d);
     box-shadow: 0 4px 15px rgba(252, 138, 36, 0.4);
+}
+
+/* ===== THEME TOGGLE BUTTON ===== */
+.theme-toggle-btn {
+    background: rgba(255, 255, 255, 0.1) !important;
+    background-color: rgba(255, 255, 255, 0.1) !important;
+    border: 1px solid rgba(255, 255, 255, 0.2) !important;
+    border-radius: 8px !important;
+    padding: 8px 10px !important;
+    color: white !important;
+    cursor: pointer !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    transition: all 0.3s ease !important;
+    text-transform: none !important;
+    font-size: unset !important;
+    box-shadow: none !important;
+    letter-spacing: normal !important;
+    font-weight: normal !important;
+}
+
+.theme-toggle-btn:hover {
+    background: rgba(255, 255, 255, 0.2) !important;
+    background-color: rgba(255, 255, 255, 0.2) !important;
+    transform: translateY(-1px);
+    box-shadow: none !important;
+}
+
+/* ===== ACCOUNT DROPDOWN WRAPPER ===== */
+.account-dropdown-wrapper {
+    position: relative;
 }
 
 /* Respond to mobile */

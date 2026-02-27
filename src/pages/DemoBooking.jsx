@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import Button from '../components/ui/Button';
+import { ArrowLeft, Calendar, Clock, User, Mail, Phone, GraduationCap, MessageSquare, Award } from 'lucide-react';
 import { createDemoRequest } from '../services/firestoreService';
 import './DemoBooking.css';
 
@@ -17,20 +17,15 @@ const DemoBooking = () => {
         preferredTime: '',
         message: ''
     });
+    const [loading, setLoading] = useState(false);
 
     const handleChange = (e) => {
-        setFormData({
-            ...formData,
-            [e.target.name]: e.target.value
-        });
+        setFormData({ ...formData, [e.target.name]: e.target.value });
     };
-
-    const [loading, setLoading] = useState(false);
 
     const handleSubmit = async (e) => {
         e.preventDefault();
         setLoading(true);
-
         const payload = {
             parentName: formData.parentName,
             parentEmail: formData.email,
@@ -41,9 +36,8 @@ const DemoBooking = () => {
             preferredDate: formData.preferredDate,
             preferredTime: formData.preferredTime,
             message: formData.message,
-            timezone: 'IST' // Default or get from browser
+            timezone: 'IST'
         };
-
         try {
             await createDemoRequest(payload);
             navigate('/demo-confirmation');
@@ -56,164 +50,92 @@ const DemoBooking = () => {
     };
 
     return (
-        <div className="demo-booking-page">
-            <div className="demo-background-overlay"></div>
-
-            <button
-                onClick={() => navigate('/')}
-                className="demo-back-button"
-            >
-                ← Back to Home
+        <div className="db-page">
+            {/* Back button — top left */}
+            <button className="db-back-btn" onClick={() => navigate('/')}>
+                <ArrowLeft size={14} style={{ marginRight: 6 }} />
+                Back to Home
             </button>
 
-            {/* Form Section */}
-            <section className="form-section-demo">
-                <div className="form-container-demo">
-                    <div className="form-header-demo">
-                        <h1>Book Your Free Demo Class</h1>
-                        <p>Experience our personalized chess coaching with a complimentary trial session</p>
+            {/* Centered form card */}
+            <div className="db-card">
+                {/* Header */}
+                <div className="db-card-header">
+                    <img src="/logo.png" alt="Indian Chess Academy" className="db-logo" />
+                    <h1>Book a Free Demo</h1>
+                    <p>Experience personalized chess coaching — completely free, no commitment.</p>
+                </div>
+
+                <form onSubmit={handleSubmit} className="db-form">
+                    <div className="db-form-row">
+                        <div className="db-form-group">
+                            <label htmlFor="parentName"><User size={12} /> Parent Name <span>*</span></label>
+                            <input type="text" id="parentName" name="parentName" value={formData.parentName} onChange={handleChange} required placeholder="Your full name" />
+                        </div>
+                        <div className="db-form-group">
+                            <label htmlFor="email"><Mail size={12} /> Email Address <span>*</span></label>
+                            <input type="email" id="email" name="email" value={formData.email} onChange={handleChange} required placeholder="yourname@email.com" />
+                        </div>
                     </div>
 
-                    <form onSubmit={handleSubmit} className="demo-form">
-                        <div className="form-row">
-                            <div className="form-group">
-                                <label htmlFor="parentName">Parent Name *</label>
-                                <input
-                                    type="text"
-                                    id="parentName"
-                                    name="parentName"
-                                    value={formData.parentName}
-                                    onChange={handleChange}
-                                    required
-                                    placeholder="Enter your name"
-                                />
-                            </div>
-                            <div className="form-group">
-                                <label htmlFor="email">Email Address *</label>
-                                <input
-                                    type="email"
-                                    id="email"
-                                    name="email"
-                                    value={formData.email}
-                                    onChange={handleChange}
-                                    required
-                                    placeholder="your.email@example.com"
-                                />
-                            </div>
+                    <div className="db-form-row">
+                        <div className="db-form-group">
+                            <label htmlFor="phone"><Phone size={12} /> Phone Number <span>*</span></label>
+                            <input type="tel" id="phone" name="phone" value={formData.phone} onChange={handleChange} required placeholder="+91 XXXXX XXXXX" />
                         </div>
+                        <div className="db-form-group">
+                            <label htmlFor="studentName"><GraduationCap size={12} /> Student Name <span>*</span></label>
+                            <input type="text" id="studentName" name="studentName" value={formData.studentName} onChange={handleChange} required placeholder="Student's name" />
+                        </div>
+                    </div>
 
-                        <div className="form-row">
-                            <div className="form-group">
-                                <label htmlFor="phone">Phone Number *</label>
-                                <input
-                                    type="tel"
-                                    id="phone"
-                                    name="phone"
-                                    value={formData.phone}
-                                    onChange={handleChange}
-                                    required
-                                    placeholder="+91 XXXXX XXXXX"
-                                />
-                            </div>
-                            <div className="form-group">
-                                <label htmlFor="studentName">Student Name *</label>
-                                <input
-                                    type="text"
-                                    id="studentName"
-                                    name="studentName"
-                                    value={formData.studentName}
-                                    onChange={handleChange}
-                                    required
-                                    placeholder="Student's name"
-                                />
-                            </div>
+                    <div className="db-form-row">
+                        <div className="db-form-group">
+                            <label htmlFor="studentAge"><User size={12} /> Student Age <span>*</span></label>
+                            <input type="number" id="studentAge" name="studentAge" value={formData.studentAge} onChange={handleChange} required min="5" max="80" placeholder="Age (5+)" />
                         </div>
+                        <div className="db-form-group">
+                            <label htmlFor="skillLevel"><Award size={12} /> Skill Level <span>*</span></label>
+                            <select id="skillLevel" name="skillLevel" value={formData.skillLevel} onChange={handleChange} required>
+                                <option value="beginner">Beginner (Never played)</option>
+                                <option value="novice">Novice (Knows basic rules)</option>
+                                <option value="intermediate">Intermediate (Plays regularly)</option>
+                                <option value="advanced">Advanced (Tournament player)</option>
+                            </select>
+                        </div>
+                    </div>
 
-                        <div className="form-row">
-                            <div className="form-group">
-                                <label htmlFor="studentAge">Student Age *</label>
-                                <input
-                                    type="number"
-                                    id="studentAge"
-                                    name="studentAge"
-                                    value={formData.studentAge}
-                                    onChange={handleChange}
-                                    required
-                                    min="5"
-                                    max="18"
-                                    placeholder="Age (5-18)"
-                                />
-                            </div>
-                            <div className="form-group">
-                                <label htmlFor="skillLevel">Current Skill Level *</label>
-                                <select
-                                    id="skillLevel"
-                                    name="skillLevel"
-                                    value={formData.skillLevel}
-                                    onChange={handleChange}
-                                    required
-                                >
-                                    <option value="beginner">Beginner (Never played)</option>
-                                    <option value="novice">Novice (Knows basic rules)</option>
-                                    <option value="intermediate">Intermediate (Plays regularly)</option>
-                                    <option value="advanced">Advanced (Tournament player)</option>
-                                </select>
-                            </div>
+                    <div className="db-form-row">
+                        <div className="db-form-group">
+                            <label htmlFor="preferredDate"><Calendar size={12} /> Preferred Date <span>*</span></label>
+                            <input type="date" id="preferredDate" name="preferredDate" value={formData.preferredDate} onChange={handleChange} required min={new Date().toISOString().split('T')[0]} />
                         </div>
+                        <div className="db-form-group">
+                            <label htmlFor="preferredTime"><Clock size={12} /> Preferred Time <span>*</span></label>
+                            <select id="preferredTime" name="preferredTime" value={formData.preferredTime} onChange={handleChange} required>
+                                <option value="">Select a time slot</option>
+                                <option value="morning">Morning (9 AM – 12 PM)</option>
+                                <option value="afternoon">Afternoon (12 PM – 4 PM)</option>
+                                <option value="evening">Evening (4 PM – 7 PM)</option>
+                            </select>
+                        </div>
+                    </div>
 
-                        <div className="form-row">
-                            <div className="form-group">
-                                <label htmlFor="preferredDate">Preferred Date *</label>
-                                <input
-                                    type="date"
-                                    id="preferredDate"
-                                    name="preferredDate"
-                                    value={formData.preferredDate}
-                                    onChange={handleChange}
-                                    required
-                                    min={new Date().toISOString().split('T')[0]}
-                                />
-                            </div>
-                            <div className="form-group">
-                                <label htmlFor="preferredTime">Preferred Time *</label>
-                                <select
-                                    id="preferredTime"
-                                    name="preferredTime"
-                                    value={formData.preferredTime}
-                                    onChange={handleChange}
-                                    required
-                                >
-                                    <option value="">Select a time slot</option>
-                                    <option value="morning">Morning (9 AM - 12 PM)</option>
-                                    <option value="afternoon">Afternoon (12 PM - 4 PM)</option>
-                                    <option value="evening">Evening (4 PM - 7 PM)</option>
-                                </select>
-                            </div>
-                        </div>
+                    <div className="db-form-group db-full">
+                        <label htmlFor="message"><MessageSquare size={12} /> Additional Notes</label>
+                        <textarea id="message" name="message" value={formData.message} onChange={handleChange} rows="3" placeholder="Any specific goals or questions?" />
+                    </div>
 
-                        <div className="form-group full-width">
-                            <label htmlFor="message">Additional Message (Optional)</label>
-                            <textarea
-                                id="message"
-                                name="message"
-                                value={formData.message}
-                                onChange={handleChange}
-                                rows="4"
-                                placeholder="Any specific requirements or questions?"
-                            ></textarea>
-                        </div>
-
-                        <div className="form-actions">
-                            <Button type="submit" className="submit-btn-demo">
-                                Book Free Demo Class
-                            </Button>
-                            <button type="button" onClick={() => navigate('/')} className="cancel-btn-demo">
-                                Cancel
-                            </button>
-                        </div>
-                    </form>
-                </div>
-            </section>
+                    <div className="db-actions">
+                        <button type="submit" className="db-btn db-btn--gold" disabled={loading}>
+                            {loading ? 'Submitting…' : 'Confirm Booking →'}
+                        </button>
+                        <button type="button" className="db-btn db-btn--ghost" onClick={() => navigate('/')}>
+                            Cancel
+                        </button>
+                    </div>
+                </form>
+            </div>
         </div>
     );
 };

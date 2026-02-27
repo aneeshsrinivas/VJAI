@@ -4,20 +4,16 @@
 
 .about-section-premium {
     position: relative;
-    padding: 120px 0;
-    /* Cleaner Stone/Beige Base */
+    padding: 120px 0 140px;
     background-color: #E5DCD0;
 
-    /* Cinematic Blends: Top (Dark -> Stone), Bottom (Stone -> Muted Walnut) */
+    /* Bottom warm gradient only — no dark top blend that blurs section boundary */
     background-image:
-        linear-gradient(to bottom, #141922 0%, rgba(20, 25, 34, 0.8) 250px, rgba(20, 25, 34, 0) 600px),
-        linear-gradient(to top, #8C705F 0%, rgba(140, 112, 95, 0.8) 200px, rgba(140, 112, 95, 0) 500px);
+        linear-gradient(to top, #8C705F 0%, rgba(140, 112, 95, 0.6) 180px, rgba(140, 112, 95, 0) 420px);
     background-repeat: no-repeat;
 
-    /* Depth Shadow */
-    box-shadow: inset 0 40px 60px rgba(0, 0, 0, 0.15);
+    box-shadow: inset 0 -40px 60px rgba(0, 0, 0, 0.1);
     color: #151515;
-    /* Near-Black Heading */
     text-shadow: none;
 }
 
@@ -57,7 +53,6 @@
     max-width: 1280px;
     margin: 0 auto;
     padding: 0 24px;
-    z-index: 10;
 }
 
 /* ============================================
@@ -114,8 +109,7 @@
     letter-spacing: 4px;
     text-transform: uppercase;
     margin-bottom: 24px;
-    color: #2E2722;
-    /* Dark Coffee Accent */
+    color: #2e2c2c !important;
     opacity: 1;
 }
 
@@ -124,7 +118,7 @@
     font-family: 'Figtree', sans-serif;
     font-size: clamp(48px, 5vw, 72px);
     font-weight: 900;
-    color: #FEFFEC;
+    color: #2e2c2c;
     /* Soft White Title */
     line-height: 0.95;
     letter-spacing: -0.04em;
@@ -225,32 +219,34 @@
 .about-services {
     display: grid;
     grid-template-columns: repeat(2, 1fr);
-    gap: 32px;
+    gap: 28px;
+    margin-top: 16px;
 }
 
 /* ============================================
    SERVICE CARD
    ============================================ */
 .about-service-card {
-    background: rgba(255, 255, 255, 0.7);
-    /* Improved Contrast */
-    backdrop-filter: blur(12px);
-    border: 1px solid rgba(46, 39, 34, 0.3);
-    /* Dark Coffee tint */
+    background: rgba(255, 255, 255, 0.88);
+    border: 1px solid rgba(46, 39, 34, 0.18);
     border-radius: 24px;
-    padding: 40px 36px;
+    padding: 56px 48px 52px;
     cursor: pointer;
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
-    /* Slightly stronger shadow */
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.07), 0 1px 3px rgba(0, 0, 0, 0.05);
     transition: all 0.4s cubic-bezier(0.22, 1, 0.36, 1);
+    display: flex;
+    flex-direction: column;
 }
 
 .about-service-card:hover {
-    background: rgba(0, 0, 0, 0.05);
+    background: rgba(255, 255, 255, 0.96);
+    transform: translateY(-6px);
+    box-shadow: 0 24px 56px rgba(0, 0, 0, 0.12), 0 2px 8px rgba(0, 0, 0, 0.06);
+    border-color: rgba(46, 39, 34, 0.3);
 }
 
 .service-icon {
-    margin-bottom: 24px;
+    margin-bottom: 32px;
 }
 
 .about-service-card h3 {
@@ -258,34 +254,26 @@
     font-size: 26px;
     font-weight: 700;
     color: #1A1A1A;
-    margin-bottom: 12px;
-    letter-spacing: -0.01em;
-}
-
-.about-description-premium {
-    font-size: 1.125rem;
-    line-height: 1.8;
-    color: #2E2E2E;
-    /* Body Text */
-    /* Subtext */
-    max-width: 600px;
-    margin-bottom: 40px;
+    margin-bottom: 14px;
+    letter-spacing: -0.02em;
+    line-height: 1.2;
 }
 
 .about-service-card p {
     font-size: 16px;
-    color: #1E1B17;
-    line-height: 1.6;
-    margin-bottom: 20px;
+    color: rgba(30, 27, 23, 0.72);
+    line-height: 1.75;
+    margin-bottom: 32px;
+    flex: 1;
 }
 
 .service-link {
-    font-size: 14px;
-    font-weight: 600;
-    font-weight: 600;
-    font-weight: 600;
+    font-size: 13px;
+    font-weight: 700;
     color: #2E2722;
-    /* Dark Coffee Accent */
+    letter-spacing: 0.3px;
+    border-top: 1px solid rgba(46, 39, 34, 0.12);
+    padding-top: 20px;
     transition: color 0.3s ease;
 }
 

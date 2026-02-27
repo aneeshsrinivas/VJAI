@@ -42,4 +42,17 @@ const PageTransition = ({ children, className = '' }) => {
     );
 };
 
+const PageTransition = ({ children, className = '' }) => (
+    <motion.div
+        className={`page-transition ${className}`}
+        initial="initial"
+        animate="animate"
+        exit="exit"
+        variants={pageVariants}
+        style={{ willChange: 'opacity, transform' }}
+    >
+        {children}
+    </motion.div>
+);
+
 export default PageTransition;

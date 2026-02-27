@@ -1,222 +1,336 @@
-/* Registration Page Styles */
+/* ============================================================
+   REGISTRATION PAGE — Simple centered dark glassmorphism layout
+   Matches DemoBooking aesthetic. All roles share the same shell.
+   ============================================================ */
 @import url('https://fonts.googleapis.com/css2?family=Figtree:wght@300;400;500;600;700;800;900&display=swap');
 
-/* Animations */
-@keyframes kenBurns {
-    0% {
-        transform: scale(1);
-    }
-
-    100% {
-        transform: scale(1.1);
-    }
-}
-
-@keyframes fadeIn {
+@keyframes regFadeIn {
     from {
         opacity: 0;
+        transform: translateY(12px);
     }
 
     to {
         opacity: 1;
+        transform: translateY(0);
     }
 }
 
-.registration-page {
+/* ── Page shell ── */
+.reg-page {
     min-height: 100vh;
+    background: #0a0a0a;
     font-family: 'Figtree', sans-serif;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 32px 24px 64px;
     position: relative;
+}
+
+/* ── Back button ── */
+.reg-back-btn {
+    position: absolute;
+    top: 28px;
+    left: 32px;
+    background: rgba(255, 255, 255, 0.08);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    border: 1px solid rgba(255, 255, 255, 0.14);
+    color: rgba(255, 255, 255, 0.72);
+    font-size: 12px;
+    font-weight: 600;
+    font-family: 'Figtree', sans-serif;
+    cursor: pointer;
+    padding: 8px 16px;
+    border-radius: 20px;
     display: flex;
     align-items: center;
-    justify-content: center;
-    padding: 40px 20px;
-    background-color: #000;
-    overflow-x: hidden;
-    animation: fadeIn 0.8s ease-out;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    transition: background 0.22s, color 0.22s, transform 0.22s;
 }
 
-/* Background Image Container */
-.registration-page::before {
-    content: '';
-    position: fixed;
-    top: 0;
-    left: 0;
+.reg-back-btn:hover {
+    background: rgba(255, 255, 255, 0.14);
+    color: #ffffff;
+    transform: translateX(-3px);
+}
+
+/* ── Glass card ── */
+.reg-card {
     width: 100%;
-    height: 100%;
-    background-image: url('/chess-background.png');
-    background-size: cover;
-    background-position: center;
-    z-index: 0;
-    animation: kenBurns 25s ease-in-out infinite alternate;
-}
-
-.registration-overlay {
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: linear-gradient(135deg, rgba(0, 51, 102, 0.5) 0%, rgba(0, 20, 40, 0.6) 100%);
-    z-index: 1;
-    pointer-events: none;
-}
-
-/* Back Button */
-.registration-back-button {
-    position: absolute;
-    top: 40px;
-    left: 40px;
-    background: rgba(255, 255, 255, 0.15);
-    backdrop-filter: blur(10px);
-    border: 2px solid rgba(255, 255, 255, 0.3);
-    color: white;
-    font-family: 'Figtree', sans-serif;
-    font-size: 16px;
-    font-weight: 600;
-    padding: 12px 24px;
-    border-radius: 12px;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    z-index: 10;
-}
-
-.registration-back-button:hover {
-    background: rgba(255, 255, 255, 0.25);
-    transform: translateX(-4px);
-}
-
-/* Glass Card */
-.registration-card {
-    position: relative;
-    z-index: 2;
-    background: rgba(239, 227, 200, 0.95);
-    backdrop-filter: blur(20px);
-    width: 100%;
-    max-width: 650px;
+    max-width: 680px;
+    margin-top: 72px;
+    background: rgba(255, 255, 255, 0.04);
+    backdrop-filter: blur(24px);
+    -webkit-backdrop-filter: blur(24px);
+    border: 1px solid rgba(255, 255, 255, 0.08);
     border-radius: 24px;
-    padding: 48px;
-    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
-    border: 1px solid rgba(255, 255, 255, 0.5);
+    padding: 48px 52px;
+    box-shadow: 0 32px 64px rgba(0, 0, 0, 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.05);
+    animation: regFadeIn 0.5s cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 
-/* Header */
-.registration-header {
+/* ── Card header ── */
+.reg-card-header {
     text-align: center;
     margin-bottom: 32px;
 }
 
-.registration-header h1 {
-    font-family: 'Figtree', sans-serif;
-    font-size: 36px;
-    font-weight: 800;
-    color: #181818;
-    margin-bottom: 12px;
+.reg-logo {
+    height: 56px;
+    width: auto;
+    object-fit: contain;
+    margin-bottom: 16px;
 }
 
-.registration-header p {
-    color: #68300B;
-    font-size: 16px;
+.reg-card-header h1 {
+    font-size: 28px;
+    font-weight: 900;
+    color: #ffffff;
+    letter-spacing: -0.5px;
+    margin: 0 0 8px 0;
+    line-height: 1.1;
+}
+
+.reg-card-header p {
+    font-size: 15px;
+    color: rgba(255, 255, 255, 0.42);
+    margin: 0;
     line-height: 1.6;
 }
 
-/* Form Elements */
-.form-group {
-    margin-bottom: 20px;
-}
-
-.registration-form input,
-.registration-form select {
-    width: 100%;
-    padding: 14px 16px;
-    border: 2px solid #EBD6C3;
-    border-radius: 12px;
-    font-size: 16px;
-    font-family: 'Figtree', sans-serif;
-    transition: all 0.3s ease;
-    background: #FFFEF3;
-}
-
-.registration-form input:focus,
-.registration-form select:focus {
-    border-color: #FC8A24;
-    outline: none;
-    box-shadow: 0 0 0 4px rgba(252, 138, 36, 0.1);
-    background: #FDFCF8;
-}
-
-.registration-form label {
+.reg-card-header::after {
+    content: '';
     display: block;
-    margin-bottom: 8px;
-    font-weight: 600;
-    color: #181818;
-    font-size: 14px;
+    width: 40px;
+    height: 2px;
+    background: linear-gradient(90deg, #F88B22, #ffaa55);
+    border-radius: 99px;
+    margin: 20px auto 0;
+}
+
+/* ── Form ── */
+.reg-form {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+/* Dark inputs — override the ui/Input component appearance */
+.reg-form input:not([type="checkbox"]),
+.reg-form select,
+.reg-form textarea {
+    background: rgba(255, 255, 255, 0.05) !important;
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+    border-radius: 10px !important;
+    color: #ffffff !important;
+    font-family: 'Figtree', sans-serif !important;
+    font-size: 14px !important;
+    padding: 12px 14px !important;
+    outline: none !important;
+    transition: border-color 0.22s, background 0.22s, box-shadow 0.22s !important;
+    width: 100% !important;
+}
+
+.reg-form input::placeholder,
+.reg-form textarea::placeholder {
+    color: rgba(255, 255, 255, 0.2) !important;
+}
+
+.reg-form input:focus:not([type="checkbox"]),
+.reg-form select:focus {
+    border-color: rgba(248, 139, 34, 0.5) !important;
+    background: rgba(255, 255, 255, 0.08) !important;
+    box-shadow: 0 0 0 3px rgba(248, 139, 34, 0.1) !important;
+}
+
+/* Dark labels from both Input component and inline */
+.reg-form label:not(.reg-checkbox) {
+    color: rgba(255, 255, 255, 0.85) !important;
+    font-size: 11px !important;
+    font-weight: 700 !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.8px !important;
+}
+
+/* Row layout */
+.reg-row {
+    display: flex;
+    gap: 14px;
+    align-items: flex-start;
+}
+
+/* Select group (used for custom selects) */
+.reg-select-group {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 7px;
+    margin-bottom: 16px;
+}
+
+.reg-select-group label {
+    font-size: 11px !important;
+    font-weight: 700 !important;
+    color: rgba(255, 255, 255, 0.85) !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.8px !important;
+    display: block;
+}
+
+.reg-select-group select {
+    color-scheme: dark;
+    cursor: pointer;
+}
+
+.reg-select-group select option {
+    background: #141416;
+    color: #ffffff;
 }
 
 /* Checkbox */
-.checkbox-group {
+.reg-checkbox {
+    display: flex !important;
+    align-items: center !important;
+    gap: 10px !important;
+    font-size: 13px !important;
+    color: rgba(255, 255, 255, 0.6) !important;
+    cursor: pointer !important;
+    margin: 4px 0 8px !important;
+    text-transform: none !important;
+    letter-spacing: 0 !important;
+    font-weight: 400 !important;
+}
+
+.reg-checkbox input[type="checkbox"] {
+    width: 16px !important;
+    height: 16px !important;
+    accent-color: #F88B22 !important;
+    flex-shrink: 0 !important;
+    padding: 0 !important;
+    border: none !important;
+    box-shadow: none !important;
+}
+
+/* Info note */
+.reg-info-note {
+    background: rgba(248, 139, 34, 0.07);
+    border: 1px solid rgba(248, 139, 34, 0.2);
+    border-radius: 10px;
+    padding: 12px 14px;
+    font-size: 13px;
+    color: rgba(255, 255, 255, 0.6);
+    margin-bottom: 8px;
+    line-height: 1.5;
+}
+
+.reg-info-note strong {
+    color: #F88B22;
+}
+
+/* Error */
+.reg-error {
+    background: rgba(220, 38, 38, 0.1);
+    border: 1px solid rgba(220, 38, 38, 0.3);
+    border-radius: 10px;
+    padding: 12px 14px;
+    font-size: 13px;
+    color: #f87171;
+    margin-bottom: 8px;
+}
+
+/* Password strength */
+.reg-pw-strength {
+    margin: -4px 0 12px;
+}
+
+.reg-pw-bars {
     display: flex;
+    gap: 4px;
+    margin-bottom: 6px;
+}
+
+.reg-pw-bar {
+    flex: 1;
+    height: 3px;
+    border-radius: 2px;
+    transition: background 0.3s;
+}
+
+.reg-pw-info {
+    display: flex;
+    justify-content: space-between;
     align-items: center;
-    gap: 12px;
-    margin-bottom: 24px;
-    cursor: pointer;
-    font-size: 14px;
-    color: #555;
 }
 
-.checkbox-group input[type="checkbox"] {
-    width: 20px;
-    height: 20px;
-    accent-color: #FC8A24;
+.reg-pw-info span:first-child {
+    font-size: 12px;
+    font-weight: 700;
 }
 
-/* Submit Button */
-.submit-btn {
+.reg-pw-hint {
+    font-size: 11px;
+    color: rgba(255, 255, 255, 0.35) !important;
+}
+
+/* Submit button */
+.reg-btn-submit {
     width: 100%;
-    padding: 16px;
-    background: linear-gradient(135deg, #FC8A24 0%, #ff9f4d 100%);
-    color: white;
+    padding: 14px 20px;
+    background: linear-gradient(135deg, #F88B22 0%, #ffaa55 100%);
+    color: #ffffff;
     border: none;
     border-radius: 12px;
-    font-size: 18px;
-    font-weight: 700;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    box-shadow: 0 8px 20px rgba(252, 138, 36, 0.3);
-}
-
-.submit-btn:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 12px 24px rgba(252, 138, 36, 0.4);
-}
-
-/* Login Link */
-.login-link {
-    text-align: center;
-    margin-top: 24px;
-    padding-top: 24px;
-    border-top: 1px solid #EBD6C3;
-    color: #666;
     font-size: 15px;
+    font-weight: 700;
+    font-family: 'Figtree', sans-serif;
+    cursor: pointer;
+    box-shadow: 0 6px 20px rgba(248, 139, 34, 0.3);
+    transition: all 0.26s cubic-bezier(0.22, 1, 0.36, 1);
+    letter-spacing: 0.2px;
 }
 
-.login-link a {
-    color: #181818;
+.reg-btn-submit:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 12px 28px rgba(248, 139, 34, 0.42);
+}
+
+.reg-btn-submit:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    transform: none;
+}
+
+/* Login link */
+.reg-login-link {
+    text-align: center;
+    margin-top: 20px;
+    padding-top: 20px;
+    border-top: 1px solid rgba(255, 255, 255, 0.07);
+    font-size: 14px;
+    color: rgba(255, 255, 255, 0.4);
+}
+
+.reg-login-link a {
+    color: #F88B22;
     font-weight: 700;
     text-decoration: none;
-    transition: color 0.2s;
+    transition: opacity 0.2s;
 }
 
-.login-link a:hover {
-    color: #FC8A24;
+.reg-login-link a:hover {
+    opacity: 0.75;
 }
 
-/* Responsive */
+/* ── Responsive ── */
 @media (max-width: 768px) {
-    .registration-card {
-        padding: 32px 24px;
+    .reg-card {
+        padding: 32px 20px;
     }
 
-    .registration-header h1 {
-        font-size: 28px;
+    .reg-row {
+        flex-direction: column;
     }
 }

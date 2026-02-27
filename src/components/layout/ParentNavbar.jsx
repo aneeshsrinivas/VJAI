@@ -3,7 +3,8 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import { signOut } from 'firebase/auth';
 import { auth } from '../../lib/firebase';
 import { useAuth } from '../../context/AuthContext';
-import { ChevronDown, Settings, LogOut, User } from 'lucide-react';
+import { useTheme } from '../../context/ThemeContext';
+import { ChevronDown, Settings, LogOut, User, Sun, Moon } from 'lucide-react';
 import './ParentNavbar.css';
 
 // ICA Colors
@@ -18,6 +19,7 @@ const ParentNavbar = () => {
     const location = useLocation();
     const navigate = useNavigate();
     const { currentUser, userData } = useAuth();
+    const { isDark, toggleTheme } = useTheme();
     const [dropdownOpen, setDropdownOpen] = React.useState(false);
 
     // Get display name from userData or email
@@ -46,9 +48,9 @@ const ParentNavbar = () => {
     };
 
     return (
-        <nav className="dashboard-navbar" style={{ backgroundColor: COLORS.deepBlue }}>
+        <nav className="dashboard-navbar">
             <div className="navbar-brand">
-                <img src="/ica-logo.png" alt="ICA" className="navbar-logo" />
+                <img src="/logo.png" alt="Indian Chess Academy" className="navbar-logo" />
                 <span className="navbar-title" style={{ color: 'white' }}>ICA Student Portal</span>
             </div>
 
@@ -78,6 +80,11 @@ const ParentNavbar = () => {
                     Payments
                 </a>
             </div>
+
+            {/* Theme Toggle */}
+            <button className="theme-toggle-btn" onClick={toggleTheme} title={isDark ? 'Switch to Light Mode' : 'Switch to Dark Mode'}>
+                {isDark ? <Sun size={18} /> : <Moon size={18} />}
+            </button>
 
             {/* User Account Dropdown */}
             <div className="account-dropdown-wrapper">

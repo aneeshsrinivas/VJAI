@@ -214,3 +214,101 @@
     color: white;
     border-color: #DC2626;
 }
+
+/* Theme Toggle Button */
+.sidebar-theme-toggle {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    width: 100%;
+    margin-top: 12px;
+    padding: 10px 16px;
+    background: transparent;
+    border: 1px solid rgba(0, 51, 102, 0.2);
+    border-radius: 8px;
+    color: #181818;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+    font-family: inherit;
+}
+
+.sidebar-theme-toggle:hover {
+    background: rgba(0, 51, 102, 0.05);
+}
+
+/* ========================================
+   DARK MODE — staff-dark class on layout-staff
+   ======================================== */
+
+.staff-dark .sidebar {
+    background: linear-gradient(180deg, #111111 0%, #181818 100%);
+    color: #f0f0f0;
+    border-right: 1px solid rgba(255, 255, 255, 0.08);
+    box-shadow: 2px 0 12px rgba(0, 0, 0, 0.3);
+}
+
+.staff-dark .sidebar-brand {
+    background: rgba(255, 255, 255, 0.05);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+}
+
+.staff-dark .sidebar-title {
+    color: #f0f0f0;
+}
+
+.staff-dark .nav-item {
+    color: rgba(255, 255, 255, 0.7);
+}
+
+.staff-dark .nav-item:hover {
+    background-color: rgba(255, 255, 255, 0.08);
+    color: #f0f0f0;
+}
+
+.staff-dark .nav-item.active {
+    background: linear-gradient(90deg, rgba(252, 138, 36, 0.2) 0%, rgba(252, 138, 36, 0.05) 100%);
+    color: #FC8A24;
+}
+
+.staff-dark .sidebar-footer {
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.staff-dark .user-profile-btn {
+    background: rgba(255, 255, 255, 0.08);
+    color: #f0f0f0;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+}
+
+.staff-dark .user-name {
+    color: #ffffff;
+    font-weight: 700;
+}
+
+.staff-dark .user-role {
+    color: #FC8A24;
+    font-weight: 600;
+}
+
+.staff-dark .sidebar-theme-toggle {
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    color: #f0f0f0;
+}
+
+.staff-dark .sidebar-theme-toggle:hover {
+    background: rgba(255, 255, 255, 0.1);
+}
+
+.staff-dark .logout-btn {
+    border: 1px solid rgba(220, 38, 38, 0.3);
+    color: #ef4444;
+}
+
+.staff-dark .logout-btn:hover {
+    background: #ef4444;
+    color: white;
+}

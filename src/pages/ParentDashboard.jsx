@@ -425,7 +425,7 @@ const ParentDashboard = () => {
     ];
 
     if (loading && !student) {
-        return <div className="p-8 text-center text-white">Loading Parent Portal...</div>;
+        return null;
     }
 
     return (

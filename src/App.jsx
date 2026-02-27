@@ -1,9 +1,11 @@
 import React, { useEffect, useRef } from 'react';
 import { Routes, Route, Outlet, useLocation } from 'react-router-dom';
+import Lenis from 'lenis';
 import { AnimatePresence } from 'framer-motion';
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
-import Lenis from 'lenis';
+import { ThemeProvider, useTheme } from './context/ThemeContext';
+import ParentNavbar from './components/layout/ParentNavbar';
 
 // Page imports
 import LandingPage from './pages/LandingPage';
@@ -54,13 +56,17 @@ import Navbar from './components/layout/Navbar';
 import PageTransition from './components/animations/PageTransition';
 
 // Layout Components
-const ParentLayout = () => (
-  <div className="layout-parent" style={{ display: 'flex' }}>
-    <main className="main-content-parent" style={{ flex: 1, padding: '24px', width: '100%' }}>
-      <Outlet />
-    </main>
-  </div>
-);
+const ParentLayout = () => {
+  const { isDark } = useTheme();
+  return (
+    <div className={`layout-parent${isDark ? ' pd-dark' : ''}`} style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
+      <ParentNavbar />
+      <main className="main-content-parent" style={{ flex: 1, width: '100%' }}>
+        <Outlet />
+      </main>
+    </div>
+  );
+};
 
 const StaffLayout = ({ role }) => (
   <div className="layout-staff" style={{ display: 'flex' }}>
@@ -75,46 +81,36 @@ function App() {
   const location = useLocation();
   const lenisRef = useRef(null);
 
-  // Initialize Smooth Scrolling
+  // Initialize Lenis smooth scroll
   useEffect(() => {
     const lenis = new Lenis({
       duration: 1.2,
       easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
-      direction: 'vertical',
-      gestureDirection: 'vertical',
-      smooth: true,
-      mouseMultiplier: 1,
       smoothTouch: false,
-      touchMultiplier: 2,
-      infinite: false,
+      lerp: 0.1 // Reduce lerp for smoother interpolation
     });
-
     lenisRef.current = lenis;
 
-    function raf(time) {
+    let rafId;
+    const raf = (time) => {
       lenis.raf(time);
-      requestAnimationFrame(raf);
-    }
-
-    requestAnimationFrame(raf);
+      rafId = requestAnimationFrame(raf);
+    };
+    rafId = requestAnimationFrame(raf);
 
     return () => {
+      cancelAnimationFrame(rafId);
       lenis.destroy();
-      lenisRef.current = null;
     };
   }, []);
 
   // Scroll to top on route change
   useEffect(() => {
-    if (lenisRef.current) {
-      lenisRef.current.scrollTo(0, { immediate: true });
-    } else {
-      window.scrollTo(0, 0);
-    }
+    lenisRef.current?.scrollTo(0, { immediate: true });
   }, [location.pathname]);
 
   // Define routes where Navbar should be hidden
-  const hideNavbarRoutes = ['/login', '/register', '/select-role'];
+  const hideNavbarRoutes = ['/login', '/register', '/select-role', '/demo-booking'];
   const showNavbar = !hideNavbarRoutes.includes(location.pathname) &&
     !location.pathname.startsWith('/admin') &&
     !location.pathname.startsWith('/coach') &&
@@ -149,7 +145,7 @@ function App() {
           <Route path="/payment/success" element={<PageTransition><PaymentSuccess /></PageTransition>} />
 
           {/* Parent Routes */}
-          <Route element={<ParentLayout />}>
+          <Route element={<ThemeProvider><ParentLayout /></ThemeProvider>}>
             <Route path="/parent" element={<ParentDashboard />} />
             <Route path="/parent/chat" element={<ChatPage userRole="CUSTOMER" />} />
             <Route path="/parent/schedule" element={<ParentSchedule />} />

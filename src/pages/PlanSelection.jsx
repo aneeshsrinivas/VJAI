@@ -132,12 +132,7 @@ const PlanSelection = () => {
             </div>
 
             {/* Pricing Cards Grid */}
-            {loading ? (
-                <div className="plan-empty-state">
-                    <div className="plan-empty-icon">⏳</div>
-                    <p>Loading available plans...</p>
-                </div>
-            ) : (
+            {loading ? null : (
                 <div className="plan-grid">
                     {plans.map((plan) => (
                         <div
