@@ -38,10 +38,7 @@
 }
 
 .video-overlay-tint {
-    position: absolute;
-    inset: 0;
-    background: rgba(0, 0, 0, 0.1);
-    /* Minimal tint */
+    display: none;
 }
 
 .hero-content-fixed {
