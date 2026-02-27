@@ -100,7 +100,7 @@ h6 {
 }
 
 /* Global Button Typography (Premium) */
-button:not(.rsp-back-btn):not(.rsp-btn):not(.back-to-home-btn):not(.db-back-btn):not(.db-btn),
+button:not(.rsp-back-btn):not(.rsp-btn):not(.back-to-home-btn):not(.db-back-btn):not(.db-btn):not(.reg-back-btn):not(.reg-btn-submit),
 .btn,
 .cta,
 .hero-cta,
@@ -121,7 +121,7 @@ button:not(.rsp-back-btn):not(.rsp-btn):not(.back-to-home-btn):not(.db-back-btn)
 }
 
 /* Default Solid Button (Generic) */
-button:not(.hero-cta-secondary):not(.rsp-btn--ghost):not(.rsp-btn--gold):not(.rsp-back-btn):not(.back-to-home-btn):not(.db-btn--ghost):not(.db-btn--gold):not(.db-back-btn),
+button:not(.hero-cta-secondary):not(.rsp-btn--ghost):not(.rsp-btn--gold):not(.rsp-back-btn):not(.back-to-home-btn):not(.db-btn--ghost):not(.db-btn--gold):not(.db-back-btn):not(.reg-btn-submit):not(.reg-back-btn),
 .btn,
 .cta,
 .hero-cta-primary {
