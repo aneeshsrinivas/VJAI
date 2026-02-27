@@ -313,9 +313,7 @@
     padding: 24px;
     box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
     border: 1px solid #eee;
-    opacity: 0;
-    transform: translateY(20px);
-    transition: all 0.5s ease, box-shadow 0.3s ease;
+    transition: all 0.3s ease, box-shadow 0.3s ease;
 }
 
 .content-card.visible {
@@ -514,9 +512,7 @@
     display: grid;
     grid-template-columns: repeat(2, 1fr);
     gap: 16px;
-    opacity: 0;
-    transform: translateY(20px);
-    transition: all 0.5s ease;
+    transition: all 0.3s ease;
 }
 
 .quick-actions-grid.visible {
@@ -525,17 +521,25 @@
 }
 
 .quick-action-card {
-    display: flex;
-    align-items: center;
-    gap: 16px;
-    padding: 20px;
-    background: white;
-    border: 1px solid #eee;
-    border-radius: 16px;
-    cursor: pointer;
-    transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-    position: relative;
-    overflow: hidden;
+    display: flex !important;
+    align-items: center !important;
+    gap: 16px !important;
+    padding: 20px !important;
+    background: var(--card-gradient) !important;
+    background-color: unset !important;
+    border: none !important;
+    border-radius: 16px !important;
+    cursor: pointer !important;
+    transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) !important;
+    position: relative !important;
+    overflow: hidden !important;
+    text-align: left !important;
+    text-transform: none !important;
+    font-family: 'Figtree', sans-serif !important;
+    font-size: unset !important;
+    letter-spacing: normal !important;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15) !important;
+    width: 100% !important;
 }
 
 .quick-action-card::before {
@@ -584,24 +588,24 @@
     display: block;
     font-size: 16px;
     font-weight: 700;
-    color: #181818;
+    color: white !important;
     margin-bottom: 4px;
 }
 
 .action-desc {
     display: block;
     font-size: 12px;
-    color: #888;
+    color: rgba(255, 255, 255, 0.8) !important;
 }
 
 .action-arrow {
     font-size: 20px;
-    color: #ddd;
+    color: rgba(255, 255, 255, 0.7) !important;
     transition: all 0.3s ease;
 }
 
 .quick-action-card:hover .action-arrow {
-    color: #FC8A24;
+    color: white !important;
     transform: translateX(4px);
 }
 
@@ -1002,4 +1006,278 @@
     .welcome-actions {
         flex-direction: column;
     }
+}
+
+/* ========================================
+   DARK MODE — pd-dark class on layout-parent
+   ======================================== */
+
+.pd-dark .parent-dashboard {
+    background: linear-gradient(180deg, #0f1117 0%, #161b27 100%);
+}
+
+/* Content Cards */
+.pd-dark .content-card {
+    background: #1e2330;
+    border-color: rgba(255, 255, 255, 0.08);
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+}
+
+.pd-dark .content-card:hover {
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.4);
+}
+
+.pd-dark .card-header-row h3,
+.pd-dark .card-title-group h3 {
+    color: #f0f0f0;
+}
+
+/* Schedule items */
+.pd-dark .schedule-item {
+    background: linear-gradient(135deg, #252b3b 0%, #1e2330 100%);
+    border-color: rgba(255, 255, 255, 0.08);
+}
+
+.pd-dark .schedule-item.today {
+    background: linear-gradient(135deg, #1e2a1e 0%, #1e2330 100%);
+    border-color: #FC8A24;
+}
+
+.pd-dark .day-name {
+    color: #f0f0f0;
+}
+
+.pd-dark .schedule-time {
+    color: rgba(255, 255, 255, 0.55);
+}
+
+/* Coach card */
+.pd-dark .coach-info h4 {
+    color: #f0f0f0;
+}
+
+.pd-dark .coach-stats-row {
+    background: linear-gradient(135deg, #252b3b, #1e2330);
+}
+
+.pd-dark .coach-stat .stat-value {
+    color: #f0f0f0;
+}
+
+.pd-dark .coach-stat .stat-label {
+    color: rgba(255, 255, 255, 0.5);
+}
+
+.pd-dark .badge.fide {
+    background: rgba(252, 138, 36, 0.15);
+    color: #FC8A24;
+}
+
+.pd-dark .badge.rating {
+    background: rgba(212, 175, 55, 0.15);
+    color: #D4AF37;
+}
+
+.pd-dark .privacy-notice {
+    border-top-color: rgba(255, 255, 255, 0.08);
+}
+
+.pd-dark .privacy-notice span {
+    color: rgba(255, 255, 255, 0.4);
+}
+
+/* Progress card */
+.pd-dark .progress-card-floating {
+    background: rgba(30, 35, 48, 0.97);
+    border-color: rgba(255, 255, 255, 0.08);
+}
+
+.pd-dark .progress-label {
+    color: rgba(255, 255, 255, 0.5);
+}
+
+.pd-dark .milestone-name {
+    color: #f0f0f0;
+}
+
+.pd-dark .progress-bar-container {
+    background: rgba(255, 255, 255, 0.1);
+}
+
+.pd-dark .progress-next {
+    color: rgba(255, 255, 255, 0.65);
+}
+
+.pd-dark .progress-next strong {
+    color: #f0f0f0;
+}
+
+/* Next class card */
+.pd-dark .next-class-card {
+    background: linear-gradient(135deg, #1e2330 0%, #252b3b 100%);
+    border-color: #FC8A24;
+}
+
+.pd-dark .time-prefix {
+    color: rgba(255, 255, 255, 0.55);
+}
+
+.pd-dark .time-main {
+    color: #f0f0f0;
+}
+
+.pd-dark .class-topic-box {
+    background: rgba(255, 255, 255, 0.06);
+}
+
+.pd-dark .topic-pre {
+    color: rgba(255, 255, 255, 0.5);
+}
+
+.pd-dark .topic-main {
+    color: #f0f0f0;
+}
+
+/* Announcements */
+.pd-dark .announcement-item {
+    background: rgba(245, 158, 11, 0.08);
+    border-color: rgba(252, 211, 77, 0.25);
+}
+
+.pd-dark .ann-icon {
+    background: rgba(245, 158, 11, 0.15);
+    color: #f59e0b;
+}
+
+.pd-dark .ann-subject {
+    color: #fbbf24;
+}
+
+.pd-dark .ann-message {
+    color: rgba(255, 255, 255, 0.65);
+}
+
+.pd-dark .ann-date {
+    color: #f59e0b;
+    background: rgba(245, 158, 11, 0.15);
+}
+
+/* ========================================
+   PARENT SCHEDULE PAGE DARK MODE
+   ======================================== */
+
+.pd-dark h1 {
+    color: #f0f0f0 !important;
+}
+
+.pd-dark p {
+    color: rgba(255, 255, 255, 0.7) !important;
+}
+
+.pd-dark .schedule-card {
+    background: #1e2330 !important;
+}
+
+.pd-dark .schedule-list > div {
+    background: transparent !important;
+    border-color: rgba(255, 255, 255, 0.1) !important;
+}
+
+.pd-dark .schedule-list > div:hover {
+    background: rgba(255, 255, 255, 0.05) !important;
+}
+
+.pd-dark .schedule-list h3 {
+    color: #f0f0f0 !important;
+}
+
+.pd-dark .schedule-list span {
+    color: rgba(255, 255, 255, 0.65) !important;
+}
+
+.pd-dark .schedule-list > div > div:first-child > div:first-child {
+    background: rgba(252, 138, 36, 0.1) !important;
+    border-color: #FC8A24 !important;
+}
+
+.pd-dark .schedule-list > div > div:first-child > div:not(:first-child) {
+    background: rgba(255, 255, 255, 0.05) !important;
+    border-color: rgba(255, 255, 255, 0.1) !important;
+}
+
+/* ========================================
+   PARENT ASSIGNMENTS PAGE DARK MODE
+   ======================================== */
+
+.pd-dark .assignment-card {
+    background: #1e2330 !important;
+}
+
+.pd-dark .assignment-item {
+    background: rgba(255, 255, 255, 0.05) !important;
+    border-color: rgba(255, 255, 255, 0.1) !important;
+}
+
+.pd-dark .assignment-title {
+    color: #f0f0f0 !important;
+}
+
+.pd-dark .assignment-desc {
+    color: rgba(255, 255, 255, 0.65) !important;
+}
+
+/* ========================================
+   PARENT PAYMENTS PAGE DARK MODE
+   ======================================== */
+
+.pd-dark .payment-card {
+    background: #1e2330 !important;
+}
+
+.pd-dark .payment-item {
+    background: rgba(255, 255, 255, 0.05) !important;
+    border-color: rgba(255, 255, 255, 0.1) !important;
+}
+
+.pd-dark .payment-title,
+.pd-dark .subscription-title {
+    color: #f0f0f0 !important;
+}
+
+.pd-dark .payment-amount {
+    color: #f0f0f0 !important;
+}
+
+.pd-dark .payment-status {
+    color: rgba(255, 255, 255, 0.65) !important;
+}
+
+/* ========================================
+   PARENT SETTINGS PAGE DARK MODE
+   ======================================== */
+
+.pd-dark .settings-card {
+    background: #1e2330 !important;
+}
+
+.pd-dark .settings-title {
+    color: #f0f0f0 !important;
+}
+
+.pd-dark .settings-label {
+    color: rgba(255, 255, 255, 0.8) !important;
+}
+
+.pd-dark .settings-value {
+    color: rgba(255, 255, 255, 0.65) !important;
+}
+
+.pd-dark .settings-input {
+    background: rgba(255, 255, 255, 0.05) !important;
+    border-color: rgba(255, 255, 255, 0.1) !important;
+    color: #f0f0f0 !important;
+}
+
+.pd-dark .settings-input::placeholder {
+    color: rgba(255, 255, 255, 0.4) !important;
 }

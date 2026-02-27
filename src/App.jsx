@@ -4,6 +4,8 @@ import { AnimatePresence } from 'framer-motion';
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import Lenis from 'lenis';
+import { ThemeProvider, useTheme } from './context/ThemeContext';
+import ParentNavbar from './components/layout/ParentNavbar';
 
 // Page imports
 import LandingPage from './pages/LandingPage';
@@ -54,13 +56,17 @@ import Navbar from './components/layout/Navbar';
 import PageTransition from './components/animations/PageTransition';
 
 // Layout Components
-const ParentLayout = () => (
-  <div className="layout-parent" style={{ display: 'flex' }}>
-    <main className="main-content-parent" style={{ flex: 1, padding: '24px', width: '100%' }}>
-      <Outlet />
-    </main>
-  </div>
-);
+const ParentLayout = () => {
+  const { isDark } = useTheme();
+  return (
+    <div className={`layout-parent${isDark ? ' pd-dark' : ''}`} style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
+      <ParentNavbar />
+      <main className="main-content-parent" style={{ flex: 1, width: '100%' }}>
+        <Outlet />
+      </main>
+    </div>
+  );
+};
 
 const StaffLayout = ({ role }) => (
   <div className="layout-staff" style={{ display: 'flex' }}>
@@ -78,7 +84,7 @@ function App() {
   // Initialize Smooth Scrolling
   useEffect(() => {
     const lenis = new Lenis({
-      duration: 0.6,
+      duration: 0.0,
       easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
       direction: 'vertical',
       gestureDirection: 'vertical',
@@ -149,7 +155,7 @@ function App() {
           <Route path="/payment/success" element={<PageTransition><PaymentSuccess /></PageTransition>} />
 
           {/* Parent Routes */}
-          <Route element={<ParentLayout />}>
+          <Route element={<ThemeProvider><ParentLayout /></ThemeProvider>}>
             <Route path="/parent" element={<ParentDashboard />} />
             <Route path="/parent/chat" element={<ChatPage userRole="CUSTOMER" />} />
             <Route path="/parent/schedule" element={<ParentSchedule />} />
