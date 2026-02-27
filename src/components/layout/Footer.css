@@ -38,7 +38,7 @@
 }
 
 .footer-logo-large {
-    width: 160px;
+    width: 180px;
     /* Smaller Logo */
     height: auto;
     transition: transform 0.3s ease;
@@ -140,7 +140,7 @@
     }
 
     .footer-logo-large {
-        width: 140px;
+        width: 160px;
     }
 
     .footer-columns {
