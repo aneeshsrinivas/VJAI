@@ -29,18 +29,23 @@ const DemosPage = () => {
 
     const fetchDemos = async () => {
         setLoading(true);
-        let result;
+        try {
+            let result;
 
-        if (filter === 'ALL') {
-            result = await getAllDemos();
-        } else {
-            result = await getDemosByStatus(filter);
-        }
+            if (filter === 'ALL') {
+                result = await getAllDemos();
+            } else {
+                result = await getDemosByStatus(filter);
+            }
 
-        if (result.success) {
-            setDemos(result.demos);
-        } else {
-            toast.error('Failed to fetch demos');
+            if (result.success) {
+                setDemos(result.demos);
+            } else {
+                setDemos([]);
+            }
+        } catch (error) {
+            console.error('Failed to fetch demos:', error);
+            toast.error('Failed to fetch demos. Please check your connection.');
         }
         setLoading(false);
     };

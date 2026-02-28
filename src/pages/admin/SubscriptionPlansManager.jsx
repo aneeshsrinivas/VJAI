@@ -7,7 +7,7 @@ import Input from '../../components/ui/Input';
 import { toast, ToastContainer } from 'react-toastify';
 import { Plus, X, Edit2, Trash2, CreditCard, Package, CheckCircle, Shield, Star, RefreshCw } from 'lucide-react';
 
-// Default plans from mockData - used for seeding
+// Default plans - only the two 1-on-1 plans
 const defaultPlans = [
     {
         id: 'one-on-one-beginner',
@@ -48,46 +48,6 @@ const defaultPlans = [
         isActive: true,
         isFeatured: true,
         sortOrder: 1
-    },
-    {
-        id: 'group-beginner',
-        name: 'Group Beginner Class',
-        description: 'Small batch group classes for beginners',
-        price: 40,
-        billingCycle: 'MONTHLY',
-        level: 'beginner',
-        classType: 'group',
-        features: [
-            'Small batch (max 8 students)',
-            'Peer learning environment',
-            'Fixed schedule (3x/week)',
-            '12 sessions per month',
-            'Batch group chat access',
-            'Shared learning materials'
-        ],
-        isActive: true,
-        isFeatured: false,
-        sortOrder: 2
-    },
-    {
-        id: 'group-intermediate',
-        name: 'Group Intermediate Class',
-        description: 'Skill-matched group classes for intermediate players',
-        price: 50,
-        billingCycle: 'MONTHLY',
-        level: 'intermediate',
-        classType: 'group',
-        features: [
-            'Skill-matched batches',
-            'Competitive practice games',
-            'Fixed schedule (3x/week)',
-            '12 sessions per month',
-            'Tournament opportunities',
-            'Rating improvement focus'
-        ],
-        isActive: true,
-        isFeatured: false,
-        sortOrder: 3
     }
 ];
 
@@ -252,7 +212,7 @@ const SubscriptionPlansManager = () => {
 
     // Seed default plans from mockData
     const handleSeedDefaultPlans = async () => {
-        if (!window.confirm('This will add the 4 default plans from the pricing page. Existing plans with the same ID will be skipped. Continue?')) {
+        if (!window.confirm('This will add the 2 default 1-on-1 plans from the pricing page. Existing plans with the same ID will be skipped. Continue?')) {
             return;
         }
 
@@ -429,7 +389,7 @@ const SubscriptionPlansManager = () => {
                             {/* Pricing */}
                             <div style={{ padding: '20px 24px', borderBottom: '1px solid #f0f0f0' }}>
                                 <div style={{ display: 'flex', alignItems: 'baseline', gap: '4px' }}>
-                                    <span style={{ fontSize: '32px', fontWeight: '800', color: '#003366' }}>₹{plan.price?.toLocaleString()}</span>
+                                    <span style={{ fontSize: '32px', fontWeight: '800', color: '#003366' }}>${plan.price?.toLocaleString()}</span>
                                     <span style={{ color: '#666', fontSize: '14px' }}>/{plan.billingCycle?.toLowerCase()}</span>
                                 </div>
                             </div>
@@ -583,7 +543,7 @@ const SubscriptionPlansManager = () => {
                             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginBottom: '20px' }}>
                                 <div>
                                     <label style={{ display: 'block', marginBottom: '6px', fontWeight: '600', fontSize: '14px' }}>
-                                        Price (₹) *
+                                        Price ($) *
                                     </label>
                                     <Input
                                         type="number"

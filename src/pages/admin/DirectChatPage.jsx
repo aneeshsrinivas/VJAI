@@ -1,18 +1,10 @@
-import React, { useState, useEffect } from 'react';
-import { collection, query, where, getDocs, addDoc, updateDoc, doc, serverTimestamp, setDoc, onSnapshot } from 'firebase/firestore';
+import React, { useState, useEffect, useRef } from 'react';
+import { collection, query, where, getDocs, addDoc, doc, serverTimestamp, setDoc, onSnapshot } from 'firebase/firestore';
 import { db } from '../../lib/firebase';
 import { useAuth } from '../../context/AuthContext';
 import Card from '../../components/ui/Card';
 import Button from '../../components/ui/Button';
-import Input from '../../components/ui/Input';
-import { Send, Search } from 'lucide-react';
-
-const COLORS = {
-    orange: '#FC8A24',
-    deepBlue: '#003366',
-    oliveGreen: '#6B8E23',
-    ivory: '#FFFEF3'
-};
+import { Send, Search, ChevronDown, MessageSquare } from 'lucide-react';
 
 const DirectChatPage = () => {
     const { currentUser } = useAuth();
@@ -23,8 +15,22 @@ const DirectChatPage = () => {
     const [inputText, setInputText] = useState('');
     const [searchQuery, setSearchQuery] = useState('');
     const [sendingMessage, setSendingMessage] = useState(false);
+    const [showUserDropdown, setShowUserDropdown] = useState(false);
+    const messagesEndRef = useRef(null);
+    const dropdownRef = useRef(null);
 
-    // Fetch all customers (CUSTOMER role users)
+    // Close dropdown when clicking outside
+    useEffect(() => {
+        const handleClickOutside = (e) => {
+            if (dropdownRef.current && !dropdownRef.current.contains(e.target)) {
+                setShowUserDropdown(false);
+            }
+        };
+        document.addEventListener('mousedown', handleClickOutside);
+        return () => document.removeEventListener('mousedown', handleClickOutside);
+    }, []);
+
+    // Fetch all customers
     useEffect(() => {
         if (!currentUser) return;
 
@@ -56,10 +62,8 @@ const DirectChatPage = () => {
     useEffect(() => {
         if (!selectedUser || !currentUser) return;
 
-        // Create or get chat document ID
         const chatId = [currentUser.uid, selectedUser.id].sort().join('_');
 
-        // Subscribe to messages
         const q = query(collection(db, 'messages'), where('chatId', '==', chatId));
         const unsubscribe = onSnapshot(q, (snapshot) => {
             const msgList = snapshot.docs
@@ -71,6 +75,11 @@ const DirectChatPage = () => {
         return () => unsubscribe();
     }, [selectedUser, currentUser]);
 
+    // Auto-scroll to bottom when new messages arrive
+    useEffect(() => {
+        messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    }, [messages]);
+
     const handleSend = async () => {
         if (!inputText.trim() || !selectedUser || !currentUser) return;
 
@@ -79,7 +88,6 @@ const DirectChatPage = () => {
         try {
             const chatId = [currentUser.uid, selectedUser.id].sort().join('_');
 
-            // Create chat document if it doesn't exist
             const chatDocRef = doc(db, 'chats', chatId);
             await setDoc(chatDocRef, {
                 adminId: currentUser.uid,
@@ -91,7 +99,6 @@ const DirectChatPage = () => {
                 createdAt: serverTimestamp()
             }, { merge: true });
 
-            // Add message
             await addDoc(collection(db, 'messages'), {
                 chatId: chatId,
                 content: inputText.trim(),
@@ -115,98 +122,174 @@ const DirectChatPage = () => {
         user.email.toLowerCase().includes(searchQuery.toLowerCase())
     );
 
-    return (
-        <div style={{ display: 'grid', gridTemplateColumns: '300px 1fr', gap: '24px', height: 'calc(100vh - 120px)' }}>
+    const handleSelectUser = (user) => {
+        setSelectedUser(user);
+        setShowUserDropdown(false);
+        setSearchQuery('');
+    };
 
-            {/* User List */}
-            <Card title="Users" style={{ height: '100%', display: 'flex', flexDirection: 'column', padding: '16px' }}>
-                <div style={{ position: 'relative', marginBottom: '16px' }}>
-                    <Search size={18} style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: '#999' }} />
-                    <input
-                        type="text"
-                        placeholder="Search users..."
-                        value={searchQuery}
-                        onChange={(e) => setSearchQuery(e.target.value)}
+    return (
+        <div style={{ display: 'flex', flexDirection: 'column', height: 'calc(100vh - 120px)', maxWidth: '900px', margin: '0 auto' }}>
+            {/* Header with User Dropdown */}
+            <div style={{ marginBottom: '16px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '16px' }}>
+                    <MessageSquare size={24} />
+                    <h2 style={{ margin: 0 }}>Messages</h2>
+                </div>
+
+                {/* User Selector Dropdown */}
+                <div ref={dropdownRef} style={{ position: 'relative' }}>
+                    <button
+                        className="chat-user-selector"
+                        onClick={() => setShowUserDropdown(!showUserDropdown)}
                         style={{
                             width: '100%',
-                            padding: '10px 12px 10px 40px',
-                            borderRadius: '8px',
+                            padding: '12px 16px',
+                            borderRadius: '10px',
                             border: '1px solid #ddd',
-                            fontSize: '14px'
-                        }}
-                    />
-                </div>
-                <div style={{ flex: 1, overflowY: 'auto' }}>
-                    {loading ? (
-                        <div style={{ padding: '16px', textAlign: 'center', color: '#666' }}>Loading users...</div>
-                    ) : filteredUsers.length === 0 ? (
-                        <div style={{ padding: '16px', textAlign: 'center', color: '#666' }}>No users found</div>
-                    ) : (
-                        filteredUsers.map((user) => (
-                            <div
-                                key={user.id}
-                                onClick={() => setSelectedUser(user)}
-                                style={{
-                                    padding: '12px',
-                                    marginBottom: '8px',
-                                    borderBottom: '1px solid #eee',
-                                    cursor: 'pointer',
-                                    backgroundColor: selectedUser?.id === user.id ? `${COLORS.orange}20` : 'transparent',
-                                    borderLeft: selectedUser?.id === user.id ? `4px solid ${COLORS.orange}` : '4px solid transparent',
-                                    borderRadius: '6px',
-                                    transition: 'all 0.2s'
-                                }}
-                                onMouseOver={(e) => {
-                                    if (selectedUser?.id !== user.id) {
-                                        e.currentTarget.style.backgroundColor = '#f5f5f5';
-                                    }
-                                }}
-                                onMouseOut={(e) => {
-                                    if (selectedUser?.id !== user.id) {
-                                        e.currentTarget.style.backgroundColor = 'transparent';
-                                    }
-                                }}
-                            >
-                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-                                    <div>
-                                        <strong style={{ color: COLORS.deepBlue, fontSize: '14px' }}>{user.name}</strong>
-                                        <div style={{ fontSize: '12px', color: '#666', marginTop: '4px' }}>{user.email}</div>
-                                    </div>
-                                </div>
-                            </div>
-                        ))
-                    )}
-                </div>
-            </Card>
-
-            {/* Chat Window */}
-            <Card style={{ height: '100%', display: 'flex', flexDirection: 'column', padding: '0' }}>
-                {selectedUser ? (
-                    <>
-                        {/* Chat Header */}
-                        <div style={{
-                            padding: '16px 24px',
-                            borderBottom: `2px solid ${COLORS.deepBlue}`,
+                            background: 'white',
                             display: 'flex',
                             justifyContent: 'space-between',
                             alignItems: 'center',
-                            backgroundColor: '#fafafa'
+                            cursor: 'pointer',
+                            fontSize: '14px',
+                            fontFamily: 'inherit'
+                        }}
+                    >
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                            {selectedUser ? (
+                                <>
+                                    <div style={{
+                                        width: '32px', height: '32px', borderRadius: '8px',
+                                        backgroundColor: '#FC8A24', color: 'white',
+                                        display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                        fontSize: '13px', fontWeight: '700'
+                                    }}>
+                                        {selectedUser.name.charAt(0).toUpperCase()}
+                                    </div>
+                                    <div style={{ textAlign: 'left' }}>
+                                        <div className="chat-user-name" style={{ fontWeight: '600' }}>{selectedUser.name}</div>
+                                        <div className="chat-user-email" style={{ fontSize: '12px', color: '#666' }}>{selectedUser.email}</div>
+                                    </div>
+                                </>
+                            ) : (
+                                <span className="sub-text">Select a user to chat with...</span>
+                            )}
+                        </div>
+                        <ChevronDown size={18} style={{ transform: showUserDropdown ? 'rotate(180deg)' : 'none', transition: 'transform 0.2s' }} />
+                    </button>
+
+                    {/* Dropdown Panel */}
+                    {showUserDropdown && (
+                        <div style={{
+                            position: 'absolute',
+                            top: '100%',
+                            left: 0,
+                            right: 0,
+                            marginTop: '4px',
+                            borderRadius: '10px',
+                            border: '1px solid #ddd',
+                            background: 'white',
+                            boxShadow: '0 8px 24px rgba(0,0,0,0.12)',
+                            zIndex: 100,
+                            maxHeight: '300px',
+                            display: 'flex',
+                            flexDirection: 'column'
                         }}>
-                            <div>
-                                <h3 style={{ margin: 0, color: COLORS.deepBlue }}>{selectedUser.name}</h3>
-                                <span style={{ fontSize: '12px', color: '#666' }}>{selectedUser.email}</span>
+                            {/* Search */}
+                            <div style={{ padding: '12px', borderBottom: '1px solid #eee' }}>
+                                <div style={{ position: 'relative' }}>
+                                    <Search size={16} style={{ position: 'absolute', left: '10px', top: '50%', transform: 'translateY(-50%)', color: '#999' }} />
+                                    <input
+                                        type="text"
+                                        placeholder="Search users..."
+                                        value={searchQuery}
+                                        onChange={(e) => setSearchQuery(e.target.value)}
+                                        autoFocus
+                                        style={{
+                                            width: '100%',
+                                            padding: '8px 12px 8px 34px',
+                                            borderRadius: '6px',
+                                            border: '1px solid #ddd',
+                                            fontSize: '13px',
+                                            boxSizing: 'border-box'
+                                        }}
+                                    />
+                                </div>
                             </div>
+                            {/* User List */}
+                            <div data-lenis-prevent style={{ overflowY: 'auto', maxHeight: '240px' }}>
+                                {loading ? (
+                                    <div className="sub-text" style={{ padding: '16px', textAlign: 'center' }}>Loading...</div>
+                                ) : filteredUsers.length === 0 ? (
+                                    <div className="sub-text" style={{ padding: '16px', textAlign: 'center' }}>No users found</div>
+                                ) : (
+                                    filteredUsers.map((user) => (
+                                        <div
+                                            key={user.id}
+                                            className={`chat-user-item ${selectedUser?.id === user.id ? 'active' : ''}`}
+                                            onClick={() => handleSelectUser(user)}
+                                            style={{
+                                                padding: '10px 16px',
+                                                cursor: 'pointer',
+                                                display: 'flex',
+                                                alignItems: 'center',
+                                                gap: '10px',
+                                                borderBottom: '1px solid #f5f5f5',
+                                                transition: 'background 0.15s'
+                                            }}
+                                        >
+                                            <div style={{
+                                                width: '28px', height: '28px', borderRadius: '6px',
+                                                backgroundColor: selectedUser?.id === user.id ? '#FC8A24' : '#003366',
+                                                color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                                fontSize: '12px', fontWeight: '700', flexShrink: 0
+                                            }}>
+                                                {user.name.charAt(0).toUpperCase()}
+                                            </div>
+                                            <div>
+                                                <div className="chat-user-name" style={{ fontWeight: '500', fontSize: '13px' }}>{user.name}</div>
+                                                <div className="chat-user-email" style={{ fontSize: '11px', color: '#888' }}>{user.email}</div>
+                                            </div>
+                                        </div>
+                                    ))
+                                )}
+                            </div>
+                        </div>
+                    )}
+                </div>
+            </div>
+
+            {/* Chat Window */}
+            <Card style={{ flex: 1, display: 'flex', flexDirection: 'column', padding: '0', overflow: 'hidden', minHeight: 0 }}>
+                {selectedUser ? (
+                    <>
+                        {/* Chat Header */}
+                        <div className="chat-header" style={{
+                            padding: '14px 20px',
+                            borderBottom: '1px solid #eee',
+                            display: 'flex',
+                            justifyContent: 'space-between',
+                            alignItems: 'center',
+                            flexShrink: 0
+                        }}>
+                            <h3 style={{ margin: 0, fontSize: '16px' }}>{selectedUser.name}</h3>
+                            <span className="sub-text" style={{ fontSize: '12px' }}>{selectedUser.email}</span>
                         </div>
 
                         {/* Messages Area */}
-                        <div style={{
-                            flex: 1,
-                            padding: '24px',
-                            overflowY: 'auto',
-                            backgroundColor: COLORS.ivory
-                        }}>
+                        <div
+                            className="chat-messages-area"
+                            data-lenis-prevent
+                            style={{
+                                flex: 1,
+                                padding: '20px',
+                                overflowY: 'auto',
+                                minHeight: 0
+                            }}
+                        >
                             {messages.length === 0 ? (
-                                <div style={{ textAlign: 'center', color: '#999', paddingTop: '40px' }}>
+                                <div className="sub-text" style={{ textAlign: 'center', paddingTop: '40px' }}>
                                     No messages yet. Start the conversation!
                                 </div>
                             ) : (
@@ -216,22 +299,21 @@ const DirectChatPage = () => {
                                         style={{
                                             display: 'flex',
                                             justifyContent: msg.senderId === currentUser?.uid ? 'flex-end' : 'flex-start',
-                                            marginBottom: '16px'
+                                            marginBottom: '12px'
                                         }}
                                     >
                                         <div style={{
                                             maxWidth: '70%',
-                                            padding: '12px 16px',
+                                            padding: '10px 14px',
                                             borderRadius: '12px',
-                                            backgroundColor: msg.senderId === currentUser?.uid ? COLORS.deepBlue : '#fff',
+                                            backgroundColor: msg.senderId === currentUser?.uid ? '#003366' : '#f0f0f0',
                                             color: msg.senderId === currentUser?.uid ? 'white' : '#333',
-                                            boxShadow: '0 2px 4px rgba(0,0,0,0.05)',
-                                            border: msg.senderId === currentUser?.uid ? 'none' : `1px solid ${COLORS.deepBlue}30`
+                                            fontSize: '14px'
                                         }}>
                                             <div>{msg.content}</div>
                                             <div style={{
                                                 fontSize: '10px',
-                                                opacity: 0.7,
+                                                opacity: 0.6,
                                                 marginTop: '4px',
                                                 textAlign: 'right'
                                             }}>
@@ -241,14 +323,16 @@ const DirectChatPage = () => {
                                     </div>
                                 ))
                             )}
+                            <div ref={messagesEndRef} />
                         </div>
 
                         {/* Input Area */}
-                        <div style={{
-                            padding: '16px 24px',
-                            borderTop: `1px solid ${COLORS.deepBlue}20`,
+                        <div className="chat-input-area" style={{
+                            padding: '14px 20px',
+                            borderTop: '1px solid #eee',
                             display: 'flex',
-                            gap: '12px'
+                            gap: '10px',
+                            flexShrink: 0
                         }}>
                             <input
                                 type="text"
@@ -259,21 +343,23 @@ const DirectChatPage = () => {
                                 disabled={sendingMessage}
                                 style={{
                                     flex: 1,
-                                    padding: '12px',
+                                    padding: '10px 14px',
                                     borderRadius: '8px',
-                                    border: `1px solid ${COLORS.deepBlue}30`,
-                                    fontSize: '14px'
+                                    border: '1px solid #ddd',
+                                    fontSize: '14px',
+                                    fontFamily: 'inherit'
                                 }}
                             />
                             <Button
                                 onClick={handleSend}
                                 disabled={!inputText.trim() || sendingMessage}
                                 style={{
-                                    backgroundColor: COLORS.orange,
+                                    backgroundColor: '#FC8A24',
                                     border: 'none',
                                     display: 'flex',
                                     alignItems: 'center',
-                                    gap: '6px'
+                                    gap: '6px',
+                                    padding: '10px 16px'
                                 }}
                             >
                                 <Send size={16} />
@@ -281,14 +367,16 @@ const DirectChatPage = () => {
                         </div>
                     </>
                 ) : (
-                    <div style={{
+                    <div className="sub-text" style={{
                         display: 'flex',
                         alignItems: 'center',
                         justifyContent: 'center',
                         height: '100%',
-                        color: '#999'
+                        flexDirection: 'column',
+                        gap: '12px'
                     }}>
-                        Select a user to start chatting
+                        <MessageSquare size={32} />
+                        Select a user from the dropdown to start chatting
                     </div>
                 )}
             </Card>

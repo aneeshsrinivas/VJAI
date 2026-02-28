@@ -130,7 +130,7 @@ const BroadcastPage = () => {
                 </div>
                 <div>
                     <h1 style={{ margin: 0 }}>Broadcast Center</h1>
-                    <p style={{ margin: '4px 0 0', color: '#666' }}>Send announcements to students and parents</p>
+                    <p className="sub-text" style={{ margin: '4px 0 0' }}>Send announcements to students and parents</p>
                 </div>
             </div>
 
@@ -215,16 +215,16 @@ const BroadcastPage = () => {
                 </h3>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', marginTop: '16px' }}>
                     {loading ? (
-                        <div style={{ padding: '24px', textAlign: 'center', color: '#666' }}>Loading broadcasts...</div>
+                        <div className="sub-text" style={{ padding: '24px', textAlign: 'center' }}>Loading broadcasts...</div>
                     ) : broadcasts.length === 0 ? (
-                        <div style={{ padding: '24px', textAlign: 'center', color: '#666' }}>
+                        <div className="sub-text" style={{ padding: '24px', textAlign: 'center' }}>
                             No broadcasts yet. Send your first announcement to get started.
                         </div>
                     ) : (
                         broadcasts.slice(0, 5).map(broadcast => (
-                            <div key={broadcast.id} style={{ padding: '16px', backgroundColor: '#fff', borderRadius: '8px', border: '1px solid #eee' }}>
+                            <div key={broadcast.id} className="broadcast-item admin-panel-list-item" style={{ padding: '16px', borderRadius: '8px', border: '1px solid #eee' }}>
                                 <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px' }}>
-                                    <strong style={{ color: 'var(--color-deep-blue)' }}>{broadcast.subject}</strong>
+                                    <strong>{broadcast.subject}</strong>
                                     <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                                         <span style={{
                                             padding: '2px 8px',
@@ -236,16 +236,16 @@ const BroadcastPage = () => {
                                         }}>
                                             {broadcast.status}
                                         </span>
-                                        <span style={{ fontSize: '12px', color: '#666', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                                        <span className="sub-text" style={{ fontSize: '12px', display: 'flex', alignItems: 'center', gap: '4px' }}>
                                             <Clock size={12} />
                                             {formatDate(broadcast.createdAt)}
                                         </span>
                                     </div>
                                 </div>
-                                <p style={{ margin: '8px 0 0', fontSize: '14px', color: '#555' }}>
+                                <p className="sub-text" style={{ margin: '8px 0 0', fontSize: '14px' }}>
                                     {broadcast.message?.substring(0, 100)}{broadcast.message?.length > 100 ? '...' : ''}
                                 </p>
-                                <div style={{ marginTop: '8px', fontSize: '12px', color: '#888', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                                <div className="sub-text" style={{ marginTop: '8px', fontSize: '12px', display: 'flex', alignItems: 'center', gap: '4px' }}>
                                     <Users size={12} />
                                     Audience: {broadcast.audience?.studentType === 'ALL' ? 'All Students' : broadcast.audience?.studentType}
                                     {broadcast.audience?.batchId !== 'ALL' && ` | Batch: ${broadcast.audience?.batchId}`}

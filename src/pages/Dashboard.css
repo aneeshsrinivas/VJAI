@@ -178,10 +178,37 @@
 }
 
 .staff-dark .admin-metric-card span,
+.staff-dark .admin-metric-card div,
 .staff-dark .admin-panel-card span,
 .staff-dark .admin-panel-card h3,
 .staff-dark .admin-panel-card div {
     color: #f0f0f0 !important;
+}
+
+/* Card component dark mode */
+.staff-dark .card {
+    background-color: #1a1d27 !important;
+    border-color: rgba(255, 255, 255, 0.06) !important;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3) !important;
+    color: #f0f0f0 !important;
+}
+
+.staff-dark .card-header {
+    border-bottom-color: rgba(255, 255, 255, 0.08) !important;
+}
+
+.staff-dark .card-title {
+    color: #f0f0f0 !important;
+}
+
+.staff-dark .card h3,
+.staff-dark .card h4 {
+    color: #f0f0f0 !important;
+}
+
+.staff-dark .card span,
+.staff-dark .card div {
+    color: inherit;
 }
 
 .staff-dark .admin-panel-list-item {
@@ -244,4 +271,142 @@
 
 .staff-dark .main-content-staff label {
     color: rgba(255, 255, 255, 0.7) !important;
+}
+
+/* Broadcast page dark mode */
+.staff-dark .broadcast-card {
+    background-color: #1a1d27 !important;
+    border-color: rgba(255, 255, 255, 0.06) !important;
+    color: #f0f0f0 !important;
+}
+
+.staff-dark .broadcast-item {
+    background-color: rgba(255, 255, 255, 0.04) !important;
+    border-color: rgba(255, 255, 255, 0.06) !important;
+}
+
+.staff-dark .broadcast-item strong {
+    color: #f0f0f0 !important;
+}
+
+.staff-dark .broadcast-item p {
+    color: rgba(255, 255, 255, 0.6) !important;
+}
+
+/* Modal dark mode (admin panels) */
+.staff-dark .modal-overlay {
+    background-color: rgba(0, 0, 0, 0.7) !important;
+}
+
+.staff-dark .modal-content {
+    background-color: #1a1d27 !important;
+    color: #f0f0f0 !important;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.staff-dark .modal-content h2,
+.staff-dark .modal-content h3,
+.staff-dark .modal-content label {
+    color: #f0f0f0 !important;
+}
+
+.staff-dark .modal-content p {
+    color: rgba(255, 255, 255, 0.6) !important;
+}
+
+/* Messages / Chat dark mode */
+.staff-dark .chat-user-item {
+    border-bottom-color: rgba(255, 255, 255, 0.06) !important;
+}
+
+.staff-dark .chat-user-item:hover {
+    background-color: rgba(255, 255, 255, 0.06) !important;
+}
+
+.staff-dark .chat-user-item.active {
+    background-color: rgba(252, 138, 36, 0.15) !important;
+}
+
+.staff-dark .chat-user-name {
+    color: #f0f0f0 !important;
+}
+
+.staff-dark .chat-user-email {
+    color: rgba(255, 255, 255, 0.5) !important;
+}
+
+.staff-dark .chat-header {
+    background-color: rgba(255, 255, 255, 0.04) !important;
+    border-bottom-color: rgba(255, 255, 255, 0.08) !important;
+}
+
+.staff-dark .chat-header h3 {
+    color: #f0f0f0 !important;
+}
+
+.staff-dark .chat-messages-area {
+    background-color: #0f1117 !important;
+}
+
+.staff-dark .chat-input-area {
+    border-top-color: rgba(255, 255, 255, 0.08) !important;
+}
+
+.staff-dark .chat-input-area input {
+    background-color: rgba(255, 255, 255, 0.06) !important;
+    border-color: rgba(255, 255, 255, 0.1) !important;
+    color: #f0f0f0 !important;
+}
+
+/* Subscription Plans Manager dark mode */
+.staff-dark .plan-card-body {
+    background-color: #1a1d27 !important;
+    border-color: rgba(255, 255, 255, 0.06) !important;
+}
+
+.staff-dark .plan-card-body h4,
+.staff-dark .plan-card-body span {
+    color: rgba(255, 255, 255, 0.6) !important;
+}
+
+.staff-dark .plan-card-pricing {
+    border-bottom-color: rgba(255, 255, 255, 0.06) !important;
+}
+
+.staff-dark .plan-card-pricing span:first-child {
+    color: #f0f0f0 !important;
+}
+
+.staff-dark .plan-card-features li {
+    color: rgba(255, 255, 255, 0.7) !important;
+}
+
+.staff-dark .plan-card-actions {
+    background-color: rgba(255, 255, 255, 0.04) !important;
+    border-top-color: rgba(255, 255, 255, 0.06) !important;
+}
+
+/* Chat user selector dark mode */
+.staff-dark .chat-user-selector {
+    background-color: #1a1d27 !important;
+    border-color: rgba(255, 255, 255, 0.1) !important;
+    color: #f0f0f0 !important;
+}
+
+/* SubscriptionPage dark mode */
+.staff-dark .main-content-staff select {
+    background-color: rgba(255, 255, 255, 0.06) !important;
+    border-color: rgba(255, 255, 255, 0.1) !important;
+    color: #f0f0f0 !important;
+}
+
+.staff-dark .main-content-staff option {
+    background-color: #1a1d27;
+    color: #f0f0f0;
+}
+
+/* SubscriptionPage modal dark mode */
+.staff-dark .main-content-staff > div[style*="position: fixed"] > div {
+    background-color: #1a1d27 !important;
+    color: #f0f0f0 !important;
 }

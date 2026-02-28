@@ -15,8 +15,8 @@ const SubscriptionPage = () => {
     const [formData, setFormData] = useState({
         studentName: '',
         parentEmail: '',
-        planId: 'GROUP_MONTHLY',
-        amount: 4500,
+        planId: 'ONE_ON_ONE_BEGINNER',
+        amount: 60,
         billingCycle: 'MONTHLY',
         status: 'ACTIVE'
     });
@@ -93,8 +93,8 @@ const SubscriptionPage = () => {
             setFormData({
                 studentName: '',
                 parentEmail: '',
-                planId: 'GROUP_MONTHLY',
-                amount: 4500,
+                planId: 'ONE_ON_ONE_BEGINNER',
+                amount: 60,
                 billingCycle: 'MONTHLY',
                 status: 'ACTIVE'
             });
@@ -114,11 +114,8 @@ const SubscriptionPage = () => {
     };
 
     const planOptions = [
-        { id: 'GROUP_MONTHLY', name: 'Group Class - Monthly', amount: 4500 },
-        { id: 'GROUP_QUARTERLY', name: 'Group Class - Quarterly', amount: 12000 },
-        { id: 'ONE_ON_ONE_MONTHLY', name: '1:1 Coaching - Monthly', amount: 8000 },
-        { id: 'ONE_ON_ONE_QUARTERLY', name: '1:1 Coaching - Quarterly', amount: 21000 },
-        { id: 'PREMIUM_MONTHLY', name: 'Premium Package - Monthly', amount: 15000 },
+        { id: 'ONE_ON_ONE_BEGINNER', name: 'Personal Beginner Training - Monthly', amount: 60 },
+        { id: 'ONE_ON_ONE_INTERMEDIATE', name: 'Personal Intermediate Training - Monthly', amount: 70 },
     ];
 
     const handlePlanChange = (planId) => {
@@ -126,7 +123,7 @@ const SubscriptionPage = () => {
         setFormData({
             ...formData,
             planId: planId,
-            amount: plan?.amount || 4500,
+            amount: plan?.amount || 60,
             billingCycle: planId.includes('QUARTERLY') ? 'QUARTERLY' : 'MONTHLY'
         });
     };
@@ -183,7 +180,7 @@ const SubscriptionPage = () => {
                                     </td>
                                     <td style={{ padding: '16px' }}>{sub.planId || '-'}</td>
                                     <td style={{ padding: '16px' }}>
-                                        <div style={{ fontWeight: '600' }}>Rs. {sub.amount || 0}</div>
+                                        <div style={{ fontWeight: '600' }}>${sub.amount || 0}</div>
                                         <div style={{ fontSize: '12px', color: '#666' }}>{sub.billingCycle || '-'}</div>
                                     </td>
                                     <td style={{ padding: '16px' }}>{sub.nextDueAt}</td>
@@ -260,7 +257,7 @@ const SubscriptionPage = () => {
                                 >
                                     {planOptions.map(plan => (
                                         <option key={plan.id} value={plan.id}>
-                                            {plan.name} - Rs. {plan.amount}
+                                            {plan.name} - ${plan.amount}
                                         </option>
                                     ))}
                                 </select>
@@ -268,7 +265,7 @@ const SubscriptionPage = () => {
 
                             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginBottom: '16px' }}>
                                 <div>
-                                    <label style={{ display: 'block', marginBottom: '6px', fontWeight: '500' }}>Amount (Rs.)</label>
+                                    <label style={{ display: 'block', marginBottom: '6px', fontWeight: '500' }}>Amount ($)</label>
                                     <Input
                                         type="number"
                                         value={formData.amount}
