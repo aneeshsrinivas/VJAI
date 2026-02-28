@@ -30,18 +30,13 @@ const DemosPage = () => {
     const fetchDemos = async () => {
         setLoading(true);
         try {
-            let result;
-
-            if (filter === 'ALL') {
-                result = await getAllDemos();
-            } else {
-                result = await getDemosByStatus(filter);
-            }
+            const result = await getAllDemos();
 
             if (result.success) {
                 setDemos(result.demos);
             } else {
                 setDemos([]);
+                toast.error('Failed to load demos from server.');
             }
         } catch (error) {
             console.error('Failed to fetch demos:', error);

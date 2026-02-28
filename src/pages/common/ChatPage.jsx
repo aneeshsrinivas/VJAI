@@ -200,13 +200,13 @@ const ChatPage = ({ userRole: propRole }) => {
         if (wsRef.current && selectedChat.chatType === 'BATCH_GROUP') {
             const prev = prevRoomRef.current;
             if (prev && prev !== selectedChat.id) {
-                try { wsRef.current.send(JSON.stringify({ type: 'leave', room: prev, user: { id: currentUser?.uid, name: currentUser?.email?.split('@')[0] } })); } catch (e) {}
+                try { wsRef.current.send(JSON.stringify({ type: 'leave', room: prev, user: { id: currentUser?.uid, name: currentUser?.email?.split('@')[0] } })); } catch (e) { }
             }
-            try { wsRef.current.send(JSON.stringify({ type: 'join', room: selectedChat.id, user: { id: currentUser?.uid, name: currentUser?.email?.split('@')[0] } })); } catch (e) {}
+            try { wsRef.current.send(JSON.stringify({ type: 'join', room: selectedChat.id, user: { id: currentUser?.uid, name: currentUser?.email?.split('@')[0] } })); } catch (e) { }
             prevRoomRef.current = selectedChat.id;
         } else if (wsRef.current && prevRoomRef.current && selectedChat?.id !== prevRoomRef.current) {
             // leaving previous room when switching to a non-group chat
-            try { wsRef.current.send(JSON.stringify({ type: 'leave', room: prevRoomRef.current, user: { id: currentUser?.uid } })); } catch (e) {}
+            try { wsRef.current.send(JSON.stringify({ type: 'leave', room: prevRoomRef.current, user: { id: currentUser?.uid } })); } catch (e) { }
             prevRoomRef.current = null;
         }
 
@@ -277,30 +277,30 @@ const ChatPage = ({ userRole: propRole }) => {
 
                     console.log('Student data: in chat', data);
                     console.log("assignedBatchName field:", data.assignedBatchName);
-                    
+
                     let assignedBatchIds = data.assignedBatch || data.assignedBatchId || [];
                     let assignedBatchNames = data.assignedBatchName || [];
-                    
+
                     // Convert single ID string to array
                     if (typeof assignedBatchIds === 'string') {
                         assignedBatchIds = [assignedBatchIds];
                     }
-                    
+
                     // Convert single name string to array
                     if (typeof assignedBatchNames === 'string') {
                         assignedBatchNames = [assignedBatchNames];
                     }
-                    
+
                     if (!Array.isArray(assignedBatchIds)) {
                         assignedBatchIds = [];
                     }
                     if (!Array.isArray(assignedBatchNames)) {
                         assignedBatchNames = [];
                     }
-                    
+
                     console.log('Assigned batch IDs:', assignedBatchIds);
                     console.log('Assigned batch Names:', assignedBatchNames);
-                    
+
                     if (!assignedBatchIds || assignedBatchIds.length === 0) {
                         console.log('No assigned batches found');
                         return;
@@ -326,7 +326,7 @@ const ChatPage = ({ userRole: propRole }) => {
         console.log('selectedChat:', selectedChat);
         console.log('sending:', sending);
         console.log('currentUser:', currentUser);
-        
+
         if (!message.trim()) {
             console.log('Message is empty, returning');
             return;
@@ -352,7 +352,7 @@ const ChatPage = ({ userRole: propRole }) => {
             console.log('Sending message for chat:', selectedChat);
             console.log('Current user UID:', currentUser.uid);
             console.log('Selected chat ID:', selectedChat.id);
-            
+
             // Check if chat document exists using getDoc (more efficient)
             const chatDocRef = doc(db, 'chats', selectedChat.id);
             const chatSnap = await getDoc(chatDocRef);
@@ -407,9 +407,9 @@ const ChatPage = ({ userRole: propRole }) => {
                 senderName: role === 'ADMIN' ? 'Admin' : currentUser.email?.split('@')[0] || 'User',
                 createdAt: serverTimestamp()
             };
-            
+
             console.log('Adding message:', messageData);
-            
+
             const msgRef = await addDoc(collection(db, 'messages'), messageData);
             console.log('Message added successfully with ID:', msgRef.id);
 
@@ -418,7 +418,7 @@ const ChatPage = ({ userRole: propRole }) => {
                 lastMessageAt: serverTimestamp()
             });
             console.log('Chat document updated with last message');
-            
+
         } catch (error) {
             console.error('Send message error:', error);
             toast.error('Failed to send: ' + error.message);
@@ -575,59 +575,53 @@ const ChatPage = ({ userRole: propRole }) => {
 
                     {role === 'ADMIN' && users.length > 0 && (
                         <div style={{ padding: '12px', borderBottom: `1px solid ${COLORS.deepBlue}20` }}>
-                            <div style={{ fontSize: '12px', fontWeight: '600', color: COLORS.deepBlue, marginBottom: '8px' }}>All Users</div>
-                            <ul style={{ listStyle: 'none', padding: 0, margin: 0 }}>
+                            <div style={{ fontSize: '12px', fontWeight: '600', color: COLORS.deepBlue, marginBottom: '8px' }}>Start Conversation</div>
+                            <select
+                                className="chat-user-selector"
+                                style={{
+                                    width: '100%',
+                                    padding: '10px',
+                                    borderRadius: '8px',
+                                    border: `1px solid ${COLORS.deepBlue}20`,
+                                    backgroundColor: isDark ? '#1a1f2e' : '#fff',
+                                    color: isDark ? '#e0e0e0' : COLORS.deepBlue,
+                                    fontSize: '13px',
+                                    cursor: 'pointer',
+                                    outline: 'none'
+                                }}
+                                value=""
+                                onChange={(e) => {
+                                    if (!e.target.value) return;
+                                    const userId = e.target.value;
+                                    const user = users.find(u => u.id === userId);
+                                    if (!user) return;
+
+                                    const chatType = user.role === 'coach' ? 'ADMIN_COACH' : 'ADMIN_PARENT';
+                                    const userName = user.fullName || user.email?.split('@')[0] || 'User';
+                                    const chatId = `${user.id}_admin`;
+
+                                    const userChat = chats.find(c => c.id === chatId);
+                                    if (userChat) {
+                                        setSelectedChat(userChat);
+                                    } else {
+                                        setSelectedChat({
+                                            id: chatId,
+                                            name: userName,
+                                            chatType: chatType,
+                                            userId: user.id,
+                                            participants: [currentUser?.uid, user.id]
+                                        });
+                                    }
+                                    e.target.value = ''; // Reset select after choosing
+                                }}
+                            >
+                                <option value="" disabled>Select a user to chat...</option>
                                 {users.map(user => (
-                                    <li
-                                        key={user.id}
-                                        onClick={() => {
-                                            const chatType = user.role === 'coach' ? 'ADMIN_COACH' : 'ADMIN_PARENT';
-                                            const userName = user.fullName || user.email?.split('@')[0] || 'User';
-                                            // Use consistent format: userId_admin
-                                            const chatId = `${user.id}_admin`;
-                                            
-                                            console.log('Admin selecting user:', { userId: user.id, chatId, chatType });
-                                            
-                                            const userChat = chats.find(c => c.id === chatId);
-                                            if (userChat) {
-                                                console.log('Found existing chat:', userChat);
-                                                setSelectedChat(userChat);
-                                            } else {
-                                                console.log('Creating new chat reference');
-                                                setSelectedChat({
-                                                    id: chatId,
-                                                    name: userName,
-                                                    chatType: chatType,
-                                                    userId: user.id,
-                                                    participants: [currentUser?.uid, user.id]
-                                                });
-                                            }
-                                        }}
-                                        style={{
-                                            padding: '8px 12px',
-                                            fontSize: '12px',
-                                            color: selectedChat?.userId === user.id ? COLORS.orange : COLORS.deepBlue,
-                                            backgroundColor: selectedChat?.userId === user.id ? `${COLORS.deepBlue}10` : 'transparent',
-                                            borderLeft: selectedChat?.userId === user.id ? `3px solid ${COLORS.orange}` : '3px solid transparent',
-                                            cursor: 'pointer',
-                                            transition: 'all 0.2s',
-                                            marginBottom: '4px',
-                                            borderRadius: '0',
-                                            listStyle: 'none',
-                                            display: 'flex',
-                                            justifyContent: 'space-between',
-                                            alignItems: 'center'
-                                        }}
-                                        onMouseOver={(e) => e.currentTarget.style.backgroundColor = `${COLORS.deepBlue}05`}
-                                        onMouseOut={(e) => e.currentTarget.style.backgroundColor = selectedChat?.userId === user.id ? `${COLORS.deepBlue}10` : 'transparent'}
-                                    >
-                                        <span>{user.fullName || user.email?.split('@')[0] || 'User'}</span>
-                                        <span style={{ fontSize: '10px', color: '#999', fontStyle: 'italic' }}>
-                                            {user.role === 'coach' ? '🏆 Coach' : '👨‍👩‍👧 Parent'}
-                                        </span>
-                                    </li>
+                                    <option key={user.id} value={user.id}>
+                                        {user.fullName || user.email?.split('@')[0] || 'User'} ({user.role === 'coach' ? 'Coach' : 'Parent'})
+                                    </option>
                                 ))}
-                            </ul>
+                            </select>
                         </div>
                     )}
 
@@ -715,7 +709,7 @@ const ChatPage = ({ userRole: propRole }) => {
                         </div>
                     )}
 
-                    <div className="chat-list">
+                    <div className="chat-list" data-lenis-prevent="true">
                         {loading ? (
                             <div className="chat-empty">Loading chats...</div>
                         ) : filteredChats.length === 0 ? (
@@ -789,7 +783,7 @@ const ChatPage = ({ userRole: propRole }) => {
                             </div>
 
                             {/* Messages */}
-                            <div className="chat-messages">
+                            <div className="chat-messages" data-lenis-prevent="true">
                                 {messages.length === 0 ? (
                                     <div className="chat-messages-empty">
                                         <MessageSquare size={48} color="#ddd" />

@@ -1,13 +1,15 @@
 import React, { useState, useEffect } from 'react';
 import { collection, doc, getDoc, setDoc, updateDoc, deleteDoc, onSnapshot } from 'firebase/firestore';
 import { db } from '../../lib/firebase';
+import { useTheme } from '../../context/ThemeContext';
 import Card from '../../components/ui/Card';
 import Button from '../../components/ui/Button';
 import Input from '../../components/ui/Input';
 import { toast, ToastContainer } from 'react-toastify';
-import { Target, Plus, Trash2, Edit2, Save, X, ChevronDown, ChevronUp } from 'lucide-react';
+import { Target, Plus, Trash2, Edit2, Save, X, ChevronDown, ChevronUp, Star, BookOpen, Trophy } from 'lucide-react';
 
 const SkillSetsPage = () => {
+    const { isDark } = useTheme();
     const [skillSets, setSkillSets] = useState({
         beginner: [],
         intermediate: [],
@@ -27,7 +29,7 @@ const SkillSetsPage = () => {
             try {
                 const levels = ['beginner', 'intermediate', 'advanced'];
                 const fetchedSkills = { beginner: [], intermediate: [], advanced: [] };
-                
+
                 for (const level of levels) {
                     const docRef = doc(db, 'skillsets', level);
                     const docSnap = await getDoc(docRef);
@@ -35,10 +37,10 @@ const SkillSetsPage = () => {
                         fetchedSkills[level] = docSnap.data().skills || [];
                     }
                 }
-                
+
                 // Check if any level has skills
                 const hasSkills = levels.some(level => fetchedSkills[level].length > 0);
-                
+
                 if (hasSkills) {
                     setSkillSets(fetchedSkills);
                 } else {
@@ -85,7 +87,7 @@ const SkillSetsPage = () => {
                             { id: 'converting_advantages', name: 'Converting Advantages', category: 'Strategy' }
                         ]
                     };
-                    
+
                     // Save each level to its own document
                     for (const level of levels) {
                         await setDoc(doc(db, 'skillsets', level), { skills: defaultSkills[level] });
@@ -154,7 +156,7 @@ const SkillSetsPage = () => {
     const handleUpdateSkill = async (level, skillId, updatedData) => {
         const updatedSkills = {
             ...skillSets,
-            [level]: skillSets[level].map(s => 
+            [level]: skillSets[level].map(s =>
                 s.id === skillId ? { ...s, ...updatedData } : s
             )
         };
@@ -172,11 +174,19 @@ const SkillSetsPage = () => {
     };
 
     const getLevelColor = (level) => {
+        if (isDark) {
+            switch (level) {
+                case 'beginner': return { bg: 'rgba(59, 130, 246, 0.1)', border: '#3b82f6', text: '#60a5fa', badgeBg: 'rgba(59, 130, 246, 0.2)' };
+                case 'intermediate': return { bg: 'rgba(245, 158, 11, 0.1)', border: '#f59e0b', text: '#fbbf24', badgeBg: 'rgba(245, 158, 11, 0.2)' };
+                case 'advanced': return { bg: 'rgba(34, 197, 94, 0.1)', border: '#22c55e', text: '#4ade80', badgeBg: 'rgba(34, 197, 94, 0.2)' };
+                default: return { bg: 'rgba(255, 255, 255, 0.05)', border: 'rgba(255, 255, 255, 0.1)', text: '#94a3b8', badgeBg: 'rgba(255, 255, 255, 0.1)' };
+            }
+        }
         switch (level) {
-            case 'beginner': return { bg: '#dbeafe', border: '#3b82f6', text: '#1d4ed8' };
-            case 'intermediate': return { bg: '#fef3c7', border: '#f59e0b', text: '#b45309' };
-            case 'advanced': return { bg: '#dcfce7', border: '#22c55e', text: '#15803d' };
-            default: return { bg: '#f1f5f9', border: '#64748b', text: '#475569' };
+            case 'beginner': return { bg: '#dbeafe', border: '#3b82f6', text: '#1d4ed8', badgeBg: 'white' };
+            case 'intermediate': return { bg: '#fef3c7', border: '#f59e0b', text: '#b45309', badgeBg: 'white' };
+            case 'advanced': return { bg: '#dcfce7', border: '#22c55e', text: '#15803d', badgeBg: 'white' };
+            default: return { bg: '#f1f5f9', border: '#64748b', text: '#475569', badgeBg: 'white' };
         }
     };
 
@@ -198,17 +208,18 @@ const SkillSetsPage = () => {
                     width: '48px',
                     height: '48px',
                     borderRadius: '12px',
-                    background: 'linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%)',
+                    background: 'linear-gradient(135deg, #181818 0%, #FC8A24 100%)',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
-                    color: 'white'
+                    color: 'white',
+                    boxShadow: '0 4px 12px rgba(252, 138, 36, 0.2)'
                 }}>
                     <Target size={24} />
                 </div>
                 <div>
-                    <h1 style={{ margin: 0, fontSize: '24px' }}>Skill Sets Management</h1>
-                    <p className="sub-text" style={{ margin: '4px 0 0' }}>Define curriculum skills for each level</p>
+                    <h1 style={{ margin: 0, fontSize: '24px', color: isDark ? '#f0f0f0' : '#181818' }}>Skill Sets Management</h1>
+                    <p className="sub-text" style={{ margin: '4px 0 0', color: isDark ? '#a0a0k0' : '#666' }}>Define curriculum skills for each level</p>
                 </div>
             </div>
 
@@ -216,14 +227,14 @@ const SkillSetsPage = () => {
             {['beginner', 'intermediate', 'advanced'].map(level => {
                 const colors = getLevelColor(level);
                 const isExpanded = expandedLevel === level;
-                
+
                 return (
                     <Card key={level} style={{ marginBottom: '16px', border: `2px solid ${colors.border}` }}>
                         {/* Level Header */}
-                        <div 
-                            style={{ 
-                                display: 'flex', 
-                                justifyContent: 'space-between', 
+                        <div
+                            style={{
+                                display: 'flex',
+                                justifyContent: 'space-between',
                                 alignItems: 'center',
                                 padding: '16px',
                                 background: colors.bg,
@@ -234,16 +245,19 @@ const SkillSetsPage = () => {
                             onClick={() => setExpandedLevel(isExpanded ? null : level)}
                         >
                             <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                                <span style={{ 
-                                    fontSize: '20px', 
-                                    fontWeight: '700', 
+                                <span style={{
+                                    fontSize: '18px',
+                                    fontWeight: '700',
                                     color: colors.text,
-                                    textTransform: 'capitalize'
+                                    textTransform: 'capitalize',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    gap: '8px'
                                 }}>
-                                    {level === 'beginner' ? '🌱' : level === 'intermediate' ? '📚' : '🏆'} {level}
+                                    {level === 'beginner' ? <Star size={20} /> : level === 'intermediate' ? <BookOpen size={20} /> : <Trophy size={20} />} {level}
                                 </span>
                                 <span style={{
-                                    background: 'white',
+                                    background: colors.badgeBg,
                                     padding: '4px 12px',
                                     borderRadius: '20px',
                                     fontSize: '13px',
@@ -253,7 +267,7 @@ const SkillSetsPage = () => {
                                     {skillSets[level]?.length || 0} skills
                                 </span>
                             </div>
-                            {isExpanded ? <ChevronUp size={20} /> : <ChevronDown size={20} />}
+                            {isExpanded ? <ChevronUp size={20} color={colors.text} /> : <ChevronDown size={20} color={colors.text} />}
                         </div>
 
                         {/* Skills List */}
@@ -278,20 +292,24 @@ const SkillSetsPage = () => {
                                                     type="text"
                                                     defaultValue={skill.name}
                                                     id={`edit-name-${skill.id}`}
-                                                    style={{ 
-                                                        flex: 1, 
-                                                        padding: '8px', 
-                                                        borderRadius: '6px', 
-                                                        border: '1px solid #e2e8f0' 
+                                                    style={{
+                                                        flex: 1,
+                                                        padding: '8px',
+                                                        borderRadius: '6px',
+                                                        border: `1px solid ${isDark ? 'rgba(255,255,255,0.1)' : '#e2e8f0'}`,
+                                                        background: 'transparent',
+                                                        color: 'inherit'
                                                     }}
                                                 />
                                                 <select
                                                     defaultValue={skill.category}
                                                     id={`edit-category-${skill.id}`}
-                                                    style={{ 
-                                                        padding: '8px', 
-                                                        borderRadius: '6px', 
-                                                        border: '1px solid #e2e8f0' 
+                                                    style={{
+                                                        padding: '8px',
+                                                        borderRadius: '6px',
+                                                        border: `1px solid ${isDark ? 'rgba(255,255,255,0.1)' : '#e2e8f0'}`,
+                                                        background: isDark ? '#1a1d27' : 'transparent',
+                                                        color: 'inherit'
                                                     }}
                                                 >
                                                     {categories.map(cat => (
@@ -304,7 +322,7 @@ const SkillSetsPage = () => {
                                                         category: document.getElementById(`edit-category-${skill.id}`).value
                                                     })}
                                                     style={{
-                                                        background: '#22c55e',
+                                                        background: '#10B981',
                                                         color: 'white',
                                                         border: 'none',
                                                         borderRadius: '6px',
@@ -317,7 +335,7 @@ const SkillSetsPage = () => {
                                                 <button
                                                     onClick={() => setEditingSkill(null)}
                                                     style={{
-                                                        background: '#ef4444',
+                                                        background: '#EF4444',
                                                         color: 'white',
                                                         border: 'none',
                                                         borderRadius: '6px',
@@ -337,8 +355,8 @@ const SkillSetsPage = () => {
                                                         fontSize: '12px',
                                                         padding: '2px 8px',
                                                         borderRadius: '12px',
-                                                        background: '#e2e8f0',
-                                                        color: '#64748b'
+                                                        background: isDark ? 'rgba(255,255,255,0.1)' : '#e2e8f0',
+                                                        color: isDark ? '#e0e0e0' : '#64748b'
                                                     }}>
                                                         {skill.category}
                                                     </span>
@@ -378,7 +396,7 @@ const SkillSetsPage = () => {
                                     gap: '8px',
                                     marginTop: '16px',
                                     padding: '16px',
-                                    background: colors.bg,
+                                    background: isDark ? 'rgba(255,255,255,0.02)' : colors.bg,
                                     borderRadius: '8px',
                                     border: `1px dashed ${colors.border}`
                                 }}>
@@ -391,7 +409,9 @@ const SkillSetsPage = () => {
                                             flex: 1,
                                             padding: '10px',
                                             borderRadius: '6px',
-                                            border: '1px solid #e2e8f0'
+                                            border: `1px solid ${isDark ? 'rgba(255,255,255,0.1)' : '#e2e8f0'}`,
+                                            background: 'transparent',
+                                            color: 'inherit'
                                         }}
                                     />
                                     <select
@@ -400,14 +420,16 @@ const SkillSetsPage = () => {
                                         style={{
                                             padding: '10px',
                                             borderRadius: '6px',
-                                            border: '1px solid #e2e8f0'
+                                            border: `1px solid ${isDark ? 'rgba(255,255,255,0.1)' : '#e2e8f0'}`,
+                                            background: isDark ? '#1a1d27' : 'transparent',
+                                            color: 'inherit'
                                         }}
                                     >
                                         {categories.map(cat => (
                                             <option key={cat} value={cat}>{cat}</option>
                                         ))}
                                     </select>
-                                    <Button 
+                                    <Button
                                         onClick={() => handleAddSkill(level)}
                                         disabled={saving}
                                         style={{ display: 'flex', alignItems: 'center', gap: '6px' }}
