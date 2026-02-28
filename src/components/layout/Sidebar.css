@@ -15,6 +15,7 @@
     z-index: 100;
     box-shadow: 2px 0 12px rgba(0, 51, 102, 0.08);
     border-right: 1px solid rgba(0, 51, 102, 0.1);
+    overflow: hidden;
 }
 
 /* Logo and Brand */
@@ -27,6 +28,7 @@
     background: #fff;
     border-radius: 12px;
     box-shadow: 0 2px 8px rgba(0, 51, 102, 0.06);
+    flex-shrink: 0;
 }
 
 .sidebar-logo {
@@ -49,12 +51,31 @@
 /* Navigation */
 .sidebar-nav {
     flex: 1 1 auto;
-    padding: 16px 12px;
+    padding: 8px 4px;
     overflow-y: auto;
     overscroll-behavior: contain;
     display: flex;
     flex-direction: column;
     gap: 4px;
+    min-height: 0;
+}
+
+/* Sidebar scrollbar */
+.sidebar-nav::-webkit-scrollbar {
+    width: 4px;
+}
+
+.sidebar-nav::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.sidebar-nav::-webkit-scrollbar-thumb {
+    background: rgba(0, 0, 0, 0.15);
+    border-radius: 4px;
+}
+
+.sidebar-nav::-webkit-scrollbar-thumb:hover {
+    background: rgba(0, 0, 0, 0.25);
 }
 
 .nav-item {
@@ -97,7 +118,8 @@
 .sidebar-footer {
     border-top: 1px solid rgba(0, 51, 102, 0.1);
     padding-top: 16px;
-    margin-top: 16px;
+    margin-top: 8px;
+    flex-shrink: 0;
 }
 
 .dropdown-menu {
@@ -158,9 +180,17 @@
     align-items: center;
     gap: 12px;
     padding: 12px;
-    background: #fff;
+    background: linear-gradient(135deg, #fff 0%, #fef7f0 100%);
     border-radius: 10px;
-    box-shadow: 0 2px 6px rgba(0, 51, 102, 0.04);
+    border: 1px solid rgba(252, 138, 36, 0.15);
+    box-shadow: 0 2px 8px rgba(252, 138, 36, 0.08);
+    transition: all 0.2s ease;
+    cursor: pointer;
+}
+
+.user-profile-btn:not(.coach-card):hover {
+    border-color: rgba(252, 138, 36, 0.3);
+    box-shadow: 0 3px 12px rgba(252, 138, 36, 0.12);
 }
 
 /* Specific styling when user is Coach */
@@ -179,7 +209,7 @@
 .user-avatar {
     width: 40px;
     height: 40px;
-    background: linear-gradient(135deg, #181818 0%, #2a2a2a 100%);
+    background: linear-gradient(135deg, #FC8A24 0%, #e07a1a 100%);
     border-radius: 10px;
     display: flex;
     align-items: center;
@@ -187,6 +217,17 @@
     font-weight: 700;
     color: #fff;
     font-size: 14px;
+    flex-shrink: 0;
+}
+
+.user-avatar.admin {
+    background: linear-gradient(135deg, #181818 0%, #333 100%);
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+}
+
+.user-info {
+    flex: 1;
+    min-width: 0;
 }
 
 .user-name {
@@ -196,9 +237,10 @@
 }
 
 .user-role {
-    font-size: 12px;
-    color: #6B8E23;
-    font-weight: 500;
+    font-size: 11px;
+    color: #FC8A24;
+    font-weight: 600;
+    letter-spacing: 0.01em;
 }
 
 /* Specific text coloring for Coach Card */
@@ -336,4 +378,13 @@
 .staff-dark .logout-btn:hover {
     background: #ef4444;
     color: white;
+}
+
+/* Dark mode scrollbar */
+.staff-dark .sidebar-nav::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.12);
+}
+
+.staff-dark .sidebar-nav::-webkit-scrollbar-thumb:hover {
+    background: rgba(255, 255, 255, 0.2);
 }

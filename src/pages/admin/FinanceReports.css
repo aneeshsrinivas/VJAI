@@ -437,3 +437,130 @@
         grid-template-columns: repeat(2, 1fr);
     }
 }
+
+/* ========================================
+   DARK MODE — staff-dark overrides
+   ======================================== */
+
+.staff-dark .finance-dashboard {
+    color: #f0f0f0;
+}
+
+.staff-dark .finance-title {
+    color: #f0f0f0;
+}
+
+.staff-dark .finance-subtitle {
+    color: rgba(255, 255, 255, 0.5);
+}
+
+.staff-dark .stat-card {
+    background: #1a1d27;
+    border-color: rgba(255, 255, 255, 0.06);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+}
+
+.staff-dark .stat-card:hover {
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
+}
+
+.staff-dark .stat-card.stat-primary {
+    background: #1a1d27;
+    border-left-color: #4facfe;
+}
+
+.staff-dark .stat-card.stat-warning {
+    background: #1a1d27;
+    border-left-color: #FC8A24;
+}
+
+.staff-dark .stat-icon-wrapper.primary {
+    background: rgba(79, 172, 254, 0.12);
+    color: #4facfe;
+}
+
+.staff-dark .stat-icon-wrapper.info {
+    background: rgba(79, 172, 254, 0.12);
+    color: #4facfe;
+}
+
+.staff-dark .stat-label {
+    color: rgba(255, 255, 255, 0.5);
+}
+
+.staff-dark .stat-value {
+    color: #f0f0f0;
+}
+
+.staff-dark .stat-trend.neutral {
+    color: rgba(255, 255, 255, 0.4);
+}
+
+.staff-dark .chart-section {
+    background: #1a1d27;
+    border-color: rgba(255, 255, 255, 0.06);
+}
+
+.staff-dark .section-header h3 {
+    color: #f0f0f0;
+}
+
+.staff-dark .chart-filter {
+    background: rgba(255, 255, 255, 0.06);
+    border-color: rgba(255, 255, 255, 0.1);
+    color: rgba(255, 255, 255, 0.6);
+}
+
+.staff-dark .chart-value {
+    color: rgba(255, 255, 255, 0.5);
+}
+
+.staff-dark .chart-label {
+    color: rgba(255, 255, 255, 0.4);
+}
+
+.staff-dark .transactions-section {
+    background: #1a1d27;
+    border-color: rgba(255, 255, 255, 0.06);
+}
+
+.staff-dark .loading-state {
+    color: rgba(255, 255, 255, 0.4);
+}
+
+.staff-dark .transaction-item:hover {
+    background: rgba(255, 255, 255, 0.04);
+}
+
+.staff-dark .transaction-name {
+    color: #f0f0f0;
+}
+
+.staff-dark .transaction-type {
+    color: rgba(255, 255, 255, 0.45);
+}
+
+.staff-dark .transaction-date {
+    color: rgba(255, 255, 255, 0.35);
+}
+
+.staff-dark .action-tile {
+    background: #1a1d27;
+    border-color: rgba(255, 255, 255, 0.08);
+    color: rgba(255, 255, 255, 0.7);
+}
+
+.staff-dark .action-tile:hover {
+    background: rgba(255, 255, 255, 0.06);
+    border-color: rgba(79, 172, 254, 0.3);
+}
+
+.staff-dark .action-tile-icon {
+    background: rgba(255, 255, 255, 0.06);
+    color: #4facfe;
+}
+
+.staff-dark .action-tile:hover .action-tile-icon {
+    background: #4facfe;
+    color: white;
+}

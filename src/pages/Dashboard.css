@@ -1,4 +1,15 @@
 /* src/pages/Dashboard.css */
+
+/* ── Layout Backgrounds ── */
+.layout-staff {
+    background-color: #f5f5f2;
+}
+
+.main-content-staff {
+    background-color: #f5f5f2;
+    transition: background-color 0.3s ease;
+}
+
 .dashboard-container {
     padding: 32px;
     width: 100%;
@@ -125,9 +136,16 @@
 }
 
 /* Dark Mode Overrides for Admin Dashboards sharing this CSS */
+.staff-dark.layout-staff {
+    background-color: #0b0d12;
+}
+
+.staff-dark .main-content-staff {
+    background-color: #0b0d12;
+}
+
 .staff-dark .dashboard-container {
-    background-color: #0f1117 !important;
-    /* Forces the entire background to dark mode */
+    background-color: #0b0d12 !important;
 }
 
 .staff-dark .welcome-text {
@@ -136,12 +154,26 @@
     -webkit-text-fill-color: transparent;
 }
 
+.staff-dark .sub-text {
+    color: rgba(255, 255, 255, 0.5);
+}
+
+.staff-dark .stat-label {
+    color: rgba(255, 255, 255, 0.5);
+}
+
+.staff-dark .stat-value {
+    background: linear-gradient(135deg, #ffffff 0%, #F88B22 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
 /* Force inline hardcoded white cards to dark in Dashboard metrics grid */
 .staff-dark .admin-metric-card,
 .staff-dark .admin-panel-card {
-    background-color: #1e2330 !important;
-    border-color: rgba(255, 255, 255, 0.05) !important;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3) !important;
+    background-color: #1a1d27 !important;
+    border-color: rgba(255, 255, 255, 0.06) !important;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3) !important;
     color: #f0f0f0 !important;
 }
 
@@ -152,11 +184,64 @@
     color: #f0f0f0 !important;
 }
 
-.staff-dark .admin-panel-card {
-    background-color: #1e2330 !important;
+.staff-dark .admin-panel-list-item {
+    background-color: rgba(255, 255, 255, 0.04) !important;
+    border-color: rgba(255, 255, 255, 0.06) !important;
 }
 
-.staff-dark .admin-panel-list-item {
-    background-color: rgba(255, 255, 255, 0.05) !important;
-    border-color: rgba(255, 255, 255, 0.05) !important;
+/* ── Shared inline-styled admin page dark mode overrides ── */
+/* These override hardcoded inline styles on pages without CSS files */
+.staff-dark .main-content-staff h1,
+.staff-dark .main-content-staff h2 {
+    color: #f0f0f0 !important;
+}
+
+.staff-dark .main-content-staff h3,
+.staff-dark .main-content-staff h4 {
+    color: #e0e0e0 !important;
+}
+
+.staff-dark .main-content-staff p {
+    color: rgba(255, 255, 255, 0.6) !important;
+}
+
+.staff-dark .main-content-staff table {
+    border-color: rgba(255, 255, 255, 0.08) !important;
+}
+
+.staff-dark .main-content-staff th {
+    background-color: rgba(255, 255, 255, 0.04) !important;
+    color: rgba(255, 255, 255, 0.7) !important;
+    border-color: rgba(255, 255, 255, 0.08) !important;
+}
+
+.staff-dark .main-content-staff td {
+    color: rgba(255, 255, 255, 0.7) !important;
+    border-color: rgba(255, 255, 255, 0.06) !important;
+}
+
+.staff-dark .main-content-staff tr:hover {
+    background-color: rgba(255, 255, 255, 0.03) !important;
+}
+
+.staff-dark .main-content-staff input,
+.staff-dark .main-content-staff select,
+.staff-dark .main-content-staff textarea {
+    background-color: rgba(255, 255, 255, 0.06) !important;
+    border-color: rgba(255, 255, 255, 0.1) !important;
+    color: #f0f0f0 !important;
+}
+
+.staff-dark .main-content-staff input::placeholder,
+.staff-dark .main-content-staff textarea::placeholder {
+    color: rgba(255, 255, 255, 0.3) !important;
+}
+
+/* Override inline white/light backgrounds on divs within dark mode */
+.staff-dark .main-content-staff > div {
+    color: #f0f0f0;
+}
+
+.staff-dark .main-content-staff label {
+    color: rgba(255, 255, 255, 0.7) !important;
 }
