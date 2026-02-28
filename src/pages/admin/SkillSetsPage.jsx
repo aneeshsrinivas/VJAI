@@ -207,8 +207,8 @@ const SkillSetsPage = () => {
                     <Target size={24} />
                 </div>
                 <div>
-                    <h1 style={{ margin: 0, fontSize: '24px', color: '#1e293b' }}>Skill Sets Management</h1>
-                    <p style={{ margin: '4px 0 0', color: '#64748b' }}>Define curriculum skills for each level</p>
+                    <h1 style={{ margin: 0, fontSize: '24px' }}>Skill Sets Management</h1>
+                    <p className="sub-text" style={{ margin: '4px 0 0' }}>Define curriculum skills for each level</p>
                 </div>
             </div>
 
@@ -260,14 +260,14 @@ const SkillSetsPage = () => {
                         {isExpanded && (
                             <div style={{ padding: '0 16px 16px' }}>
                                 {skillSets[level]?.map(skill => (
-                                    <div 
+                                    <div
                                         key={skill.id}
+                                        className="admin-panel-list-item"
                                         style={{
                                             display: 'flex',
                                             justifyContent: 'space-between',
                                             alignItems: 'center',
                                             padding: '12px 16px',
-                                            background: '#f8fafc',
                                             borderRadius: '8px',
                                             marginBottom: '8px'
                                         }}
@@ -331,7 +331,7 @@ const SkillSetsPage = () => {
                                         ) : (
                                             <>
                                                 <div>
-                                                    <span style={{ fontWeight: '600', color: '#1e293b' }}>{skill.name}</span>
+                                                    <span style={{ fontWeight: '600' }}>{skill.name}</span>
                                                     <span style={{
                                                         marginLeft: '12px',
                                                         fontSize: '12px',

@@ -118,7 +118,7 @@ const AdminCoachApplications = () => {
     };
 
     return (
-        <div style={{ padding: '24px', backgroundColor: COLORS.ivory, minHeight: '100vh' }}>
+        <div style={{ padding: '24px', minHeight: '100vh' }}>
             <ToastContainer position="top-right" autoClose={3000} />
 
             {/* Header */}
@@ -127,7 +127,7 @@ const AdminCoachApplications = () => {
                     <FileText size={28} />
                     Coach Applications
                 </h1>
-                <p style={{ color: '#666', margin: '8px 0 0' }}>
+                <p className="sub-text" style={{ margin: '8px 0 0' }}>
                     Review and approve incoming coach registration requests
                 </p>
             </div>
@@ -138,10 +138,10 @@ const AdminCoachApplications = () => {
                     <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
                         <Clock size={24} color={COLORS.orange} />
                         <div>
-                            <div style={{ fontSize: '24px', fontWeight: '700', color: COLORS.deepBlue }}>
+                            <div style={{ fontSize: '24px', fontWeight: '700' }}>
                                 {applications.length}
                             </div>
-                            <div style={{ fontSize: '13px', color: '#666' }}>Pending Applications</div>
+                            <div className="sub-text" style={{ fontSize: '13px' }}>Pending Applications</div>
                         </div>
                     </div>
                 </Card>
@@ -149,8 +149,8 @@ const AdminCoachApplications = () => {
                     <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
                         <CheckCircle size={24} color={COLORS.oliveGreen} />
                         <div>
-                            <div style={{ fontSize: '24px', fontWeight: '700', color: COLORS.deepBlue }}>0</div>
-                            <div style={{ fontSize: '13px', color: '#666' }}>Approved This Week</div>
+                            <div style={{ fontSize: '24px', fontWeight: '700' }}>0</div>
+                            <div className="sub-text" style={{ fontSize: '13px' }}>Approved This Week</div>
                         </div>
                     </div>
                 </Card>
@@ -158,10 +158,10 @@ const AdminCoachApplications = () => {
                     <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
                         <Award size={24} color={COLORS.deepBlue} />
                         <div>
-                            <div style={{ fontSize: '24px', fontWeight: '700', color: COLORS.deepBlue }}>
+                            <div style={{ fontSize: '24px', fontWeight: '700' }}>
                                 {applications.filter(a => a.fideRating > 1500).length}
                             </div>
-                            <div style={{ fontSize: '13px', color: '#666' }}>FIDE Rated (1500+)</div>
+                            <div className="sub-text" style={{ fontSize: '13px' }}>FIDE Rated (1500+)</div>
                         </div>
                     </div>
                 </Card>
@@ -170,20 +170,20 @@ const AdminCoachApplications = () => {
             {/* Applications List */}
             <Card style={{ padding: 0, overflow: 'hidden' }}>
                 {loading ? (
-                    <div style={{ padding: '60px', textAlign: 'center', color: '#666' }}>
+                    <div className="sub-text" style={{ padding: '60px', textAlign: 'center' }}>
                         <div style={{ width: '40px', height: '40px', border: '3px solid #eee', borderTopColor: COLORS.deepBlue, borderRadius: '50%', animation: 'spin 1s linear infinite', margin: '0 auto 16px' }}></div>
                         Loading applications...
                     </div>
                 ) : applications.length === 0 ? (
                     <div style={{ padding: '60px', textAlign: 'center' }}>
                         <FileText size={48} color="#ddd" style={{ marginBottom: '16px' }} />
-                        <h3 style={{ color: COLORS.deepBlue, margin: '0 0 8px' }}>No Pending Applications</h3>
-                        <p style={{ color: '#666', margin: 0 }}>All caught up! New applications will appear here.</p>
+                        <h3 style={{ margin: '0 0 8px' }}>No Pending Applications</h3>
+                        <p className="sub-text" style={{ margin: 0 }}>All caught up! New applications will appear here.</p>
                     </div>
                 ) : (
                     <div>
                         {/* Table Header */}
-                        <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr 1fr 1fr 1fr', gap: '16px', padding: '16px 24px', backgroundColor: COLORS.ivory, borderBottom: `2px solid ${COLORS.deepBlue}`, fontWeight: '600', color: COLORS.deepBlue, fontSize: '13px' }}>
+                        <div className="admin-panel-list-item" style={{ display: 'grid', gridTemplateColumns: '2fr 1fr 1fr 1fr 1fr', gap: '16px', padding: '16px 24px', borderBottom: '2px solid currentColor', fontWeight: '600', fontSize: '13px' }}>
                             <div>Applicant</div>
                             <div>Credentials</div>
                             <div>Experience</div>
@@ -195,20 +195,20 @@ const AdminCoachApplications = () => {
                         {applications.map(app => (
                             <div key={app.id} style={{ display: 'grid', gridTemplateColumns: '2fr 1fr 1fr 1fr 1fr', gap: '16px', padding: '20px 24px', borderBottom: '1px solid #eee', alignItems: 'center', transition: 'background 0.2s' }}>
                                 <div>
-                                    <div style={{ fontWeight: '600', color: COLORS.deepBlue, marginBottom: '4px' }}>
+                                    <div style={{ fontWeight: '600', marginBottom: '4px' }}>
                                         {app.fullName || 'Unknown'}
                                     </div>
-                                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '13px', color: '#666' }}>
+                                    <div className="sub-text" style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '13px' }}>
                                         <Mail size={12} /> {app.email}
                                     </div>
                                     {app.phone && (
-                                        <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '13px', color: '#666', marginTop: '2px' }}>
+                                        <div className="sub-text" style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '13px', marginTop: '2px' }}>
                                             <Phone size={12} /> {app.phone}
                                         </div>
                                     )}
                                 </div>
                                 <div>
-                                    <div style={{ fontWeight: '500', color: COLORS.deepBlue }}>{app.title || 'N/A'}</div>
+                                    <div style={{ fontWeight: '500' }}>{app.title || 'N/A'}</div>
                                     <div style={{ fontSize: '12px', color: COLORS.oliveGreen, fontWeight: '600' }}>
                                         FIDE: {app.fideRating || 'Unrated'}
                                     </div>
@@ -218,7 +218,7 @@ const AdminCoachApplications = () => {
                                         {app.experience || 0} Years
                                     </span>
                                 </div>
-                                <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '13px', color: '#666' }}>
+                                <div className="sub-text" style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '13px' }}>
                                     <Calendar size={12} /> {formatDate(app.createdAt)}
                                 </div>
                                 <div style={{ display: 'flex', gap: '8px' }}>
@@ -247,34 +247,34 @@ const AdminCoachApplications = () => {
 
             {/* Approve Modal */}
             {modalOpen && selectedApp && (
-                <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000 }}>
-                    <div style={{ backgroundColor: '#fff', borderRadius: '16px', padding: '24px', width: '450px', maxWidth: '95%', boxShadow: '0 20px 60px rgba(0,0,0,0.2)' }}>
-                        <h2 style={{ margin: '0 0 20px', color: COLORS.deepBlue, display: 'flex', alignItems: 'center', gap: '10px' }}>
+                <div className="modal-overlay" style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000 }}>
+                    <div className="modal-content" style={{ borderRadius: '16px', padding: '24px', width: '450px', maxWidth: '95%' }}>
+                        <h2 style={{ margin: '0 0 20px', display: 'flex', alignItems: 'center', gap: '10px' }}>
                             <CheckCircle size={24} color={COLORS.oliveGreen} />
                             Approve Coach Application
                         </h2>
 
-                        <div style={{ padding: '16px', backgroundColor: COLORS.ivory, borderRadius: '10px', marginBottom: '20px' }}>
+                        <div className="admin-panel-list-item" style={{ padding: '16px', borderRadius: '10px', marginBottom: '20px' }}>
                             <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '12px' }}>
                                 <div style={{ width: '48px', height: '48px', borderRadius: '12px', backgroundColor: COLORS.deepBlue, color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: '700', fontSize: '18px' }}>
                                     {selectedApp.fullName?.charAt(0) || 'C'}
                                 </div>
                                 <div>
-                                    <div style={{ fontWeight: '600', color: COLORS.deepBlue }}>{selectedApp.fullName}</div>
-                                    <div style={{ fontSize: '13px', color: '#666' }}>{selectedApp.email}</div>
+                                    <div style={{ fontWeight: '600' }}>{selectedApp.fullName}</div>
+                                    <div className="sub-text" style={{ fontSize: '13px' }}>{selectedApp.email}</div>
                                 </div>
                             </div>
-                            <div style={{ display: 'flex', gap: '16px', fontSize: '13px', color: '#666' }}>
+                            <div className="sub-text" style={{ display: 'flex', gap: '16px', fontSize: '13px' }}>
                                 <span>Experience: {selectedApp.experience} years</span>
                                 <span>FIDE: {selectedApp.fideRating || 'Unrated'}</span>
                             </div>
                         </div>
 
                         <div style={{ marginBottom: '20px' }}>
-                            <label style={{ display: 'block', marginBottom: '8px', fontWeight: '600', color: COLORS.deepBlue }}>
+                            <label style={{ display: 'block', marginBottom: '8px', fontWeight: '600' }}>
                                 Set Temporary Password *
                             </label>
-                            <p style={{ fontSize: '12px', color: '#666', marginBottom: '8px' }}>
+                            <p className="sub-text" style={{ fontSize: '12px', marginBottom: '8px' }}>
                                 Share this password securely with the coach. They will use their email and this password to login.
                             </p>
                             <input

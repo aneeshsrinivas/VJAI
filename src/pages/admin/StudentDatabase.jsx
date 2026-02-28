@@ -197,7 +197,7 @@ const StudentDatabase = () => {
     });
 
     return (
-        <div className="students-page-container dashboard-container" style={{ backgroundColor: COLORS.ivory, minHeight: '100vh' }}>
+        <div className="students-page-container dashboard-container" style={{ minHeight: '100vh' }}>
             <ToastContainer position="top-right" autoClose={3000} />
 
             <div className="dashboard-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
@@ -251,13 +251,13 @@ const StudentDatabase = () => {
 
                 {/* Stats */}
                 <div style={{ display: 'flex', gap: '16px', marginBottom: '24px' }}>
-                    <div className="stat-box count-box" style={{ padding: '12px 20px', background: '#fff', borderRadius: '8px', border: `2px solid ${COLORS.deepBlue}` }}>
-                        <span className="stat-val" style={{ fontWeight: '700', color: COLORS.deepBlue, fontSize: '18px' }}>{students.length}</span>
-                        <span className="stat-label" style={{ marginLeft: '8px', color: '#666', fontSize: '13px' }}>Total Students</span>
+                    <div className="stat-box count-box admin-panel-list-item" style={{ padding: '12px 20px', borderRadius: '8px', border: `2px solid ${COLORS.deepBlue}` }}>
+                        <span className="stat-val" style={{ fontWeight: '700', fontSize: '18px' }}>{students.length}</span>
+                        <span className="stat-label" style={{ marginLeft: '8px', fontSize: '13px' }}>Total Students</span>
                     </div>
-                    <div className="stat-box active-box" style={{ padding: '12px 20px', background: '#fff', borderRadius: '8px', border: '2px solid #10B981' }}>
+                    <div className="stat-box active-box admin-panel-list-item" style={{ padding: '12px 20px', borderRadius: '8px', border: '2px solid #10B981' }}>
                         <span className="stat-val" style={{ fontWeight: '700', color: '#10B981', fontSize: '18px' }}>{students.filter(s => s.status === 'ACTIVE').length}</span>
-                        <span className="stat-label" style={{ marginLeft: '8px', color: '#666', fontSize: '13px' }}>Active</span>
+                        <span className="stat-label" style={{ marginLeft: '8px', fontSize: '13px' }}>Active</span>
                     </div>
                 </div>
 
@@ -285,12 +285,12 @@ const StudentDatabase = () => {
                                 filteredStudents.map(student => (
                                     <tr key={student.id} className="student-row" style={{ borderBottom: '1px solid #f5f5f5' }}>
                                         <td style={{ padding: '16px 12px' }}>
-                                            <div className="primary-text" style={{ fontWeight: '600', color: COLORS.deepBlue }}>{student.student_name}</div>
-                                            <div className="secondary-text" style={{ fontSize: '12px', color: '#666' }}>{student.student_id} | Age: {student.student_age}</div>
+                                            <div className="primary-text" style={{ fontWeight: '600' }}>{student.student_name}</div>
+                                            <div className="secondary-text sub-text" style={{ fontSize: '12px' }}>{student.student_id} | Age: {student.student_age}</div>
                                         </td>
                                         <td style={{ padding: '16px 12px' }}>
                                             <div className="primary-text" style={{ fontSize: '14px' }}>{student.parent_name}</div>
-                                            <div className="secondary-text" style={{ fontSize: '12px', color: '#666' }}>{student.parent_email}</div>
+                                            <div className="secondary-text sub-text" style={{ fontSize: '12px' }}>{student.parent_email}</div>
                                         </td>
                                         <td style={{ padding: '16px 12px' }}>
                                             <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
@@ -299,12 +299,12 @@ const StudentDatabase = () => {
                                             </div>
                                         </td>
                                         <td style={{ padding: '16px 12px' }}>
-                                            <div className="primary-text" style={{ fontSize: '14px', fontWeight: '600', color: COLORS.deepBlue }}>{student.assigned_batch_name}</div>
-                                            <div className="secondary-text" style={{ fontSize: '12px', color: '#666' }}>{student.assigned_coach_id}</div>
+                                            <div className="primary-text" style={{ fontSize: '14px', fontWeight: '600' }}>{student.assigned_batch_name}</div>
+                                            <div className="secondary-text sub-text" style={{ fontSize: '12px' }}>{student.assigned_coach_id}</div>
                                         </td>
                                         <td style={{ padding: '16px 12px' }}>
                                             <div className="primary-text" style={{ fontSize: '14px' }}>{student.country}</div>
-                                            <div className="secondary-text" style={{ fontSize: '12px', color: '#666' }}>{student.timezone}</div>
+                                            <div className="secondary-text sub-text" style={{ fontSize: '12px' }}>{student.timezone}</div>
                                         </td>
                                         <td style={{ padding: '16px 12px', fontSize: '14px' }}>
                                             {student.rating}
@@ -348,14 +348,13 @@ const StudentDatabase = () => {
 
             {/* Edit Student Modal */}
             {editingStudent && (
-                <div style={{
+                <div className="modal-overlay" style={{
                     position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
-                    backgroundColor: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
                     zIndex: 1000, backdropFilter: 'blur(4px)'
                 }}>
-                    <div style={{
-                        backgroundColor: '#fff', borderRadius: '16px', width: '500px', maxWidth: '95%',
-                        boxShadow: '0 20px 60px rgba(0,0,0,0.2)'
+                    <div className="modal-content" style={{
+                        borderRadius: '16px', width: '500px', maxWidth: '95%'
                     }}>
                         <div style={{
                             padding: '20px 24px', borderBottom: '1px solid #eee',

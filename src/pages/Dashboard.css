@@ -216,6 +216,38 @@
     border-color: rgba(255, 255, 255, 0.06) !important;
 }
 
+/* Status Badge Dark Mode Overrides */
+.staff-dark .admin-status-badge {
+    background-color: rgba(255, 255, 255, 0.1) !important;
+    color: #f0f0f0 !important;
+}
+
+.staff-dark .admin-status-badge[data-status="CONVERTED"],
+.staff-dark .admin-status-badge[data-status="COMPLETED"],
+.staff-dark .admin-status-badge[data-status="ATTENDED"] {
+    color: #10B981 !important;
+    background-color: rgba(16, 185, 129, 0.1) !important;
+}
+
+.staff-dark .admin-status-badge[data-status="NO_SHOW"],
+.staff-dark .admin-status-badge[data-status="REJECTED"] {
+    color: #EF4444 !important;
+    background-color: rgba(239, 68, 68, 0.1) !important;
+}
+
+.staff-dark .admin-status-badge[data-status="PENDING"],
+.staff-dark .admin-status-badge[data-status="PAYMENT_PENDING"] {
+    color: #F59E0B !important;
+    background-color: rgba(245, 158, 11, 0.1) !important;
+}
+
+.staff-dark .admin-status-badge[data-status="CONFIRMED"],
+.staff-dark .admin-status-badge[data-status="SCHEDULED"],
+.staff-dark .admin-status-badge[data-status="INTERESTED"] {
+    color: #3B82F6 !important;
+    background-color: rgba(59, 130, 246, 0.1) !important;
+}
+
 /* ── Shared inline-styled admin page dark mode overrides ── */
 /* These override hardcoded inline styles on pages without CSS files */
 .staff-dark .main-content-staff h1,
@@ -265,8 +297,17 @@
 }
 
 /* Override inline white/light backgrounds on divs within dark mode */
-.staff-dark .main-content-staff > div {
+.staff-dark .main-content-staff>div {
     color: #f0f0f0;
+}
+
+/* Universal dark mode — safe general text color inheritance */
+.staff-dark .main-content-staff {
+    color: #f0f0f0;
+}
+
+.staff-dark .main-content-staff strong {
+    color: #f0f0f0 !important;
 }
 
 .staff-dark .main-content-staff label {
@@ -406,7 +447,7 @@
 }
 
 /* SubscriptionPage modal dark mode */
-.staff-dark .main-content-staff > div[style*="position: fixed"] > div {
+.staff-dark .main-content-staff>div[style*="position: fixed"]>div {
     background-color: #1a1d27 !important;
     color: #f0f0f0 !important;
 }

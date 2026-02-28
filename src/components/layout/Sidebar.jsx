@@ -82,9 +82,11 @@ const Sidebar = ({ role = 'admin', activePath = '/dashboard' }) => {
                         </div>
                         <div className="user-info">
                             <div className="user-name">{getUserDisplayName()}</div>
-                            <div className="user-role">
-                                {role === 'admin' ? '👑 System Administrator' : '🎓 Chess Coach'}
-                            </div>
+                            {role !== 'admin' && (
+                                <div className="user-role">
+                                    🎓 Chess Coach
+                                </div>
+                            )}
                         </div>
                         <ChevronRight
                             size={16}

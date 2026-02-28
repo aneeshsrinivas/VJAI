@@ -134,11 +134,11 @@ const CoachRoster = () => {
             <div className="tabs" style={{ display: 'flex', gap: '20px', marginBottom: '24px', borderBottom: '1px solid #eee' }}>
                 <div
                     onClick={() => setActiveTab('roster')}
+                    className={activeTab === 'roster' ? '' : 'sub-text'}
                     style={{
                         paddingBottom: '12px',
                         cursor: 'pointer',
-                        borderBottom: activeTab === 'roster' ? '2px solid #1E3A8A' : 'none',
-                        color: activeTab === 'roster' ? '#1E3A8A' : '#666',
+                        borderBottom: activeTab === 'roster' ? '2px solid var(--color-warm-orange)' : 'none',
                         fontWeight: activeTab === 'roster' ? '600' : '500'
                     }}
                 >
@@ -147,11 +147,11 @@ const CoachRoster = () => {
 
                 <div
                     onClick={() => setActiveTab('applications')}
+                    className={activeTab === 'applications' ? '' : 'sub-text'}
                     style={{
                         paddingBottom: '12px',
                         cursor: 'pointer',
-                        borderBottom: activeTab === 'applications' ? '2px solid #1E3A8A' : 'none',
-                        color: activeTab === 'applications' ? '#1E3A8A' : '#666',
+                        borderBottom: activeTab === 'applications' ? '2px solid var(--color-warm-orange)' : 'none',
                         fontWeight: activeTab === 'applications' ? '600' : '500'
                     }}
                 >
@@ -210,7 +210,7 @@ const CoachRoster = () => {
                                                 {coach.rating}
                                             </div>
                                         )}
-                                        <div style={{ fontSize: '12px', color: '#666' }}>
+                                        <div className="sub-text" style={{ fontSize: '12px' }}>
                                             <Mail size={12} style={{ display: 'inline', marginRight: '4px' }} />
                                             {coach.email || 'N/A'}
                                         </div>
@@ -219,7 +219,7 @@ const CoachRoster = () => {
                                     {/* Assigned Batches Badge */}
                                     {coach.assignedBatchIds && coach.assignedBatchIds.length > 0 && (
                                         <div style={{ marginBottom: '14px' }}>
-                                            <div style={{ fontSize: '11px', fontWeight: '600', color: '#666', marginBottom: '6px', textTransform: 'uppercase' }}>
+                                            <div className="sub-text" style={{ fontSize: '11px', fontWeight: '600', marginBottom: '6px', textTransform: 'uppercase' }}>
                                                 {coach.assignedBatchIds.length} Batch{coach.assignedBatchIds.length !== 1 ? 'es' : ''}
                                             </div>
                                             <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
@@ -342,22 +342,19 @@ const CoachRoster = () => {
 
             {/* ===== ENHANCED EDIT MODAL ===== */}
             {isEditOpen && editingCoach && (
-                <div style={{
+                <div className="modal-overlay" style={{
                     position: 'fixed',
                     inset: 0,
-                    backgroundColor: 'rgba(0,0,0,0.6)',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
                     zIndex: 1200,
                     padding: '20px'
                 }}>
-                    <div style={{
-                        background: '#fff',
+                    <div className="modal-content" style={{
                         borderRadius: '12px',
                         width: '100%',
                         maxWidth: '600px',
-                        boxShadow: '0 20px 60px rgba(0,0,0,0.3)',
                         display: 'flex',
                         flexDirection: 'column',
                         maxHeight: '90vh',
@@ -710,22 +707,19 @@ const CoachRoster = () => {
 
             {/* Create Batch Modal */}
             {isCreateBatchModalOpen && editingCoach && (
-                <div style={{
+                <div className="modal-overlay" style={{
                     position: 'fixed',
                     inset: 0,
-                    backgroundColor: 'rgba(0,0,0,0.6)',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
                     zIndex: 1300,
                     padding: '20px'
                 }}>
-                    <div style={{
-                        background: '#fff',
+                    <div className="modal-content" style={{
                         borderRadius: '12px',
                         width: '100%',
                         maxWidth: '500px',
-                        boxShadow: '0 20px 60px rgba(0,0,0,0.3)',
                         overflow: 'hidden'
                     }}>
                         {/* Modal Header */}

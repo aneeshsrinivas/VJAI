@@ -299,6 +299,7 @@ const AdminDashboard = () => {
             case 'CONFIRMED': return { bg: '#DBEAFE', color: COLORS.deepBlue };
             case 'COMPLETED': return { bg: '#DCFCE7', color: COLORS.oliveGreen };
             case 'CONVERTED': return { bg: '#D1FAE5', color: COLORS.oliveGreen };
+            case 'NO_SHOW': return { bg: '#FEE2E2', color: '#991B1B' };
             default: return { bg: '#F3F4F6', color: '#374151' };
         }
     };
@@ -404,14 +405,17 @@ const AdminDashboard = () => {
                                             <div style={{ fontWeight: '600' }}>{demo.studentName || demo.parentName || 'New Request'}</div>
                                             <div className="sub-text" style={{ fontSize: '12px' }}>{demo.parentEmail || demo.email || '-'}</div>
                                         </div>
-                                        <span style={{
-                                            padding: '4px 12px',
-                                            borderRadius: '12px',
-                                            fontSize: '11px',
-                                            fontWeight: '700',
-                                            backgroundColor: getStatusColor(demo.status).bg,
-                                            color: getStatusColor(demo.status).color
-                                        }}>
+                                        <span
+                                            className="admin-status-badge"
+                                            data-status={demo.status || 'PENDING'}
+                                            style={{
+                                                padding: '4px 12px',
+                                                borderRadius: '12px',
+                                                fontSize: '11px',
+                                                fontWeight: '700',
+                                                backgroundColor: getStatusColor(demo.status).bg,
+                                                color: getStatusColor(demo.status).color
+                                            }}>
                                             {demo.status || 'PENDING'}
                                         </span>
                                     </div>

@@ -138,7 +138,7 @@ const SubscriptionPage = () => {
                         <CreditCard size={28} />
                         Subscription Management
                     </h1>
-                    <p style={{ color: '#666', margin: '4px 0 0' }}>Manage student plans, billing cycles, and payment statuses.</p>
+                    <p className="sub-text" style={{ margin: '4px 0 0' }}>Manage student plans, billing cycles, and payment statuses.</p>
                 </div>
                 <Button onClick={() => setShowAddModal(true)}>
                     <Plus size={16} style={{ marginRight: 8 }} />
@@ -150,7 +150,7 @@ const SubscriptionPage = () => {
                 {loading ? (
                     <div style={{ padding: '40px', textAlign: 'center' }}>Loading subscriptions...</div>
                 ) : subscriptions.length === 0 ? (
-                    <div style={{ padding: '40px', textAlign: 'center', color: '#666' }}>
+                    <div className="sub-text" style={{ padding: '40px', textAlign: 'center' }}>
                         <Users size={48} style={{ color: '#ccc', marginBottom: '16px' }} />
                         <h3 style={{ margin: '0 0 8px' }}>No Subscriptions Yet</h3>
                         <p style={{ margin: '0 0 16px' }}>Add your first subscription to start managing student plans.</p>
@@ -176,12 +176,12 @@ const SubscriptionPage = () => {
                                 <tr key={sub.id} style={{ borderBottom: '1px solid #f5f5f5' }}>
                                     <td style={{ padding: '16px' }}>
                                         <div style={{ fontWeight: '600' }}>{sub.studentName || sub.studentId || 'N/A'}</div>
-                                        <div style={{ fontSize: '12px', color: '#888' }}>{sub.parentEmail || ''}</div>
+                                        <div className="sub-text" style={{ fontSize: '12px' }}>{sub.parentEmail || ''}</div>
                                     </td>
                                     <td style={{ padding: '16px' }}>{sub.planId || '-'}</td>
                                     <td style={{ padding: '16px' }}>
                                         <div style={{ fontWeight: '600' }}>${sub.amount || 0}</div>
-                                        <div style={{ fontSize: '12px', color: '#666' }}>{sub.billingCycle || '-'}</div>
+                                        <div className="sub-text" style={{ fontSize: '12px' }}>{sub.billingCycle || '-'}</div>
                                     </td>
                                     <td style={{ padding: '16px' }}>{sub.nextDueAt}</td>
                                     <td style={{ padding: '16px' }}>
@@ -219,8 +219,8 @@ const SubscriptionPage = () => {
 
             {/* Add Subscription Modal */}
             {showAddModal && (
-                <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000 }} onClick={() => setShowAddModal(false)}>
-                    <div style={{ backgroundColor: '#fff', borderRadius: '12px', padding: '24px', width: '500px', maxWidth: '90%' }} onClick={e => e.stopPropagation()}>
+                <div className="modal-overlay" style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000 }} onClick={() => setShowAddModal(false)}>
+                    <div className="modal-content" style={{ borderRadius: '12px', padding: '24px', width: '500px', maxWidth: '90%' }} onClick={e => e.stopPropagation()}>
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
                             <h3 style={{ margin: 0 }}>Add New Subscription</h3>
                             <button onClick={() => setShowAddModal(false)} style={{ background: 'none', border: 'none', cursor: 'pointer' }}><X size={20} /></button>
