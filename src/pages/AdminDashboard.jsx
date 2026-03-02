@@ -7,6 +7,8 @@ import Card from '../components/ui/Card';
 import Button from '../components/ui/Button';
 import { toast, ToastContainer } from 'react-toastify';
 import { Users, UserCheck, Calendar, DollarSign, TrendingUp, MessageSquare, Bell, Download, Plus } from 'lucide-react';
+import jsPDF from 'jspdf';
+import autoTable from 'jspdf-autotable';
 import './Dashboard.css';
 
 // Color scheme from user
@@ -134,15 +136,15 @@ const AdminDashboard = () => {
     }, []);
 
     const formatCurrency = (amount) => {
-        return new Intl.NumberFormat('en-IN', {
+        return new Intl.NumberFormat('en-US', {
             style: 'currency',
-            currency: 'INR',
+            currency: 'USD',
             maximumFractionDigits: 0
         }).format(amount || 0);
     };
 
     const handleExportData = async () => {
-        toast.info('Preparing export...');
+        toast.info('Preparing PDF report...');
         try {
             const [students, coaches, demos, subs] = await Promise.all([
                 getDocs(collection(db, 'students')),
@@ -151,23 +153,141 @@ const AdminDashboard = () => {
                 getDocs(collection(db, 'subscriptions'))
             ]);
 
-            const exportData = {
-                exportDate: new Date().toISOString(),
-                students: students.docs.map(d => d.data()),
-                coaches: coaches.docs.map(d => d.data()),
-                demos: demos.docs.map(d => d.data()),
-                subscriptions: subs.docs.map(d => d.data())
-            };
+            const pdf = new jsPDF();
+            const pageWidth = pdf.internal.pageSize.getWidth();
 
-            const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: 'application/json' });
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = `ica-export-${new Date().toISOString().split('T')[0]}.json`;
-            a.click();
-            URL.revokeObjectURL(url);
+            // Title
+            pdf.setFontSize(22);
+            pdf.setFont('helvetica', 'bold');
+            pdf.text('Indian Chess Academy', pageWidth / 2, 20, { align: 'center' });
+            pdf.setFontSize(12);
+            pdf.setFont('helvetica', 'normal');
+            pdf.text('Academy Operations Report', pageWidth / 2, 28, { align: 'center' });
+            pdf.setFontSize(10);
+            pdf.setTextColor(100);
+            pdf.text(`Generated: ${new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}`, pageWidth / 2, 34, { align: 'center' });
+            pdf.setTextColor(0);
 
-            toast.success('Data exported successfully!');
+            // Summary Stats
+            pdf.setFontSize(14);
+            pdf.setFont('helvetica', 'bold');
+            pdf.text('Summary', 14, 48);
+            pdf.setFontSize(10);
+            pdf.setFont('helvetica', 'normal');
+
+            const summaryData = [
+                ['Total Students', String(students.size)],
+                ['Active Coaches', String(coaches.size)],
+                ['Demo Requests', String(demos.size)],
+                ['Active Subscriptions', String(subs.docs.filter(d => d.data().status === 'ACTIVE').length)],
+                ['Monthly Revenue', formatCurrency(stats.monthlyRevenue)],
+                ['Conversion Rate', `${stats.conversionRate}%`]
+            ];
+
+            autoTable(pdf, {
+                startY: 52,
+                head: [['Metric', 'Value']],
+                body: summaryData,
+                theme: 'grid',
+                headStyles: { fillColor: [24, 24, 24], fontSize: 10 },
+                styles: { fontSize: 10 },
+                margin: { left: 14, right: 14 }
+            });
+
+            // Students Table
+            let yPos = pdf.lastAutoTable.finalY + 16;
+            pdf.setFontSize(14);
+            pdf.setFont('helvetica', 'bold');
+            pdf.text('Students', 14, yPos);
+
+            const studentData = students.docs.map(d => {
+                const data = d.data();
+                return [
+                    data.studentName || data.fullName || 'N/A',
+                    data.email || '-',
+                    data.studentType || 'Group',
+                    data.learningLevel || 'Beginner',
+                    data.status || 'ACTIVE'
+                ];
+            });
+
+            autoTable(pdf, {
+                startY: yPos + 4,
+                head: [['Name', 'Email', 'Type', 'Level', 'Status']],
+                body: studentData.length > 0 ? studentData : [['No students found', '', '', '', '']],
+                theme: 'striped',
+                headStyles: { fillColor: [252, 138, 36], fontSize: 9 },
+                styles: { fontSize: 9 },
+                margin: { left: 14, right: 14 }
+            });
+
+            // Demos Table
+            yPos = pdf.lastAutoTable.finalY + 16;
+            if (yPos > 250) { pdf.addPage(); yPos = 20; }
+            pdf.setFontSize(14);
+            pdf.setFont('helvetica', 'bold');
+            pdf.text('Demo Requests', 14, yPos);
+
+            const demoData = demos.docs.map(d => {
+                const data = d.data();
+                return [
+                    data.studentName || 'N/A',
+                    data.parentEmail || '-',
+                    data.status || 'PENDING',
+                    data.preferredDate || '-'
+                ];
+            });
+
+            autoTable(pdf, {
+                startY: yPos + 4,
+                head: [['Student', 'Parent Email', 'Status', 'Preferred Date']],
+                body: demoData.length > 0 ? demoData : [['No demos found', '', '', '']],
+                theme: 'striped',
+                headStyles: { fillColor: [107, 142, 35], fontSize: 9 },
+                styles: { fontSize: 9 },
+                margin: { left: 14, right: 14 }
+            });
+
+            // Subscriptions Table
+            yPos = pdf.lastAutoTable.finalY + 16;
+            if (yPos > 250) { pdf.addPage(); yPos = 20; }
+            pdf.setFontSize(14);
+            pdf.setFont('helvetica', 'bold');
+            pdf.text('Subscriptions', 14, yPos);
+
+            const subData = subs.docs.map(d => {
+                const data = d.data();
+                return [
+                    data.studentName || data.parentName || 'N/A',
+                    data.planName || data.planId || '-',
+                    `$${data.amount || 0}`,
+                    data.status || '-',
+                    data.billingCycle || '-'
+                ];
+            });
+
+            autoTable(pdf, {
+                startY: yPos + 4,
+                head: [['Student', 'Plan', 'Amount', 'Status', 'Cycle']],
+                body: subData.length > 0 ? subData : [['No subscriptions found', '', '', '', '']],
+                theme: 'striped',
+                headStyles: { fillColor: [24, 24, 24], fontSize: 9 },
+                styles: { fontSize: 9 },
+                margin: { left: 14, right: 14 }
+            });
+
+            // Footer
+            const totalPages = pdf.internal.getNumberOfPages();
+            for (let i = 1; i <= totalPages; i++) {
+                pdf.setPage(i);
+                pdf.setFontSize(8);
+                pdf.setTextColor(150);
+                pdf.text(`Page ${i} of ${totalPages}`, pageWidth / 2, pdf.internal.pageSize.getHeight() - 10, { align: 'center' });
+                pdf.text('Indian Chess Academy - Confidential', 14, pdf.internal.pageSize.getHeight() - 10);
+            }
+
+            pdf.save(`ICA-Report-${new Date().toISOString().split('T')[0]}.pdf`);
+            toast.success('PDF report exported successfully!');
         } catch (error) {
             toast.error('Export failed: ' + error.message);
         }
@@ -179,22 +299,23 @@ const AdminDashboard = () => {
             case 'CONFIRMED': return { bg: '#DBEAFE', color: COLORS.deepBlue };
             case 'COMPLETED': return { bg: '#DCFCE7', color: COLORS.oliveGreen };
             case 'CONVERTED': return { bg: '#D1FAE5', color: COLORS.oliveGreen };
+            case 'NO_SHOW': return { bg: '#FEE2E2', color: '#991B1B' };
             default: return { bg: '#F3F4F6', color: '#374151' };
         }
     };
 
     return (
-        <div className="dashboard-container" style={{ backgroundColor: COLORS.ivory }}>
+        <div className="dashboard-container">
             <ToastContainer position="top-right" autoClose={3000} />
 
             {/* Header */}
             <div className="dashboard-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
                 <div>
-                    <h1 className="welcome-text" style={{ color: COLORS.deepBlue }}>Command Center</h1>
+                    <h1 className="welcome-text">Command Center</h1>
                     <p className="sub-text">Academy Operations Overview - Live Data</p>
                 </div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                    <Button variant="outline" size="sm" onClick={() => navigate('/admin/broadcast')} style={{ borderColor: COLORS.deepBlue, color: COLORS.deepBlue }}>
+                    <Button variant="outline" size="sm" onClick={() => navigate('/admin/broadcast')}>
                         <Bell size={16} style={{ marginRight: 6 }} />
                         Broadcast
                     </Button>
@@ -213,54 +334,54 @@ const AdminDashboard = () => {
 
             {/* Stats Grid - Always show numbers, default to 0 */}
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: '16px', marginBottom: '24px' }}>
-                <div style={{ padding: '20px', backgroundColor: '#fff', borderRadius: '12px', border: `2px solid ${COLORS.deepBlue}` }}>
+                <div className="admin-metric-card" style={{ padding: '20px', borderRadius: '12px', border: `2px solid ${COLORS.deepBlue}` }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '8px' }}>
                         <div style={{ width: '40px', height: '40px', borderRadius: '10px', backgroundColor: COLORS.deepBlue, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                             <Users size={20} color="white" />
                         </div>
-                        <span style={{ fontSize: '13px', color: '#666' }}>Total Students</span>
+                        <span className="stat-label">Total Students</span>
                     </div>
-                    <div style={{ fontSize: '28px', fontWeight: '700', color: COLORS.deepBlue }}>{stats.totalStudents}</div>
+                    <div className="stat-value" style={{ fontSize: '28px', fontWeight: '700' }}>{stats.totalStudents}</div>
                 </div>
 
-                <div style={{ padding: '20px', backgroundColor: '#fff', borderRadius: '12px', border: `2px solid ${COLORS.oliveGreen}` }}>
+                <div className="admin-metric-card" style={{ padding: '20px', borderRadius: '12px', border: `2px solid ${COLORS.oliveGreen}` }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '8px' }}>
                         <div style={{ width: '40px', height: '40px', borderRadius: '10px', backgroundColor: COLORS.oliveGreen, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                             <UserCheck size={20} color="white" />
                         </div>
-                        <span style={{ fontSize: '13px', color: '#666' }}>Active Coaches</span>
+                        <span className="stat-label">Active Coaches</span>
                     </div>
-                    <div style={{ fontSize: '28px', fontWeight: '700', color: COLORS.oliveGreen }}>{stats.activeCoaches}</div>
+                    <div className="stat-value" style={{ fontSize: '28px', fontWeight: '700' }}>{stats.activeCoaches}</div>
                 </div>
 
-                <div style={{ padding: '20px', backgroundColor: '#fff', borderRadius: '12px', border: `2px solid ${COLORS.orange}` }}>
+                <div className="admin-metric-card" style={{ padding: '20px', borderRadius: '12px', border: `2px solid ${COLORS.orange}` }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '8px' }}>
                         <div style={{ width: '40px', height: '40px', borderRadius: '10px', backgroundColor: COLORS.orange, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                             <Calendar size={20} color="white" />
                         </div>
-                        <span style={{ fontSize: '13px', color: '#666' }}>Pending Demos</span>
+                        <span className="stat-label">Pending Demos</span>
                     </div>
-                    <div style={{ fontSize: '28px', fontWeight: '700', color: COLORS.orange }}>{stats.pendingDemos}</div>
+                    <div className="stat-value" style={{ fontSize: '28px', fontWeight: '700' }}>{stats.pendingDemos}</div>
                 </div>
 
-                <div style={{ padding: '20px', backgroundColor: '#fff', borderRadius: '12px', border: `2px solid ${COLORS.deepBlue}` }}>
+                <div className="admin-metric-card" style={{ padding: '20px', borderRadius: '12px', border: `2px solid ${COLORS.deepBlue}` }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '8px' }}>
                         <div style={{ width: '40px', height: '40px', borderRadius: '10px', backgroundColor: COLORS.deepBlue, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                             <DollarSign size={20} color="white" />
                         </div>
-                        <span style={{ fontSize: '13px', color: '#666' }}>Monthly Revenue</span>
+                        <span className="stat-label">Monthly Revenue</span>
                     </div>
-                    <div style={{ fontSize: '28px', fontWeight: '700', color: COLORS.deepBlue }}>{formatCurrency(stats.monthlyRevenue)}</div>
+                    <div className="stat-value" style={{ fontSize: '28px', fontWeight: '700' }}>{formatCurrency(stats.monthlyRevenue)}</div>
                 </div>
 
-                <div style={{ padding: '20px', backgroundColor: '#fff', borderRadius: '12px', border: `2px solid ${COLORS.oliveGreen}` }}>
+                <div className="admin-metric-card" style={{ padding: '20px', borderRadius: '12px', border: `2px solid ${COLORS.oliveGreen}` }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '8px' }}>
                         <div style={{ width: '40px', height: '40px', borderRadius: '10px', backgroundColor: COLORS.oliveGreen, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                             <TrendingUp size={20} color="white" />
                         </div>
-                        <span style={{ fontSize: '13px', color: '#666' }}>Conversion Rate</span>
+                        <span className="stat-label">Conversion Rate</span>
                     </div>
-                    <div style={{ fontSize: '28px', fontWeight: '700', color: COLORS.oliveGreen }}>{stats.conversionRate}%</div>
+                    <div className="stat-value" style={{ fontSize: '28px', fontWeight: '700' }}>{stats.conversionRate}%</div>
                 </div>
             </div>
 
@@ -269,29 +390,32 @@ const AdminDashboard = () => {
                 {/* Left Column */}
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
                     {/* Recent Demos */}
-                    <Card>
+                    <Card className="admin-panel-card">
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
-                            <h3 style={{ margin: 0, color: COLORS.deepBlue }}>Recent Demo Requests</h3>
+                            <h3 style={{ margin: 0 }}>Recent Demo Requests</h3>
                             <Button size="sm" variant="ghost" onClick={() => navigate('/admin/demos')}>View All</Button>
                         </div>
                         {recentDemos.length === 0 ? (
-                            <div style={{ padding: '24px', textAlign: 'center', color: '#666' }}>No demo requests yet</div>
+                            <div style={{ padding: '24px', textAlign: 'center' }} className="sub-text">No demo requests yet</div>
                         ) : (
                             <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
                                 {recentDemos.map(demo => (
-                                    <div key={demo.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '12px', backgroundColor: COLORS.ivory, borderRadius: '8px' }}>
+                                    <div key={demo.id} className="admin-panel-list-item" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '12px', borderRadius: '8px' }}>
                                         <div>
-                                            <div style={{ fontWeight: '600', color: COLORS.deepBlue }}>{demo.studentName || demo.parentName || 'New Request'}</div>
-                                            <div style={{ fontSize: '12px', color: '#666' }}>{demo.parentEmail || demo.email || '-'}</div>
+                                            <div style={{ fontWeight: '600' }}>{demo.studentName || demo.parentName || 'New Request'}</div>
+                                            <div className="sub-text" style={{ fontSize: '12px' }}>{demo.parentEmail || demo.email || '-'}</div>
                                         </div>
-                                        <span style={{
-                                            padding: '4px 12px',
-                                            borderRadius: '12px',
-                                            fontSize: '11px',
-                                            fontWeight: '700',
-                                            backgroundColor: getStatusColor(demo.status).bg,
-                                            color: getStatusColor(demo.status).color
-                                        }}>
+                                        <span
+                                            className="admin-status-badge"
+                                            data-status={demo.status || 'PENDING'}
+                                            style={{
+                                                padding: '4px 12px',
+                                                borderRadius: '12px',
+                                                fontSize: '11px',
+                                                fontWeight: '700',
+                                                backgroundColor: getStatusColor(demo.status).bg,
+                                                color: getStatusColor(demo.status).color
+                                            }}>
                                             {demo.status || 'PENDING'}
                                         </span>
                                     </div>
@@ -301,22 +425,22 @@ const AdminDashboard = () => {
                     </Card>
 
                     {/* Coach Leaderboard */}
-                    <Card>
+                    <Card className="admin-panel-card">
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
-                            <h3 style={{ margin: 0, color: COLORS.deepBlue }}>Coach Performance</h3>
+                            <h3 style={{ margin: 0 }}>Coach Performance</h3>
                             <Button size="sm" variant="ghost" onClick={() => navigate('/admin/coaches')}>Manage Coaches</Button>
                         </div>
                         {topCoaches.length === 0 ? (
-                            <div style={{ padding: '24px', textAlign: 'center', color: '#666' }}>No coaches registered yet</div>
+                            <div style={{ padding: '24px', textAlign: 'center' }} className="sub-text">No coaches registered yet</div>
                         ) : (
                             <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
                                 {topCoaches.map((coach, i) => (
-                                    <div key={coach.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '12px', borderBottom: i < topCoaches.length - 1 ? '1px solid #eee' : 'none' }}>
+                                    <div key={coach.id} className="admin-panel-list-item" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '12px', borderBottom: i < topCoaches.length - 1 ? '1px solid #eee' : 'none' }}>
                                         <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
                                             <div style={{ width: '32px', height: '32px', borderRadius: '8px', backgroundColor: COLORS.deepBlue, color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: '600' }}>
                                                 {(coach.name || coach.coachName || 'C').charAt(0)}
                                             </div>
-                                            <span style={{ fontWeight: '500', color: COLORS.deepBlue }}>{coach.fullName || coach.coachName || coach.name || 'Unknown Coach'}</span>
+                                            <span style={{ fontWeight: '500' }}>{coach.fullName || coach.coachName || coach.name || 'Unknown Coach'}</span>
                                         </div>
                                         <span style={{ color: COLORS.oliveGreen, fontWeight: '700' }}>{coach.rating || '4.5'} ★</span>
                                     </div>
@@ -329,32 +453,32 @@ const AdminDashboard = () => {
                 {/* Right Column */}
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
                     {/* Quick Actions */}
-                    <Card>
-                        <h3 style={{ margin: '0 0 16px', color: COLORS.deepBlue }}>Quick Actions</h3>
+                    <Card className="admin-panel-card">
+                        <h3 style={{ margin: '0 0 16px' }}>Quick Actions</h3>
                         <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
                             <Button onClick={() => navigate('/admin/demos')} style={{ backgroundColor: COLORS.orange, border: 'none' }}>
                                 <Plus size={16} style={{ marginRight: 8 }} />
                                 Manage Demos
                             </Button>
-                            <Button variant="secondary" onClick={() => navigate('/admin/messages')} style={{ borderColor: COLORS.deepBlue, color: COLORS.deepBlue }}>
+                            <Button variant="secondary" onClick={() => navigate('/admin/messages')}>
                                 <MessageSquare size={16} style={{ marginRight: 8 }} />
                                 Messages
                             </Button>
                             <Button variant="outline" onClick={handleExportData}>
                                 <Download size={16} style={{ marginRight: 8 }} />
-                                Export All Data
+                                Export PDF Report
                             </Button>
                         </div>
                     </Card>
 
                     {/* System Status */}
-                    <Card>
-                        <h3 style={{ margin: '0 0 16px', color: COLORS.deepBlue }}>System Status</h3>
+                    <Card className="admin-panel-card">
+                        <h3 style={{ margin: '0 0 16px' }}>System Status</h3>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '12px' }}>
                             <div style={{ width: '10px', height: '10px', borderRadius: '50%', backgroundColor: COLORS.oliveGreen }}></div>
                             <span style={{ fontSize: '14px', color: COLORS.oliveGreen, fontWeight: '600' }}>All Systems Operational</span>
                         </div>
-                        <div style={{ fontSize: '12px', color: '#666' }}>
+                        <div className="sub-text" style={{ fontSize: '12px' }}>
                             <div>Firebase: Connected</div>
                             <div>Real-time: Active</div>
                             <div>Last sync: Just now</div>
@@ -362,13 +486,13 @@ const AdminDashboard = () => {
                     </Card>
 
                     {/* Navigation */}
-                    <Card>
-                        <h3 style={{ margin: '0 0 16px', color: COLORS.deepBlue }}>Navigate</h3>
+                    <Card className="admin-panel-card">
+                        <h3 style={{ margin: '0 0 16px' }}>Navigate</h3>
                         <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                            <Button variant="ghost" onClick={() => navigate('/admin/students')} style={{ justifyContent: 'flex-start', color: COLORS.deepBlue }}>Students Database</Button>
-                            <Button variant="ghost" onClick={() => navigate('/admin/subscriptions')} style={{ justifyContent: 'flex-start', color: COLORS.deepBlue }}>Subscriptions</Button>
-                            <Button variant="ghost" onClick={() => navigate('/admin/finances')} style={{ justifyContent: 'flex-start', color: COLORS.deepBlue }}>Finance Reports</Button>
-                            <Button variant="ghost" onClick={() => navigate('/admin/accounts')} style={{ justifyContent: 'flex-start', color: COLORS.deepBlue }}>User Accounts</Button>
+                            <Button variant="ghost" onClick={() => navigate('/admin/students')} style={{ justifyContent: 'flex-start' }}>Students Database</Button>
+                            <Button variant="ghost" onClick={() => navigate('/admin/subscriptions')} style={{ justifyContent: 'flex-start' }}>Subscriptions</Button>
+                            <Button variant="ghost" onClick={() => navigate('/admin/finances')} style={{ justifyContent: 'flex-start' }}>Finance Reports</Button>
+                            <Button variant="ghost" onClick={() => navigate('/admin/accounts')} style={{ justifyContent: 'flex-start' }}>User Accounts</Button>
                         </div>
                     </Card>
                 </div>

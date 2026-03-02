@@ -318,3 +318,79 @@
         font-size: 24px;
     }
 }
+
+/* ========================================
+   DARK MODE — staff-dark class on layout-staff
+   ======================================== */
+.staff-dark .live-analytics {
+    background-color: transparent !important;
+    /* Let Dashboard.css handle the unified dark background */
+}
+
+.staff-dark .analytics-header h1 {
+    color: #f0f0f0;
+}
+
+.staff-dark .last-updated {
+    color: #94a3b8;
+}
+
+.staff-dark .metric-card,
+.staff-dark .chart-card,
+.staff-dark .status-card,
+.staff-dark .gradient-blue,
+.staff-dark .gradient-green,
+.staff-dark .gradient-orange,
+.staff-dark .gradient-purple,
+.staff-dark .gradient-pink {
+    background: #1e2330 !important;
+    border-color: rgba(255, 255, 255, 0.05);
+    color: #f0f0f0;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+.staff-dark .metric-card:hover {
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.4);
+    transform: translateY(-2px);
+}
+
+.staff-dark .metric-icon {
+    background: rgba(255, 255, 255, 0.05) !important;
+    color: #f0f0f0 !important;
+}
+
+.staff-dark .metric-value,
+.staff-dark .status-value,
+.staff-dark .chart-card h3 {
+    color: #ffffff;
+}
+
+.staff-dark .metric-label,
+.staff-dark .status-label {
+    color: #94a3b8;
+}
+
+.staff-dark .chart-card text {
+    fill: #94a3b8 !important;
+    /* Recharts text elements */
+}
+
+.staff-dark .status-card.pending {
+    border-left-color: #FC8A24;
+}
+
+.staff-dark .status-card.scheduled {
+    border-left-color: #3B82F6;
+}
+
+.staff-dark .status-card.attended {
+    border-left-color: #10B981;
+}
+
+.staff-dark .status-card.converted {
+    border-left-color: #10B981;
+}
+
+.staff-dark .status-card svg {
+    color: #f0f0f0;
+}

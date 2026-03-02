@@ -79,9 +79,9 @@ const FinanceReports = () => {
     }, []);
 
     const formatCurrency = (amount) => {
-        return new Intl.NumberFormat('en-IN', {
+        return new Intl.NumberFormat('en-US', {
             style: 'currency',
-            currency: 'INR',
+            currency: 'USD',
             maximumFractionDigits: 0
         }).format(amount);
     };
@@ -180,7 +180,7 @@ const FinanceReports = () => {
                     type: 'PAYMENT_REMINDER',
                     subscriptionId: sub.id,
                     accountId: sub.accountId,
-                    message: `Payment reminder for subscription. Amount due: Rs. ${sub.amount}`,
+                    message: `Payment reminder for subscription. Amount due: $${sub.amount}`,
                     status: 'SENT',
                     sentAt: serverTimestamp(),
                     createdAt: serverTimestamp()
@@ -353,7 +353,7 @@ const FinanceReports = () => {
                                 />
                             </div>
                             <div style={{ marginBottom: '16px' }}>
-                                <label style={{ display: 'block', marginBottom: '6px', fontWeight: '500' }}>Amount (Rs.)</label>
+                                <label style={{ display: 'block', marginBottom: '6px', fontWeight: '500' }}>Amount ($)</label>
                                 <Input
                                     type="number"
                                     value={invoiceForm.amount}
@@ -396,13 +396,13 @@ const FinanceReports = () => {
                                     <option value="">-- Select Subscription --</option>
                                     {subscriptions.map(sub => (
                                         <option key={sub.id} value={sub.id}>
-                                            {sub.studentId || sub.accountId} - Rs. {sub.amount}
+                                            {sub.studentId || sub.accountId} - ${sub.amount}
                                         </option>
                                     ))}
                                 </select>
                             </div>
                             <div style={{ marginBottom: '16px' }}>
-                                <label style={{ display: 'block', marginBottom: '6px', fontWeight: '500' }}>Amount (Rs.)</label>
+                                <label style={{ display: 'block', marginBottom: '6px', fontWeight: '500' }}>Amount ($)</label>
                                 <Input
                                     type="number"
                                     value={paymentForm.amount}
@@ -451,7 +451,7 @@ const FinanceReports = () => {
                                     <option value="">-- Select Subscription --</option>
                                     {subscriptions.map(sub => (
                                         <option key={sub.id} value={sub.id}>
-                                            {sub.studentId || sub.accountId} - Rs. {sub.amount}
+                                            {sub.studentId || sub.accountId} - ${sub.amount}
                                         </option>
                                     ))}
                                 </select>

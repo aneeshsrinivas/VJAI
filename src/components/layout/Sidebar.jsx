@@ -2,14 +2,17 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
     LayoutDashboard, Users, GraduationCap, Wallet, Radio, MessageSquare,
-    CreditCard, Calendar, BookOpen, Layers, Shield, BarChart3, FileText, LogOut, ChevronRight, Target, Package
+    CreditCard, Calendar, BookOpen, Layers, Shield, BarChart3, FileText, LogOut, ChevronRight, Target, Package,
+    Sun, Moon
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
+import { useTheme } from '../../context/ThemeContext';
 import './Sidebar.css';
 
 const Sidebar = ({ role = 'admin', activePath = '/dashboard' }) => {
     const navigate = useNavigate();
     const { logout } = useAuth();
+    const { isDark, toggleTheme } = useTheme();
     const [showDropdown, setShowDropdown] = useState(false);
 
     const links = role === 'admin' ? [
@@ -50,11 +53,11 @@ const Sidebar = ({ role = 'admin', activePath = '/dashboard' }) => {
         <aside className="sidebar">
             {/* Logo Section */}
             <div className="sidebar-brand">
-                <img src="/ica-logo.png" alt="Indian Chess Academy" className="sidebar-logo" />
+                <img src="/logo.png" alt="Indian Chess Academy" className="sidebar-logo" />
                 <span className="sidebar-title">{role === 'admin' ? 'ICA Admin' : 'Coach Portal'}</span>
             </div>
 
-            <nav className="sidebar-nav">
+            <nav className="sidebar-nav" data-lenis-prevent>
                 {links.map((link) => (
                     <div
                         key={link.path}
@@ -70,7 +73,7 @@ const Sidebar = ({ role = 'admin', activePath = '/dashboard' }) => {
             <div className="sidebar-footer">
                 <div className="user-compact">
                     <button
-                        className={`user-profile-btn ${showDropdown ? 'active' : ''}`}
+                        className={`user-profile-btn ${role === 'coach' || role !== 'admin' ? 'coach-card' : ''} ${showDropdown ? 'active' : ''}`}
                         onClick={() => setShowDropdown(!showDropdown)}
                         type="button"
                     >
@@ -79,9 +82,11 @@ const Sidebar = ({ role = 'admin', activePath = '/dashboard' }) => {
                         </div>
                         <div className="user-info">
                             <div className="user-name">{getUserDisplayName()}</div>
-                            <div className="user-role">
-                                {role === 'admin' ? '👑 System Administrator' : '🎓 Chess Coach'}
-                            </div>
+                            {role !== 'admin' && (
+                                <div className="user-role">
+                                    🎓 Chess Coach
+                                </div>
+                            )}
                         </div>
                         <ChevronRight
                             size={16}
@@ -89,6 +94,25 @@ const Sidebar = ({ role = 'admin', activePath = '/dashboard' }) => {
                         />
                     </button>
                 </div>
+
+                {/* Theme Toggle Button */}
+                <button
+                    className="sidebar-theme-toggle"
+                    onClick={toggleTheme}
+                    title={isDark ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
+                >
+                    {isDark ? (
+                        <>
+                            <Sun size={18} />
+                            <span>Light Mode</span>
+                        </>
+                    ) : (
+                        <>
+                            <Moon size={18} />
+                            <span>Dark Mode</span>
+                        </>
+                    )}
+                </button>
 
                 {/* Logout Button */}
                 <button

@@ -34,19 +34,19 @@ const AnalyticsPage = () => {
         { label: 'Avg Follow-up Speed', value: '2.5 hrs', trend: '↓ 15%', trendColor: 'var(--color-olive-green)' },
         { label: 'Demos Owned', value: '156', trend: '↑ 8%', trendColor: 'var(--color-olive-green)' },
         { label: 'Global Drop-off Rate', value: '32%', trend: '↓ 2%', trendColor: 'var(--color-olive-green)' },
-        { label: 'Demo Satisfaction', value: '4.8/5', trend: '-', trendColor: '#666' }
+        { label: 'Demo Satisfaction', value: '4.8/5', trend: '-', trendColor: 'inherit' }
     ];
 
     const FunnelBar = ({ data, label }) => {
         const max = data[0].count; // Normalize to first step
         return (
-            <div style={{ padding: '16px', border: '1px solid #eee', borderRadius: '8px', marginBottom: '16px', backgroundColor: '#fff' }}>
-                <h4 style={{ margin: '0 0 16px 0', color: '#555' }}>{label} Funnel</h4>
+            <div className="admin-panel-card" style={{ padding: '16px', border: '1px solid #eee', borderRadius: '8px', marginBottom: '16px' }}>
+                <h4 style={{ margin: '0 0 16px 0' }}>{label} Funnel</h4>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
                     {data.map((step, i) => (
                         <div key={i} style={{ display: 'grid', gridTemplateColumns: '100px 1fr 50px', alignItems: 'center', gap: '12px' }}>
-                            <span style={{ fontSize: '13px', color: '#666', textAlign: 'right' }}>{step.stage}</span>
-                            <div style={{ height: '24px', backgroundColor: '#F3F4F6', borderRadius: '4px', overflow: 'hidden' }}>
+                            <span className="sub-text" style={{ fontSize: '13px', textAlign: 'right' }}>{step.stage}</span>
+                            <div className="admin-panel-list-item" style={{ height: '24px', borderRadius: '4px', overflow: 'hidden' }}>
                                 <div style={{
                                     width: `${(step.count / max) * 100}%`,
                                     height: '100%',
@@ -69,7 +69,7 @@ const AnalyticsPage = () => {
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '32px' }}>
                 <div>
                     <h1 style={{ margin: 0, color: 'var(--color-deep-blue)' }}>Performance Analytics</h1>
-                    <p style={{ margin: '4px 0 0', color: '#666' }}>Deep dive into funnel health, coach stats, and operational efficiency.</p>
+                    <p className="sub-text" style={{ margin: '4px 0 0' }}>Deep dive into funnel health, coach stats, and operational efficiency.</p>
                 </div>
                 <div style={{ display: 'flex', gap: '12px' }}>
                     <Button variant="outline" size="sm"><Filter size={14} style={{ marginRight: '6px' }} /> {dateRange}</Button>
@@ -82,9 +82,9 @@ const AnalyticsPage = () => {
                 {adminMetrics.map((metric, i) => (
                     <Card key={i}>
                         <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                            <span style={{ fontSize: '13px', color: '#666' }}>{metric.label}</span>
+                            <span className="sub-text" style={{ fontSize: '13px' }}>{metric.label}</span>
                             <div style={{ display: 'flex', alignItems: 'baseline', gap: '8px' }}>
-                                <span style={{ fontSize: '24px', fontWeight: 'bold', color: 'var(--color-deep-blue)' }}>{metric.value}</span>
+                                <span style={{ fontSize: '24px', fontWeight: 'bold' }}>{metric.value}</span>
                                 <span style={{ fontSize: '12px', color: metric.trendColor }}>{metric.trend}</span>
                             </div>
                         </div>

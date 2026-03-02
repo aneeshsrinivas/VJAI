@@ -312,6 +312,12 @@
     background: #F88B22;
     /* Orange Wheel */
     border-radius: 2px;
+    animation: mouseScroll 2s ease-in-out infinite;
+}
+
+@keyframes mouseScroll {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(8px); }
 }
 
 /* Responsive */

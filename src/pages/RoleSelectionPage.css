@@ -271,7 +271,6 @@
         radial-gradient(ellipse 60% 80% at 75% 50%,
             rgba(212, 175, 55, 0.07) 0%,
             transparent 70%);
-    animation: orbFloat1 24s ease-in-out infinite;
 }
 
 /* Inner wrapper */
@@ -398,7 +397,6 @@
     background: rgba(248, 139, 34, 0.12);
     border: 1px solid rgba(248, 139, 34, 0.35);
     color: #F88B22;
-    animation: goldPulse 3.5s ease-in-out infinite;
 }
 
 .rsp-card-icon--silver {

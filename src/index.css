@@ -100,7 +100,7 @@ h6 {
 }
 
 /* Global Button Typography (Premium) */
-button:not(.rsp-back-btn):not(.rsp-btn):not(.back-to-home-btn):not(.db-back-btn):not(.db-btn):not(.reg-back-btn):not(.reg-btn-submit),
+button:not(.rsp-back-btn):not(.rsp-btn):not(.back-to-home-btn):not(.db-back-btn):not(.db-btn):not(.reg-back-btn):not(.reg-btn-submit):not(.ps-toggle-btn):not(.ps-cta):not(.family-btn):not(.payment-method-btn):not(.checkout-submit-btn):not(.sidebar-theme-toggle):not(.logout-btn):not(.user-profile-btn):not(.nav-item):not(.chat-user-selector):not(.filter-btn):not(.action-tile),
 .btn,
 .cta,
 .hero-cta,
@@ -121,7 +121,7 @@ button:not(.rsp-back-btn):not(.rsp-btn):not(.back-to-home-btn):not(.db-back-btn)
 }
 
 /* Default Solid Button (Generic) */
-button:not(.hero-cta-secondary):not(.rsp-btn--ghost):not(.rsp-btn--gold):not(.rsp-back-btn):not(.back-to-home-btn):not(.db-btn--ghost):not(.db-btn--gold):not(.db-back-btn):not(.reg-btn-submit):not(.reg-back-btn),
+button:not(.hero-cta-secondary):not(.rsp-btn--ghost):not(.rsp-btn--gold):not(.rsp-back-btn):not(.back-to-home-btn):not(.db-btn--ghost):not(.db-btn--gold):not(.db-back-btn):not(.reg-btn-submit):not(.reg-back-btn):not(.ps-toggle-btn):not(.ps-cta):not(.family-btn):not(.payment-method-btn):not(.checkout-submit-btn):not(.sidebar-theme-toggle):not(.logout-btn):not(.user-profile-btn):not(.nav-item):not(.chat-user-selector):not(.filter-btn):not(.action-tile),
 .btn,
 .cta,
 .hero-cta-primary {

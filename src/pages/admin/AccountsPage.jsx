@@ -78,7 +78,7 @@ const AccountsPage = () => {
                         {loading ? (
                             <div style={{ padding: '40px', textAlign: 'center' }}>Loading accounts...</div>
                         ) : filteredAccounts.length === 0 ? (
-                            <div style={{ padding: '40px', textAlign: 'center', color: '#666' }}>
+                            <div className="sub-text" style={{ padding: '40px', textAlign: 'center' }}>
                                 No accounts found. User accounts will appear here when people sign up.
                             </div>
                         ) : (

@@ -1,8 +1,21 @@
 /* src/pages/Dashboard.css */
+
+/* ── Layout Backgrounds ── */
+.layout-staff {
+    background-color: #f5f5f2;
+}
+
+.main-content-staff {
+    background-color: #f5f5f2;
+    transition: background-color 0.3s ease;
+}
+
 .dashboard-container {
-    padding: 48px;
-    max-width: 1400px;
-    margin: 0 auto;
+    padding: 32px;
+    width: 100%;
+    min-height: 100vh;
+    box-sizing: border-box;
+    transition: background-color 0.3s ease;
 }
 
 .dashboard-header {
@@ -120,4 +133,321 @@
 
 .chess-dot.active {
     background-color: var(--color-warm-orange);
+}
+
+/* Dark Mode Overrides for Admin Dashboards sharing this CSS */
+.staff-dark.layout-staff {
+    background-color: #0b0d12;
+}
+
+.staff-dark .main-content-staff {
+    background-color: #0b0d12;
+}
+
+.staff-dark .dashboard-container {
+    background-color: #0b0d12 !important;
+}
+
+.staff-dark .welcome-text {
+    background: linear-gradient(135deg, #ffffff 0%, #F88B22 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+.staff-dark .sub-text {
+    color: rgba(255, 255, 255, 0.5);
+}
+
+.staff-dark .stat-label {
+    color: rgba(255, 255, 255, 0.5);
+}
+
+.staff-dark .stat-value {
+    background: linear-gradient(135deg, #ffffff 0%, #F88B22 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+/* Force inline hardcoded white cards to dark in Dashboard metrics grid */
+.staff-dark .admin-metric-card,
+.staff-dark .admin-panel-card {
+    background-color: #1a1d27 !important;
+    border-color: rgba(255, 255, 255, 0.06) !important;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3) !important;
+    color: #f0f0f0 !important;
+}
+
+.staff-dark .admin-metric-card span,
+.staff-dark .admin-metric-card div,
+.staff-dark .admin-panel-card span,
+.staff-dark .admin-panel-card h3,
+.staff-dark .admin-panel-card div {
+    color: #f0f0f0 !important;
+}
+
+/* Card component dark mode */
+.staff-dark .card {
+    background-color: #1a1d27 !important;
+    border-color: rgba(255, 255, 255, 0.06) !important;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3) !important;
+    color: #f0f0f0 !important;
+}
+
+.staff-dark .card-header {
+    border-bottom-color: rgba(255, 255, 255, 0.08) !important;
+}
+
+.staff-dark .card-title {
+    color: #f0f0f0 !important;
+}
+
+.staff-dark .card h3,
+.staff-dark .card h4 {
+    color: #f0f0f0 !important;
+}
+
+.staff-dark .card span,
+.staff-dark .card div {
+    color: inherit;
+}
+
+.staff-dark .admin-panel-list-item {
+    background-color: rgba(255, 255, 255, 0.04) !important;
+    border-color: rgba(255, 255, 255, 0.06) !important;
+}
+
+/* Status Badge Dark Mode Overrides */
+.staff-dark .admin-status-badge {
+    background-color: rgba(255, 255, 255, 0.1) !important;
+    color: #f0f0f0 !important;
+}
+
+.staff-dark .admin-status-badge[data-status="CONVERTED"],
+.staff-dark .admin-status-badge[data-status="COMPLETED"],
+.staff-dark .admin-status-badge[data-status="ATTENDED"] {
+    color: #10B981 !important;
+    background-color: rgba(16, 185, 129, 0.1) !important;
+}
+
+.staff-dark .admin-status-badge[data-status="NO_SHOW"],
+.staff-dark .admin-status-badge[data-status="REJECTED"] {
+    color: #EF4444 !important;
+    background-color: rgba(239, 68, 68, 0.1) !important;
+}
+
+.staff-dark .admin-status-badge[data-status="PENDING"],
+.staff-dark .admin-status-badge[data-status="PAYMENT_PENDING"] {
+    color: #F59E0B !important;
+    background-color: rgba(245, 158, 11, 0.1) !important;
+}
+
+.staff-dark .admin-status-badge[data-status="CONFIRMED"],
+.staff-dark .admin-status-badge[data-status="SCHEDULED"],
+.staff-dark .admin-status-badge[data-status="INTERESTED"] {
+    color: #3B82F6 !important;
+    background-color: rgba(59, 130, 246, 0.1) !important;
+}
+
+/* ── Shared inline-styled admin page dark mode overrides ── */
+/* These override hardcoded inline styles on pages without CSS files */
+.staff-dark .main-content-staff h1,
+.staff-dark .main-content-staff h2 {
+    color: #f0f0f0 !important;
+}
+
+.staff-dark .main-content-staff h3,
+.staff-dark .main-content-staff h4 {
+    color: #e0e0e0 !important;
+}
+
+.staff-dark .main-content-staff p {
+    color: rgba(255, 255, 255, 0.6) !important;
+}
+
+.staff-dark .main-content-staff table {
+    border-color: rgba(255, 255, 255, 0.08) !important;
+}
+
+.staff-dark .main-content-staff th {
+    background-color: rgba(255, 255, 255, 0.04) !important;
+    color: rgba(255, 255, 255, 0.7) !important;
+    border-color: rgba(255, 255, 255, 0.08) !important;
+}
+
+.staff-dark .main-content-staff td {
+    color: rgba(255, 255, 255, 0.7) !important;
+    border-color: rgba(255, 255, 255, 0.06) !important;
+}
+
+.staff-dark .main-content-staff tr:hover {
+    background-color: rgba(255, 255, 255, 0.03) !important;
+}
+
+.staff-dark .main-content-staff input,
+.staff-dark .main-content-staff select,
+.staff-dark .main-content-staff textarea {
+    background-color: rgba(255, 255, 255, 0.06) !important;
+    border-color: rgba(255, 255, 255, 0.1) !important;
+    color: #f0f0f0 !important;
+}
+
+.staff-dark .main-content-staff input::placeholder,
+.staff-dark .main-content-staff textarea::placeholder {
+    color: rgba(255, 255, 255, 0.3) !important;
+}
+
+/* Override inline white/light backgrounds on divs within dark mode */
+.staff-dark .main-content-staff>div {
+    color: #f0f0f0;
+}
+
+/* Universal dark mode — safe general text color inheritance */
+.staff-dark .main-content-staff {
+    color: #f0f0f0;
+}
+
+.staff-dark .main-content-staff strong {
+    color: #f0f0f0 !important;
+}
+
+.staff-dark .main-content-staff label {
+    color: rgba(255, 255, 255, 0.7) !important;
+}
+
+/* Broadcast page dark mode */
+.staff-dark .broadcast-card {
+    background-color: #1a1d27 !important;
+    border-color: rgba(255, 255, 255, 0.06) !important;
+    color: #f0f0f0 !important;
+}
+
+.staff-dark .broadcast-item {
+    background-color: rgba(255, 255, 255, 0.04) !important;
+    border-color: rgba(255, 255, 255, 0.06) !important;
+}
+
+.staff-dark .broadcast-item strong {
+    color: #f0f0f0 !important;
+}
+
+.staff-dark .broadcast-item p {
+    color: rgba(255, 255, 255, 0.6) !important;
+}
+
+/* Modal dark mode (admin panels) */
+.staff-dark .modal-overlay {
+    background-color: rgba(0, 0, 0, 0.7) !important;
+}
+
+.staff-dark .modal-content {
+    background-color: #1a1d27 !important;
+    color: #f0f0f0 !important;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.staff-dark .modal-content h2,
+.staff-dark .modal-content h3,
+.staff-dark .modal-content label {
+    color: #f0f0f0 !important;
+}
+
+.staff-dark .modal-content p {
+    color: rgba(255, 255, 255, 0.6) !important;
+}
+
+/* Messages / Chat dark mode */
+.staff-dark .chat-user-item {
+    border-bottom-color: rgba(255, 255, 255, 0.06) !important;
+}
+
+.staff-dark .chat-user-item:hover {
+    background-color: rgba(255, 255, 255, 0.06) !important;
+}
+
+.staff-dark .chat-user-item.active {
+    background-color: rgba(252, 138, 36, 0.15) !important;
+}
+
+.staff-dark .chat-user-name {
+    color: #f0f0f0 !important;
+}
+
+.staff-dark .chat-user-email {
+    color: rgba(255, 255, 255, 0.5) !important;
+}
+
+.staff-dark .chat-header {
+    background-color: rgba(255, 255, 255, 0.04) !important;
+    border-bottom-color: rgba(255, 255, 255, 0.08) !important;
+}
+
+.staff-dark .chat-header h3 {
+    color: #f0f0f0 !important;
+}
+
+.staff-dark .chat-messages-area {
+    background-color: #0f1117 !important;
+}
+
+.staff-dark .chat-input-area {
+    border-top-color: rgba(255, 255, 255, 0.08) !important;
+}
+
+.staff-dark .chat-input-area input {
+    background-color: rgba(255, 255, 255, 0.06) !important;
+    border-color: rgba(255, 255, 255, 0.1) !important;
+    color: #f0f0f0 !important;
+}
+
+/* Subscription Plans Manager dark mode */
+.staff-dark .plan-card-body {
+    background-color: #1a1d27 !important;
+    border-color: rgba(255, 255, 255, 0.06) !important;
+}
+
+.staff-dark .plan-card-body h4,
+.staff-dark .plan-card-body span {
+    color: rgba(255, 255, 255, 0.6) !important;
+}
+
+.staff-dark .plan-card-pricing {
+    border-bottom-color: rgba(255, 255, 255, 0.06) !important;
+}
+
+.staff-dark .plan-card-pricing span:first-child {
+    color: #f0f0f0 !important;
+}
+
+.staff-dark .plan-card-features li {
+    color: rgba(255, 255, 255, 0.7) !important;
+}
+
+.staff-dark .plan-card-actions {
+    background-color: rgba(255, 255, 255, 0.04) !important;
+    border-top-color: rgba(255, 255, 255, 0.06) !important;
+}
+
+/* Chat user selector dark mode */
+.staff-dark .chat-user-selector {
+    background-color: #1a1d27 !important;
+    border-color: rgba(255, 255, 255, 0.1) !important;
+    color: #f0f0f0 !important;
+}
+
+/* SubscriptionPage dark mode */
+.staff-dark .main-content-staff select {
+    background-color: rgba(255, 255, 255, 0.06) !important;
+    border-color: rgba(255, 255, 255, 0.1) !important;
+    color: #f0f0f0 !important;
+}
+
+.staff-dark .main-content-staff option {
+    background-color: #1a1d27;
+    color: #f0f0f0;
+}
+
+/* SubscriptionPage modal dark mode */
+.staff-dark .main-content-staff>div[style*="position: fixed"]>div {
+    background-color: #1a1d27 !important;
+    color: #f0f0f0 !important;
 }

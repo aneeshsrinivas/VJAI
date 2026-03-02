@@ -499,11 +499,11 @@
 /* ===== QUICK ACTIONS ===== */
 .quick-actions-grid {
     display: grid;
-    grid-template-columns: repeat(4, 1fr);
+    grid-template-columns: repeat(2, 1fr);
     gap: 16px;
+    transition: all 0.3s ease;
     transform: translateY(20px);
     opacity: 0;
-    transition: all 0.5s cubic-bezier(0.16, 1, 0.3, 1);
     transition-delay: 0.4s;
 }
 
@@ -512,31 +512,93 @@
     opacity: 1;
 }
 
-.quick-action {
+.quick-action-card {
+    display: flex !important;
+    align-items: center !important;
+    gap: 16px !important;
+    padding: 20px !important;
+    background: var(--card-gradient) !important;
+    background-color: unset !important;
+    border: none !important;
+    border-radius: 16px !important;
+    cursor: pointer !important;
+    transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) !important;
+    position: relative !important;
+    overflow: hidden !important;
+    text-align: left !important;
+    text-transform: none !important;
+    font-family: 'Figtree', sans-serif !important;
+    font-size: unset !important;
+    letter-spacing: normal !important;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15) !important;
+    width: 100% !important;
+}
+
+.quick-action-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: var(--card-gradient);
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.quick-action-card:hover {
+    transform: translateY(-6px);
+    box-shadow: 0 16px 40px rgba(0, 0, 0, 0.12);
+    border-color: transparent;
+}
+
+.quick-action-card:hover::before {
+    opacity: 1;
+}
+
+.action-icon-circle {
+    width: 52px;
+    height: 52px;
+    border-radius: 14px;
+    background: var(--card-gradient);
     display: flex;
-    flex-direction: column;
     align-items: center;
-    gap: 10px;
-    padding: 24px 16px;
-    background: #FFFEF3;
-    border: 1px solid rgba(0, 0, 0, 0.06);
-    border-radius: 16px;
-    cursor: pointer;
-    font-family: inherit;
-    transition: all 0.2s;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+    justify-content: center;
+    flex-shrink: 0;
+    transition: transform 0.3s ease;
 }
 
-.quick-action span {
-    font-size: 13px;
-    font-weight: 600;
-    color: #475569;
+.quick-action-card:hover .action-icon-circle {
+    transform: scale(1.1) rotate(5deg);
 }
 
-.quick-action:hover {
-    transform: translateY(-4px);
-    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
-    border-color: rgba(252, 138, 36, 0.3);
+.action-text {
+    flex: 1;
+}
+
+.action-title {
+    display: block;
+    font-size: 16px;
+    font-weight: 700;
+    color: white !important;
+    margin-bottom: 4px;
+}
+
+.action-desc {
+    display: block;
+    font-size: 12px;
+    color: rgba(255, 255, 255, 0.8) !important;
+}
+
+.action-arrow {
+    font-size: 20px;
+    color: rgba(255, 255, 255, 0.7) !important;
+    transition: all 0.3s ease;
+}
+
+.quick-action-card:hover .action-arrow {
+    color: white !important;
+    transform: translateX(4px);
 }
 
 /* ===== DEMO LIST ===== */
@@ -658,7 +720,7 @@
     }
 
     .quick-actions-grid {
-        grid-template-columns: repeat(2, 1fr);
+        grid-template-columns: 1fr;
     }
 }
 
@@ -674,4 +736,149 @@
     .hero-actions {
         flex-direction: column;
     }
+}
+
+/* ========================================
+   DARK MODE — staff-dark class on layout-staff
+   ======================================== */
+
+.staff-dark .coach-page {
+    background: linear-gradient(180deg, #0f1117 0%, #161b27 100%);
+}
+
+.staff-dark .coach-loading-page {
+    background: linear-gradient(180deg, #0f1117 0%, #161b27 100%);
+}
+
+.staff-dark .coach-loading-page p {
+    color: #f0f0f0;
+}
+
+.staff-dark .hero-overlay {
+    background: linear-gradient(135deg, rgba(15, 17, 23, 0.70) 0%, rgba(22, 27, 39, 0.65) 100%);
+}
+
+.staff-dark .stats-card-floating {
+    background: #1e2330;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.staff-dark .stats-header {
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.staff-dark .stats-value,
+.staff-dark .mini-num {
+    color: #f0f0f0;
+}
+
+.staff-dark .stats-label,
+.staff-dark .mini-label {
+    color: rgba(255, 255, 255, 0.65);
+}
+
+.staff-dark .stat-card,
+.staff-dark .content-card {
+    background: #1e2330;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+}
+
+.staff-dark .stat-card:hover,
+.staff-dark .content-card:hover {
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.4);
+    border-color: rgba(255, 255, 255, 0.15);
+}
+
+.staff-dark .stat-number {
+    color: #f0f0f0;
+}
+
+.staff-dark .stat-label {
+    color: rgba(255, 255, 255, 0.65);
+}
+
+.staff-dark .card-title-group h3 {
+    color: #f0f0f0;
+}
+
+.staff-dark .card-badge {
+    background: rgba(252, 138, 36, 0.2);
+    color: #FC8A24;
+}
+
+.staff-dark .btn-link {
+    color: #FC8A24;
+}
+
+.staff-dark .session-item {
+    background: linear-gradient(135deg, #252b3b 0%, #1e2330 100%);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.staff-dark .session-time .time {
+    background: rgba(124, 58, 237, 0.2);
+    color: #a78bfa;
+    box-shadow: none;
+}
+
+.staff-dark .session-details h4 {
+    color: #f0f0f0;
+}
+
+.staff-dark .meta {
+    color: rgba(255, 255, 255, 0.5);
+}
+
+.staff-dark .badge.demo {
+    background: rgba(245, 158, 11, 0.2);
+    color: #fbbf24;
+}
+
+.staff-dark .badge.class {
+    background: rgba(59, 130, 246, 0.2);
+    color: #93c5fd;
+}
+
+.staff-dark .empty-state {
+    background: rgba(255, 255, 255, 0.03);
+}
+
+.staff-dark .empty-state p {
+    color: #f0f0f0;
+}
+
+.staff-dark .empty-state span {
+    color: rgba(255, 255, 255, 0.5);
+}
+
+.staff-dark .quick-action-card {
+    /* Gradients handle their own color, no generic background needed here but keep shadow */
+    border: none !important;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5) !important;
+}
+
+.staff-dark .quick-action-card:hover {
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.6) !important;
+}
+
+.staff-dark .demo-item {
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.staff-dark .demo-date .time {
+    color: #f0f0f0;
+}
+
+.staff-dark .demo-date .day {
+    color: rgba(255, 255, 255, 0.65);
+}
+
+.staff-dark .demo-info h4 {
+    color: #f0f0f0;
+}
+
+.staff-dark .demo-info p {
+    color: rgba(255, 255, 255, 0.5);
 }

@@ -345,81 +345,31 @@ const PaymentCheckout = () => {
                                 )}
 
                                 {formData.paymentMethod === 'upi' && (
-                                    <div className="upi-details" style={{ marginTop: '20px', padding: '24px', background: '#f8fafc', borderRadius: '12px', textAlign: 'center' }}>
-                                        <h4 style={{ margin: '0 0 16px', color: '#181818' }}>Pay via UPI</h4>
-
-                                        {/* Mock QR Code */}
-                                        <div style={{
-                                            width: '180px',
-                                            height: '180px',
-                                            margin: '0 auto 16px',
-                                            background: 'white',
-                                            border: '2px solid #ddd',
-                                            borderRadius: '12px',
-                                            display: 'flex',
-                                            alignItems: 'center',
-                                            justifyContent: 'center',
-                                            fontSize: '60px'
-                                        }}>
-                                            📱
-                                        </div>
-
-                                        <p style={{ fontSize: '14px', color: '#666', margin: '0 0 8px' }}>Scan QR code or pay to:</p>
-                                        <div style={{
-                                            padding: '12px 20px',
-                                            background: 'white',
-                                            borderRadius: '8px',
-                                            border: '1px solid #ddd',
-                                            display: 'inline-block',
-                                            fontFamily: 'monospace',
-                                            fontSize: '16px',
-                                            fontWeight: '600',
-                                            color: '#181818'
-                                        }}>
-                                            {UPI_ID}
-                                        </div>
-
-                                        <p style={{ fontSize: '13px', color: '#FC8A24', marginTop: '16px', fontWeight: '600' }}>
+                                    <div className="upi-details">
+                                        <h4>Pay via UPI</h4>
+                                        <div className="upi-qr-box">📱</div>
+                                        <p className="upi-hint">Scan QR code or pay to:</p>
+                                        <div className="upi-id-display">{UPI_ID}</div>
+                                        <p className="upi-amount">
                                             Amount: ₹{(pricing.total * 83).toFixed(0)} (~${pricing.total.toFixed(2)})
                                         </p>
-
-                                        {/* Confirmation Checkbox */}
-                                        <label style={{
-                                            display: 'flex',
-                                            alignItems: 'center',
-                                            gap: '10px',
-                                            marginTop: '20px',
-                                            padding: '12px 16px',
-                                            background: upiConfirmed ? '#dcfce7' : 'white',
-                                            border: `2px solid ${upiConfirmed ? '#22c55e' : '#ddd'}`,
-                                            borderRadius: '8px',
-                                            cursor: 'pointer',
-                                            justifyContent: 'center'
-                                        }}>
+                                        <label className={`upi-confirm-label ${upiConfirmed ? 'confirmed' : ''}`}>
                                             <input
                                                 type="checkbox"
                                                 checked={upiConfirmed}
                                                 onChange={(e) => setUpiConfirmed(e.target.checked)}
-                                                style={{ width: '18px', height: '18px' }}
+                                                style={{ width: '18px', height: '18px', accentColor: '#22c55e' }}
                                             />
-                                            <span style={{ fontWeight: '500', color: upiConfirmed ? '#166534' : '#333' }}>
-                                                I have completed the UPI payment
-                                            </span>
+                                            <span>I have completed the UPI payment</span>
                                         </label>
                                     </div>
                                 )}
                             </div>
 
-                            <Button
+                            <button
                                 type="submit"
+                                className="checkout-submit-btn"
                                 disabled={isProcessing}
-                                style={{
-                                    width: '100%',
-                                    padding: '18px',
-                                    fontSize: '18px',
-                                    fontWeight: '600',
-                                    backgroundColor: isProcessing ? '#ccc' : 'var(--color-warm-orange)'
-                                }}
                             >
                                 {isProcessing ? (
                                     <span className="processing-text">
@@ -429,7 +379,7 @@ const PaymentCheckout = () => {
                                 ) : (
                                     `Pay $${pricing.total.toFixed(2)}`
                                 )}
-                            </Button>
+                            </button>
                         </form>
                     </div>
 

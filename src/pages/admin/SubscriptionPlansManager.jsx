@@ -7,7 +7,7 @@ import Input from '../../components/ui/Input';
 import { toast, ToastContainer } from 'react-toastify';
 import { Plus, X, Edit2, Trash2, CreditCard, Package, CheckCircle, Shield, Star, RefreshCw } from 'lucide-react';
 
-// Default plans from mockData - used for seeding
+// Default plans - only the two 1-on-1 plans
 const defaultPlans = [
     {
         id: 'one-on-one-beginner',
@@ -48,46 +48,6 @@ const defaultPlans = [
         isActive: true,
         isFeatured: true,
         sortOrder: 1
-    },
-    {
-        id: 'group-beginner',
-        name: 'Group Beginner Class',
-        description: 'Small batch group classes for beginners',
-        price: 40,
-        billingCycle: 'MONTHLY',
-        level: 'beginner',
-        classType: 'group',
-        features: [
-            'Small batch (max 8 students)',
-            'Peer learning environment',
-            'Fixed schedule (3x/week)',
-            '12 sessions per month',
-            'Batch group chat access',
-            'Shared learning materials'
-        ],
-        isActive: true,
-        isFeatured: false,
-        sortOrder: 2
-    },
-    {
-        id: 'group-intermediate',
-        name: 'Group Intermediate Class',
-        description: 'Skill-matched group classes for intermediate players',
-        price: 50,
-        billingCycle: 'MONTHLY',
-        level: 'intermediate',
-        classType: 'group',
-        features: [
-            'Skill-matched batches',
-            'Competitive practice games',
-            'Fixed schedule (3x/week)',
-            '12 sessions per month',
-            'Tournament opportunities',
-            'Rating improvement focus'
-        ],
-        isActive: true,
-        isFeatured: false,
-        sortOrder: 3
     }
 ];
 
@@ -252,7 +212,7 @@ const SubscriptionPlansManager = () => {
 
     // Seed default plans from mockData
     const handleSeedDefaultPlans = async () => {
-        if (!window.confirm('This will add the 4 default plans from the pricing page. Existing plans with the same ID will be skipped. Continue?')) {
+        if (!window.confirm('This will add the 2 default 1-on-1 plans from the pricing page. Existing plans with the same ID will be skipped. Continue?')) {
             return;
         }
 
@@ -329,7 +289,7 @@ const SubscriptionPlansManager = () => {
                         </span>
                         Subscription Plans Manager
                     </h1>
-                    <p style={{ color: '#666', margin: '8px 0 0 56px' }}>
+                    <p className="sub-text" style={{ margin: '8px 0 0 56px' }}>
                         Create and manage subscription plans for parents to choose from.
                     </p>
                 </div>
@@ -351,12 +311,12 @@ const SubscriptionPlansManager = () => {
 
             {/* Plans Grid */}
             {loading ? (
-                <div style={{ padding: '60px', textAlign: 'center', color: '#666' }}>Loading plans...</div>
+                <div className="sub-text" style={{ padding: '60px', textAlign: 'center' }}>Loading plans...</div>
             ) : plans.length === 0 ? (
                 <Card style={{ padding: '60px', textAlign: 'center' }}>
                     <Package size={64} style={{ color: '#ccc', marginBottom: '16px' }} />
-                    <h3 style={{ margin: '0 0 8px', color: '#333' }}>No Subscription Plans Yet</h3>
-                    <p style={{ color: '#666', marginBottom: '20px' }}>Create your first subscription plan or seed the default plans from the pricing page.</p>
+                    <h3 style={{ margin: '0 0 8px' }}>No Subscription Plans Yet</h3>
+                    <p className="sub-text" style={{ marginBottom: '20px' }}>Create your first subscription plan or seed the default plans from the pricing page.</p>
                     <div style={{ display: 'flex', gap: '12px', justifyContent: 'center' }}>
                         <Button onClick={handleSeedDefaultPlans} variant="outline">
                             <RefreshCw size={16} style={{ marginRight: 8 }} />
@@ -427,16 +387,16 @@ const SubscriptionPlansManager = () => {
                             </div>
 
                             {/* Pricing */}
-                            <div style={{ padding: '20px 24px', borderBottom: '1px solid #f0f0f0' }}>
+                            <div className="plan-card-pricing" style={{ padding: '20px 24px', borderBottom: '1px solid #f0f0f0' }}>
                                 <div style={{ display: 'flex', alignItems: 'baseline', gap: '4px' }}>
-                                    <span style={{ fontSize: '32px', fontWeight: '800', color: '#003366' }}>₹{plan.price?.toLocaleString()}</span>
-                                    <span style={{ color: '#666', fontSize: '14px' }}>/{plan.billingCycle?.toLowerCase()}</span>
+                                    <span style={{ fontSize: '32px', fontWeight: '800' }}>${plan.price?.toLocaleString()}</span>
+                                    <span className="sub-text" style={{ fontSize: '14px' }}>/{plan.billingCycle?.toLowerCase()}</span>
                                 </div>
                             </div>
 
                             {/* Features */}
-                            <div style={{ padding: '20px 24px' }}>
-                                <h4 style={{ margin: '0 0 12px', fontSize: '13px', color: '#666', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                            <div className="plan-card-features" style={{ padding: '20px 24px' }}>
+                                <h4 style={{ margin: '0 0 12px', fontSize: '13px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
                                     Features Included
                                 </h4>
                                 {plan.features?.length > 0 ? (
@@ -447,8 +407,7 @@ const SubscriptionPlansManager = () => {
                                                 alignItems: 'center',
                                                 gap: '8px',
                                                 padding: '6px 0',
-                                                fontSize: '14px',
-                                                color: '#334155'
+                                                fontSize: '14px'
                                             }}>
                                                 <CheckCircle size={16} color="#10B981" />
                                                 {feature}
@@ -456,17 +415,16 @@ const SubscriptionPlansManager = () => {
                                         ))}
                                     </ul>
                                 ) : (
-                                    <p style={{ color: '#999', fontSize: '14px', margin: 0 }}>No features listed</p>
+                                    <p className="sub-text" style={{ fontSize: '14px', margin: 0 }}>No features listed</p>
                                 )}
                             </div>
 
                             {/* Actions */}
-                            <div style={{
+                            <div className="plan-card-actions" style={{
                                 padding: '16px 24px',
                                 borderTop: '1px solid #f0f0f0',
                                 display: 'flex',
-                                gap: '8px',
-                                backgroundColor: '#F9FAFB'
+                                gap: '8px'
                             }}>
                                 <Button
                                     size="sm"
@@ -500,27 +458,24 @@ const SubscriptionPlansManager = () => {
 
             {/* Add/Edit Plan Modal */}
             {showAddModal && (
-                <div style={{
+                <div className="modal-overlay" style={{
                     position: 'fixed',
                     top: 0,
                     left: 0,
                     right: 0,
                     bottom: 0,
-                    backgroundColor: 'rgba(0,0,0,0.6)',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
                     zIndex: 1000
                 }} onClick={() => { setShowAddModal(false); resetForm(); }}>
-                    <div style={{
-                        backgroundColor: '#fff',
+                    <div className="modal-content" style={{
                         borderRadius: '16px',
                         width: '600px',
                         maxWidth: '95%',
                         maxHeight: '90vh',
                         display: 'flex',
-                        flexDirection: 'column',
-                        boxShadow: '0 20px 60px rgba(0,0,0,0.3)'
+                        flexDirection: 'column'
                     }} onClick={e => e.stopPropagation()}>
                         {/* Modal Header */}
                         <div style={{
@@ -530,7 +485,7 @@ const SubscriptionPlansManager = () => {
                             justifyContent: 'space-between',
                             alignItems: 'center'
                         }}>
-                            <h3 style={{ margin: 0, fontSize: '20px', fontWeight: '700', color: '#003366' }}>
+                            <h3 style={{ margin: 0, fontSize: '20px', fontWeight: '700' }}>
                                 {editingPlan ? 'Edit Subscription Plan' : 'Create New Plan'}
                             </h3>
                             <button
@@ -583,7 +538,7 @@ const SubscriptionPlansManager = () => {
                             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginBottom: '20px' }}>
                                 <div>
                                     <label style={{ display: 'block', marginBottom: '6px', fontWeight: '600', fontSize: '14px' }}>
-                                        Price (₹) *
+                                        Price ($) *
                                     </label>
                                     <Input
                                         type="number"

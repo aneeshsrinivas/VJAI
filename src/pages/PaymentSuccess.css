@@ -98,7 +98,6 @@
     width: 10px;
     height: 10px;
     top: -10px;
-    animation: confettiFall 3s linear infinite;
 }
 
 @keyframes confettiFall {

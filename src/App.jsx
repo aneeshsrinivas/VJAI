@@ -68,14 +68,17 @@ const ParentLayout = () => {
   );
 };
 
-const StaffLayout = ({ role }) => (
-  <div className="layout-staff" style={{ display: 'flex' }}>
-    <Sidebar role={role} />
-    <main className="main-content-staff" style={{ flex: 1, marginLeft: '260px', padding: '24px', width: 'calc(100% - 260px)' }}>
-      <Outlet />
-    </main>
-  </div>
-);
+const StaffLayout = ({ role }) => {
+  const { isDark } = useTheme();
+  return (
+    <div className={`layout-staff${isDark ? ' staff-dark' : ''}`} style={{ display: 'flex', minHeight: '100vh', width: '100%' }}>
+      <Sidebar role={role} />
+      <main className="main-content-staff" style={{ flex: 1, marginLeft: '260px', padding: '24px', width: 'calc(100% - 260px)' }}>
+        <Outlet />
+      </main>
+    </div>
+  );
+};
 
 function App() {
   const location = useLocation();
@@ -84,10 +87,12 @@ function App() {
   // Initialize Lenis smooth scroll
   useEffect(() => {
     const lenis = new Lenis({
-      duration: 1.2,
+      duration: 1.0,
       easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
       smoothTouch: false,
-      lerp: 0.1 // Reduce lerp for smoother interpolation
+      orientation: 'vertical',
+      gestureOrientation: 'vertical',
+      syncTouch: false
     });
     lenisRef.current = lenis;
 
@@ -158,7 +163,7 @@ function App() {
           <Route path="/student" element={<StudentPage />} />
 
           {/* Coach Routes */}
-          <Route element={<StaffLayout role="coach" />}>
+          <Route element={<ThemeProvider><StaffLayout role="coach" /></ThemeProvider>}>
             <Route path="/coach" element={<CoachPage />} />
             <Route path="/coach/students" element={<CoachStudents />} />
             <Route path="/coach/batches" element={<CoachBatches />} />
@@ -167,7 +172,7 @@ function App() {
           </Route>
 
           {/* Admin Routes */}
-          <Route element={<StaffLayout role="admin" />}>
+          <Route element={<ThemeProvider><StaffLayout role="admin" /></ThemeProvider>}>
             <Route path="/admin" element={<AdminDashboard />} />
             <Route path="/chat" element={<ChatPage userRole="ADMIN" />} />
             <Route path="/admin/students" element={<StudentDatabase />} />

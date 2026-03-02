@@ -10,6 +10,7 @@ import ConvertStudentModal from '../../components/features/ConvertStudentModal';
 import { toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { Trash2, Edit, Link, CheckCircle } from 'lucide-react';
+import './DemosPage.css';
 
 const DemosPage = () => {
     const { currentUser } = useAuth();
@@ -28,18 +29,18 @@ const DemosPage = () => {
 
     const fetchDemos = async () => {
         setLoading(true);
-        let result;
+        try {
+            const result = await getAllDemos();
 
-        if (filter === 'ALL') {
-            result = await getAllDemos();
-        } else {
-            result = await getDemosByStatus(filter);
-        }
-
-        if (result.success) {
-            setDemos(result.demos);
-        } else {
-            toast.error('Failed to fetch demos');
+            if (result.success) {
+                setDemos(result.demos);
+            } else {
+                setDemos([]);
+                toast.error('Failed to load demos from server.');
+            }
+        } catch (error) {
+            console.error('Failed to fetch demos:', error);
+            toast.error('Failed to fetch demos. Please check your connection.');
         }
         setLoading(false);
     };
@@ -126,13 +127,13 @@ const DemosPage = () => {
     });
 
     return (
-        <div style={{ padding: '24px' }}>
+        <div className="demos-page-container" style={{ padding: '24px' }}>
             <ToastContainer position="top-right" autoClose={3000} />
 
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
                 <div>
-                    <h1 style={{ margin: 0 }}>Demo Classes</h1>
-                    <p style={{ color: '#666', margin: '4px 0 0' }}>Manage demo requests, scheduling, and conversion outcomes.</p>
+                    <h1 className="page-title" style={{ margin: 0 }}>Demo Classes</h1>
+                    <p className="page-subtitle" style={{ color: '#666', margin: '4px 0 0' }}>Manage demo requests, scheduling, and conversion outcomes.</p>
                 </div>
                 <div style={{ display: 'flex', gap: '12px' }}>
                     <input
@@ -150,16 +151,15 @@ const DemosPage = () => {
                 {['ALL', 'PENDING', 'SCHEDULED', 'ATTENDED', 'INTERESTED', 'PAYMENT_PENDING', 'CONVERTED'].map(f => (
                     <button
                         key={f}
+                        className={`filter-btn ${filter === f ? 'active' : ''}`}
                         onClick={() => setFilter(f)}
                         style={{
                             padding: '8px 16px',
                             borderRadius: '20px',
-                            border: filter === f ? 'none' : '1px solid #ddd',
-                            backgroundColor: filter === f ? 'var(--color-deep-blue)' : '#FFFFFF',
-                            color: filter === f ? '#fff' : '#666',
                             cursor: 'pointer',
                             fontWeight: '600',
-                            fontSize: '12px'
+                            fontSize: '12px',
+                            border: filter === f ? 'none' : '1px solid #ddd',
                         }}
                     >
                         {f.replace('_', ' ')}
@@ -175,46 +175,46 @@ const DemosPage = () => {
                         No demo requests found. Demo bookings from the landing page will appear here.
                     </div>
                 ) : (
-                    <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
-                        <thead style={{ backgroundColor: '#f9fafb', borderBottom: '1px solid #eee' }}>
+                    <table className="demos-table" style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
+                        <thead>
                             <tr>
-                                <th style={{ padding: '16px', fontSize: '13px', color: '#555', textTransform: 'uppercase' }}>Student</th>
-                                <th style={{ padding: '16px', fontSize: '13px', color: '#555', textTransform: 'uppercase' }}>Parent Contact</th>
-                                <th style={{ padding: '16px', fontSize: '13px', color: '#555', textTransform: 'uppercase' }}>Status</th>
-                                <th style={{ padding: '16px', fontSize: '13px', color: '#555', textTransform: 'uppercase' }}>Preferred Time</th>
-                                <th style={{ padding: '16px', fontSize: '13px', color: '#555', textTransform: 'uppercase' }}>Assigned Coach</th>
-                                <th style={{ padding: '16px', fontSize: '13px', color: '#555', textTransform: 'uppercase' }}>Actions</th>
+                                <th>Student</th>
+                                <th>Parent Contact</th>
+                                <th>Status</th>
+                                <th>Preferred Time</th>
+                                <th>Assigned Coach</th>
+                                <th>Actions</th>
                             </tr>
                         </thead>
                         <tbody>
                             {filteredDemos.map(demo => (
-                                <tr key={demo.id} style={{ borderBottom: '1px solid #f5f5f5' }}>
-                                    <td style={{ padding: '16px' }}>
-                                        <div style={{ fontWeight: '600', color: 'var(--color-deep-blue)' }}>{demo.studentName}</div>
-                                        <div style={{ fontSize: '12px', color: '#888' }}>{demo.chessExperience}</div>
+                                <tr key={demo.id}>
+                                    <td className="table-cell">
+                                        <div className="student-name" style={{ fontWeight: '600' }}>{demo.studentName}</div>
+                                        <div className="student-exp" style={{ fontSize: '12px', color: '#888' }}>{demo.chessExperience}</div>
                                     </td>
-                                    <td style={{ padding: '16px' }}>
-                                        <div style={{ fontSize: '14px' }}>{demo.parentName}</div>
-                                        <a href={`mailto:${demo.parentEmail}`} style={{ fontSize: '12px', color: '#666', textDecoration: 'none' }}>{demo.parentEmail}</a>
+                                    <td className="table-cell">
+                                        <div className="parent-name" style={{ fontSize: '14px' }}>{demo.parentName}</div>
+                                        <a className="parent-email" href={`mailto:${demo.parentEmail}`} style={{ fontSize: '12px', color: '#666', textDecoration: 'none' }}>{demo.parentEmail}</a>
                                     </td>
-                                    <td style={{ padding: '16px' }}>{getStatusBadge(demo.status)}</td>
-                                    <td style={{ padding: '16px', fontSize: '14px' }}>
-                                        <div>
+                                    <td className="table-cell">{getStatusBadge(demo.status)}</td>
+                                    <td className="table-cell" style={{ fontSize: '14px' }}>
+                                        <div className="preferred-time">
                                             {demo.scheduledStart ?
                                                 new Date(demo.scheduledStart).toLocaleString([], { dateStyle: 'short', timeStyle: 'short' }) :
                                                 (demo.preferredDateTime || (demo.preferredDate && demo.preferredTime ? `${demo.preferredDate} ${demo.preferredTime}` : '-'))
                                             }
                                         </div>
-                                        <div style={{ fontSize: '11px', color: '#666' }}>{demo.timezone}</div>
+                                        <div className="timezone-text" style={{ fontSize: '11px', color: '#666' }}>{demo.timezone}</div>
                                     </td>
-                                    <td style={{ padding: '16px', fontSize: '14px' }}>
+                                    <td className="table-cell" style={{ fontSize: '14px' }}>
                                         {demo.assignedCoachId ? (
                                             <span style={{ fontWeight: '500', color: '#059669' }}>Assigned</span>
                                         ) : (
-                                            <span style={{ color: '#999', fontStyle: 'italic' }}>Unassigned</span>
+                                            <span className="unassigned-text" style={{ color: '#999', fontStyle: 'italic' }}>Unassigned</span>
                                         )}
                                     </td>
-                                    <td style={{ padding: '16px' }}>
+                                    <td className="table-cell">
                                         <div style={{ display: 'flex', gap: '8px' }}>
                                             {/* Action: Assign or Reassign */}
                                             {(demo.status === 'PENDING' || demo.status === 'SCHEDULED') && (
