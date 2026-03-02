@@ -101,7 +101,7 @@ const ScheduleClassModal = ({ isOpen, onClose, batchId, batchName, onSuccess }) 
                 <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '20px' }}>
                     <h2 style={{ margin: 0, fontSize: '20px', color: isDark ? '#f0f0f0' : '#1e293b' }}>Schedule New Class</h2>
                     <button onClick={onClose} style={{ background: 'none', border: 'none', cursor: 'pointer' }}>
-                        <X size={24} color={isDark ? '#a0a0k0' : "#64748b"} />
+                        <X size={24} color={isDark ? '#e2e8f0' : "#64748b"} />
                     </button>
                 </div>
 

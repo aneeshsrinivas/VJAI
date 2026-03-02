@@ -51,7 +51,7 @@ const ApproveCoachModal = ({ application, onClose, onSuccess }) => {
                         },
                         body: JSON.stringify({
                             access_key: import.meta.env.VITE_WEB3FORMS_ACCESS_KEY,
-                            email: 'abhirambhat2210@gmail.com', // Route to admin/tester email as per config
+                            to: coachEmail,
                             subject: 'Welcome to Indian Chess Academy - Coach Account Approved! 🎉',
                             from_name: 'Indian Chess Academy',
                             reply_to: 'indianchessacademy@chess.com',

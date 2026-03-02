@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { submitDemoOutcome } from '../../services/firestoreService';
 import { DEMO_STATUS } from '../../config/firestoreCollections';
 import { emailService } from '../../services/emailService';
+import { useTheme } from '../../context/ThemeContext';
 import Button from '../ui/Button';
 import { AlertTriangle, CheckCircle, XCircle, Clock, Star } from 'lucide-react';
 import './DemoOutcomeModal.css';
@@ -12,6 +13,8 @@ import './DemoOutcomeModal.css';
  * Shows confetti animation on successful submission
  */
 const DemoOutcomeModal = ({ demo, onClose, onSuccess, mandatory = false }) => {
+    const { isDark } = useTheme();
+
     // Guard against undefined demo
     if (!demo) {
         return null;
@@ -127,7 +130,8 @@ const DemoOutcomeModal = ({ demo, onClose, onSuccess, mandatory = false }) => {
                         parentEmail: demo.parentEmail,
                         parentName: demo.parentName,
                         studentName: demo.studentName,
-                        demoId: demo.id
+                        demoId: demo.id,
+                        meetingLink: demo.meetingLink // Pass the Zoom meeting link if available
                     });
                 } catch (emailError) {
                     console.error('Failed to send payment email:', emailError);
@@ -164,7 +168,7 @@ const DemoOutcomeModal = ({ demo, onClose, onSuccess, mandatory = false }) => {
             )}
 
             <div
-                className={`modal-content demo-outcome-modal ${attemptedClose ? 'shake-error' : ''}`}
+                className={`modal-content demo-outcome-modal ${attemptedClose ? 'shake-error' : ''} ${isDark ? 'dark-mode' : ''}`}
                 style={{ maxHeight: '90vh', overflowY: 'auto' }}
             >
                 {/* Only show close button if not mandatory */}

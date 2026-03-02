@@ -42,6 +42,7 @@ import PlanSelection from './pages/PlanSelection';
 import PaymentCheckout from './pages/PaymentCheckout';
 import PaymentSuccess from './pages/PaymentSuccess';
 import DemoBooking from './pages/DemoBooking';
+import DemoConfirmation from './pages/DemoConfirmation';
 import AboutUs from './pages/AboutUs';
 import Services from './pages/Services';
 import ContactUs from './pages/ContactUs';
@@ -141,7 +142,7 @@ function App() {
           <Route path="/registration-success" element={<PageTransition><RegistrationSuccessPage /></PageTransition>} />
           <Route path="/login" element={<PageTransition><Login /></PageTransition>} />
           <Route path="/demo-booking" element={<PageTransition><DemoBooking /></PageTransition>} />
-          <Route path="/demo-confirmation" element={<PageTransition><PlaceholderPage title="Demo Request Submitted!" message="Thank you! Our team will contact you within 24 hours to schedule your free demo class." /></PageTransition>} />
+          <Route path="/demo-confirmation" element={<PageTransition><DemoConfirmation /></PageTransition>} />
           <Route path="/book-demo" element={<PageTransition><PlaceholderPage title="Book a Free Demo" /></PageTransition>} />
 
           {/* Payment Routes */}
