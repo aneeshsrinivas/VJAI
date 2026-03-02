@@ -6,7 +6,7 @@ import Button from '../components/ui/Button';
 const PaymentSuccess = () => {
     const location = useLocation();
     const navigate = useNavigate();
-    const { plan, pricing, manualApproval } = location.state || {};
+    const { plan, pricing, manualApproval, razorpayPaymentId, paymentMethod } = location.state || {};
 
     const [showAnimation, setShowAnimation] = useState(true);
     const [showConfetti, setShowConfetti] = useState(false);
@@ -105,7 +105,12 @@ const PaymentSuccess = () => {
                     <div className="success-breakdown">
                         <div className="success-row">
                             <span>Amount Paid</span>
-                            <span className="success-amount">${pricing?.total.toFixed(2)}</span>
+                            <span className="success-amount">
+                                {paymentMethod === 'razorpay'
+                                    ? `₹${pricing?.amountINR?.toLocaleString() || Math.round((pricing?.total || 0) * 83).toLocaleString()}`
+                                    : `$${pricing?.total?.toFixed(2)}`
+                                }
+                            </span>
                         </div>
                         <div className="success-row">
                             <span>Billing Cycle</span>
@@ -116,9 +121,20 @@ const PaymentSuccess = () => {
                             <span>{new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toLocaleDateString()}</span>
                         </div>
                         <div className="success-row">
-                            <span>Order ID</span>
-                            <span className="order-id">#{Math.random().toString(36).substr(2, 9).toUpperCase()}</span>
+                            <span>Order / Payment ID</span>
+                            <span className="order-id">
+                                {razorpayPaymentId
+                                    ? razorpayPaymentId
+                                    : `#${Math.random().toString(36).substr(2, 9).toUpperCase()}`
+                                }
+                            </span>
                         </div>
+                        {razorpayPaymentId && (
+                            <div className="success-row">
+                                <span>Payment Gateway</span>
+                                <span style={{ color: '#0f3460', fontWeight: '700' }}>Razorpay ✓</span>
+                            </div>
+                        )}
                     </div>
                 </div>
 

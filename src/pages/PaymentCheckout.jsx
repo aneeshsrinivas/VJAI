@@ -9,6 +9,7 @@ import './PaymentCheckout.css';
 import Button from '../components/ui/Button';
 import Input from '../components/ui/Input';
 import { conversionService } from '../services/conversionService';
+import { openRazorpayCheckout, loadRazorpayScript, createRazorpayOrder, verifyRazorpayPayment } from '../services/razorpayService';
 
 const PaymentCheckout = () => {
     const location = useLocation();
@@ -21,8 +22,9 @@ const PaymentCheckout = () => {
         studentAge: '',
         parentName: '',
         parentEmail: '',
+        parentPhone: '',
         timezone: 'IST',
-        paymentMethod: 'upi', // Default to UPI
+        paymentMethod: 'razorpay', // Default to Razorpay
         cardNumber: '',
         cardExpiry: '',
         cardCVV: '',
@@ -36,6 +38,11 @@ const PaymentCheckout = () => {
     // Mock UPI details
     const UPI_ID = 'indianchessacademy@upi';
 
+    // Pre-load Razorpay SDK silently on mount
+    useEffect(() => {
+        loadRazorpayScript();
+    }, []);
+
     // Pre-fill form with user data if logged in
     useEffect(() => {
         const fetchUserData = async () => {
@@ -47,7 +54,8 @@ const PaymentCheckout = () => {
                         setFormData(prev => ({
                             ...prev,
                             parentName: userData.fullName || userData.name || '',
-                            parentEmail: userData.email || user.email || ''
+                            parentEmail: userData.email || user.email || '',
+                            parentPhone: userData.phone || userData.phoneNumber || ''
                         }));
                     } else {
                         setFormData(prev => ({
@@ -84,81 +92,8 @@ const PaymentCheckout = () => {
 
     const pricing = calculateTotal();
 
-    const handleSubmit = async (e) => {
-        e.preventDefault();
-        setIsProcessing(true);
-
-        try {
-            const parentId = user?.uid || null;
-            const paymentData = {
-                parentId,
-                parentEmail: formData.parentEmail,
-                parentName: formData.parentName,
-                studentName: formData.studentName,
-                studentAge: formData.studentAge,
-                planId: plan.id || plan.planId,
-                planName: plan.name,
-                amount: pricing.total,
-                subtotal: pricing.subtotal,
-                discount: pricing.discount,
-                familyMembers,
-                paymentMethod: formData.paymentMethod,
-                currency: 'USD',
-                status: formData.paymentMethod === 'upi' ? 'PENDING' : 'COMPLETED',
-                createdAt: serverTimestamp()
-            };
-
-            // Create payment record in Firestore
-            const paymentRef = await addDoc(collection(db, 'payments'), paymentData);
-
-            // Create or update subscription
-            const subscriptionData = {
-                parentId,
-                parentEmail: formData.parentEmail,
-                parentName: formData.parentName,
-                studentName: formData.studentName,
-                planId: plan.id || plan.planId,
-                planName: plan.name,
-                amount: pricing.total,
-                billingCycle: plan.billingCycle || 'MONTHLY',
-                status: formData.paymentMethod === 'upi' ? 'PENDING_APPROVAL' : 'ACTIVE',
-                paymentId: paymentRef.id,
-                nextDueAt: getNextDueDate(plan.billingCycle),
-                createdAt: serverTimestamp(),
-                updatedAt: serverTimestamp()
-            };
-
-            await addDoc(collection(db, 'subscriptions'), subscriptionData);
-
-            if (formData.paymentMethod === 'upi') {
-                // UPI Flow: Submit payment proof and wait for admin approval
-                if (demoId) {
-                    await conversionService.submitPaymentProof(demoId, plan, {
-                        method: 'UPI',
-                        upiId: UPI_ID,
-                        ...formData,
-                        amount: pricing.total
-                    });
-                    toast.success("Payment submitted! Waiting for admin approval.");
-                }
-                navigate('/payment/success', { state: { plan, pricing, manualApproval: true } });
-            } else {
-                // Card payment - simulate processing
-                // Update payment status to completed
-                await updateDoc(doc(db, 'payments', paymentRef.id), {
-                    status: 'COMPLETED',
-                    completedAt: serverTimestamp()
-                });
-
-                toast.success("Payment successful!");
-                navigate('/payment/success', { state: { plan, pricing, manualApproval: false, paymentId: paymentRef.id } });
-            }
-        } catch (error) {
-            console.error('Payment error:', error);
-            toast.error('Payment submission failed. Please try again.');
-            setIsProcessing(false);
-        }
-    };
+    // Convert USD → INR for Razorpay (1 USD ≈ 83 INR, test mode)
+    const amountINR = Math.round(pricing.total * 83);
 
     const getNextDueDate = (billingCycle) => {
         const nextDue = new Date();
@@ -184,8 +119,198 @@ const PaymentCheckout = () => {
         });
     };
 
+    // ── Razorpay flow ──────────────────────────────────────────────────────────
+    const handleRazorpayPayment = async () => {
+        if (!formData.studentName || !formData.parentName || !formData.parentEmail) {
+            toast.error('Please fill in Student Name, Parent Name, and Email before proceeding.');
+            return;
+        }
+        setIsProcessing(true);
+        try {
+            // 1. Create Order on Backend
+            const order = await createRazorpayOrder(
+                amountINR,
+                `receipt_${Date.now()}`,
+                {
+                    planName: plan.name,
+                    parentEmail: formData.parentEmail
+                }
+            );
+
+            // 2. Open Razorpay Modal with the real order ID
+            const razorpayResponse = await openRazorpayCheckout({
+                amountINR,
+                orderId: order.id,
+                planName: plan.name,
+                parentName: formData.parentName,
+                parentEmail: formData.parentEmail,
+                parentPhone: formData.parentPhone,
+                description: `${plan.name} - ${plan.billingCycle || 'Monthly'} Plan`,
+            });
+
+            // 3. Verify Payment Signature on Backend
+            toast.info('Verifying payment securely...');
+            await verifyRazorpayPayment(
+                razorpayResponse.razorpay_order_id,
+                razorpayResponse.razorpay_payment_id,
+                razorpayResponse.razorpay_signature
+            );
+
+            // 4. Payment was successful format – save to Firestore
+            const parentId = user?.uid || null;
+            const paymentData = {
+                parentId,
+                parentEmail: formData.parentEmail,
+                parentName: formData.parentName,
+                studentName: formData.studentName,
+                studentAge: formData.studentAge,
+                planId: plan.id || plan.planId,
+                planName: plan.name,
+                amount: amountINR,
+                subtotal: Math.round(pricing.subtotal * 83),
+                discount: Math.round(pricing.discount * 83),
+                familyMembers,
+                paymentMethod: 'razorpay',
+                currency: 'INR',
+                status: 'COMPLETED',
+                razorpayPaymentId: razorpayResponse.razorpay_payment_id,
+                razorpayOrderId: razorpayResponse.razorpay_order_id,
+                razorpaySignature: razorpayResponse.razorpay_signature,
+                createdAt: serverTimestamp(),
+                completedAt: serverTimestamp(),
+            };
+            const paymentRef = await addDoc(collection(db, 'payments'), paymentData);
+
+            // Create subscription record
+            const subscriptionData = {
+                parentId,
+                parentEmail: formData.parentEmail,
+                parentName: formData.parentName,
+                studentName: formData.studentName,
+                planId: plan.id || plan.planId,
+                planName: plan.name,
+                amount: amountINR,
+                billingCycle: plan.billingCycle || 'MONTHLY',
+                status: 'ACTIVE',
+                paymentMethod: 'razorpay',
+                paymentId: paymentRef.id,
+                razorpayPaymentId: razorpayResponse.razorpay_payment_id,
+                nextDueAt: getNextDueDate(plan.billingCycle),
+                createdAt: serverTimestamp(),
+                updatedAt: serverTimestamp(),
+            };
+            await addDoc(collection(db, 'subscriptions'), subscriptionData);
+
+            if (demoId) {
+                await conversionService.submitPaymentProof(demoId, plan, {
+                    method: 'Razorpay',
+                    razorpayPaymentId: razorpayResponse.razorpay_payment_id,
+                    ...formData,
+                    amount: amountINR,
+                });
+            }
+
+            toast.success('🎉 Payment successful!');
+            navigate('/payment/success', {
+                state: {
+                    plan,
+                    pricing: { ...pricing, amountINR },
+                    manualApproval: false,
+                    paymentId: paymentRef.id,
+                    razorpayPaymentId: razorpayResponse.razorpay_payment_id,
+                    paymentMethod: 'razorpay',
+                }
+            });
+        } catch (error) {
+            if (error.message === 'PAYMENT_CANCELLED') {
+                toast.info('Payment cancelled.');
+            } else {
+                console.error('Razorpay error:', error);
+                toast.error('Payment failed: ' + error.message);
+            }
+            setIsProcessing(false);
+        }
+    };
+
+    // ── Standard form submit (UPI / Card) ──────────────────────────────────────
+    const handleSubmit = async (e) => {
+        e.preventDefault();
+
+        // Intercept Razorpay click (button inside form)
+        if (formData.paymentMethod === 'razorpay') {
+            await handleRazorpayPayment();
+            return;
+        }
+
+        setIsProcessing(true);
+        try {
+            const parentId = user?.uid || null;
+            const paymentData = {
+                parentId,
+                parentEmail: formData.parentEmail,
+                parentName: formData.parentName,
+                studentName: formData.studentName,
+                studentAge: formData.studentAge,
+                planId: plan.id || plan.planId,
+                planName: plan.name,
+                amount: pricing.total,
+                subtotal: pricing.subtotal,
+                discount: pricing.discount,
+                familyMembers,
+                paymentMethod: formData.paymentMethod,
+                currency: 'USD',
+                status: formData.paymentMethod === 'upi' ? 'PENDING' : 'COMPLETED',
+                createdAt: serverTimestamp()
+            };
+
+            const paymentRef = await addDoc(collection(db, 'payments'), paymentData);
+
+            const subscriptionData = {
+                parentId,
+                parentEmail: formData.parentEmail,
+                parentName: formData.parentName,
+                studentName: formData.studentName,
+                planId: plan.id || plan.planId,
+                planName: plan.name,
+                amount: pricing.total,
+                billingCycle: plan.billingCycle || 'MONTHLY',
+                status: formData.paymentMethod === 'upi' ? 'PENDING_APPROVAL' : 'ACTIVE',
+                paymentId: paymentRef.id,
+                nextDueAt: getNextDueDate(plan.billingCycle),
+                createdAt: serverTimestamp(),
+                updatedAt: serverTimestamp()
+            };
+            await addDoc(collection(db, 'subscriptions'), subscriptionData);
+
+            if (formData.paymentMethod === 'upi') {
+                if (demoId) {
+                    await conversionService.submitPaymentProof(demoId, plan, {
+                        method: 'UPI',
+                        upiId: UPI_ID,
+                        ...formData,
+                        amount: pricing.total
+                    });
+                    toast.success('Payment submitted! Waiting for admin approval.');
+                }
+                navigate('/payment/success', { state: { plan, pricing, manualApproval: true } });
+            } else {
+                await updateDoc(doc(db, 'payments', paymentRef.id), {
+                    status: 'COMPLETED',
+                    completedAt: serverTimestamp()
+                });
+                toast.success('Payment successful!');
+                navigate('/payment/success', { state: { plan, pricing, manualApproval: false, paymentId: paymentRef.id } });
+            }
+        } catch (error) {
+            console.error('Payment error:', error);
+            toast.error('Payment submission failed. Please try again.');
+            setIsProcessing(false);
+        }
+    };
+
     return (
         <div className="checkout-page">
+            <ToastContainer position="top-right" autoClose={4000} hideProgressBar={false} />
             <div className="checkout-container">
                 {/* Progress Indicator */}
                 <div className="checkout-progress">
@@ -209,6 +334,28 @@ const PaymentCheckout = () => {
                     {/* Left Side - Form */}
                     <div className="checkout-form-section">
                         <h1 className="checkout-title">Complete Your Enrollment</h1>
+
+                        {/* TEST MODE BANNER */}
+                        <div style={{
+                            background: 'linear-gradient(135deg, #1a1a2e 0%, #16213e 100%)',
+                            border: '1px solid #4facfe55',
+                            borderRadius: '12px',
+                            padding: '12px 16px',
+                            marginBottom: '24px',
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '10px',
+                        }}>
+                            <span style={{ fontSize: '20px' }}>🧪</span>
+                            <div>
+                                <p style={{ margin: 0, fontWeight: '700', color: '#4facfe', fontSize: '13px' }}>
+                                    RAZORPAY TEST MODE ACTIVE
+                                </p>
+                                <p style={{ margin: 0, color: 'rgba(255,255,255,0.6)', fontSize: '12px' }}>
+                                    Use test card <strong style={{ color: '#fff' }}>4111 1111 1111 1111</strong> · Expiry: any future date · CVV: any 3 digits
+                                </p>
+                            </div>
+                        </div>
 
                         <form onSubmit={handleSubmit}>
                             {/* Student Information */}
@@ -253,6 +400,14 @@ const PaymentCheckout = () => {
                                         required
                                     />
                                 </div>
+                                <Input
+                                    label="Phone Number (for payment prefill)"
+                                    name="parentPhone"
+                                    type="tel"
+                                    placeholder="+91 9876543210"
+                                    value={formData.parentPhone}
+                                    onChange={handleInputChange}
+                                />
                             </div>
 
                             {/* Family Plan */}
@@ -275,7 +430,7 @@ const PaymentCheckout = () => {
                                     </div>
                                     {familyMembers >= 2 && (
                                         <div className="family-discount-message">
-                                            🎉 Family discount applied! Save ${pricing.discount.toFixed(2)}/month
+                                            🎉 Family discount applied! Save ₹{Math.round(pricing.discount * 83).toLocaleString()}
                                         </div>
                                     )}
                                 </div>
@@ -285,32 +440,122 @@ const PaymentCheckout = () => {
                             <div className="checkout-section">
                                 <h3 className="section-title">Payment Method</h3>
                                 <div className="payment-methods">
+                                    {/* Razorpay — Recommended */}
                                     <button
                                         type="button"
-                                        className={`payment-method-btn ${formData.paymentMethod === 'card' ? 'active' : ''}`}
-                                        onClick={() => setFormData({ ...formData, paymentMethod: 'card' })}
+                                        id="pay-razorpay-btn"
+                                        className={`payment-method-btn ${formData.paymentMethod === 'razorpay' ? 'active' : ''}`}
+                                        onClick={() => setFormData({ ...formData, paymentMethod: 'razorpay' })}
+                                        style={{ position: 'relative' }}
                                     >
-                                        <span className="payment-icon">💳</span>
-                                        <span>Credit/Debit Card</span>
+                                        <span className="payment-icon">
+                                            <img
+                                                src="https://razorpay.com/favicon.png"
+                                                alt="Razorpay"
+                                                style={{ width: '20px', height: '20px', borderRadius: '4px' }}
+                                                onError={(e) => { e.target.style.display = 'none'; e.target.nextSibling.style.display = 'inline'; }}
+                                            />
+                                            <span style={{ display: 'none' }}>💳</span>
+                                        </span>
+                                        <span>Razorpay</span>
+                                        <span style={{
+                                            position: 'absolute', top: '-8px', right: '-8px',
+                                            background: '#22c55e', color: 'white',
+                                            fontSize: '9px', fontWeight: '700',
+                                            padding: '2px 6px', borderRadius: '10px',
+                                            letterSpacing: '0.5px'
+                                        }}>RECOMMENDED</span>
                                     </button>
+
                                     <button
                                         type="button"
                                         className={`payment-method-btn ${formData.paymentMethod === 'upi' ? 'active' : ''}`}
                                         onClick={() => setFormData({ ...formData, paymentMethod: 'upi' })}
                                     >
                                         <span className="payment-icon">📱</span>
-                                        <span>UPI</span>
+                                        <span>Manual UPI</span>
                                     </button>
+
                                     <button
                                         type="button"
-                                        className={`payment-method-btn ${formData.paymentMethod === 'wallet' ? 'active' : ''}`}
-                                        onClick={() => setFormData({ ...formData, paymentMethod: 'wallet' })}
+                                        className={`payment-method-btn ${formData.paymentMethod === 'card' ? 'active' : ''}`}
+                                        onClick={() => setFormData({ ...formData, paymentMethod: 'card' })}
                                     >
-                                        <span className="payment-icon">👛</span>
-                                        <span>Wallet</span>
+                                        <span className="payment-icon">💳</span>
+                                        <span>Card (Demo)</span>
                                     </button>
                                 </div>
 
+                                {/* Razorpay info panel */}
+                                {formData.paymentMethod === 'razorpay' && (
+                                    <div style={{
+                                        background: 'linear-gradient(135deg, #0f3460 0%, #16213e 100%)',
+                                        borderRadius: '16px',
+                                        padding: '24px',
+                                        marginTop: '16px',
+                                        color: 'white',
+                                        border: '1px solid rgba(79,172,254,0.3)',
+                                    }}>
+                                        <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '16px' }}>
+                                            <div style={{
+                                                background: 'rgba(79,172,254,0.15)',
+                                                borderRadius: '12px', padding: '10px',
+                                            }}>
+                                                <span style={{ fontSize: '24px' }}>🔒</span>
+                                            </div>
+                                            <div>
+                                                <p style={{ margin: 0, fontWeight: '700', fontSize: '16px' }}>Secure Razorpay Checkout</p>
+                                                <p style={{ margin: 0, color: 'rgba(255,255,255,0.6)', fontSize: '13px' }}>
+                                                    Supports UPI, Cards, Net Banking & Wallets
+                                                </p>
+                                            </div>
+                                        </div>
+
+                                        {/* Amount display */}
+                                        <div style={{
+                                            background: 'rgba(255,255,255,0.07)',
+                                            borderRadius: '12px', padding: '16px',
+                                            display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+                                            marginBottom: '16px',
+                                        }}>
+                                            <span style={{ color: 'rgba(255,255,255,0.7)', fontSize: '14px' }}>Amount to Pay</span>
+                                            <span style={{ fontSize: '24px', fontWeight: '800', color: '#4facfe' }}>
+                                                ₹{amountINR.toLocaleString()}
+                                            </span>
+                                        </div>
+
+                                        {/* Test card chips */}
+                                        <div style={{ marginBottom: '8px' }}>
+                                            <p style={{ margin: '0 0 8px', color: 'rgba(255,255,255,0.5)', fontSize: '11px', textTransform: 'uppercase', letterSpacing: '1px' }}>
+                                                🧪 Test Credentials
+                                            </p>
+                                            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
+                                                {[
+                                                    { label: 'Card', value: '4111 1111 1111 1111' },
+                                                    { label: 'Expiry', value: '12/26' },
+                                                    { label: 'CVV', value: '123' },
+                                                    { label: 'UPI', value: 'success@razorpay' },
+                                                ].map(item => (
+                                                    <div key={item.label} style={{
+                                                        background: 'rgba(79,172,254,0.12)',
+                                                        border: '1px solid rgba(79,172,254,0.3)',
+                                                        borderRadius: '8px', padding: '6px 10px',
+                                                        fontSize: '12px',
+                                                    }}>
+                                                        <span style={{ color: 'rgba(255,255,255,0.5)' }}>{item.label}: </span>
+                                                        <span style={{ color: '#fff', fontWeight: '600', fontFamily: 'monospace' }}>{item.value}</span>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        </div>
+
+                                        <p style={{ margin: '12px 0 0', color: 'rgba(255,255,255,0.4)', fontSize: '11px' }}>
+                                            ⓘ Clicking "Pay with Razorpay" will open the Razorpay modal. No real money is charged in test mode.
+                                        </p>
+                                    </div>
+                                )}
+
+                                {/* Card details (demo) */}
                                 {formData.paymentMethod === 'card' && (
                                     <div className="card-details">
                                         <Input
@@ -344,6 +589,7 @@ const PaymentCheckout = () => {
                                     </div>
                                 )}
 
+                                {/* Manual UPI */}
                                 {formData.paymentMethod === 'upi' && (
                                     <div className="upi-details">
                                         <h4>Pay via UPI</h4>
@@ -351,7 +597,7 @@ const PaymentCheckout = () => {
                                         <p className="upi-hint">Scan QR code or pay to:</p>
                                         <div className="upi-id-display">{UPI_ID}</div>
                                         <p className="upi-amount">
-                                            Amount: ${pricing.total.toFixed(2)} (≈ ₹{(pricing.total * 83).toFixed(0)})
+                                            Amount: ₹{amountINR.toLocaleString()} (~${pricing.total.toFixed(2)})
                                         </p>
                                         <label className={`upi-confirm-label ${upiConfirmed ? 'confirmed' : ''}`}>
                                             <input
@@ -366,20 +612,36 @@ const PaymentCheckout = () => {
                                 )}
                             </div>
 
+                            {/* Submit button */}
                             <button
                                 type="submit"
+                                id="checkout-submit-btn"
                                 className="checkout-submit-btn"
-                                disabled={isProcessing}
+                                disabled={isProcessing || (formData.paymentMethod === 'upi' && !upiConfirmed)}
+                                style={formData.paymentMethod === 'razorpay' ? {
+                                    background: 'linear-gradient(135deg, #072654 0%, #0f3460 50%, #1a5276 100%)',
+                                    boxShadow: '0 8px 24px rgba(15,52,96,0.5)',
+                                } : {}}
                             >
                                 {isProcessing ? (
                                     <span className="processing-text">
                                         <span className="spinner"></span>
-                                        Processing Payment...
+                                        {formData.paymentMethod === 'razorpay' ? 'Opening Razorpay...' : 'Processing Payment...'}
                                     </span>
                                 ) : (
-                                    `Pay $${pricing.total.toFixed(2)}`
+                                    formData.paymentMethod === 'razorpay'
+                                        ? `🔒 Pay ₹${amountINR.toLocaleString()} with Razorpay`
+                                        : formData.paymentMethod === 'upi'
+                                            ? `Submit Payment (₹${amountINR.toLocaleString()})`
+                                            : `Pay $${pricing.total.toFixed(2)} (Demo)`
                                 )}
                             </button>
+
+                            {formData.paymentMethod === 'razorpay' && (
+                                <p style={{ textAlign: 'center', fontSize: '12px', color: '#999', marginTop: '12px' }}>
+                                    🔐 Secured by Razorpay. SSL encrypted & PCI DSS compliant.
+                                </p>
+                            )}
                         </form>
                     </div>
 
@@ -412,7 +674,7 @@ const PaymentCheckout = () => {
                                     <span>× {familyMembers}</span>
                                 </div>
                                 <div className="summary-row">
-                                    <span>Subtotal</span>
+                                    <span>Subtotal (USD)</span>
                                     <span>${pricing.subtotal.toFixed(2)}</span>
                                 </div>
                                 {pricing.discount > 0 && (
@@ -421,13 +683,17 @@ const PaymentCheckout = () => {
                                         <span>-${pricing.discount.toFixed(2)}</span>
                                     </div>
                                 )}
+                                <div className="summary-row" style={{ marginTop: '8px', paddingTop: '8px', borderTop: '1px solid #eee' }}>
+                                    <span style={{ color: '#666', fontSize: '13px' }}>Amount in INR</span>
+                                    <span style={{ color: '#0f3460', fontWeight: '700' }}>₹{amountINR.toLocaleString()}</span>
+                                </div>
                             </div>
 
                             <div className="summary-divider"></div>
 
                             <div className="summary-total">
                                 <span>Total Due Today</span>
-                                <span className="summary-total-amount">${pricing.total.toFixed(2)}</span>
+                                <span className="summary-total-amount">₹{amountINR.toLocaleString()}</span>
                             </div>
 
                             <div className="summary-features">
@@ -448,6 +714,18 @@ const PaymentCheckout = () => {
                                     <strong>Money-Back Guarantee</strong>
                                     <p>Not satisfied? Get a full refund within 7 days.</p>
                                 </div>
+                            </div>
+
+                            {/* Razorpay badge */}
+                            <div style={{
+                                marginTop: '16px', padding: '12px',
+                                background: '#f8fafc', borderRadius: '10px',
+                                display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px',
+                            }}>
+                                <span style={{ fontSize: '11px', color: '#94a3b8' }}>Payments powered by</span>
+                                <span style={{ fontWeight: '800', color: '#072654', fontSize: '13px', letterSpacing: '-0.5px' }}>
+                                    Razorpay
+                                </span>
                             </div>
                         </div>
                     </div>
