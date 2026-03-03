@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate, useSearchParams } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { collection, query, where, onSnapshot, doc, getDoc, orderBy, limit } from 'firebase/firestore';
 import { db } from '../lib/firebase';
@@ -7,7 +7,6 @@ import { COLLECTIONS } from '../config/firestoreCollections';
 import Button from '../components/ui/Button';
 import ReviewRequestModal from '../components/features/ReviewRequestModal';
 import StudentChessAssignmentModal from '../components/features/StudentChessAssignmentModal';
-import LichessSync from '../components/features/LichessSync';
 // Icons
 import CalendarIcon from '../components/icons/CalendarIcon';
 import AssignmentIcon from '../components/icons/AssignmentIcon';
@@ -19,12 +18,11 @@ import VideoIcon from '../components/icons/VideoIcon';
 import GreetingIcon from '../components/icons/GreetingIcon';
 import ChessBishopIcon from '../components/icons/ChessBishopIcon';
 import ClockIcon from '../components/icons/ClockIcon';
-import { Bell, Megaphone, Link2 } from 'lucide-react';
+import { Bell, Megaphone } from 'lucide-react';
 import './ParentDashboard.css';
 
 const ParentDashboard = () => {
     const navigate = useNavigate();
-    const [searchParams] = useSearchParams();
     const { currentUser, userData } = useAuth();
     const [isReviewModalOpen, setReviewModalOpen] = useState(false);
 
@@ -40,16 +38,6 @@ const ParentDashboard = () => {
     // UI State
     const [cardsVisible, setCardsVisible] = useState(false);
     const [progress, setProgress] = useState(0);
-
-    // Scroll to Lichess section on mount if query param
-    useEffect(() => {
-        if (searchParams.get('scrollToLichess')) {
-            setTimeout(() => {
-                document.getElementById('lichess-sync')?.scrollIntoView({ behavior: 'smooth' });
-                window.history.replaceState({}, document.title, '/parent');
-            }, 200);
-        }
-    }, [searchParams]);
 
     // 1. Listen to Student Data (for realtime Level & Coach assignment)
     useEffect(() => {
@@ -622,17 +610,6 @@ const ParentDashboard = () => {
                                     </button>
                                 );
                             })}
-                        </div>
-
-                        {/* Lichess Sync Section */}
-                        <div id="lichess-sync" className={`content-card ${cardsVisible ? 'visible' : ''}`}>
-                            <div className="card-header-row">
-                                <div className="card-title-group">
-                                    <Link2 size={22} color="#FC8A24" />
-                                    <h3>Lichess Sync</h3>
-                                </div>
-                            </div>
-                            <LichessSync currentUser={currentUser} userData={userData} />
                         </div>
                     </div>
 

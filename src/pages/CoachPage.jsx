@@ -1,21 +1,19 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate, useSearchParams } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { collection, query, where, onSnapshot } from 'firebase/firestore';
 import { db } from '../lib/firebase';
 import { useAuth } from '../context/AuthContext';
 import { COLLECTIONS, DEMO_STATUS } from '../config/firestoreCollections';
 import Button from '../components/ui/Button';
-import LichessPendingRequests from '../components/features/LichessPendingRequests';
 import {
     Clock, Users, Calendar, TrendingUp, BookOpen, Award, Lightbulb,
     Video, ChevronRight, Star, Activity, Zap, GraduationCap, MessageSquare,
-    Sun, Moon, Sunset, Trophy, Target, Link2
+    Sun, Moon, Sunset, Trophy, Target
 } from 'lucide-react';
 import './CoachPage.css';
 
 const CoachPage = () => {
     const navigate = useNavigate();
-    const [searchParams] = useSearchParams();
     const { currentUser, userData } = useAuth();
     const [loading, setLoading] = useState(true);
     const [cardsVisible, setCardsVisible] = useState(false);
@@ -26,16 +24,6 @@ const CoachPage = () => {
     const [students, setStudents] = useState([]);
     const [todayClasses, setTodayClasses] = useState([]);
     const [selectedDemo, setSelectedDemo] = useState(null); // Modal state
-
-    // Scroll to Lichess section on mount if query param
-    useEffect(() => {
-        if (searchParams.get('scrollToLichess')) {
-            setTimeout(() => {
-                document.getElementById('lichess-requests')?.scrollIntoView({ behavior: 'smooth' });
-                window.history.replaceState({}, document.title, '/coach');
-            }, 200);
-        }
-    }, [searchParams]);
 
     useEffect(() => {
         if (!currentUser?.uid) return;
@@ -448,17 +436,6 @@ const CoachPage = () => {
                                 </button>
                             );
                         })}
-                    </div>
-
-                    {/* Pending Lichess Requests */}
-                    <div id="lichess-requests" className={`content-card ${cardsVisible ? 'visible' : ''}`}>
-                        <div className="card-header">
-                            <div className="card-title-group">
-                                <Link2 size={22} color="#f59e0b" />
-                                <h3>Pending Lichess Requests</h3>
-                            </div>
-                        </div>
-                        <LichessPendingRequests currentUser={currentUser} />
                     </div>
                 </div>
 

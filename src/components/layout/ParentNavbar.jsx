@@ -80,14 +80,8 @@ const ParentNavbar = () => {
                     Payments
                 </a>
                 <a
-                    onClick={() => {
-                        if (location.pathname === '/parent') {
-                            setTimeout(() => document.getElementById('lichess-sync')?.scrollIntoView({ behavior: 'smooth' }), 100);
-                        } else {
-                            navigate('/parent?scrollToLichess=true');
-                        }
-                    }}
-                    className="nav-link"
+                    onClick={() => navigate('/parent/lichess')}
+                    className={`nav-link ${isActive('/parent/lichess')}`}
                     style={{ display: 'flex', alignItems: 'center', gap: '6px' }}
                 >
                     <Link2 size={16} /> Lichess

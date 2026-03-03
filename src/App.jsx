@@ -18,10 +18,12 @@ import ParentSchedule from './pages/parent/ParentSchedule';
 import ParentAssignments from './pages/parent/ParentAssignments';
 import ParentPayments from './pages/parent/ParentPayments';
 import ParentSettings from './pages/parent/ParentSettings';
+import ParentLichess from './pages/parent/ParentLichess';
 import CoachPage from './pages/CoachPage';
 import CoachBatches from './pages/coach/CoachBatches';
 import CoachSchedule from './pages/coach/CoachSchedule';
 import CoachStudents from './pages/coach/CoachStudents';
+import CoachLichess from './pages/coach/CoachLichess';
 import StudentPage from './pages/StudentPage';
 import AdminDashboard from './pages/AdminDashboard';
 import PlaceholderPage from './pages/PlaceholderPage';
@@ -158,6 +160,7 @@ function App() {
             <Route path="/parent/assignments" element={<ParentAssignments />} />
             <Route path="/parent/payments" element={<ParentPayments />} />
             <Route path="/parent/settings" element={<ParentSettings />} />
+            <Route path="/parent/lichess" element={<ParentLichess />} />
           </Route>
 
           {/* Student Routes */}
@@ -170,6 +173,7 @@ function App() {
             <Route path="/coach/batches" element={<CoachBatches />} />
             <Route path="/coach/schedule" element={<CoachSchedule />} />
             <Route path="/coach/chat" element={<ChatPage userRole="COACH" />} />
+            <Route path="/coach/lichess" element={<CoachLichess />} />
           </Route>
 
           {/* Admin Routes */}
