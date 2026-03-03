@@ -125,7 +125,7 @@ const Login = () => {
                             {showAccounts && savedAccounts.length > 0 && (
                                 <div className="saved-accounts-dropdown">
                                     {savedAccounts.map((acc, idx) => (
-                                        <div key={idx} className="saved-account-item" onClick={() => selectAccount(acc)}>
+                                        <div key={idx} className="saved-account-item" onMouseDown={() => selectAccount(acc)}>
                                             <div>
                                                 <span className="saved-email">{acc.e}</span>
                                                 <span className="saved-role">Saved &bull; {acc.role}</span>
