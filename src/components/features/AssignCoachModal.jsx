@@ -70,9 +70,9 @@ const AssignCoachModal = ({ demo, onClose, onSuccess }) => {
             return;
         }
 
-        // Get the coach's Firebase Auth UID (userId field), not the Firestore doc ID
+        // Get the coach's Firebase Auth UID (accountId field), not the Firestore doc ID
         const selectedCoach = coaches.find(c => c.id === selectedCoachId);
-        const coachUserId = selectedCoach?.userId || selectedCoachId;
+        const coachUserId = selectedCoach?.accountId || selectedCoach?.userId || selectedCoachId;
 
         // Debug log to verify what's being assigned
         console.log('🎯 Assigning demo:', {

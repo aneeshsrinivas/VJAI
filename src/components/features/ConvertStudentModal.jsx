@@ -4,17 +4,31 @@ import { createParentAuthAccount } from '../../services/adminAuthService';
 import Button from '../ui/Button';
 import Input from '../ui/Input';
 import { useAuth } from '../../context/AuthContext';
+import { useTheme } from '../../context/ThemeContext';
 import './DemoOutcomeModal.css'; // Reuse styles
 
 const EMAIL_API_URL = import.meta.env.VITE_EMAIL_API_URL || 'http://localhost:3001';
 
 const ConvertStudentModal = ({ demo, onClose, onSuccess }) => {
     const { currentUser } = useAuth();
+    const { isDark } = useTheme();
+
+    // Auto-generate student email from student name
+    const studentEmailPrefix = demo.studentName.toLowerCase().split(' ')[0].replace(/[^a-z0-9]/g, '');
+    const studentEmail = `${studentEmailPrefix}@student.com`;
+
+    const PLAN_PRICES = {
+        'beginner-1m': '60', 'beginner-3m': '160', 'beginner-4m': '200',
+        'advanced-beginner-1m': '60', 'advanced-beginner-3m': '160', 'advanced-beginner-4m': '200',
+        'intermediate-I-1m': '70', 'intermediate-I-3m': '187', 'intermediate-I-4m': '233',
+        'intermediate-II-1m': '70', 'intermediate-II-3m': '187', 'intermediate-II-4m': '233',
+    };
+
     const [formData, setFormData] = useState({
-        email: demo.parentEmail || '',
+        email: studentEmail,
         password: '',
-        planId: 'monthly-group',
-        amount: '2000',
+        planId: 'beginner-1m',
+        amount: '60',
     });
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
@@ -59,7 +73,7 @@ const ConvertStudentModal = ({ demo, onClose, onSuccess }) => {
             const result = await convertDemoToStudent(demo.id, realUid, paymentData);
 
             if (result.success) {
-                // Send emails via Web3Forms
+                // Send emails via nodemailer
                 try {
                     // 1. Notify Admin of Payment
                     const adminEmailResponse = await fetch(`${EMAIL_API_URL}/api/email/send`, {
@@ -75,7 +89,7 @@ const ConvertStudentModal = ({ demo, onClose, onSuccess }) => {
 • Parent: ${demo.parentName} (${demo.parentEmail})
 • Student: ${demo.studentName}
 • Plan: ${formData.planId}
-• Amount: ₹${formData.amount}
+• Amount: $${formData.amount}
 • Date: ${new Date().toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' })}
 
 🔐 LMS Access Credentials:
@@ -158,26 +172,27 @@ Indian Chess Academy Team
 
     return (
         <div className="modal-overlay">
-            <div className="modal-content demo-outcome-modal">
+            <div className={`modal-content demo-outcome-modal ${isDark ? 'dark-mode' : ''}`}>
                 <button className="modal-close" onClick={onClose}>&times;</button>
                 <h2>Convert to Student</h2>
                 <p className="modal-subtitle">Create account for {demo.studentName}</p>
 
                 <div className="demo-info">
-                    <p><strong>Email:</strong> {demo.parentEmail}</p>
+                    <p><strong>Parent Email:</strong> {demo.parentEmail}</p>
+                    <p><strong>Student Login Email:</strong> {studentEmail}</p>
                 </div>
 
                 {error && <div className="error-message">{error}</div>}
 
                 <form onSubmit={handleSubmit}>
                     <Input
-                        label="Parent Email (Login ID)"
+                        label="Student Email (Login ID)"
                         name="email"
                         type="email"
                         required
                         value={formData.email}
                         onChange={handleChange}
-                        placeholder="parent@example.com"
+                        placeholder="studentname@student.com"
                     />
 
                     <Input
@@ -196,19 +211,36 @@ Indian Chess Academy Team
                             name="planId"
                             value={formData.planId}
                             onChange={(e) => {
-                                const amount = e.target.value.includes('group') ? '2000' : '5000';
+                                const amount = PLAN_PRICES[e.target.value] || '60';
                                 setFormData(prev => ({ ...prev, planId: e.target.value, amount }));
                             }}
                             style={{ padding: '10px', width: '100%', borderRadius: '6px', border: '1px solid #ddd' }}
                         >
-                            <option value="monthly-group">Monthly Group Class (₹2000)</option>
-                            <option value="monthly-1on1">Monthly 1-on-1 (₹5000)</option>
-                            <option value="quarterly-group">Quarterly Group Class (₹5500)</option>
+                            <optgroup label="Beginner ($60/mo)">
+                                <option value="beginner-1m">Beginner — 1 Month ($60)</option>
+                                <option value="beginner-3m">Beginner — 3 Months ($160)</option>
+                                <option value="beginner-4m">Beginner — 4 Months ($200)</option>
+                            </optgroup>
+                            <optgroup label="Advanced Beginner ($60/mo)">
+                                <option value="advanced-beginner-1m">Advanced Beginner — 1 Month ($60)</option>
+                                <option value="advanced-beginner-3m">Advanced Beginner — 3 Months ($160)</option>
+                                <option value="advanced-beginner-4m">Advanced Beginner — 4 Months ($200)</option>
+                            </optgroup>
+                            <optgroup label="Intermediate-I ($70/mo)">
+                                <option value="intermediate-I-1m">Intermediate-I — 1 Month ($70)</option>
+                                <option value="intermediate-I-3m">Intermediate-I — 3 Months ($187)</option>
+                                <option value="intermediate-I-4m">Intermediate-I — 4 Months ($233)</option>
+                            </optgroup>
+                            <optgroup label="Intermediate-II ($70/mo)">
+                                <option value="intermediate-II-1m">Intermediate-II — 1 Month ($70)</option>
+                                <option value="intermediate-II-3m">Intermediate-II — 3 Months ($187)</option>
+                                <option value="intermediate-II-4m">Intermediate-II — 4 Months ($233)</option>
+                            </optgroup>
                         </select>
                     </div>
 
                     <Input
-                        label="Fee Amount (₹)"
+                        label="Fee Amount ($)"
                         name="amount"
                         type="number"
                         required

@@ -58,14 +58,18 @@ const AddStudentModal = ({ isOpen, onClose, onSuccess }) => {
         }
 
         try {
+            // Generate student email from student name
+            const studentEmailPrefix = formData.studentName.toLowerCase().split(' ')[0].replace(/[^a-z0-9]/g, '');
+            const studentEmail = `${studentEmailPrefix}@student.com`;
+
             // 1. Create User in Firebase Authentication (Secondary App)
-            const userCredential = await createUserWithEmailAndPassword(secondaryAuth, formData.parentEmail, formData.password);
+            const userCredential = await createUserWithEmailAndPassword(secondaryAuth, studentEmail, formData.password);
             const user = userCredential.user;
 
             // 2. Create User Document in Firestore (Main DB)
             // We use the UID from the new user, but write to the main DB
             await setDoc(doc(db, 'users', user.uid), {
-                email: formData.parentEmail,
+                email: studentEmail,
                 role: 'customer',
                 fullName: formData.parentName,
                 createdAt: new Date(),
@@ -91,6 +95,7 @@ const AddStudentModal = ({ isOpen, onClose, onSuccess }) => {
                             parentEmail: formData.parentEmail,
                             parentName: formData.parentName,
                             studentName: formData.studentName,
+                            studentEmail: studentEmail,
                             password: formData.password
                         })
                     });

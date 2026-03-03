@@ -248,7 +248,7 @@ const BroadcastPage = () => {
                                 <div className="sub-text" style={{ marginTop: '8px', fontSize: '12px', display: 'flex', alignItems: 'center', gap: '4px' }}>
                                     <Users size={12} />
                                     Audience: {broadcast.audience?.studentType === 'ALL' ? 'All Students' : broadcast.audience?.studentType}
-                                    {broadcast.audience?.batchId !== 'ALL' && ` | Batch: ${broadcast.audience?.batchId}`}
+                                    {broadcast.audience?.batchId && broadcast.audience.batchId !== 'ALL' && ` | Batch: ${broadcast.audience.batchId}`}
                                 </div>
                             </div>
                         ))

@@ -123,10 +123,26 @@ export const assignCoachToDemo = async (demoId, coachId, adminId, meetingLink, s
 
                 if (!studentSnap.empty) {
                     const studentDoc = studentSnap.docs[0];
+                    const studentData = studentDoc.data();
+
+                    // Update students collection
                     await updateDoc(doc(db, COLLECTIONS.STUDENTS, studentDoc.id), {
                         assignedCoachId: coachId,
                         updatedAt: serverTimestamp()
                     });
+
+                    // Also update the users document if it exists (for StudentPage.jsx)
+                    if (studentData.accountId) {
+                        try {
+                            await updateDoc(doc(db, 'users', studentData.accountId), {
+                                assignedCoachId: coachId,
+                                updatedAt: serverTimestamp()
+                            });
+                        } catch (err) {
+                            console.warn('Could not update users document:', err);
+                        }
+                    }
+
                     console.log('Synced coach assignment to student profile');
                 }
             }
@@ -184,6 +200,25 @@ export const convertDemoToStudent = async (demoId, accountId, paymentData) => {
         }
         const demoData = demoDoc.data();
 
+        // 1. Create users document so student can login with AuthContext
+        await setDoc(doc(db, 'users', accountId), {
+            email: demoData.parentEmail,
+            fullName: demoData.parentName,
+            role: 'customer',
+            studentName: demoData.studentName,
+            studentAge: demoData.studentAge || null,
+            timezone: demoData.timezone || '',
+            country: paymentData.country || '',
+            studentType: demoData.recommendedStudentType || 'group',
+            learningLevel: demoData.recommendedLevel || 'beginner',
+            status: 'ACTIVE',
+            assignedCoachId: demoData.assignedCoachId || null,
+            createdAt: serverTimestamp(),
+            lastLoginAt: serverTimestamp(),
+            createdByAdminId: paymentData.adminId,
+        });
+
+        // 2. Create student record
         const studentRef = await addDoc(collection(db, COLLECTIONS.STUDENTS), {
             accountId: accountId,
             studentName: demoData.studentName,
@@ -203,6 +238,7 @@ export const convertDemoToStudent = async (demoId, accountId, paymentData) => {
             updatedAt: serverTimestamp()
         });
 
+        // 3. Create subscription record
         await addDoc(collection(db, COLLECTIONS.SUBSCRIPTIONS), {
             accountId: accountId,
             studentId: studentRef.id,
@@ -216,12 +252,14 @@ export const convertDemoToStudent = async (demoId, accountId, paymentData) => {
             updatedAt: serverTimestamp()
         });
 
+        // 4. Update demo status to CONVERTED
         const demoRef = doc(db, COLLECTIONS.DEMOS, demoId);
         await updateDoc(demoRef, {
             status: DEMO_STATUS.CONVERTED,
             updatedAt: serverTimestamp()
         });
 
+        // 5. Create chat for admin-parent communication
         await createChat({
             chatType: CHAT_TYPE.ADMIN_PARENT,
             participants: [accountId, paymentData.adminId],
@@ -354,12 +392,21 @@ export const getCoachApplications = async () => {
     }
 };
 
-export const approveCoachApplication = async (applicationId, uid, password, adminId) => {
+export const approveCoachApplication = async (applicationId, uid, password, adminId, coachEmail, coachFullName) => {
     try {
-        // 1. Create Account Record
-        // Note: Password saved only for MVP demonstration as requested
+        // 1. Create users/{uid} doc so the coach can log in via AuthContext
+        await setDoc(doc(db, 'users', uid), {
+            email: coachEmail || null,
+            fullName: coachFullName || null,
+            role: 'coach',
+            createdAt: serverTimestamp(),
+            lastLoginAt: serverTimestamp(),
+            createdByAdminId: adminId,
+        });
+
+        // 2. Create Account Record (legacy — keep for backwards compat)
         await setDoc(doc(db, COLLECTIONS.ACCOUNTS, uid), {
-            email: null, // Will be updated or fetched from coach doc if needed, but usually account links to profile
+            email: coachEmail || null,
             role: 'COACH',
             createdByAdminId: adminId,
             tempPassword: password,
@@ -367,7 +414,7 @@ export const approveCoachApplication = async (applicationId, uid, password, admi
             updatedAt: serverTimestamp()
         });
 
-        // 2. Update Coach Doc
+        // 3. Update Coach Doc to ACTIVE
         const coachRef = doc(db, COLLECTIONS.COACHES, applicationId);
         await updateDoc(coachRef, {
             status: 'ACTIVE',
@@ -385,37 +432,12 @@ export const approveCoachApplication = async (applicationId, uid, password, admi
 
 export const getAllCoaches = async () => {
     try {
-        // Fetch only ACTIVE (approved) coaches from coaches collection
         const q = query(collection(db, 'coaches'), where('status', '==', 'ACTIVE'));
         const coachSnapshot = await getDocs(q);
-        let coachList = coachSnapshot.docs.map(doc => ({
+        const coachList = coachSnapshot.docs.map(doc => ({
             id: doc.id,
             ...doc.data()
         }));
-
-        // Also fetch users with role 'coach'
-        const usersSnapshot = await getDocs(collection(db, 'users'));
-        const coachUsers = usersSnapshot.docs
-            .filter(doc => doc.data().role === 'coach')
-            .map(doc => ({
-                id: doc.id,
-                coachName: doc.data().fullName || doc.data().email?.split('@')[0] || 'Coach',
-                fullName: doc.data().fullName || doc.data().email?.split('@')[0] || 'Coach',
-                email: doc.data().email,
-                title: doc.data().chessTitle || 'Chess Trainer',
-                rating: doc.data().rating || '-',
-                bio: doc.data().bio || 'No bio provided',
-                phone: doc.data().phone || '-'
-            }));
-
-        // Combine both sources, avoiding duplicates
-        const existingIds = coachList.map(c => c.id);
-        coachUsers.forEach(u => {
-            if (!existingIds.includes(u.id)) {
-                coachList.push(u);
-            }
-        });
-
         return { success: true, coaches: coachList };
     } catch (error) {
         console.error('Error fetching coaches:', error);

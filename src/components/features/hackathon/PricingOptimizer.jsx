@@ -23,8 +23,8 @@ const PricingOptimizer = () => {
 
                 <div style={{ padding: '12px', backgroundColor: '#fff', borderRadius: '6px', border: '1px solid #CE93D8' }}>
                     <div style={{ fontSize: '11px', color: '#888', textTransform: 'uppercase', fontWeight: 'bold' }}>Suggested Action</div>
-                    <div style={{ fontSize: '14px', fontWeight: 'bold', margin: '4px 0' }}>Offer Advanced 1-1 Package (₹12,000)</div>
-                    <div style={{ fontSize: '12px', color: '#2E7D32' }}>Potential Lift: +₹7,500/month</div>
+                    <div style={{ fontSize: '14px', fontWeight: 'bold', margin: '4px 0' }}>Offer Advanced 1-1 Package ($145)</div>
+                    <div style={{ fontSize: '12px', color: '#2E7D32' }}>Potential Lift: +$90/month</div>
                 </div>
             </div>
 

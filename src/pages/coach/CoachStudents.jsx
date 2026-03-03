@@ -114,8 +114,9 @@ const CoachStudents = () => {
                     <select value={filterLevel} onChange={(e) => setFilterLevel(e.target.value)}>
                         <option value="all">All Levels</option>
                         <option value="beginner">Beginner</option>
-                        <option value="intermediate">Intermediate</option>
-                        <option value="advanced">Advanced</option>
+                        <option value="advanced-beginner">Advanced Beginner</option>
+                        <option value="intermediate-I">Intermediate-I</option>
+                        <option value="intermediate-II">Intermediate-II</option>
                     </select>
                 </div>
                 <div className="filter-group">

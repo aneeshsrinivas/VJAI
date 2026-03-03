@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { collection, query, where, getDocs, doc, updateDoc, serverTimestamp, arrayUnion, getDoc, arrayRemove } from 'firebase/firestore';
+import { collection, query, where, getDocs, doc, updateDoc, serverTimestamp, arrayUnion, getDoc, arrayRemove, onSnapshot } from 'firebase/firestore';
 import { db } from '../../lib/firebase';
 import Card from '../../components/ui/Card';
 import Button from '../../components/ui/Button';
@@ -31,22 +31,12 @@ const StudentDatabase = () => {
     const [typeFilter, setTypeFilter] = useState('All');
     const [batches, setBatches] = useState([]);
 
-    // Fetch Coaches for dropdown
-    const fetchCoaches = async () => {
-        try {
-            const q = query(collection(db, 'users'), where('role', '==', 'coach'));
-            const snap = await getDocs(q);
-            setCoaches(snap.docs.map(doc => ({ id: doc.id, ...doc.data() })));
-        } catch (e) {
-            console.error("Error fetching coaches:", e);
-        }
-    };
 
-    const fetchStudents = async () => {
+    useEffect(() => {
+        const q = query(collection(db, 'users'), where('role', '==', 'customer'));
         setLoading(true);
-        try {
-            const q = query(collection(db, 'users'), where('role', '==', 'customer'));
-            const querySnapshot = await getDocs(q);
+
+        const unsubscribe = onSnapshot(q, (querySnapshot) => {
             const studentList = querySnapshot.docs.map(doc => {
                 const data = doc.data();
                 return {
@@ -69,17 +59,14 @@ const StudentDatabase = () => {
                 };
             });
             setStudents(studentList);
-        } catch (error) {
-            console.error("Error fetching students:", error);
-            toast.error('Failed to load students');
-        } finally {
             setLoading(false);
-        }
-    };
+        }, (error) => {
+            console.error("Error setting up real-time student listener:", error);
+            toast.error('Failed to load students');
+            setLoading(false);
+        });
 
-    useEffect(() => {
-        fetchStudents();
-        fetchCoaches();
+        return () => unsubscribe();
     }, []);
 
     // load coaches and batches for assignment selects
@@ -179,7 +166,7 @@ const StudentDatabase = () => {
 
             toast.success('Student updated successfully!');
             setEditingStudent(null);
-            fetchStudents();
+            // Real-time listener auto-updates the list
         } catch (error) {
             console.error('Error updating student:', error);
             toast.error('Failed to update student');
@@ -188,9 +175,9 @@ const StudentDatabase = () => {
 
     // Filter students
     const filteredStudents = students.filter(student => {
-        const matchesSearch = student.student_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-            student.parent_email.toLowerCase().includes(searchQuery.toLowerCase()) ||
-            student.student_id.toLowerCase().includes(searchQuery.toLowerCase());
+        const matchesSearch = (student.student_name || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
+            (student.parent_email || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
+            (student.student_id || '').toLowerCase().includes(searchQuery.toLowerCase());
         const matchesStatus = statusFilter === 'All' || student.status === statusFilter;
         const matchesType = typeFilter === 'All' || student.student_type === typeFilter;
         return matchesSearch && matchesStatus && matchesType;
@@ -343,7 +330,7 @@ const StudentDatabase = () => {
             <AddStudentModal
                 isOpen={isAddModalOpen}
                 onClose={() => setAddModalOpen(false)}
-                onSuccess={fetchStudents}
+                onSuccess={() => setAddModalOpen(false)}
             />
 
             {/* Edit Student Modal */}

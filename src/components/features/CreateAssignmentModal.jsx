@@ -50,7 +50,8 @@ const CreateAssignmentModal = ({ isOpen, onClose, batchId, batchName, onSuccess 
             <div style={{
                 background: 'white', borderRadius: '16px', padding: '24px',
                 width: '100%', maxWidth: '500px',
-                boxShadow: '0 10px 40px rgba(0,0,0,0.2)'
+                boxShadow: '0 10px 40px rgba(0,0,0,0.2)',
+                maxHeight: '90vh', overflowY: 'auto'
             }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '20px' }}>
                     <h2 style={{ margin: 0, fontSize: '20px', color: '#1e293b' }}>Create Assignment</h2>

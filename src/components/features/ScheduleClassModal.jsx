@@ -96,7 +96,8 @@ const ScheduleClassModal = ({ isOpen, onClose, batchId, batchName, onSuccess }) 
                 background: isDark ? '#1a1d27' : 'white', borderRadius: '16px', padding: '24px',
                 width: '100%', maxWidth: '500px',
                 boxShadow: '0 10px 40px rgba(0,0,0,0.2)',
-                border: isDark ? '1px solid rgba(255,255,255,0.1)' : 'none'
+                border: isDark ? '1px solid rgba(255,255,255,0.1)' : 'none',
+                maxHeight: '90vh', overflowY: 'auto'
             }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '20px' }}>
                     <h2 style={{ margin: 0, fontSize: '20px', color: isDark ? '#f0f0f0' : '#1e293b' }}>Schedule New Class</h2>

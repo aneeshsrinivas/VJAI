@@ -24,11 +24,14 @@
     padding: 24px;
     width: 500px;
     max-width: 95vw;
-    max-height: 90vh;
+    max-height: 85vh;
     overflow-y: auto;
+    overflow-x: hidden;
     box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
     position: relative;
     transition: transform 0.1s;
+    display: flex;
+    flex-direction: column;
 }
 
 .demo-outcome-modal.shake-error {
@@ -250,6 +253,12 @@
     resize: vertical;
 }
 
+.demo-outcome-modal form {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+}
+
 .error-message {
     background: #FEE2E2;
     color: #991B1B;
@@ -264,6 +273,11 @@
     gap: 12px;
     justify-content: flex-end;
     margin-top: 20px;
+    position: sticky;
+    bottom: 0;
+    background: #fff;
+    padding-top: 16px;
+    border-top: 1px solid #E5E7EB;
 }
 
 /* Confetti Animation */
@@ -411,4 +425,9 @@
     background: rgba(239, 68, 68, 0.1);
     color: #f87171;
     border: 1px solid rgba(239, 68, 68, 0.2);
+}
+
+.demo-outcome-modal.dark-mode .modal-actions {
+    background: #1a1d27;
+    border-top-color: rgba(255, 255, 255, 0.1);
 }

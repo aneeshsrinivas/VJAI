@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { collection, query, where, onSnapshot, doc, getDoc, orderBy, limit } from 'firebase/firestore';
+import { collection, query, where, onSnapshot, doc, getDoc, getDocs, orderBy, limit } from 'firebase/firestore';
 import { db } from '../lib/firebase';
 import { COLLECTIONS } from '../config/firestoreCollections';
 import Button from '../components/ui/Button';
@@ -75,11 +75,29 @@ const ParentDashboard = () => {
                     const studentData = { id: snapshot.id, ...snapshot.data() };
                     setStudent(studentData);
 
-                    // If coach is assigned, fetch/listen to coach details
-                    // 1. Direct Assignment
+                    // If coach is assigned, fetch coach details
+                    // assignedCoachId is the coach's Firebase Auth UID (not the coaches doc ID)
                     if (studentData.assignedCoachId) {
-                        getDoc(doc(db, COLLECTIONS.COACHES, studentData.assignedCoachId)).then(coachDoc => {
-                            if (coachDoc.exists()) setCoach(coachDoc.data());
+                        const coachQ = query(
+                            collection(db, COLLECTIONS.COACHES),
+                            where('accountId', '==', studentData.assignedCoachId)
+                        );
+                        getDocs(coachQ).then(coachSnap => {
+                            if (!coachSnap.empty) {
+                                setCoach({ id: coachSnap.docs[0].id, ...coachSnap.docs[0].data() });
+                            } else {
+                                // Fallback 1: coach may only have a users doc (added via AddCoachModal)
+                                getDoc(doc(db, 'users', studentData.assignedCoachId)).then(userDoc => {
+                                    if (userDoc.exists()) {
+                                        setCoach({ id: userDoc.id, ...userDoc.data() });
+                                    } else {
+                                        // Fallback 2: legacy data — assignedCoachId may be the coaches doc ID directly
+                                        getDoc(doc(db, COLLECTIONS.COACHES, studentData.assignedCoachId)).then(legacyDoc => {
+                                            if (legacyDoc.exists()) setCoach({ id: legacyDoc.id, ...legacyDoc.data() });
+                                        });
+                                    }
+                                });
+                            }
                         });
                     }
                     // 2. Batch Assignment

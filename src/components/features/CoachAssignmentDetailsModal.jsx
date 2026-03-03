@@ -1,11 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import Button from '../ui/Button';
+import ConfirmDialog from '../ui/ConfirmDialog';
+import { toast } from 'react-toastify';
 import { db } from '../../lib/firebase';
 import { collection, query, onSnapshot, orderBy, doc, deleteDoc } from 'firebase/firestore';
 import { X, ChevronLeft, PlayCircle, Trash2 } from 'lucide-react';
 import ChessReplay from '../chess/ChessReplay';
 
 const CoachAssignmentDetailsModal = ({ isOpen, onClose, assignment }) => {
+    const [confirmDialog, setConfirmDialog] = useState(null);
     if (!isOpen || !assignment) return null;
 
     const [submissions, setSubmissions] = useState([]);
@@ -31,19 +34,24 @@ const CoachAssignmentDetailsModal = ({ isOpen, onClose, assignment }) => {
         return () => unsubscribe();
     }, [assignment.id]);
 
-    const handleDelete = async () => {
-        if (window.confirm('Are you sure you want to delete this assignment? This action cannot be undone.')) {
-            setDeleting(true);
-            try {
-                await deleteDoc(doc(db, 'chessAssignment', assignment.id));
-                onClose();
-            } catch (error) {
-                console.error("Error deleting assignment:", error);
-                alert("Failed to delete assignment.");
-            } finally {
-                setDeleting(false);
+    const handleDelete = () => {
+        setConfirmDialog({
+            title: 'Delete Assignment',
+            message: 'Are you sure you want to delete this assignment? This action cannot be undone.',
+            confirmLabel: 'Delete',
+            onConfirm: async () => {
+                setDeleting(true);
+                try {
+                    await deleteDoc(doc(db, 'chessAssignment', assignment.id));
+                    onClose();
+                } catch (error) {
+                    console.error("Error deleting assignment:", error);
+                    toast.error("Failed to delete assignment.");
+                } finally {
+                    setDeleting(false);
+                }
             }
-        }
+        });
     };
 
     return (
@@ -155,6 +163,15 @@ const CoachAssignmentDetailsModal = ({ isOpen, onClose, assignment }) => {
                     )}
                 </div>
             </div>
+            {confirmDialog && (
+                <ConfirmDialog
+                    title={confirmDialog.title}
+                    message={confirmDialog.message}
+                    confirmLabel={confirmDialog.confirmLabel || 'Confirm'}
+                    onConfirm={() => { confirmDialog.onConfirm(); setConfirmDialog(null); }}
+                    onCancel={() => setConfirmDialog(null)}
+                />
+            )}
         </div>
     );
 };

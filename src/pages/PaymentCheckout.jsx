@@ -351,7 +351,7 @@ const PaymentCheckout = () => {
                                         <p className="upi-hint">Scan QR code or pay to:</p>
                                         <div className="upi-id-display">{UPI_ID}</div>
                                         <p className="upi-amount">
-                                            Amount: ₹{(pricing.total * 83).toFixed(0)} (~${pricing.total.toFixed(2)})
+                                            Amount: ${pricing.total.toFixed(2)} (≈ ₹{(pricing.total * 83).toFixed(0)})
                                         </p>
                                         <label className={`upi-confirm-label ${upiConfirmed ? 'confirmed' : ''}`}>
                                             <input

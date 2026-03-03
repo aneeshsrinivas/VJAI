@@ -56,14 +56,10 @@ const AdminDashboard = () => {
                 const studentsSnap = await getDocs(collection(db, 'students'));
                 const totalStudents = studentsSnap.size || 0;
 
-                // Fetch active coaches
-                const coachesQuery = query(collection(db, 'users'), where('role', '==', 'coach'));
+                // Fetch active coaches — use coaches collection with ACTIVE status only
+                const coachesQuery = query(collection(db, 'coaches'), where('status', '==', 'ACTIVE'));
                 const coachesSnap = await getDocs(coachesQuery);
-                const activeCoaches = coachesSnap.size || 0;
-
-                // Also check coaches collection
-                const coachesCollSnap = await getDocs(collection(db, 'coaches'));
-                const totalCoaches = Math.max(activeCoaches, coachesCollSnap.size) || 0;
+                const totalCoaches = coachesSnap.size || 0;
 
                 // Fetch pending demos
                 const demosQuery = query(collection(db, 'demos'), where('status', '==', 'PENDING'));
@@ -98,8 +94,8 @@ const AdminDashboard = () => {
                 const recentDemosSnap = await getDocs(recentDemosQuery);
                 setRecentDemos(recentDemosSnap.docs.map(d => ({ id: d.id, ...d.data() })));
 
-                // Fetch top coaches
-                const coachList = coachesCollSnap.docs.map(d => ({ id: d.id, ...d.data() }));
+                // Fetch top coaches (reuse the already-fetched active coaches snap)
+                const coachList = coachesSnap.docs.map(d => ({ id: d.id, ...d.data() }));
                 setTopCoaches(coachList.slice(0, 3));
 
             } catch (error) {

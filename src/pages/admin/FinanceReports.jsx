@@ -79,11 +79,17 @@ const FinanceReports = () => {
     }, []);
 
     const formatCurrency = (amount) => {
-        return new Intl.NumberFormat('en-US', {
+        const usd = new Intl.NumberFormat('en-US', {
             style: 'currency',
             currency: 'USD',
             maximumFractionDigits: 0
         }).format(amount);
+        const inr = new Intl.NumberFormat('en-IN', {
+            style: 'currency',
+            currency: 'INR',
+            maximumFractionDigits: 0
+        }).format(amount * 83);
+        return `${usd} (≈ ${inr})`;
     };
 
     const formatDate = (date) => {

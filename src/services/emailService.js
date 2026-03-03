@@ -1,168 +1,95 @@
-/**
- * Email Service using Web3Forms API
- * Free tier: 250 emails/month (sufficient for MVP)
- */
+const EMAIL_API_URL = import.meta.env.VITE_EMAIL_API_URL || 'http://localhost:3001';
 
-const WEB3FORMS_API_KEY = import.meta.env.VITE_WEB3FORMS_ACCESS_KEY;
-const API_ENDPOINT = 'https://api.web3forms.com/submit';
+const sendEmail = async ({ to, subject, text }) => {
+    const response = await fetch(`${EMAIL_API_URL}/api/email/send`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ to, subject, text })
+    });
+    if (!response.ok) {
+        const err = await response.text();
+        throw new Error(`Email send failed: ${err}`);
+    }
+    return { success: true };
+};
 
 export const emailService = {
-    /**
-     * Send Demo Request Confirmation email immediately after parent books a demo
-     */
     sendDemoRequestConfirmation: async ({ parentEmail, parentName, studentName, preferredDate, preferredTime, demoId }) => {
         try {
-            const dashboardLink = `${window.location.origin}/login`;
-
-            const response = await fetch(API_ENDPOINT, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Accept': 'application/json'
-                },
-                body: JSON.stringify({
-                    access_key: WEB3FORMS_API_KEY,
-                    subject: `✅ Demo Request Confirmed - ${studentName} | VJ AI Chess Academy`,
-                    from_name: 'VJ AI Chess Academy',
-                    to: parentEmail,
-                    message: `
-Dear ${parentName},
+            await sendEmail({
+                to: parentEmail,
+                subject: `✅ Demo Request Confirmed - ${studentName} | VJ AI Chess Academy`,
+                text: `Dear ${parentName},
 
 Thank you for booking a free demo session with VJ AI Chess Academy! 🎉
 
 We're excited to help ${studentName} start their chess journey.
 
-📋 **Your Demo Request Details:**
+📋 Your Demo Request Details:
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 • Student Name: ${studentName}
 • Preferred Date: ${preferredDate}
 • Preferred Time: ${preferredTime}
 • Demo ID: ${demoId}
 
-⏭️ **What Happens Next:**
+⏭️ What Happens Next:
 1. Our admin team will review your request shortly
 2. We'll match ${studentName} with the best coach based on their skill level
-3. You'll receive a confirmation email with:
-   - Assigned coach details
-   - Zoom meeting link
-   - Exact demo date & time
+3. You'll receive a confirmation email with the assigned coach details, meeting link, and exact demo time
 
-📧 **Have Questions?**
-If you need any clarification or want to change your preferred time, feel free to reply to this email.
+📧 Have Questions?
+Feel free to contact us at indianchessacademy@chess.com
 
 Best regards,
 VJ AI Chess Academy Team
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 🌐 Website: www.indianchessacademy.com
-📧 Support: indianchessacademy@gmail.com
-`.trim(),
-                    replyto: 'indianchessacademy@gmail.com'
-                })
+📧 Support: indianchessacademy@chess.com`
             });
-
-            const result = await response.json();
-
-            if (result.success) {
-                console.log('✅ Demo request confirmation email sent');
-                return { success: true };
-            } else {
-                console.error('Email API error:', result);
-                return { success: false, error: result.message };
-            }
+            console.log('✅ Demo request confirmation email sent to:', parentEmail);
+            return { success: true };
         } catch (error) {
-            console.error('Failed to send email:', error);
+            console.error('Failed to send demo confirmation email:', error);
             return { success: false, error: error.message };
         }
     },
 
-    /**
-     * Send Payment Link email to parent after demo is marked INTERESTED
-     */
     sendPaymentLinkEmail: async ({ parentEmail, parentName, studentName, demoId, meetingLink }) => {
         try {
             const paymentLink = `${window.location.origin}/pricing?demoId=${demoId}`;
-
-            let messageBody = `
-Dear ${parentName},
+            let text = `Dear ${parentName},
 
 Thank you for your interest in VJ AI Chess Academy!
 
 We are excited that ${studentName} showed great potential during the demo session.`;
 
-            // Include meeting link if available
             if (meetingLink) {
-                messageBody += `
-
-📅 **Your Demo Class Link:**
-${meetingLink}
-
-You can join the class using the link above at the scheduled time.`;
+                text += `\n\n📅 Your Demo Class Link:\n${meetingLink}\n\nYou can join the class using the link above at the scheduled time.`;
             }
 
-            messageBody += `
+            text += `\n\nTo complete the enrollment, please click the link below to select a plan and make the payment:\n\n👉 ${paymentLink}\n\nBest regards,\nVJ AI Chess Academy Team`;
 
-To complete the enrollment and start the chess journey, please click the link below to select a plan and make the payment:
-
-👉 ${paymentLink}
-
-If you have any questions, feel free to reply to this email or contact our support team.
-
-Best regards,
-VJ AI Chess Academy Team
-            `.trim();
-
-            const response = await fetch(API_ENDPOINT, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Accept': 'application/json'
-                },
-                body: JSON.stringify({
-                    access_key: WEB3FORMS_API_KEY,
-                    subject: `🎓 VJ AI Chess Academy - Complete ${studentName}'s Enrollment`,
-                    from_name: 'VJ AI Chess Academy',
-                    to: parentEmail,
-                    message: messageBody,
-                    replyto: 'indianchessacademy@gmail.com' // Replace with actual support email
-                })
+            await sendEmail({
+                to: parentEmail,
+                subject: `🎓 VJ AI Chess Academy - Complete ${studentName}'s Enrollment`,
+                text
             });
-
-            const result = await response.json();
-
-            if (result.success) {
-                console.log('Payment link email sent successfully');
-                return { success: true };
-            } else {
-                console.error('Email API error:', result);
-                return { success: false, error: result.message };
-            }
+            console.log('✅ Payment link email sent to:', parentEmail);
+            return { success: true };
         } catch (error) {
-            console.error('Failed to send email:', error);
+            console.error('Failed to send payment link email:', error);
             return { success: false, error: error.message };
         }
     },
 
-    /**
-     * Send Welcome email after payment is approved
-     */
     sendWelcomeEmail: async ({ parentEmail, parentName, studentName, planName }) => {
         try {
             const loginLink = `${window.location.origin}/login`;
-
-            const response = await fetch(API_ENDPOINT, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Accept': 'application/json'
-                },
-                body: JSON.stringify({
-                    access_key: WEB3FORMS_API_KEY,
-                    subject: `🎉 Welcome to VJ AI Chess Academy, ${studentName}!`,
-                    from_name: 'VJ AI Chess Academy',
-                    to: parentEmail,
-                    message: `
-Dear ${parentName},
+            await sendEmail({
+                to: parentEmail,
+                subject: `🎉 Welcome to VJ AI Chess Academy, ${studentName}!`,
+                text: `Dear ${parentName},
 
 Congratulations! 🎉
 
@@ -180,97 +107,59 @@ Your coach will reach out soon to schedule the first class.
 Welcome to the VJ AI Chess family! ♔
 
 Best regards,
-VJ AI Chess Academy Team
-                    `.trim()
-                })
+VJ AI Chess Academy Team`
             });
-
-            const result = await response.json();
-            return result.success ? { success: true } : { success: false, error: result.message };
+            return { success: true };
         } catch (error) {
             console.error('Failed to send welcome email:', error);
             return { success: false, error: error.message };
         }
     },
-    /**
-     * Send Contact Form Submission
-     */
+
     sendContactFormEmail: async ({ name, email, phone, message }) => {
         try {
-            const response = await fetch(API_ENDPOINT, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Accept': 'application/json'
-                },
-                body: JSON.stringify({
-                    access_key: WEB3FORMS_API_KEY,
-                    subject: `New Contact Inquiry from ${name}`,
-                    from_name: 'VJ AI Website Contact',
-                    to: 'indianchessacademy@gmail.com', // Sent to Admin
-                    message: `
-Name: ${name}
+            await sendEmail({
+                to: 'indianchessacademy@chess.com',
+                subject: `New Contact Inquiry from ${name}`,
+                text: `Name: ${name}
 Email: ${email}
 Phone: ${phone || 'N/A'}
 
 Message:
-${message}
-                    `.trim(),
-                    replyto: email
-                })
+${message}`
             });
-
-            const result = await response.json();
-            return result.success ? { success: true } : { success: false, error: result.message };
+            return { success: true };
         } catch (error) {
             console.error('Failed to send contact email:', error);
             return { success: false, error: error.message };
         }
     },
 
-    /**
-     * Send Coach Approval & Credentials Email
-     */
     sendCoachWelcomeEmail: async ({ email, fullName, password }) => {
         try {
             const loginLink = `${window.location.origin}/login`;
-
-            const response = await fetch(API_ENDPOINT, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Accept': 'application/json'
-                },
-                body: JSON.stringify({
-                    access_key: WEB3FORMS_API_KEY,
-                    subject: `Welcome to the Faculty! - VJ AI Chess Academy`,
-                    from_name: 'VJ AI Chess Academy',
-                    to: email,
-                    message: `
-Dear ${fullName},
+            await sendEmail({
+                to: email,
+                subject: `Welcome to the Faculty! - VJ AI Chess Academy`,
+                text: `Dear ${fullName},
 
 We are delighted to welcome you to the VJ AI Chess Academy teaching faculty! ♟️
 
 Your application has been approved. You can now access the Coach Dashboard to manage your profile and batches.
 
-🔐 **Your Login Credentials:**
-Email: ${email}
-Password: ${password}
+🔐 Your Login Credentials:
+• Email: ${email}
+• Password: ${password}
 
 👉 Login Here: ${loginLink}
-*Please change your password after your first login.*
 
-We look forward to seeing your expertise in action!
+Please change your password after your first login.
 
 Best regards,
 Admin Team
-VJ AI Chess Academy
-                    `.trim()
-                })
+VJ AI Chess Academy`
             });
-
-            const result = await response.json();
-            return result.success ? { success: true } : { success: false, error: result.message };
+            return { success: true };
         } catch (error) {
             console.error('Failed to send coach welcome email:', error);
             return { success: false, error: error.message };

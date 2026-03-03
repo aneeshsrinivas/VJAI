@@ -1,9 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { X, Check, TrendingUp, Award, ArrowUpCircle, ArrowDownCircle, RefreshCw } from 'lucide-react';
+import { toast } from 'react-toastify';
+import ConfirmDialog from '../ui/ConfirmDialog';
 import { doc, getDoc, updateDoc, arrayUnion, arrayRemove } from 'firebase/firestore';
 import { db } from '../../lib/firebase';
 
 const SkillMapModal = ({ isOpen, onClose, student, onUpgrade }) => {
+    const [confirmDialog, setConfirmDialog] = useState(null);
     if (!isOpen || !student) return null;
 
     const [skills, setSkills] = useState([]);
@@ -106,7 +109,7 @@ const SkillMapModal = ({ isOpen, onClose, student, onUpgrade }) => {
             setSkills(prev => prev.map(s =>
                 s.id === skillId ? { ...s, completed: !newStatus } : s
             ));
-            alert("Failed to update skill. Please try again.");
+                toast.error("Failed to update skill. Please try again.");
         }
     };
 
@@ -143,11 +146,11 @@ const SkillMapModal = ({ isOpen, onClose, student, onUpgrade }) => {
                 setSkills(mappedSkills);
                 setHasOutdatedSkills(false);
                 
-                alert('Skills synced successfully! Outdated skills removed.');
+                toast.success('Skills synced successfully! Outdated skills removed.');
             }
         } catch (error) {
             console.error("Error syncing skills:", error);
-            alert("Failed to sync skills. Please try again.");
+            toast.error("Failed to sync skills. Please try again.");
         }
         setSyncing(false);
     };
@@ -166,42 +169,41 @@ const SkillMapModal = ({ isOpen, onClose, student, onUpgrade }) => {
             if (onUpgrade) {
                 onUpgrade(student.id, nextLevel);
             }
-            alert(`${student.studentName} has been upgraded to ${getLevelLabel(nextLevel)}!`);
+            toast.success(`${student.studentName} has been upgraded to ${getLevelLabel(nextLevel)}!`);
             onClose();
         } catch (error) {
             console.error("Error upgrading student:", error);
-            alert("Failed to upgrade student. Please try again.");
+            toast.error("Failed to upgrade student. Please try again.");
         }
         setUpgrading(false);
     };
 
-    const handleDegrade = async () => {
+    const handleDegrade = () => {
         if (!previousLevel) return;
-        
-        const confirmDegrade = window.confirm(
-            `Are you sure you want to downgrade ${student.studentName} to ${getLevelLabel(previousLevel)}? Their current skills progress will be reset.`
-        );
-        
-        if (!confirmDegrade) return;
-        
-        setDowngrading(true);
-        try {
-            const studentRef = doc(db, 'users', student.id);
-            await updateDoc(studentRef, {
-                level: previousLevel,
-                skillsMastered: [] // Reset skills for new level
-            });
-            
-            if (onUpgrade) {
-                onUpgrade(student.id, previousLevel);
+
+        setConfirmDialog({
+            title: 'Downgrade Student',
+            message: `Downgrade ${student.studentName} to ${getLevelLabel(previousLevel)}? Their current skills progress will be reset.`,
+            confirmLabel: 'Downgrade',
+            variant: 'warning',
+            onConfirm: async () => {
+                setDowngrading(true);
+                try {
+                    const studentRef = doc(db, 'users', student.id);
+                    await updateDoc(studentRef, {
+                        level: previousLevel,
+                        skillsMastered: []
+                    });
+                    if (onUpgrade) onUpgrade(student.id, previousLevel);
+                    toast.success(`${student.studentName} has been moved to ${getLevelLabel(previousLevel)}.`);
+                    onClose();
+                } catch (error) {
+                    console.error("Error downgrading student:", error);
+                    toast.error("Failed to downgrade student. Please try again.");
+                }
+                setDowngrading(false);
             }
-            alert(`${student.studentName} has been moved to ${getLevelLabel(previousLevel)}.`);
-            onClose();
-        } catch (error) {
-            console.error("Error downgrading student:", error);
-            alert("Failed to downgrade student. Please try again.");
-        }
-        setDowngrading(false);
+        });
     };
 
     return (
@@ -437,6 +439,16 @@ const SkillMapModal = ({ isOpen, onClose, student, onUpgrade }) => {
                     )}
                 </div>
             </div>
+            {confirmDialog && (
+                <ConfirmDialog
+                    title={confirmDialog.title}
+                    message={confirmDialog.message}
+                    confirmLabel={confirmDialog.confirmLabel || 'Confirm'}
+                    variant={confirmDialog.variant || 'danger'}
+                    onConfirm={() => { confirmDialog.onConfirm(); setConfirmDialog(null); }}
+                    onCancel={() => setConfirmDialog(null)}
+                />
+            )}
         </div>
     );
 };

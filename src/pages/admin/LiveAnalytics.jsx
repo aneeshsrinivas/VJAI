@@ -191,7 +191,7 @@ const LiveAnalytics = () => {
             ['Conversion Rate', metrics.conversionRate + '%'],
             ['Total Students', metrics.totalStudents],
             ['Active Coaches', metrics.activeCoaches],
-            ['Monthly Revenue (INR)', metrics.monthlyRevenue],
+            ['Monthly Revenue (USD)', metrics.monthlyRevenue],
             ['Avg Revenue Per User', metrics.avgRevenuePerUser]
         ];
 
@@ -208,11 +208,17 @@ const LiveAnalytics = () => {
     };
 
     const formatCurrency = (amount) => {
-        return new Intl.NumberFormat('en-IN', {
+        const usd = new Intl.NumberFormat('en-US', {
+            style: 'currency',
+            currency: 'USD',
+            maximumFractionDigits: 0
+        }).format(amount);
+        const inr = new Intl.NumberFormat('en-IN', {
             style: 'currency',
             currency: 'INR',
             maximumFractionDigits: 0
-        }).format(amount);
+        }).format(amount * 83);
+        return `${usd} (≈ ${inr})`;
     };
 
     const getTimeSinceUpdate = () => {

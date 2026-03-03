@@ -26,9 +26,19 @@ const detectRoleFromEmail = (email) => {
         return 'admin';
     }
 
-    // Coach emails (any @coach.com domain)
+    // Coach emails (@coach.com domain)
     if (lowerEmail.endsWith('@coach.com')) {
         return 'coach';
+    }
+
+    // Student emails (@student.com domain)
+    if (lowerEmail.endsWith('@student.com')) {
+        return 'customer'; // Students use customer role
+    }
+
+    // Admin emails (@chess.com domain)
+    if (lowerEmail.endsWith('@chess.com')) {
+        return 'admin';
     }
 
     // Parent/Customer emails (gmail.com and others)

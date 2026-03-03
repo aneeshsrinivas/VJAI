@@ -169,7 +169,6 @@ const DemoOutcomeModal = ({ demo, onClose, onSuccess, mandatory = false }) => {
 
             <div
                 className={`modal-content demo-outcome-modal ${attemptedClose ? 'shake-error' : ''} ${isDark ? 'dark-mode' : ''}`}
-                style={{ maxHeight: '90vh', overflowY: 'auto' }}
             >
                 {/* Only show close button if not mandatory */}
                 {!mandatory && (
@@ -184,31 +183,32 @@ const DemoOutcomeModal = ({ demo, onClose, onSuccess, mandatory = false }) => {
                     </div>
                 )}
 
-                <h2>
-                    <Star size={20} color="#FC8A24" />
-                    Demo Outcome - {demo.studentName || 'Unknown'}
-                </h2>
+                <div style={{ overflowY: 'auto', flex: 1, display: 'flex', flexDirection: 'column', minHeight: 0 }}>
+                    <h2>
+                        <Star size={20} color="#FC8A24" />
+                        Demo Outcome - {demo.studentName || 'Unknown'}
+                    </h2>
 
-                <div className="demo-info">
-                    <p><strong>Parent:</strong> {demo.parentName || 'N/A'}</p>
-                    <p><strong>Scheduled:</strong> {demo.scheduledStart || demo.preferredDateTime || 'N/A'}</p>
-                    <p><strong>Coach:</strong> {demo.assignedCoachId ? 'Assigned' : 'N/A'}</p>
-                </div>
-
-                {/* Progress indicator */}
-                <div className="progress-indicator">
-                    <div className="progress-bar">
-                        <div
-                            className="progress-fill"
-                            style={{ width: `${completionPct}%` }}
-                        />
+                    <div className="demo-info">
+                        <p><strong>Parent:</strong> {demo.parentName || 'N/A'}</p>
+                        <p><strong>Scheduled:</strong> {demo.scheduledStart || demo.preferredDateTime || 'N/A'}</p>
+                        <p><strong>Coach:</strong> {demo.assignedCoachId ? 'Assigned' : 'N/A'}</p>
                     </div>
-                    <span className="progress-text">{completionPct}% Complete</span>
-                </div>
 
-                {error && <div className="error-message">{error}</div>}
+                    {/* Progress indicator */}
+                    <div className="progress-indicator">
+                        <div className="progress-bar">
+                            <div
+                                className="progress-fill"
+                                style={{ width: `${completionPct}%` }}
+                            />
+                        </div>
+                        <span className="progress-text">{completionPct}% Complete</span>
+                    </div>
 
-                <form onSubmit={handleSubmit}>
+                    {error && <div className="error-message">{error}</div>}
+
+                    <form id="outcome-form" onSubmit={handleSubmit}>
                     {/* Demo Outcome - REQUIRED */}
                     <div className="form-group required">
                         <label>
@@ -270,22 +270,25 @@ const DemoOutcomeModal = ({ demo, onClose, onSuccess, mandatory = false }) => {
                                 >
                                     <option value="">-- Select Level --</option>
                                     <option value="beginner">Beginner</option>
-                                    <option value="intermediate">Intermediate</option>
-                                    <option value="advanced">Advanced</option>
+                                    <option value="advanced-beginner">Advanced Beginner</option>
+                                    <option value="intermediate-I">Intermediate-I</option>
+                                    <option value="intermediate-II">Intermediate-II</option>
                                 </select>
                             </div>
 
                             <div className="form-group required">
-                                <label>Recommended Student Type *</label>
+                                <label>Recommended Batch *</label>
                                 <select
                                     name="recommendedStudentType"
                                     value={formData.recommendedStudentType}
                                     onChange={handleChange}
                                     required
                                 >
-                                    <option value="">-- Select Type --</option>
-                                    <option value="group">Group Classes</option>
-                                    <option value="1-1">1-on-1 Sessions</option>
+                                    <option value="">-- Select Batch --</option>
+                                    <option value="beginner">Beginner</option>
+                                    <option value="advanced-beginner">Advanced Beginner</option>
+                                    <option value="intermediate-I">Intermediate-I</option>
+                                    <option value="intermediate-II">Intermediate-II</option>
                                 </select>
                             </div>
 
@@ -316,22 +319,24 @@ const DemoOutcomeModal = ({ demo, onClose, onSuccess, mandatory = false }) => {
                             placeholder="Any observations, parent feedback, next steps..."
                         />
                     </div>
-
-                    <div className="modal-actions">
-                        {!mandatory && (
-                            <Button type="button" variant="secondary" onClick={handleClose}>
-                                Cancel
-                            </Button>
-                        )}
-                        <Button
-                            type="submit"
-                            disabled={loading} // Only disable while loading
-                            style={{ flex: mandatory ? 1 : 'initial' }}
-                        >
-                            {loading ? 'Submitting...' : 'Submit Outcome'}
-                        </Button>
-                    </div>
                 </form>
+                </div>
+
+                <div className="modal-actions">
+                    {!mandatory && (
+                        <Button type="button" variant="secondary" onClick={handleClose}>
+                            Cancel
+                        </Button>
+                    )}
+                    <Button
+                        type="submit"
+                        form="outcome-form"
+                        disabled={loading} // Only disable while loading
+                        style={{ flex: mandatory ? 1 : 'initial' }}
+                    >
+                        {loading ? 'Submitting...' : 'Submit Outcome'}
+                    </Button>
+                </div>
             </div>
         </div>
     );

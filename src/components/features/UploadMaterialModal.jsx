@@ -108,7 +108,8 @@ const UploadMaterialModal = ({ isOpen, onClose, batch }) => {
         }}>
             <div className="modal-content" onClick={e => e.stopPropagation()} style={{
                 maxWidth: '500px', width: '90%', background: 'white', borderRadius: '16px', padding: '24px',
-                boxShadow: '0 20px 60px rgba(0,0,0,0.2)'
+                boxShadow: '0 20px 60px rgba(0,0,0,0.2)',
+                maxHeight: '90vh', overflowY: 'auto'
             }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '20px' }}>
                     <div>
