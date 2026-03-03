@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { collection, query, where, onSnapshot } from 'firebase/firestore';
 import { db } from '../lib/firebase';
 import { useAuth } from '../context/AuthContext';
@@ -15,6 +15,7 @@ import './CoachPage.css';
 
 const CoachPage = () => {
     const navigate = useNavigate();
+    const [searchParams] = useSearchParams();
     const { currentUser, userData } = useAuth();
     const [loading, setLoading] = useState(true);
     const [cardsVisible, setCardsVisible] = useState(false);
@@ -25,6 +26,16 @@ const CoachPage = () => {
     const [students, setStudents] = useState([]);
     const [todayClasses, setTodayClasses] = useState([]);
     const [selectedDemo, setSelectedDemo] = useState(null); // Modal state
+
+    // Scroll to Lichess section on mount if query param
+    useEffect(() => {
+        if (searchParams.get('scrollToLichess')) {
+            setTimeout(() => {
+                document.getElementById('lichess-requests')?.scrollIntoView({ behavior: 'smooth' });
+                window.history.replaceState({}, document.title, '/coach');
+            }, 200);
+        }
+    }, [searchParams]);
 
     useEffect(() => {
         if (!currentUser?.uid) return;
@@ -440,7 +451,9 @@ const CoachPage = () => {
                     </div>
 
                     {/* Pending Lichess Requests */}
-                    <LichessPendingRequests currentUser={currentUser} />
+                    <div id="lichess-requests">
+                        <LichessPendingRequests currentUser={currentUser} />
+                    </div>
                 </div>
 
                 {/* Right Column */}

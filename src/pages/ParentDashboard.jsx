@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { collection, query, where, onSnapshot, doc, getDoc, orderBy, limit } from 'firebase/firestore';
 import { db } from '../lib/firebase';
@@ -24,6 +24,7 @@ import './ParentDashboard.css';
 
 const ParentDashboard = () => {
     const navigate = useNavigate();
+    const [searchParams] = useSearchParams();
     const { currentUser, userData } = useAuth();
     const [isReviewModalOpen, setReviewModalOpen] = useState(false);
 
@@ -39,6 +40,16 @@ const ParentDashboard = () => {
     // UI State
     const [cardsVisible, setCardsVisible] = useState(false);
     const [progress, setProgress] = useState(0);
+
+    // Scroll to Lichess section on mount if query param
+    useEffect(() => {
+        if (searchParams.get('scrollToLichess')) {
+            setTimeout(() => {
+                document.getElementById('lichess-sync')?.scrollIntoView({ behavior: 'smooth' });
+                window.history.replaceState({}, document.title, '/parent');
+            }, 200);
+        }
+    }, [searchParams]);
 
     // 1. Listen to Student Data (for realtime Level & Coach assignment)
     useEffect(() => {
@@ -614,7 +625,9 @@ const ParentDashboard = () => {
                         </div>
 
                         {/* Lichess Sync Section */}
-                        <LichessSync currentUser={currentUser} userData={userData} />
+                        <div id="lichess-sync">
+                            <LichessSync currentUser={currentUser} userData={userData} />
+                        </div>
                     </div>
 
                     {/* Right Sidebar */}

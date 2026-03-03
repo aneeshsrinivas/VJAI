@@ -15,6 +15,7 @@ const CoachNavbar = () => {
         { path: '/coach/schedule', label: 'Schedule' },
         { path: '/coach/batches', label: 'Batches' },
         { path: '/coach/chat', label: 'Messages' },
+        { path: '/coach/lichess', label: '🔗 Lichess Requests', lichess: true },
     ];
 
     const isActive = (path) => location.pathname === path;
@@ -30,7 +31,17 @@ const CoachNavbar = () => {
                     {navLinks.map((link) => (
                         <button
                             key={link.path}
-                            onClick={() => navigate(link.path)}
+                            onClick={() => {
+                                if (link.lichess) {
+                                    if (location.pathname === '/coach') {
+                                        setTimeout(() => document.getElementById('lichess-requests')?.scrollIntoView({ behavior: 'smooth' }), 100);
+                                    } else {
+                                        navigate('/coach?scrollToLichess=true');
+                                    }
+                                } else {
+                                    navigate(link.path);
+                                }
+                            }}
                             className={`coach-nav-link ${isActive(link.path) ? 'active' : ''}`}
                         >
                             {link.label}

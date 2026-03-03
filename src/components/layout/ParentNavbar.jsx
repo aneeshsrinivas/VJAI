@@ -4,7 +4,7 @@ import { signOut } from 'firebase/auth';
 import { auth } from '../../lib/firebase';
 import { useAuth } from '../../context/AuthContext';
 import { useTheme } from '../../context/ThemeContext';
-import { ChevronDown, Settings, LogOut, User, Sun, Moon } from 'lucide-react';
+import { ChevronDown, Settings, LogOut, User, Sun, Moon, Link2 } from 'lucide-react';
 import './ParentNavbar.css';
 
 // ICA Colors
@@ -78,6 +78,19 @@ const ParentNavbar = () => {
                     className={`nav-link ${isActive('/parent/payments')}`}
                 >
                     Payments
+                </a>
+                <a
+                    onClick={() => {
+                        if (location.pathname === '/parent') {
+                            setTimeout(() => document.getElementById('lichess-sync')?.scrollIntoView({ behavior: 'smooth' }), 100);
+                        } else {
+                            navigate('/parent?scrollToLichess=true');
+                        }
+                    }}
+                    className="nav-link"
+                    style={{ display: 'flex', alignItems: 'center', gap: '6px' }}
+                >
+                    <Link2 size={16} /> Lichess
                 </a>
             </div>
 
