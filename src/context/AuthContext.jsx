@@ -36,7 +36,7 @@ const detectRoleFromEmail = (email) => {
 };
 
 // Development mode flag - set to true to bypass Firebase for testing
-const DEV_MODE = true;
+const DEV_MODE = false;
 const DEV_USER = {
     uid: 'dev-user-001',
     email: 'parent@example.com'

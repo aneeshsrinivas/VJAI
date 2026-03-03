@@ -6,6 +6,8 @@ import Input from '../ui/Input';
 import { useAuth } from '../../context/AuthContext';
 import './DemoOutcomeModal.css'; // Reuse styles
 
+const EMAIL_API_URL = import.meta.env.VITE_EMAIL_API_URL || 'http://localhost:3001';
+
 const ConvertStudentModal = ({ demo, onClose, onSuccess }) => {
     const { currentUser } = useAuth();
     const [formData, setFormData] = useState({
@@ -60,16 +62,13 @@ const ConvertStudentModal = ({ demo, onClose, onSuccess }) => {
                 // Send emails via Web3Forms
                 try {
                     // 1. Notify Admin of Payment
-                    const adminEmailResponse = await fetch('https://api.web3forms.com/submit', {
+                    const adminEmailResponse = await fetch(`${EMAIL_API_URL}/api/email/send`, {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({
-                            access_key: import.meta.env.VITE_WEB3FORMS_ACCESS_KEY,
-                            subject: `🎉 New Payment Received - ${demo.studentName}`,
-                            from_name: 'VJAI System',
-                            reply_to: 'indianchessacademy@chess.com',
                             to: 'indianchessacademy@chess.com',
-                            message: `New payment received!
+                            subject: `🎉 New Payment Received - ${demo.studentName}`,
+                            text: `New payment received!
 
 💰 Payment Details:
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -98,16 +97,13 @@ Student ID: ${result.studentId}`
                     }
 
                     // 2. Send LMS Access to Parent
-                    const parentEmailResponse = await fetch('https://api.web3forms.com/submit', {
+                    const parentEmailResponse = await fetch(`${EMAIL_API_URL}/api/email/send`, {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({
-                            access_key: import.meta.env.VITE_WEB3FORMS_ACCESS_KEY,
-                            subject: `Welcome to VJAI - Your LMS Access for ${demo.studentName}`,
-                            from_name: 'Indian Chess Academy',
-                            reply_to: 'indianchessacademy@chess.com',
                             to: demo.parentEmail,
-                            message: `Dear ${demo.parentName},
+                            subject: `Welcome to VJAI - Your LMS Access for ${demo.studentName}`,
+                            text: `Dear ${demo.parentName},
 
 Thank you for enrolling ${demo.studentName} at Indian Chess Academy! 🎉
 

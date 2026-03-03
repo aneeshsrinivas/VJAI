@@ -8,6 +8,8 @@ import Input from '../ui/Input';
 import { X } from 'lucide-react';
 import './AssignCoachModal.css';
 
+const EMAIL_API_URL = import.meta.env.VITE_EMAIL_API_URL || 'http://localhost:3001';
+
 /**
  * AssignCoachModal
  */
@@ -140,19 +142,17 @@ Indian Chess Academy Team
 `
             );
 
-            // Send email via Web3Forms (single recipient for MVP)
+            // Send demo confirmation email via nodemailer
             try {
                 const feedbackFormLink = 'https://docs.google.com/forms/d/e/1FAIpQLScR2G8atEgIgfws4sTKaPlgR7sjSbGowWd8yhdZvwy0mwkVHw/viewform?usp=publish-editor';
 
-                const emailResponse = await fetch('https://api.web3forms.com/submit', {
+                const emailResponse = await fetch(`${EMAIL_API_URL}/api/email/send`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
-                        access_key: import.meta.env.VITE_WEB3FORMS_ACCESS_KEY,
                         to: demo.parentEmail,
                         subject: `Demo Class Scheduled - ${demo.studentName} | Indian Chess Academy`,
-                        from_name: 'Indian Chess Academy',
-                        message: `Dear ${demo.parentName},
+                        text: `Dear ${demo.parentName},
 
 We are excited to confirm your demo class for ${demo.studentName}!
 

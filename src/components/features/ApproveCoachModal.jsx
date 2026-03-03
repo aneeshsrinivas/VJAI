@@ -7,6 +7,8 @@ import './DemoOutcomeModal.css';
 
 import { createCoachAccount } from '../../services/adminAuthService';
 
+const EMAIL_API_URL = import.meta.env.VITE_EMAIL_API_URL || 'http://localhost:3001';
+
 const ApproveCoachModal = ({ application, onClose, onSuccess }) => {
     const { currentUser } = useAuth();
     const [coachEmail, setCoachEmail] = useState(application?.email || '');
@@ -42,20 +44,15 @@ const ApproveCoachModal = ({ application, onClose, onSuccess }) => {
             const result = await approveCoachApplication(application.id, newUid, password, currentUser?.uid);
 
             if (result.success) {
-                // Send welcome email with credentials via Web3Forms
+                // Send welcome email with credentials via nodemailer
                 try {
-                    const emailResponse = await fetch('https://api.web3forms.com/submit', {
+                    const emailResponse = await fetch(`${EMAIL_API_URL}/api/email/send`, {
                         method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                        },
+                        headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({
-                            access_key: import.meta.env.VITE_WEB3FORMS_ACCESS_KEY,
                             to: coachEmail,
                             subject: 'Welcome to Indian Chess Academy - Coach Account Approved! 🎉',
-                            from_name: 'Indian Chess Academy',
-                            reply_to: 'indianchessacademy@chess.com',
-                            message: `Dear ${application.fullName},
+                            text: `Dear ${application.fullName},
 
 Congratulations! Your application as a coach at Indian Chess Academy has been APPROVED! 🎉
 
