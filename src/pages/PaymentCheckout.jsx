@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { toast, ToastContainer } from 'react-toastify';
-import { collection, addDoc, serverTimestamp, doc, updateDoc, getDoc } from 'firebase/firestore';
+import { collection, addDoc, serverTimestamp, doc, updateDoc, getDoc, query, where, getDocs } from 'firebase/firestore';
 import { db } from '../lib/firebase';
 import { useAuth } from '../context/AuthContext';
 import 'react-toastify/dist/ReactToastify.css';
@@ -33,7 +33,8 @@ const PaymentCheckout = () => {
 
     const [isProcessing, setIsProcessing] = useState(false);
     const [familyMembers, setFamilyMembers] = useState(1);
-    const [upiConfirmed, setUpiConfirmed] = useState(false);
+    const [availableStudents, setAvailableStudents] = useState([]);
+    const [isNewStudent, setIsNewStudent] = useState(false);
 
     // Mock UPI details
     const UPI_ID = 'indianchessacademy@upi';
@@ -70,6 +71,56 @@ const PaymentCheckout = () => {
         };
         fetchUserData();
     }, [user]);
+
+    // Fetch students based on parent email
+    useEffect(() => {
+        const fetchStudents = async () => {
+            if (!formData.parentEmail || formData.parentEmail.length < 5) {
+                setAvailableStudents([]);
+                return;
+            }
+            try {
+                const students = [];
+                const q1 = query(collection(db, 'users'), where('email', '==', formData.parentEmail));
+                const snap1 = await getDocs(q1);
+                snap1.forEach(doc => {
+                    const data = doc.data();
+                    if (data.studentName && !students.find(s => s.name === data.studentName)) {
+                        students.push({ id: doc.id, name: data.studentName, age: data.studentAge || '' });
+                    }
+                });
+
+                // Check students collection (legacy)
+                const q2 = query(collection(db, 'students'), where('parentEmail', '==', formData.parentEmail));
+                const snap2 = await getDocs(q2);
+                snap2.forEach(doc => {
+                    const data = doc.data();
+                    if (data.name && !students.find(s => s.name === data.name)) {
+                        students.push({ id: doc.id, name: data.name, age: data.age || '' });
+                    }
+                });
+
+                setAvailableStudents(students);
+                if (students.length === 1 && !formData.studentName) {
+                    setFormData(prev => ({ ...prev, studentName: students[0].name, studentAge: students[0].age }));
+                    setIsNewStudent(false);
+                } else if (students.length > 0 && !formData.studentName) {
+                    setIsNewStudent(false);
+                } else if (students.length === 0) {
+                    setIsNewStudent(true);
+                }
+            } catch (error) {
+                console.error("Error fetching students:", error);
+            }
+        };
+
+        const timer = setTimeout(() => {
+            fetchStudents();
+        }, 500);
+
+        return () => clearTimeout(timer);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [formData.parentEmail]);
 
     if (!plan) {
         return (
@@ -130,7 +181,7 @@ const PaymentCheckout = () => {
             // 1. Create Order on Backend
             const order = await createRazorpayOrder(
                 amountINR,
-                `receipt_${Date.now()}`,
+                `receipt_${new Date().getTime()}`,
                 {
                     planName: plan.name,
                     parentEmail: formData.parentEmail
@@ -358,29 +409,7 @@ const PaymentCheckout = () => {
                         </div>
 
                         <form onSubmit={handleSubmit}>
-                            {/* Student Information */}
-                            <div className="checkout-section">
-                                <h3 className="section-title">Student Information</h3>
-                                <div className="form-grid">
-                                    <Input
-                                        label="Student Name"
-                                        name="studentName"
-                                        value={formData.studentName}
-                                        onChange={handleInputChange}
-                                        required
-                                    />
-                                    <Input
-                                        label="Student Age"
-                                        name="studentAge"
-                                        type="number"
-                                        value={formData.studentAge}
-                                        onChange={handleInputChange}
-                                        required
-                                    />
-                                </div>
-                            </div>
-
-                            {/* Parent Information */}
+                            {/* Parent Information - moved up to fetch students */}
                             <div className="checkout-section">
                                 <h3 className="section-title">Parent/Guardian Information</h3>
                                 <div className="form-grid">
@@ -410,6 +439,65 @@ const PaymentCheckout = () => {
                                 />
                             </div>
 
+                            {/* Student Information */}
+                            <div className="checkout-section">
+                                <h3 className="section-title">Student Information</h3>
+                                {availableStudents.length > 0 && (
+                                    <div className="checkout-input-group" style={{ marginBottom: '16px' }}>
+                                        <label style={{ display: 'block', marginBottom: '8px', fontSize: '14px', color: '#181818', fontWeight: '500' }}>Select Student</label>
+                                        <select
+                                            value={isNewStudent ? 'new' : formData.studentName}
+                                            onChange={(e) => {
+                                                const val = e.target.value;
+                                                if (val === 'new') {
+                                                    setIsNewStudent(true);
+                                                    setFormData(prev => ({ ...prev, studentName: '', studentAge: '' }));
+                                                } else {
+                                                    setIsNewStudent(false);
+                                                    const selected = availableStudents.find(s => s.name === val);
+                                                    if (selected) {
+                                                        setFormData(prev => ({ ...prev, studentName: selected.name, studentAge: selected.age }));
+                                                    }
+                                                }
+                                            }}
+                                            style={{
+                                                width: '100%',
+                                                padding: '12px',
+                                                borderRadius: '8px',
+                                                border: '1px solid #ddd',
+                                                fontSize: '15px'
+                                            }}
+                                        >
+                                            <option value="" disabled>-- Select a student --</option>
+                                            {availableStudents.map(student => (
+                                                <option key={student.id} value={student.name}>{student.name}</option>
+                                            ))}
+                                            <option value="new">+ Add New Student</option>
+                                        </select>
+                                    </div>
+                                )}
+
+                                {(isNewStudent || availableStudents.length === 0) && (
+                                    <div className="form-grid">
+                                        <Input
+                                            label="Student Name"
+                                            name="studentName"
+                                            value={formData.studentName}
+                                            onChange={handleInputChange}
+                                            required
+                                        />
+                                        <Input
+                                            label="Student Age"
+                                            name="studentAge"
+                                            type="number"
+                                            value={formData.studentAge}
+                                            onChange={handleInputChange}
+                                            required
+                                        />
+                                    </div>
+                                )}
+                            </div>
+
                             {/* Family Plan */}
                             <div className="checkout-section">
                                 <h3 className="section-title">Family Plan</h3>
@@ -436,180 +524,75 @@ const PaymentCheckout = () => {
                                 </div>
                             </div>
 
-                            {/* Payment Method */}
+                            {/* Payment Summary View */}
                             <div className="checkout-section">
-                                <h3 className="section-title">Payment Method</h3>
-                                <div className="payment-methods">
-                                    {/* Razorpay — Recommended */}
-                                    <button
-                                        type="button"
-                                        id="pay-razorpay-btn"
-                                        className={`payment-method-btn ${formData.paymentMethod === 'razorpay' ? 'active' : ''}`}
-                                        onClick={() => setFormData({ ...formData, paymentMethod: 'razorpay' })}
-                                        style={{ position: 'relative' }}
-                                    >
-                                        <span className="payment-icon">
-                                            <img
-                                                src="https://razorpay.com/favicon.png"
-                                                alt="Razorpay"
-                                                style={{ width: '20px', height: '20px', borderRadius: '4px' }}
-                                                onError={(e) => { e.target.style.display = 'none'; e.target.nextSibling.style.display = 'inline'; }}
-                                            />
-                                            <span style={{ display: 'none' }}>💳</span>
-                                        </span>
-                                        <span>Razorpay</span>
-                                        <span style={{
-                                            position: 'absolute', top: '-8px', right: '-8px',
-                                            background: '#22c55e', color: 'white',
-                                            fontSize: '9px', fontWeight: '700',
-                                            padding: '2px 6px', borderRadius: '10px',
-                                            letterSpacing: '0.5px'
-                                        }}>RECOMMENDED</span>
-                                    </button>
+                                <h3 className="section-title">Payment Details</h3>
 
-                                    <button
-                                        type="button"
-                                        className={`payment-method-btn ${formData.paymentMethod === 'upi' ? 'active' : ''}`}
-                                        onClick={() => setFormData({ ...formData, paymentMethod: 'upi' })}
-                                    >
-                                        <span className="payment-icon">📱</span>
-                                        <span>Manual UPI</span>
-                                    </button>
-
-                                    <button
-                                        type="button"
-                                        className={`payment-method-btn ${formData.paymentMethod === 'card' ? 'active' : ''}`}
-                                        onClick={() => setFormData({ ...formData, paymentMethod: 'card' })}
-                                    >
-                                        <span className="payment-icon">💳</span>
-                                        <span>Card (Demo)</span>
-                                    </button>
-                                </div>
-
-                                {/* Razorpay info panel */}
-                                {formData.paymentMethod === 'razorpay' && (
-                                    <div style={{
-                                        background: 'linear-gradient(135deg, #0f3460 0%, #16213e 100%)',
-                                        borderRadius: '16px',
-                                        padding: '24px',
-                                        marginTop: '16px',
-                                        color: 'white',
-                                        border: '1px solid rgba(79,172,254,0.3)',
-                                    }}>
-                                        <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '16px' }}>
-                                            <div style={{
-                                                background: 'rgba(79,172,254,0.15)',
-                                                borderRadius: '12px', padding: '10px',
-                                            }}>
-                                                <span style={{ fontSize: '24px' }}>🔒</span>
-                                            </div>
-                                            <div>
-                                                <p style={{ margin: 0, fontWeight: '700', fontSize: '16px' }}>Secure Razorpay Checkout</p>
-                                                <p style={{ margin: 0, color: 'rgba(255,255,255,0.6)', fontSize: '13px' }}>
-                                                    Supports UPI, Cards, Net Banking & Wallets
-                                                </p>
-                                            </div>
-                                        </div>
-
-                                        {/* Amount display */}
+                                <div style={{
+                                    background: 'linear-gradient(135deg, #0f3460 0%, #16213e 100%)',
+                                    borderRadius: '16px',
+                                    padding: '24px',
+                                    marginTop: '16px',
+                                    color: 'white',
+                                    border: '1px solid rgba(79,172,254,0.3)',
+                                }}>
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '16px' }}>
                                         <div style={{
-                                            background: 'rgba(255,255,255,0.07)',
-                                            borderRadius: '12px', padding: '16px',
-                                            display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-                                            marginBottom: '16px',
+                                            background: 'rgba(79,172,254,0.15)',
+                                            borderRadius: '12px', padding: '10px',
                                         }}>
-                                            <span style={{ color: 'rgba(255,255,255,0.7)', fontSize: '14px' }}>Amount to Pay</span>
-                                            <span style={{ fontSize: '24px', fontWeight: '800', color: '#4facfe' }}>
-                                                ₹{amountINR.toLocaleString()}
-                                            </span>
+                                            <span style={{ fontSize: '24px' }}>🔒</span>
                                         </div>
-
-                                        {/* Test card chips */}
-                                        <div style={{ marginBottom: '8px' }}>
-                                            <p style={{ margin: '0 0 8px', color: 'rgba(255,255,255,0.5)', fontSize: '11px', textTransform: 'uppercase', letterSpacing: '1px' }}>
-                                                🧪 Test Credentials
+                                        <div>
+                                            <p style={{ margin: 0, fontWeight: '700', fontSize: '16px' }}>Secure Razorpay Checkout</p>
+                                            <p style={{ margin: 0, color: 'rgba(255,255,255,0.6)', fontSize: '13px' }}>
+                                                Supports UPI, Cards, Net Banking & Wallets
                                             </p>
-                                            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
-                                                {[
-                                                    { label: 'Card', value: '4111 1111 1111 1111' },
-                                                    { label: 'Expiry', value: '12/26' },
-                                                    { label: 'CVV', value: '123' },
-                                                    { label: 'UPI', value: 'success@razorpay' },
-                                                ].map(item => (
-                                                    <div key={item.label} style={{
-                                                        background: 'rgba(79,172,254,0.12)',
-                                                        border: '1px solid rgba(79,172,254,0.3)',
-                                                        borderRadius: '8px', padding: '6px 10px',
-                                                        fontSize: '12px',
-                                                    }}>
-                                                        <span style={{ color: 'rgba(255,255,255,0.5)' }}>{item.label}: </span>
-                                                        <span style={{ color: '#fff', fontWeight: '600', fontFamily: 'monospace' }}>{item.value}</span>
-                                                    </div>
-                                                ))}
-                                            </div>
-                                        </div>
-
-                                        <p style={{ margin: '12px 0 0', color: 'rgba(255,255,255,0.4)', fontSize: '11px' }}>
-                                            ⓘ Clicking "Pay with Razorpay" will open the Razorpay modal. No real money is charged in test mode.
-                                        </p>
-                                    </div>
-                                )}
-
-                                {/* Card details (demo) */}
-                                {formData.paymentMethod === 'card' && (
-                                    <div className="card-details">
-                                        <Input
-                                            label="Card Number"
-                                            name="cardNumber"
-                                            placeholder="1234 5678 9012 3456"
-                                            value={formData.cardNumber}
-                                            onChange={handleInputChange}
-                                            required
-                                        />
-                                        <div className="form-grid">
-                                            <Input
-                                                label="Expiry Date"
-                                                name="cardExpiry"
-                                                placeholder="MM/YY"
-                                                value={formData.cardExpiry}
-                                                onChange={handleInputChange}
-                                                required
-                                            />
-                                            <Input
-                                                label="CVV"
-                                                name="cardCVV"
-                                                placeholder="123"
-                                                type="password"
-                                                maxLength="3"
-                                                value={formData.cardCVV}
-                                                onChange={handleInputChange}
-                                                required
-                                            />
                                         </div>
                                     </div>
-                                )}
 
-                                {/* Manual UPI */}
-                                {formData.paymentMethod === 'upi' && (
-                                    <div className="upi-details">
-                                        <h4>Pay via UPI</h4>
-                                        <div className="upi-qr-box">📱</div>
-                                        <p className="upi-hint">Scan QR code or pay to:</p>
-                                        <div className="upi-id-display">{UPI_ID}</div>
-                                        <p className="upi-amount">
-                                            Amount: ₹{amountINR.toLocaleString()} (~${pricing.total.toFixed(2)})
-                                        </p>
-                                        <label className={`upi-confirm-label ${upiConfirmed ? 'confirmed' : ''}`}>
-                                            <input
-                                                type="checkbox"
-                                                checked={upiConfirmed}
-                                                onChange={(e) => setUpiConfirmed(e.target.checked)}
-                                                style={{ width: '18px', height: '18px', accentColor: '#22c55e' }}
-                                            />
-                                            <span>I have completed the UPI payment</span>
-                                        </label>
+                                    {/* Amount display */}
+                                    <div style={{
+                                        background: 'rgba(255,255,255,0.07)',
+                                        borderRadius: '12px', padding: '16px',
+                                        display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+                                        marginBottom: '16px',
+                                    }}>
+                                        <span style={{ color: 'rgba(255,255,255,0.7)', fontSize: '14px' }}>Amount to Pay</span>
+                                        <span style={{ fontSize: '24px', fontWeight: '800', color: '#4facfe' }}>
+                                            ₹{amountINR.toLocaleString()}
+                                        </span>
                                     </div>
-                                )}
+
+                                    {/* Test card chips */}
+                                    <div style={{ marginBottom: '8px' }}>
+                                        <p style={{ margin: '0 0 8px', color: 'rgba(255,255,255,0.5)', fontSize: '11px', textTransform: 'uppercase', letterSpacing: '1px' }}>
+                                            🧪 Test Credentials
+                                        </p>
+                                        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
+                                            {[
+                                                { label: 'Card', value: '4111 1111 1111 1111' },
+                                                { label: 'Expiry', value: '12/26' },
+                                                { label: 'CVV', value: '123' },
+                                                { label: 'UPI', value: 'success@razorpay' },
+                                            ].map(item => (
+                                                <div key={item.label} style={{
+                                                    background: 'rgba(79,172,254,0.12)',
+                                                    border: '1px solid rgba(79,172,254,0.3)',
+                                                    borderRadius: '8px', padding: '6px 10px',
+                                                    fontSize: '12px',
+                                                }}>
+                                                    <span style={{ color: 'rgba(255,255,255,0.5)' }}>{item.label}: </span>
+                                                    <span style={{ color: '#fff', fontWeight: '600', fontFamily: 'monospace' }}>{item.value}</span>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </div>
+
+                                    <p style={{ margin: '12px 0 0', color: 'rgba(255,255,255,0.4)', fontSize: '11px' }}>
+                                        ⓘ Clicking "Proceed to Pay" will open the Razorpay modal. No real money is charged in test mode.
+                                    </p>
+                                </div>
                             </div>
 
                             {/* Submit button */}
@@ -617,31 +600,25 @@ const PaymentCheckout = () => {
                                 type="submit"
                                 id="checkout-submit-btn"
                                 className="checkout-submit-btn"
-                                disabled={isProcessing || (formData.paymentMethod === 'upi' && !upiConfirmed)}
-                                style={formData.paymentMethod === 'razorpay' ? {
+                                disabled={isProcessing}
+                                style={{
                                     background: 'linear-gradient(135deg, #072654 0%, #0f3460 50%, #1a5276 100%)',
                                     boxShadow: '0 8px 24px rgba(15,52,96,0.5)',
-                                } : {}}
+                                }}
                             >
                                 {isProcessing ? (
                                     <span className="processing-text">
                                         <span className="spinner"></span>
-                                        {formData.paymentMethod === 'razorpay' ? 'Opening Razorpay...' : 'Processing Payment...'}
+                                        Opening Razorpay...
                                     </span>
                                 ) : (
-                                    formData.paymentMethod === 'razorpay'
-                                        ? `🔒 Pay ₹${amountINR.toLocaleString()} with Razorpay`
-                                        : formData.paymentMethod === 'upi'
-                                            ? `Submit Payment (₹${amountINR.toLocaleString()})`
-                                            : `Pay $${pricing.total.toFixed(2)} (Demo)`
+                                    `Proceed to Pay ₹${amountINR.toLocaleString()}`
                                 )}
                             </button>
 
-                            {formData.paymentMethod === 'razorpay' && (
-                                <p style={{ textAlign: 'center', fontSize: '12px', color: '#999', marginTop: '12px' }}>
-                                    🔐 Secured by Razorpay. SSL encrypted & PCI DSS compliant.
-                                </p>
-                            )}
+                            <p style={{ textAlign: 'center', fontSize: '12px', color: '#999', marginTop: '12px' }}>
+                                🔐 Secured by Razorpay. SSL encrypted & PCI DSS compliant.
+                            </p>
                         </form>
                     </div>
 

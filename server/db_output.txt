@@ -1,0 +1,19 @@
+Customer User: 1mv22cs048@sirmvit.edu | Student Name: charan raj b student
+Customer User: 1mv22s048@sirmvit.edu.in | Student Name: Charan Raj B
+Customer User: abhirambhat2210@gmail.com | Student Name: Abhiram
+Customer User: rio@student.com | Student Name: Rio
+Customer User: charanrajb282004@gmail.com | Student Name: charan raj b
+Customer User: aryaraghu2810@gmail.com | Student Name: Charan Raj B
+Customer User: abhiram@student.com | Student Name: undefined
+Customer User: 1mv22cs048@sirmvit.edu.in | Student Name: Charan Raj B
+Customer User: viraj@gmail.com | Student Name: viraj
+Customer User: juniorrohan@student.com | Student Name: Junior rohan
+Customer User: abhirambhat@student.com | Student Name: undefined
+Students coll count: 7
+Student List: godofgamesab@gmail.com | Student Name: undefined
+Student List: divergentbeats8@gmail.com | Student Name: undefined
+Student List: godofgamesab@gmail.com | Student Name: undefined
+Student List: abhirambhat2210@gmail.com | Student Name: undefined
+Student List: abhirambhat2210@gmail.com | Student Name: undefined
+Student List: godofgamesab@gmail.com | Student Name: undefined
+Student List: godofgamesab@gmail.com | Student Name: undefined

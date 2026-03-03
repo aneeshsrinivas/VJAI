@@ -3,7 +3,6 @@ import { collection, query, where, getDocs, doc, updateDoc, serverTimestamp, arr
 import { db } from '../../lib/firebase';
 import Card from '../../components/ui/Card';
 import Button from '../../components/ui/Button';
-import Input from '../../components/ui/Input';
 import SkillHeatmap from '../../components/features/hackathon/SkillHeatmap';
 import AddStudentModal from '../../components/features/admin/AddStudentModal';
 import { toast, ToastContainer } from 'react-toastify';
@@ -36,31 +35,30 @@ const StudentDatabase = () => {
         // Query all users — filter client-side to avoid Firestore 'in' operator bug in onSnapshot
         const q = query(collection(db, 'users'));
         setLoading(true);
-
         const unsubscribe = onSnapshot(q, (querySnapshot) => {
             const studentList = querySnapshot.docs
-                .filter(doc => doc.data().role?.toLowerCase() === 'customer')
+                .filter(doc => doc.data().role?.toLowerCase() === 'customer' || doc.data().studentName)
                 .map(doc => {
-                const data = doc.data();
-                return {
-                    id: doc.id,
-                    student_id: doc.id.substring(0, 8).toUpperCase(),
-                    student_name: data.studentName || data.fullName || 'N/A',
-                    student_age: data.studentAge || '-',
-                    parent_name: data.fullName || 'N/A',
-                    parent_email: data.email,
-                    timezone: data.timezone || '-',
-                    country: data.country || '-',
-                    student_type: data.studentType || 'Group',
-                    level: data.learningLevel || 'Beginner',
-                    assigned_batch_id: data.assignedBatch || data.assignedBatchId || '-',
-                    assigned_batch_name: data.assignedBatchName || '-',
-                    assigned_coach_id: data.assignedCoach || data.assignedCoachId || '-',
-                    chess_usernames: data.chessUsername || '-',
-                    rating: data.fideRating || 'Unrated',
-                    status: data.status || 'ACTIVE'
-                };
-            });
+                    const data = doc.data();
+                    return {
+                        id: doc.id,
+                        student_id: doc.id.substring(0, 8).toUpperCase(),
+                        student_name: data.studentName || data.fullName || 'N/A',
+                        student_age: data.studentAge || '-',
+                        parent_name: data.fullName || 'N/A',
+                        parent_email: data.email,
+                        timezone: data.timezone || '-',
+                        country: data.country || '-',
+                        student_type: data.studentType || 'Group',
+                        level: data.learningLevel || 'Beginner',
+                        assigned_batch_id: data.assignedBatch || data.assignedBatchId || '-',
+                        assigned_batch_name: data.assignedBatchName || '-',
+                        assigned_coach_id: data.assignedCoach || data.assignedCoachId || '-',
+                        chess_usernames: data.chessUsername || '-',
+                        rating: data.fideRating || 'Unrated',
+                        status: data.status || 'ACTIVE'
+                    };
+                });
             setStudents(studentList);
             setLoading(false);
         }, (error) => {
@@ -180,9 +178,13 @@ const StudentDatabase = () => {
 
     // Filter students
     const filteredStudents = students.filter(student => {
-        const matchesSearch = (student.student_name || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
-            (student.parent_email || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
-            (student.student_id || '').toLowerCase().includes(searchQuery.toLowerCase());
+        const safeStudentName = student.student_name || '';
+        const safeParentEmail = student.parent_email || '';
+        const safeStudentId = student.student_id || '';
+
+        const matchesSearch = safeStudentName.toLowerCase().includes(searchQuery.toLowerCase()) ||
+            safeParentEmail.toLowerCase().includes(searchQuery.toLowerCase()) ||
+            safeStudentId.toLowerCase().includes(searchQuery.toLowerCase());
         const matchesStatus = statusFilter === 'All' || student.status === statusFilter;
         const matchesType = typeFilter === 'All' || student.student_type === typeFilter;
         return matchesSearch && matchesStatus && matchesType;
