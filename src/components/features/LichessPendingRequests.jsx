@@ -99,9 +99,6 @@ const LichessPendingRequests = ({ currentUser }) => {
         }
     };
 
-    // Don't render if no pending requests
-    if (pendingStudents.length === 0) return null;
-
     return (
         <div className="lichess-pending-card content-card">
             <div className="lp-header">
@@ -110,14 +107,23 @@ const LichessPendingRequests = ({ currentUser }) => {
                 </div>
                 <div>
                     <h3 className="lp-title">Pending Lichess Requests</h3>
-                    <p className="lp-subtitle">{pendingStudents.length} student{pendingStudents.length !== 1 ? 's' : ''} waiting for approval</p>
+                    <p className="lp-subtitle">
+                        {pendingStudents.length === 0
+                            ? 'No pending requests'
+                            : `${pendingStudents.length} student${pendingStudents.length !== 1 ? 's' : ''} waiting for approval`}
+                    </p>
                 </div>
             </div>
 
-            <div className="lp-list">
-                {pendingStudents.map(student => {
-                    const preview = previews[student.id];
-                    const loadState = actionLoading[student.id];
+            {pendingStudents.length === 0 ? (
+                <div className="lp-empty">
+                    <p>All Lichess link requests have been processed.</p>
+                </div>
+            ) : (
+                <div className="lp-list">
+                    {pendingStudents.map(student => {
+                        const preview = previews[student.id];
+                        const loadState = actionLoading[student.id];
 
                     return (
                         <div key={student.id} className="lp-item">
@@ -184,7 +190,8 @@ const LichessPendingRequests = ({ currentUser }) => {
                         </div>
                     );
                 })}
-            </div>
+                </div>
+            )}
         </div>
     );
 };

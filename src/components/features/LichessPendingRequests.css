@@ -41,12 +41,20 @@
     margin: 2px 0 0 0;
 }
 
-/* ─── List ─── */
+/* ─── List & Items ─── */
 
 .lp-list {
     display: flex;
     flex-direction: column;
     gap: 12px;
+}
+
+.lp-empty {
+    padding: 32px 16px;
+    text-align: center;
+    color: #94a3b8;
+    font-size: 14px;
+    line-height: 1.6;
 }
 
 .lp-item {
