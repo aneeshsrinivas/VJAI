@@ -385,8 +385,9 @@ export const approveCoachApplication = async (applicationId, uid, password, admi
 
 export const getAllCoaches = async () => {
     try {
-        // Fetch from coaches collection
-        const coachSnapshot = await getDocs(collection(db, 'coaches'));
+        // Fetch only ACTIVE (approved) coaches from coaches collection
+        const q = query(collection(db, 'coaches'), where('status', '==', 'ACTIVE'));
+        const coachSnapshot = await getDocs(q);
         let coachList = coachSnapshot.docs.map(doc => ({
             id: doc.id,
             ...doc.data()
