@@ -9,7 +9,7 @@ import LichessPendingRequests from '../components/features/LichessPendingRequest
 import {
     Clock, Users, Calendar, TrendingUp, BookOpen, Award, Lightbulb,
     Video, ChevronRight, Star, Activity, Zap, GraduationCap, MessageSquare,
-    Sun, Moon, Sunset, Trophy, Target
+    Sun, Moon, Sunset, Trophy, Target, Link2
 } from 'lucide-react';
 import './CoachPage.css';
 
@@ -451,7 +451,13 @@ const CoachPage = () => {
                     </div>
 
                     {/* Pending Lichess Requests */}
-                    <div id="lichess-requests">
+                    <div id="lichess-requests" className={`content-card ${cardsVisible ? 'visible' : ''}`}>
+                        <div className="card-header">
+                            <div className="card-title-group">
+                                <Link2 size={22} color="#f59e0b" />
+                                <h3>Pending Lichess Requests</h3>
+                            </div>
+                        </div>
                         <LichessPendingRequests currentUser={currentUser} />
                     </div>
                 </div>

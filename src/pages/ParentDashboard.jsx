@@ -19,7 +19,7 @@ import VideoIcon from '../components/icons/VideoIcon';
 import GreetingIcon from '../components/icons/GreetingIcon';
 import ChessBishopIcon from '../components/icons/ChessBishopIcon';
 import ClockIcon from '../components/icons/ClockIcon';
-import { Bell, Megaphone } from 'lucide-react';
+import { Bell, Megaphone, Link2 } from 'lucide-react';
 import './ParentDashboard.css';
 
 const ParentDashboard = () => {
@@ -625,7 +625,13 @@ const ParentDashboard = () => {
                         </div>
 
                         {/* Lichess Sync Section */}
-                        <div id="lichess-sync">
+                        <div id="lichess-sync" className={`content-card ${cardsVisible ? 'visible' : ''}`}>
+                            <div className="card-header-row">
+                                <div className="card-title-group">
+                                    <Link2 size={22} color="#FC8A24" />
+                                    <h3>Lichess Sync</h3>
+                                </div>
+                            </div>
                             <LichessSync currentUser={currentUser} userData={userData} />
                         </div>
                     </div>

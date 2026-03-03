@@ -1,9 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { collection, query, where, onSnapshot, doc, updateDoc, addDoc, serverTimestamp } from 'firebase/firestore';
 import { db } from '../../lib/firebase';
-import { useAuth } from '../../context/AuthContext';
 import { LICHESS_STATUS } from '../../config/firestoreCollections';
-import { Link2, CheckCircle, XCircle, Loader2, User, TrendingUp, ExternalLink } from 'lucide-react';
+import { CheckCircle, XCircle, Loader2, User, TrendingUp, ExternalLink } from 'lucide-react';
 import './LichessPendingRequests.css';
 
 const API_BASE = import.meta.env.VITE_SERVER_URL || 'http://localhost:3001';
@@ -100,21 +99,7 @@ const LichessPendingRequests = ({ currentUser }) => {
     };
 
     return (
-        <div className="lichess-pending-card content-card">
-            <div className="lp-header">
-                <div className="lp-icon">
-                    <Link2 size={20} />
-                </div>
-                <div>
-                    <h3 className="lp-title">Pending Lichess Requests</h3>
-                    <p className="lp-subtitle">
-                        {pendingStudents.length === 0
-                            ? 'No pending requests'
-                            : `${pendingStudents.length} student${pendingStudents.length !== 1 ? 's' : ''} waiting for approval`}
-                    </p>
-                </div>
-            </div>
-
+        <div className="lp-body">
             {pendingStudents.length === 0 ? (
                 <div className="lp-empty">
                     <p>All Lichess link requests have been processed.</p>
