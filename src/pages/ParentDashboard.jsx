@@ -7,6 +7,7 @@ import { COLLECTIONS } from '../config/firestoreCollections';
 import Button from '../components/ui/Button';
 import ReviewRequestModal from '../components/features/ReviewRequestModal';
 import StudentChessAssignmentModal from '../components/features/StudentChessAssignmentModal';
+import LichessSync from '../components/features/LichessSync';
 // Icons
 import CalendarIcon from '../components/icons/CalendarIcon';
 import AssignmentIcon from '../components/icons/AssignmentIcon';
@@ -611,6 +612,9 @@ const ParentDashboard = () => {
                                 );
                             })}
                         </div>
+
+                        {/* Lichess Sync Section */}
+                        <LichessSync currentUser={currentUser} userData={userData} />
                     </div>
 
                     {/* Right Sidebar */}

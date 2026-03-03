@@ -5,7 +5,7 @@ import {
     signOut,
     onAuthStateChanged
 } from 'firebase/auth';
-import { doc, getDoc, setDoc, updateDoc, serverTimestamp } from 'firebase/firestore';
+import { doc, getDoc, setDoc, updateDoc, serverTimestamp, collection, addDoc } from 'firebase/firestore';
 import { auth, db } from '../lib/firebase';
 
 const AuthContext = createContext();
@@ -49,6 +49,36 @@ const DEV_ADMIN_USER = {
     uid: 'dev-admin-001',
     email: 'indianchessacademy@chess.com'
 };
+
+const LICHESS_API_BASE = import.meta.env.VITE_SERVER_URL || 'http://localhost:3001';
+
+// Fire-and-forget: sync Lichess ratings if approved and last sync > 24h
+async function syncLichessRating(uid, username) {
+    try {
+        const res = await fetch(`${LICHESS_API_BASE}/api/lichess/user/${encodeURIComponent(username)}`);
+        const json = await res.json();
+        if (!json.success) return;
+
+        const { rapid, puzzle } = json.data;
+
+        // Write new rating snapshot to subcollection
+        await addDoc(collection(db, 'users', uid, 'ratingHistory'), {
+            rapid: rapid || 0,
+            puzzle: puzzle || 0,
+            timestamp: serverTimestamp(),
+            source: 'sync',
+        });
+
+        // Update current ratings + lastSyncedAt on user doc
+        await updateDoc(doc(db, 'users', uid), {
+            currentRapid: rapid || 0,
+            currentPuzzle: puzzle || 0,
+            lastSyncedAt: serverTimestamp(),
+        });
+    } catch (err) {
+        console.error('Lichess rating sync failed:', err);
+    }
+}
 
 export const AuthProvider = ({ children }) => {
     const [currentUser, setCurrentUser] = useState(null);
@@ -100,6 +130,17 @@ export const AuthProvider = ({ children }) => {
                 finalRole = storedRole || detectedRole;
                 setUserRole(finalRole);
                 setUserData(userDoc.data());
+
+                // Trigger Lichess rating sync for approved customer accounts
+                const ud = userDoc.data();
+                if (storedRole === 'customer' && ud.lichessStatus === 'approved' && ud.lichessUsername) {
+                    const lastSync = ud.lastSyncedAt?.toDate?.() || new Date(0);
+                    const hoursSinceSync = (Date.now() - lastSync.getTime()) / (1000 * 60 * 60);
+                    if (hoursSinceSync >= 24) {
+                        syncLichessRating(user.uid, ud.lichessUsername); // fire-and-forget
+                    }
+                }
+
                 return { user, role: storedRole };
             } else {
                 // Create user doc if missing (for admin or new users)

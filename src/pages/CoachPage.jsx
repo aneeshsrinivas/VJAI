@@ -5,6 +5,7 @@ import { db } from '../lib/firebase';
 import { useAuth } from '../context/AuthContext';
 import { COLLECTIONS, DEMO_STATUS } from '../config/firestoreCollections';
 import Button from '../components/ui/Button';
+import LichessPendingRequests from '../components/features/LichessPendingRequests';
 import {
     Clock, Users, Calendar, TrendingUp, BookOpen, Award, Lightbulb,
     Video, ChevronRight, Star, Activity, Zap, GraduationCap, MessageSquare,
@@ -437,6 +438,9 @@ const CoachPage = () => {
                             );
                         })}
                     </div>
+
+                    {/* Pending Lichess Requests */}
+                    <LichessPendingRequests currentUser={currentUser} />
                 </div>
 
                 {/* Right Column */}

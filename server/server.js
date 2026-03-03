@@ -395,6 +395,133 @@ app.post('/api/chess/puzzle', async (req, res) => {
 });
 
 // ==========================================
+// LICHESS API PROXY (rate-limited)
+// ==========================================
+
+const lichessRateLimit = new Map();
+const LICHESS_RATE_LIMIT = 30;      // max requests
+const LICHESS_RATE_WINDOW = 60000;  // per 60 seconds
+
+function checkLichessRateLimit(ip) {
+	const now = Date.now();
+	const entry = lichessRateLimit.get(ip);
+	if (!entry || now > entry.resetTime) {
+		lichessRateLimit.set(ip, { count: 1, resetTime: now + LICHESS_RATE_WINDOW });
+		return true;
+	}
+	if (entry.count >= LICHESS_RATE_LIMIT) return false;
+	entry.count++;
+	return true;
+}
+
+// Clean up stale rate-limit entries every 5 minutes
+setInterval(() => {
+	const now = Date.now();
+	for (const [ip, entry] of lichessRateLimit.entries()) {
+		if (now > entry.resetTime) lichessRateLimit.delete(ip);
+	}
+}, 300000);
+
+/**
+ * Validate & fetch Lichess user profile
+ * GET /api/lichess/user/:username
+ */
+app.get('/api/lichess/user/:username', async (req, res) => {
+	try {
+		const ip = req.ip || req.connection.remoteAddress;
+		if (!checkLichessRateLimit(ip)) {
+			return res.status(429).json({ success: false, error: 'Rate limit exceeded. Try again later.' });
+		}
+
+		const { username } = req.params;
+		if (!username || username.length < 2 || username.length > 20) {
+			return res.status(400).json({ success: false, error: 'Invalid username' });
+		}
+
+		const response = await fetch(`https://lichess.org/api/user/${encodeURIComponent(username)}`, {
+			headers: { 'Accept': 'application/json' }
+		});
+
+		if (!response.ok) {
+			if (response.status === 404) {
+				return res.status(404).json({ success: false, error: 'Lichess user not found' });
+			}
+			return res.status(502).json({ success: false, error: 'Lichess API error' });
+		}
+
+		const data = await response.json();
+		res.json({
+			success: true,
+			data: {
+				username: data.username,
+				rapid: data.perfs?.rapid?.rating || null,
+				rapidGames: data.perfs?.rapid?.games || 0,
+				puzzle: data.perfs?.puzzle?.rating || null,
+				puzzleGames: data.perfs?.puzzle?.games || 0,
+				createdAt: data.createdAt,
+				online: data.online || false,
+				playTime: data.playTime?.total || 0,
+			}
+		});
+	} catch (err) {
+		console.error('Lichess user fetch error:', err);
+		res.status(500).json({ success: false, error: err.message });
+	}
+});
+
+/**
+ * Fetch Lichess rating history (Rapid + Puzzle)
+ * GET /api/lichess/rating-history/:username
+ */
+app.get('/api/lichess/rating-history/:username', async (req, res) => {
+	try {
+		const ip = req.ip || req.connection.remoteAddress;
+		if (!checkLichessRateLimit(ip)) {
+			return res.status(429).json({ success: false, error: 'Rate limit exceeded. Try again later.' });
+		}
+
+		const { username } = req.params;
+		if (!username || username.length < 2 || username.length > 20) {
+			return res.status(400).json({ success: false, error: 'Invalid username' });
+		}
+
+		const response = await fetch(`https://lichess.org/api/user/${encodeURIComponent(username)}/rating-history`, {
+			headers: { 'Accept': 'application/json' }
+		});
+
+		if (!response.ok) {
+			if (response.status === 404) {
+				return res.status(404).json({ success: false, error: 'Lichess user not found' });
+			}
+			return res.status(502).json({ success: false, error: 'Lichess API error' });
+		}
+
+		const data = await response.json();
+
+		// Filter to Rapid and Puzzle only
+		const rapidData = data.find(cat => cat.name === 'Rapid');
+		const puzzleData = data.find(cat => cat.name === 'Puzzles');
+
+		const formatPoints = (category) => {
+			if (!category || !category.points) return [];
+			return category.points.map(([year, month, day, rating]) => ({
+				date: `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`,
+				rating
+			}));
+		};
+
+		res.json({
+			success: true,
+			rapid: formatPoints(rapidData),
+			puzzle: formatPoints(puzzleData),
+		});
+	} catch (err) {
+		console.error('Lichess rating history error:', err);
+		res.status(500).json({ success: false, error: err.message });
+	}
+});
+
+// ==========================================
 // WEBSOCKET CHAT (Existing Code)
 // ==========================================
 
