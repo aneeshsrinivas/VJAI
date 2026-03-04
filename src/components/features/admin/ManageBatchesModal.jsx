@@ -19,7 +19,7 @@ const ManageBatchesModal = ({ isOpen, onClose, coach }) => {
     useEffect(() => {
         if (!isOpen || !coach?.id) return;
         setLoading(true);
-        const coachDocId = coach.accountId || coach.id;
+        const coachDocId = coach.id;
         const unsub = onSnapshot(
             collection(db, 'coaches', coachDocId, 'batches'),
             (snapshot) => {
@@ -41,7 +41,7 @@ const ManageBatchesModal = ({ isOpen, onClose, coach }) => {
         if (!newBatch.name) return;
         setAdding(true);
         try {
-            const coachDocId = coach.accountId || coach.id;
+            const coachDocId = coach.id;
             // Add to coach's subcollection
             await addDoc(collection(db, 'coaches', coachDocId, 'batches'), {
                 name: newBatch.name,
@@ -72,7 +72,7 @@ const ManageBatchesModal = ({ isOpen, onClose, coach }) => {
             confirmLabel: 'Delete',
             onConfirm: async () => {
                 try {
-                    await deleteDoc(doc(db, 'coaches', coach.accountId || coach.id, 'batches', id));
+                    await deleteDoc(doc(db, 'coaches', coach.id, 'batches', id));
                 } catch (e) {
                     console.error("Error deleting batch:", e);
                     toast.error("Failed to delete batch");

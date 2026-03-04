@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { initializeApp } from 'firebase/app';
+import { initializeApp, getApps, getApp } from 'firebase/app';
 import { getAuth, createUserWithEmailAndPassword } from 'firebase/auth';
 import { doc, setDoc } from 'firebase/firestore';
 import { db } from '../../../lib/firebase'; // We use the MAIN db connection for writing data
@@ -18,7 +18,7 @@ const firebaseConfig = {
 };
 
 // Only initialize if we need to (scoped to this component usage really, but safe here)
-const secondaryApp = initializeApp(firebaseConfig, "SecondaryApp");
+const secondaryApp = getApps().find(app => app.name === 'SecondaryApp') || initializeApp(firebaseConfig, "SecondaryApp");
 const secondaryAuth = getAuth(secondaryApp);
 
 // Email API URL
@@ -58,9 +58,9 @@ const AddStudentModal = ({ isOpen, onClose, onSuccess }) => {
         }
 
         try {
-            // Generate student email from student name
+            // Generate unique student email from student name + timestamp suffix
             const studentEmailPrefix = formData.studentName.toLowerCase().split(' ')[0].replace(/[^a-z0-9]/g, '');
-            const studentEmail = `${studentEmailPrefix}@student.com`;
+            const studentEmail = `${studentEmailPrefix}${Date.now().toString().slice(-4)}@student.com`;
 
             // 1. Create User in Firebase Authentication (Secondary App)
             const userCredential = await createUserWithEmailAndPassword(secondaryAuth, studentEmail, formData.password);

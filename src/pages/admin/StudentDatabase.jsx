@@ -39,7 +39,7 @@ const StudentDatabase = () => {
 
         const unsubscribe = onSnapshot(q, (querySnapshot) => {
             const studentList = querySnapshot.docs
-                .filter(doc => ['customer', 'CUSTOMER'].includes(doc.data().role))
+                .filter(doc => doc.data().role?.toLowerCase() === 'customer')
                 .map(doc => {
                 const data = doc.data();
                 return {
@@ -76,10 +76,12 @@ const StudentDatabase = () => {
     useEffect(() => {
         const loadCoaches = async () => {
             try {
-                const uSnap = await getDocs(collection(db, 'users'));
-                const coachList = uSnap.docs
-                    .filter(d => ['coach', 'COACH'].includes(d.data().role))
-                    .map(d => ({ id: d.id, name: d.data().fullName || d.data().email?.split('@')[0] || d.id }));
+                // Load from coaches collection to get the correct doc ID (used for batches subcollection path)
+                const snap = await getDocs(query(collection(db, 'coaches'), where('status', '==', 'ACTIVE')));
+                const coachList = snap.docs.map(d => ({
+                    id: d.id,
+                    name: d.data().fullName || d.data().email?.split('@')[0] || d.id
+                }));
                 setCoaches(coachList);
             } catch (err) {
                 console.error('Error loading coaches:', err);

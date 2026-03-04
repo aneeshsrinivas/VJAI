@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { initializeApp } from 'firebase/app';
+import { initializeApp, getApps } from 'firebase/app';
 import { getAuth, createUserWithEmailAndPassword } from 'firebase/auth';
 import { doc, setDoc, serverTimestamp } from 'firebase/firestore';
 import { db } from '../../../lib/firebase';
@@ -16,7 +16,7 @@ const firebaseConfig = {
     appId: import.meta.env.VITE_FIREBASE_APP_ID
 };
 
-const secondaryApp = initializeApp(firebaseConfig, "SecondaryApp_Coach");
+const secondaryApp = getApps().find(app => app.name === 'SecondaryApp_Coach') || initializeApp(firebaseConfig, "SecondaryApp_Coach");
 const secondaryAuth = getAuth(secondaryApp);
 
 // Email API URL
