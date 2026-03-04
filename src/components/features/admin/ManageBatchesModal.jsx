@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { collection, getDocs, addDoc, deleteDoc, doc, serverTimestamp } from 'firebase/firestore';
+import { collection, onSnapshot, addDoc, deleteDoc, doc, serverTimestamp } from 'firebase/firestore';
 import { db } from '../../../lib/firebase';
 import Button from '../../ui/Button';
 import ConfirmDialog from '../../ui/ConfirmDialog';
@@ -13,34 +13,37 @@ const ManageBatchesModal = ({ isOpen, onClose, coach }) => {
     const [confirmDialog, setConfirmDialog] = useState(null);
     const [batches, setBatches] = useState([]);
     const [loading, setLoading] = useState(true);
-    const [newBatch, setNewBatch] = useState({ name: '', schedule: '', level: 'Intermediate' });
+    const [newBatch, setNewBatch] = useState({ name: '', schedule: '', level: 'Beginner' });
+    const [adding, setAdding] = useState(false);
 
     useEffect(() => {
-        if (isOpen && coach?.id) {
-            fetchBatches();
-        }
+        if (!isOpen || !coach?.id) return;
+        setLoading(true);
+        const coachDocId = coach.accountId || coach.id;
+        const unsub = onSnapshot(
+            collection(db, 'coaches', coachDocId, 'batches'),
+            (snapshot) => {
+                setBatches(snapshot.docs.map(d => ({ id: d.id, ...d.data() })));
+                setLoading(false);
+            },
+            (error) => {
+                console.error("Error listening to batches:", error);
+                setLoading(false);
+            }
+        );
+        return () => unsub();
     }, [isOpen, coach?.id]);
 
     // ✅ AFTER all hooks, do the early return
     if (!isOpen || !coach) return null;
 
-    const fetchBatches = async () => {
-        setLoading(true);
-        try {
-            // Fetch from coach's subcollection
-            const snap = await getDocs(collection(db, 'coaches', coach.accountId || coach.id, 'batches'));
-            setBatches(snap.docs.map(d => ({ id: d.id, ...d.data() })));
-        } catch (e) {
-            console.error("Error fetching batches:", e);
-        }
-        setLoading(false);
-    };
-
     const handleAdd = async () => {
         if (!newBatch.name) return;
+        setAdding(true);
         try {
+            const coachDocId = coach.accountId || coach.id;
             // Add to coach's subcollection
-            await addDoc(collection(db, 'coaches', coach.accountId || coach.id, 'batches'), {
+            await addDoc(collection(db, 'coaches', coachDocId, 'batches'), {
                 name: newBatch.name,
                 schedule: newBatch.schedule,
                 level: newBatch.level.toLowerCase(),
@@ -53,12 +56,13 @@ const ManageBatchesModal = ({ isOpen, onClose, coach }) => {
                 reports: [],
                 createdAt: serverTimestamp()
             });
-            setNewBatch({ name: '', schedule: '', level: 'Intermediate' });
-            fetchBatches();
+            setNewBatch({ name: '', schedule: '', level: 'Beginner' });
+            toast.success(`Batch "${newBatch.name}" assigned successfully!`);
         } catch (e) {
             console.error("Error adding batch:", e);
             toast.error("Failed to add batch");
         }
+        setAdding(false);
     };
 
     const handleDelete = (id) => {
@@ -69,7 +73,6 @@ const ManageBatchesModal = ({ isOpen, onClose, coach }) => {
             onConfirm: async () => {
                 try {
                     await deleteDoc(doc(db, 'coaches', coach.accountId || coach.id, 'batches', id));
-                    fetchBatches();
                 } catch (e) {
                     console.error("Error deleting batch:", e);
                     toast.error("Failed to delete batch");
@@ -138,8 +141,8 @@ const ManageBatchesModal = ({ isOpen, onClose, coach }) => {
                                 <option value="Intermediate-II">Intermediate-II</option>
                             </select>
                         </div>
-                        <Button onClick={handleAdd} disabled={!newBatch.name} style={{ width: '100%', justifyContent: 'center' }}>
-                            <Plus size={16} /> Assign Batch
+                        <Button onClick={handleAdd} disabled={!newBatch.name || adding} style={{ width: '100%', justifyContent: 'center' }}>
+                            <Plus size={16} /> {adding ? 'Assigning...' : 'Assign Batch'}
                         </Button>
                     </div>
                 </div>

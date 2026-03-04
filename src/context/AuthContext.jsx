@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useEffect, useState } from 'react';
+import React, { createContext, useContext, useEffect, useState, useRef } from 'react';
 import {
     createUserWithEmailAndPassword,
     signInWithEmailAndPassword,
@@ -95,6 +95,8 @@ export const AuthProvider = ({ children }) => {
     const [userRole, setUserRole] = useState(null);
     const [userData, setUserData] = useState(null);
     const [loading, setLoading] = useState(true);
+    // Tracks the UID of the user who opened this tab/session
+    const sessionUidRef = useRef(null);
 
     // Signup function with auto-role detection
     const signup = async (email, password, additionalData = {}) => {
@@ -168,8 +170,6 @@ export const AuthProvider = ({ children }) => {
             setUserRole(detectedRole);
             return { user, role: detectedRole };
         }
-
-        return { user, role: finalRole };
     };
 
     // Logout function
@@ -234,6 +234,32 @@ export const AuthProvider = ({ children }) => {
 
         // Original Firebase auth code
         const unsubscribe = onAuthStateChanged(auth, async (user) => {
+            // Session isolation: if a DIFFERENT user logs in on another tab/device,
+            // invalidate this session to prevent dashboard cross-contamination.
+            // BUT: only enforce on subsequent changes (not on initial login)
+            if (user && sessionUidRef.current && sessionUidRef.current !== user.uid) {
+                // Different user detected - sign out this session
+                try {
+                    await signOut(auth);
+                } catch (e) {
+                    console.warn('Failed to sign out on session mismatch:', e);
+                }
+                setCurrentUser(null);
+                setUserRole(null);
+                setUserData(null);
+                setLoading(false);
+                return;
+            }
+
+            // On first login, record the session UID
+            if (user && !sessionUidRef.current) {
+                sessionUidRef.current = user.uid;
+            }
+            // On logout, clear the session UID
+            if (!user) {
+                sessionUidRef.current = null;
+            }
+
             setCurrentUser(user);
             if (user) {
                 try {

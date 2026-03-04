@@ -33,11 +33,14 @@ const StudentDatabase = () => {
 
 
     useEffect(() => {
-        const q = query(collection(db, 'users'), where('role', '==', 'customer'));
+        // Query all users — filter client-side to avoid Firestore 'in' operator bug in onSnapshot
+        const q = query(collection(db, 'users'));
         setLoading(true);
 
         const unsubscribe = onSnapshot(q, (querySnapshot) => {
-            const studentList = querySnapshot.docs.map(doc => {
+            const studentList = querySnapshot.docs
+                .filter(doc => ['customer', 'CUSTOMER'].includes(doc.data().role))
+                .map(doc => {
                 const data = doc.data();
                 return {
                     id: doc.id,
@@ -75,7 +78,7 @@ const StudentDatabase = () => {
             try {
                 const uSnap = await getDocs(collection(db, 'users'));
                 const coachList = uSnap.docs
-                    .filter(d => d.data().role === 'coach')
+                    .filter(d => ['coach', 'COACH'].includes(d.data().role))
                     .map(d => ({ id: d.id, name: d.data().fullName || d.data().email?.split('@')[0] || d.id }));
                 setCoaches(coachList);
             } catch (err) {

@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { doc, updateDoc, serverTimestamp } from 'firebase/firestore';
-import { db } from '../../lib/firebase';
+import { updatePassword, EmailAuthProvider, reauthenticateWithCredential } from 'firebase/auth';
+import { db, auth } from '../../lib/firebase';
 import { useAuth } from '../../context/AuthContext';
 import Card from '../../components/ui/Card';
 import Button from '../../components/ui/Button';
 import { toast, ToastContainer } from 'react-toastify';
-import { User, Save, ArrowLeft, Mail, Phone, MapPin, Clock, GraduationCap } from 'lucide-react';
+import { User, Save, ArrowLeft, Mail, Phone, MapPin, Clock, GraduationCap, Lock } from 'lucide-react';
 import 'react-toastify/dist/ReactToastify.css';
 import { useTheme } from '../../context/ThemeContext';
 
@@ -21,6 +22,8 @@ const ParentSettings = () => {
     const { currentUser, userData } = useAuth();
     const [loading, setLoading] = useState(false);
     const { isDark } = useTheme();
+    const [pwForm, setPwForm] = useState({ current: '', new: '', confirm: '' });
+    const [pwLoading, setPwLoading] = useState(false);
     const [formData, setFormData] = useState({
         fullName: '',
         studentName: '',
@@ -85,6 +88,41 @@ const ParentSettings = () => {
             toast.error('Failed to update profile');
         } finally {
             setLoading(false);
+        }
+    };
+
+    const handlePasswordChange = async () => {
+        if (!pwForm.current || !pwForm.new || !pwForm.confirm) {
+            toast.error('Please fill in all password fields');
+            return;
+        }
+        if (pwForm.new === pwForm.current) {
+            toast.error('New password must be different from current password');
+            return;
+        }
+        if (pwForm.new !== pwForm.confirm) {
+            toast.error('New password and confirm password do not match');
+            return;
+        }
+        if (pwForm.new.length < 8) {
+            toast.error('Password must be at least 8 characters');
+            return;
+        }
+        setPwLoading(true);
+        try {
+            const credential = EmailAuthProvider.credential(currentUser.email, pwForm.current);
+            await reauthenticateWithCredential(auth.currentUser, credential);
+            await updatePassword(auth.currentUser, pwForm.new);
+            setPwForm({ current: '', new: '', confirm: '' });
+            toast.success('Password changed successfully!');
+        } catch (error) {
+            if (error.code === 'auth/wrong-password' || error.code === 'auth/invalid-credential') {
+                toast.error('Current password is incorrect');
+            } else {
+                toast.error('Failed to change password: ' + error.message);
+            }
+        } finally {
+            setPwLoading(false);
         }
     };
 
@@ -260,6 +298,62 @@ const ParentSettings = () => {
                                 <option>UAE (GST)</option>
                             </select>
                         </div>
+                    </div>
+                </Card>
+
+                {/* Security Card */}
+                <Card style={{ padding: '32px', marginBottom: '24px', backgroundColor: c.cardBg, border: c.cardBorder, transition: 'background-color 0.2s ease' }}>
+                    <h3 style={{ margin: '0 0 24px', color: c.heading, borderBottom: `2px solid ${c.divider1}`, paddingBottom: '12px', display: 'flex', alignItems: 'center', gap: '8px', transition: 'color 0.2s ease' }}>
+                        <Lock size={20} /> Security
+                    </h3>
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px', maxWidth: '600px' }}>
+                        <div style={{ gridColumn: '1 / -1' }}>
+                            <label style={labelStyle}>Current Password</label>
+                            <input
+                                type="password"
+                                value={pwForm.current}
+                                onChange={(e) => setPwForm(prev => ({ ...prev, current: e.target.value }))}
+                                style={inputStyle}
+                                placeholder="Enter current password"
+                            />
+                        </div>
+                        <div>
+                            <label style={labelStyle}>New Password</label>
+                            <input
+                                type="password"
+                                value={pwForm.new}
+                                onChange={(e) => setPwForm(prev => ({ ...prev, new: e.target.value }))}
+                                style={inputStyle}
+                                placeholder="Min 8 characters"
+                            />
+                        </div>
+                        <div>
+                            <label style={labelStyle}>Confirm New Password</label>
+                            <input
+                                type="password"
+                                value={pwForm.confirm}
+                                onChange={(e) => setPwForm(prev => ({ ...prev, confirm: e.target.value }))}
+                                style={inputStyle}
+                                placeholder="Re-enter new password"
+                            />
+                        </div>
+                    </div>
+                    <div style={{ marginTop: '16px' }}>
+                        <Button
+                            onClick={handlePasswordChange}
+                            disabled={pwLoading}
+                            style={{
+                                backgroundColor: COLORS.orange,
+                                border: 'none',
+                                padding: '12px 24px',
+                                fontSize: '14px',
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: '8px'
+                            }}
+                        >
+                            <Lock size={16} /> {pwLoading ? 'Changing...' : 'Change Password'}
+                        </Button>
                     </div>
                 </Card>
 

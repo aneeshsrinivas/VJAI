@@ -52,9 +52,11 @@ const AdminDashboard = () => {
                     return;
                 }
 
-                // Fetch students count
-                const studentsSnap = await getDocs(collection(db, 'students'));
-                const totalStudents = studentsSnap.size || 0;
+                // Fetch students count — filter client-side to avoid 'in' query SDK issues
+                const allUsersSnap = await getDocs(collection(db, 'users'));
+                const totalStudents = allUsersSnap.docs.filter(d =>
+                    ['customer', 'CUSTOMER'].includes(d.data().role)
+                ).length;
 
                 // Fetch active coaches — use coaches collection with ACTIVE status only
                 const coachesQuery = query(collection(db, 'coaches'), where('status', '==', 'ACTIVE'));
@@ -66,14 +68,26 @@ const AdminDashboard = () => {
                 const demosSnap = await getDocs(demosQuery);
                 const pendingDemos = demosSnap.size || 0;
 
-                // Fetch revenue from subscriptions
+                // Fetch revenue from subscriptions — normalize by billing cycle duration
                 const subsSnap = await getDocs(collection(db, 'subscriptions'));
                 let monthlyRevenue = 0;
                 subsSnap.docs.forEach(doc => {
-                    if (doc.data().status === 'ACTIVE') {
-                        monthlyRevenue += Number(doc.data().amount) || 0;
+                    const data = doc.data();
+                    if (data.status === 'ACTIVE') {
+                        const amount = Number(data.amount) || 0;
+                        const duration = Number(data.duration) || 0;
+                        const cycle = data.billingCycle || 'MONTHLY';
+                        // Normalize to monthly equivalent
+                        if (duration === 4 || cycle === '4') {
+                            monthlyRevenue += amount / 4;
+                        } else if (duration === 3 || cycle === 'QUARTERLY' || cycle === '3') {
+                            monthlyRevenue += amount / 3;
+                        } else {
+                            monthlyRevenue += amount; // MONTHLY plan — full amount
+                        }
                     }
                 });
+                monthlyRevenue = Math.round(monthlyRevenue);
 
                 // Calculate conversion rate
                 const allDemosSnap = await getDocs(collection(db, 'demos'));
@@ -100,14 +114,7 @@ const AdminDashboard = () => {
 
             } catch (error) {
                 console.error('Error fetching dashboard stats:', error);
-                // Set mock data on error
-                setStats({
-                    totalStudents: 5,
-                    activeCoaches: 3,
-                    pendingDemos: 2,
-                    monthlyRevenue: 5000,
-                    conversionRate: 45
-                });
+                toast.error('Failed to load dashboard data. Check Firestore rules or connection.');
             }
         };
 
@@ -142,12 +149,17 @@ const AdminDashboard = () => {
     const handleExportData = async () => {
         toast.info('Preparing PDF report...');
         try {
-            const [students, coaches, demos, subs] = await Promise.all([
-                getDocs(collection(db, 'students')),
+            const [allUsers, coaches, demos, subs] = await Promise.all([
+                getDocs(collection(db, 'users')),
                 getDocs(collection(db, 'coaches')),
                 getDocs(collection(db, 'demos')),
                 getDocs(collection(db, 'subscriptions'))
             ]);
+
+            // Filter users to only students
+            const studentDocs = allUsers.docs.filter(d =>
+                ['customer', 'CUSTOMER'].includes(d.data().role)
+            );
 
             const pdf = new jsPDF();
             const pageWidth = pdf.internal.pageSize.getWidth();
@@ -172,7 +184,7 @@ const AdminDashboard = () => {
             pdf.setFont('helvetica', 'normal');
 
             const summaryData = [
-                ['Total Students', String(students.size)],
+                ['Total Students', String(studentDocs.length)],
                 ['Active Coaches', String(coaches.size)],
                 ['Demo Requests', String(demos.size)],
                 ['Active Subscriptions', String(subs.docs.filter(d => d.data().status === 'ACTIVE').length)],
@@ -196,7 +208,7 @@ const AdminDashboard = () => {
             pdf.setFont('helvetica', 'bold');
             pdf.text('Students', 14, yPos);
 
-            const studentData = students.docs.map(d => {
+            const studentData = studentDocs.map(d => {
                 const data = d.data();
                 return [
                     data.studentName || data.fullName || 'N/A',

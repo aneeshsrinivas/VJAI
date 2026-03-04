@@ -152,34 +152,31 @@ Indian Chess Academy Team
                     body: JSON.stringify({
                         to: demo.parentEmail,
                         subject: `Demo Class Scheduled - ${demo.studentName} | Indian Chess Academy`,
-                        text: `Dear ${demo.parentName},
-
-We are excited to confirm your demo class for ${demo.studentName}!
-
-📅 Class Details:
-• Student: ${demo.studentName}
-• Date & Time: ${formattedDate} (${demo.timezone})
-• Coach: ${coachName}
-• Duration: 45 minutes
-
-🔗 Join Meeting:
-${meetingLink}
-
-📋 What to Prepare:
-• Ensure stable internet connection
-• Have a chessboard ready (physical or digital)
-• Test your camera and microphone
-• Join 5 minutes early
-
-📝 After the Demo Class:
-Please share your feedback:
-${feedbackFormLink}
-
-Best regards,
-Indian Chess Academy Team
-
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-📧 Contact: indianchessacademy@chess.com`
+                        html: `<div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+<p>Dear <strong>${demo.parentName}</strong>,</p>
+<p>We are excited to confirm your demo class for <strong>${demo.studentName}</strong>!</p>
+<div style="background: #f0f9ff; border-left: 4px solid #3182ce; padding: 16px; border-radius: 8px; margin: 20px 0;">
+<h3 style="margin: 0 0 12px; color: #1a365d;">📅 Class Details</h3>
+<p style="margin: 4px 0;">• <strong>Student:</strong> ${demo.studentName}</p>
+<p style="margin: 4px 0;">• <strong>Date &amp; Time:</strong> ${formattedDate} (${demo.timezone || 'IST'})</p>
+<p style="margin: 4px 0;">• <strong>Coach:</strong> ${coachName}</p>
+<p style="margin: 4px 0;">• <strong>Duration:</strong> 45 minutes</p>
+</div>
+<div style="text-align: center; margin: 24px 0;">
+<a href="${meetingLink}" style="background-color: #3182ce; color: white; padding: 12px 28px; text-decoration: none; border-radius: 6px; font-weight: bold; font-size: 15px;">Click here to join the meeting</a>
+</div>
+<div style="background: #fffbeb; border-left: 4px solid #f59e0b; padding: 16px; border-radius: 8px; margin: 20px 0;">
+<h3 style="margin: 0 0 12px; color: #92400e;">📋 What to Prepare</h3>
+<p style="margin: 4px 0;">• Ensure stable internet connection</p>
+<p style="margin: 4px 0;">• Have a chessboard ready (physical or digital)</p>
+<p style="margin: 4px 0;">• Test your camera and microphone</p>
+<p style="margin: 4px 0;">• Join 5 minutes early</p>
+</div>
+<p>📝 <strong>After the Demo Class:</strong> Please share your feedback: <a href="${feedbackFormLink}">Feedback Form</a></p>
+<p>Best regards,<br><strong>Indian Chess Academy Team</strong></p>
+<hr style="border: none; border-top: 1px solid #e2e8f0; margin: 24px 0;">
+<p style="font-size: 12px; color: #718096; text-align: center;">📧 Contact: indianchessacademy@email.com &nbsp;|&nbsp; 🌐 www.indianchessacademy.com</p>
+</div>`
                     })
                 });
 

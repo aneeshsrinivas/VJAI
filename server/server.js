@@ -163,36 +163,36 @@ app.post('/api/email/student-welcome', async (req, res) => {
 			return res.status(400).json({ success: false, error: 'Missing required fields' });
 		}
 
-		const loginLink = process.env.FRONTEND_URL || 'http://localhost:5173';
+		const loginLink = process.env.FRONTEND_URL || 'https://vjai.onrender.com';
 
 		const mailOptions = {
-			from: `"VJ AI Chess Academy" <${process.env.EMAIL_USER}>`,
+			from: `"Indian Chess Academy" <${process.env.EMAIL_USER}>`,
 			to: parentEmail,
-			subject: `🎉 Welcome to VJ AI Chess Academy, ${studentName}!`,
+			subject: `🎉 Welcome to Indian Chess Academy, ${studentName}!`,
 			html: `
 				<div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
 					<div style="text-align: center; margin-bottom: 30px;">
-						<h1 style="color: #1a365d;">♟️ VJ AI Chess Academy</h1>
+						<h1 style="color: #1a365d;">♟️ Indian Chess Academy</h1>
 					</div>
-					
+
 					<p>Dear <strong>${parentName}</strong>,</p>
-					
-					<p>Welcome to VJ AI Chess Academy! 🎉</p>
-					
+
+					<p>Welcome to Indian Chess Academy! 🎉</p>
+
 					<p>We are excited to have <strong>${studentName}</strong> join our chess learning community. Your account has been created successfully.</p>
-					
+
 					<div style="background-color: #f7fafc; border-radius: 8px; padding: 20px; margin: 20px 0; border-left: 4px solid #3182ce;">
 						<h3 style="margin-top: 0; color: #2d3748;">🔐 Your Login Credentials</h3>
 						<p style="margin: 5px 0;"><strong>Email:</strong> ${parentEmail}</p>
 						<p style="margin: 5px 0;"><strong>Password:</strong> ${password}</p>
 					</div>
-					
+
 					<p style="color: #e53e3e; font-size: 14px;">⚠️ Please change your password after your first login for security.</p>
-					
+
 					<div style="text-align: center; margin: 30px 0;">
 						<a href="${loginLink}/login" style="background-color: #3182ce; color: white; padding: 12px 30px; text-decoration: none; border-radius: 5px; font-weight: bold;">Login to Dashboard</a>
 					</div>
-					
+
 					<p>Once logged in, you can:</p>
 					<ul>
 						<li>View your assigned coach and batch</li>
@@ -200,11 +200,11 @@ app.post('/api/email/student-welcome', async (req, res) => {
 						<li>Track assignments and progress</li>
 						<li>Access learning materials</li>
 					</ul>
-					
+
 					<p>If you have any questions, feel free to reach out to us.</p>
-					
-					<p>Best regards,<br><strong>VJ AI Chess Academy Team</strong></p>
-					
+
+					<p>Best regards,<br><strong>Indian Chess Academy Team</strong></p>
+
 					<hr style="border: none; border-top: 1px solid #e2e8f0; margin: 30px 0;">
 					<p style="font-size: 12px; color: #718096; text-align: center;">
 						This is an automated email. Please do not reply directly to this message.
@@ -235,36 +235,36 @@ app.post('/api/email/coach-welcome', async (req, res) => {
 			return res.status(400).json({ success: false, error: 'Missing required fields' });
 		}
 
-		const loginLink = process.env.FRONTEND_URL || 'http://localhost:5173';
+		const loginLink = process.env.FRONTEND_URL || 'https://vjai.onrender.com';
 
 		const mailOptions = {
-			from: `"VJ AI Chess Academy" <${process.env.EMAIL_USER}>`,
+			from: `"Indian Chess Academy" <${process.env.EMAIL_USER}>`,
 			to: personalEmail,
-			subject: `🎓 Welcome to the Faculty - VJ AI Chess Academy`,
+			subject: `🎓 Welcome to the Faculty - Indian Chess Academy`,
 			html: `
 				<div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
 					<div style="text-align: center; margin-bottom: 30px;">
-						<h1 style="color: #1a365d;">♟️ VJ AI Chess Academy</h1>
+						<h1 style="color: #1a365d;">♟️ Indian Chess Academy</h1>
 					</div>
-					
+
 					<p>Dear <strong>${fullName}</strong>,</p>
-					
-					<p>We are delighted to welcome you to the VJ AI Chess Academy teaching faculty! 🎉</p>
-					
+
+					<p>We are delighted to welcome you to the Indian Chess Academy teaching faculty! 🎉</p>
+
 					<p>Your coach account has been created successfully. You can now access the Coach Dashboard to manage your profile, batches, and students.</p>
-					
+
 					<div style="background-color: #f0fff4; border-radius: 8px; padding: 20px; margin: 20px 0; border-left: 4px solid #38a169;">
 						<h3 style="margin-top: 0; color: #2d3748;">🔐 Your Login Credentials</h3>
 						<p style="margin: 5px 0;"><strong>Login Email:</strong> ${assignedEmail}</p>
 						<p style="margin: 5px 0;"><strong>Password:</strong> ${password}</p>
 					</div>
-					
+
 					<p style="color: #e53e3e; font-size: 14px;">⚠️ Please change your password after your first login for security.</p>
-					
+
 					<div style="text-align: center; margin: 30px 0;">
 						<a href="${loginLink}/login" style="background-color: #38a169; color: white; padding: 12px 30px; text-decoration: none; border-radius: 5px; font-weight: bold;">Login to Coach Dashboard</a>
 					</div>
-					
+
 					<p>As a coach, you can:</p>
 					<ul>
 						<li>Manage your assigned batches and students</li>
@@ -273,11 +273,11 @@ app.post('/api/email/coach-welcome', async (req, res) => {
 						<li>Track student progress</li>
 						<li>Upload learning materials</li>
 					</ul>
-					
+
 					<p>We look forward to seeing your expertise in action!</p>
-					
-					<p>Best regards,<br><strong>VJ AI Chess Academy Admin Team</strong></p>
-					
+
+					<p>Best regards,<br><strong>Indian Chess Academy Admin Team</strong></p>
+
 					<hr style="border: none; border-top: 1px solid #e2e8f0; margin: 30px 0;">
 					<p style="font-size: 12px; color: #718096; text-align: center;">
 						This is an automated email. Please do not reply directly to this message.
@@ -309,7 +309,7 @@ app.post('/api/email/send', async (req, res) => {
 		}
 
 		const mailOptions = {
-			from: `"VJ AI Chess Academy" <${process.env.EMAIL_USER}>`,
+			from: `"Indian Chess Academy" <${process.env.EMAIL_USER}>`,
 			to,
 			subject,
 			...(html && { html }),

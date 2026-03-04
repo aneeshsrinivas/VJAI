@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import {
     LayoutDashboard, Users, GraduationCap, Wallet, Radio, MessageSquare,
     CreditCard, Calendar, BookOpen, Layers, Shield, BarChart3, FileText, LogOut, ChevronRight, Target, Package,
-    Sun, Moon
+    Sun, Moon, ClipboardCheck
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { useTheme } from '../../context/ThemeContext';
@@ -23,6 +23,7 @@ const Sidebar = ({ role = 'admin', activePath = '/dashboard' }) => {
         { label: 'Coach Roster', icon: <BookOpen size={20} />, path: '/admin/coaches' },
         { label: 'Applications', icon: <FileText size={20} />, path: '/admin/applications' },
         { label: 'Skill Sets', icon: <Target size={20} />, path: '/admin/skillsets' },
+        { label: 'Attendance', icon: <ClipboardCheck size={20} />, path: '/admin/attendance' },
         { label: 'Finances', icon: <Wallet size={20} />, path: '/admin/finances' },
         { label: 'Broadcast', icon: <Radio size={20} />, path: '/admin/broadcast' },
         { label: 'Messages', icon: <MessageSquare size={20} />, path: '/chat' },
@@ -33,6 +34,7 @@ const Sidebar = ({ role = 'admin', activePath = '/dashboard' }) => {
         { label: 'Dashboard', icon: <LayoutDashboard size={20} />, path: '/coach' },
         { label: 'My Students', icon: <Users size={20} />, path: '/coach/students' },
         { label: 'Batches', icon: <Layers size={20} />, path: '/coach/batches' },
+        { label: 'Attendance', icon: <ClipboardCheck size={20} />, path: '/coach/attendance' },
         { label: 'Schedule', icon: <Calendar size={20} />, path: '/coach/schedule' },
         { label: 'Messages', icon: <MessageSquare size={20} />, path: '/coach/chat' },
     ];

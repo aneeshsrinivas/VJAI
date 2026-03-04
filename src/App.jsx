@@ -24,6 +24,7 @@ import CoachBatches from './pages/coach/CoachBatches';
 import CoachSchedule from './pages/coach/CoachSchedule';
 import CoachStudents from './pages/coach/CoachStudents';
 import CoachLichess from './pages/coach/CoachLichess';
+import CoachAttendance from './pages/coach/CoachAttendance';
 import StudentPage from './pages/StudentPage';
 import AdminDashboard from './pages/AdminDashboard';
 import PlaceholderPage from './pages/PlaceholderPage';
@@ -39,6 +40,7 @@ import AnalyticsPage from './pages/admin/AnalyticsPage';
 import LiveAnalytics from './pages/admin/LiveAnalytics';
 import AdminCoachApplications from './pages/admin/AdminCoachApplications';
 import SkillSetsPage from './pages/admin/SkillSetsPage';
+import AttendanceReport from './pages/admin/AttendanceReport';
 import ChatPage from './pages/common/ChatPage';
 import PlanSelection from './pages/PlanSelection';
 import PaymentCheckout from './pages/PaymentCheckout';
@@ -174,6 +176,7 @@ function App() {
             <Route path="/coach/schedule" element={<CoachSchedule />} />
             <Route path="/coach/chat" element={<ChatPage userRole="COACH" />} />
             <Route path="/coach/lichess" element={<CoachLichess />} />
+            <Route path="/coach/attendance" element={<CoachAttendance />} />
           </Route>
 
           {/* Admin Routes */}
@@ -194,6 +197,7 @@ function App() {
             <Route path="/admin/live-analytics" element={<LiveAnalytics />} />
             <Route path="/admin/applications" element={<AdminCoachApplications />} />
             <Route path="/admin/skillsets" element={<SkillSetsPage />} />
+            <Route path="/admin/attendance" element={<AttendanceReport />} />
           </Route>
         </Routes>
       </AnimatePresence>

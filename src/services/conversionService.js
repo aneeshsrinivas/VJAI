@@ -69,14 +69,25 @@ export const conversionService = {
             const realUid = authResult.uid;
 
             // 3. Create users document so parent can login via AuthContext
+            //    Include ALL student fields so coach queries, assignments, etc. work
             await setDoc(doc(db, 'users', realUid), {
                 email: demoData.parentEmail,
                 fullName: demoData.parentName,
                 role: 'customer',
-                createdAt: serverTimestamp(),
-                lastLoginAt: serverTimestamp(),
+                studentName: demoData.studentName || '',
+                studentAge: demoData.studentAge || null,
+                assignedCoachId: demoData.assignedCoachId || null,
+                learningLevel: demoData.recommendedLevel || demoData.level || 'beginner',
+                level: demoData.recommendedLevel || demoData.level || 'beginner',
+                studentType: demoData.recommendedStudentType || 'group',
+                phone: demoData.phone || demoData.parentPhone || '',
+                timezone: demoData.timezone || 'IST',
+                country: demoData.country || '',
+                status: 'ACTIVE',
                 source: 'DEMO_CONVERSION',
-                demoId: demoId
+                demoId: demoId,
+                createdAt: serverTimestamp(),
+                lastLoginAt: serverTimestamp()
             });
 
             // 4. Create Student Record in 'students' collection
@@ -135,7 +146,7 @@ Thank you for your payment! Your account has been created. 🎉
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 • Parent Email: ${demoData.parentEmail}
 • Temporary Password: ${tempPassword}
-• Portal URL: ${typeof window !== 'undefined' ? window.location.origin : 'https://app.indianchessacademy.com'}/login
+• Portal URL: https://vjai.onrender.com/login
 
 📚 What's Next:
 1. Login to your parent dashboard using the credentials above
@@ -149,7 +160,7 @@ Best regards,
 Indian Chess Academy Team
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-📧 Support: indianchessacademy@chess.com`
+📧 Support: indianchessacademy@email.com`
                     })
                 });
             } catch (emailError) {

@@ -55,6 +55,9 @@ const CoachDashboard = () => {
                 };
             });
             setSchedule(list);
+        }, (error) => {
+            console.error('Schedule query error:', error);
+            setSchedule([]);
         });
 
         return () => unsubSchedule();
@@ -83,7 +86,7 @@ const CoachDashboard = () => {
         const fetchCoachProfile = async () => {
             const coachQuery = query(
                 collection(db, COLLECTIONS.COACHES),
-                where('userId', '==', currentUser.uid)
+                where('accountId', '==', currentUser.uid)
             );
 
             const unsubCoach = onSnapshot(coachQuery, async (snapshot) => {
@@ -95,6 +98,10 @@ const CoachDashboard = () => {
                         setCoachProfile({ id: userDoc.id, ...userDoc.data() });
                     }
                 }
+                setLoading(false);
+                setTimeout(() => setCardsVisible(true), 100);
+            }, (error) => {
+                console.error('Coach profile listener error:', error);
                 setLoading(false);
                 setTimeout(() => setCardsVisible(true), 100);
             });
@@ -111,6 +118,9 @@ const CoachDashboard = () => {
         const unsubStudents = onSnapshot(studentsQuery, (snapshot) => {
             const list = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
             setStudents(list);
+        }, (error) => {
+            console.error('Students query error:', error);
+            setStudents([]);
         });
 
         // Demos - simplified query to avoid index requirement

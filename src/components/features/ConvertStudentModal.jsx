@@ -80,7 +80,7 @@ const ConvertStudentModal = ({ demo, onClose, onSuccess }) => {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({
-                            to: 'indianchessacademy@chess.com',
+                            to: 'indianchessacademy@email.com',
                             subject: `🎉 New Payment Received - ${demo.studentName}`,
                             text: `New payment received!
 
@@ -96,7 +96,7 @@ const ConvertStudentModal = ({ demo, onClose, onSuccess }) => {
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 • Login Email: ${formData.email}
 • Temp Password: ${formData.password}
-• Portal: ${window.location.origin}/login
+• Portal: https://vjai.onrender.com/login
 
 📋 Action Required:
 • Assign coach to batch
@@ -116,7 +116,7 @@ Student ID: ${result.studentId}`
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({
                             to: demo.parentEmail,
-                            subject: `Welcome to VJAI - Your LMS Access for ${demo.studentName}`,
+                            subject: `Welcome to Indian Chess Academy - Your LMS Access for ${demo.studentName}`,
                             text: `Dear ${demo.parentName},
 
 Thank you for enrolling ${demo.studentName} at Indian Chess Academy! 🎉
@@ -126,7 +126,7 @@ Thank you for enrolling ${demo.studentName} at Indian Chess Academy! 🎉
 • Student Name: ${demo.studentName}
 • Parent Email: ${demo.parentEmail}
 • Temporary Password: ${formData.password}
-• Portal URL: ${window.location.origin}/login
+• Portal URL: https://vjai.onrender.com/login
 
 📚 What's Next:
 1. Login to your parent dashboard
@@ -143,7 +143,7 @@ Best regards,
 Indian Chess Academy Team
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-📧 Support: indianchessacademy@chess.com
+📧 Support: indianchessacademy@email.com
 🌐 Website: www.indianchessacademy.com`
                         })
                     });

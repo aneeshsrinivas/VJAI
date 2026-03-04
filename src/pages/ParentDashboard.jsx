@@ -34,6 +34,7 @@ const ParentDashboard = () => {
     const [chessAssignments, setChessAssignments] = useState([]);
     const [selectedAssignment, setSelectedAssignment] = useState(null);
     const [loading, setLoading] = useState(true);
+    const [attendanceStats, setAttendanceStats] = useState({ present: 0, total: 0 });
 
     // UI State
     const [cardsVisible, setCardsVisible] = useState(false);
@@ -170,84 +171,10 @@ const ParentDashboard = () => {
                     return prevCoach;
                 });
             }
+        }, (error) => {
+            console.error('Demos listener error:', error);
+            setScheduleItems([]);
         });
-
-        // 2b. Listen to Class Schedule (Regular Batches)
-        // We need the student's batchId to fetch specific classes
-        // If student is null, we can't fetch batch classes yet, but we can rely on the demo listener above.
-        let unsubscribeSchedule = () => { };
-
-        if (student?.batchId || student?.batchName) { // Only fetch if assigned to a batch
-            // Broaden query to catch mismatched batch names (e.g. "Group Batch" vs "Intermediate Group Batch")
-            const batchNames = [
-                student.batchName,
-                'Intermediate Group Batch',
-                'Group Batch',
-                'Intermediate 1:1'
-            ].filter(Boolean); // Remove null/undefined
-
-            // Use 'in' query to match any variation
-            const qSchedule = query(
-                collection(db, COLLECTIONS.SCHEDULE),
-                where('batchName', 'in', [...new Set(batchNames)]), // Unique values
-                // orderBy('date', 'asc'), 
-            );
-
-            unsubscribeSchedule = onSnapshot(qSchedule, (snapshot) => {
-                const classes = snapshot.docs.map(doc => {
-                    const data = doc.data();
-                    // Handle different date formats (Timestamp or ISO string)
-                    let dateObj = new Date();
-                    if (data.start?.toDate) dateObj = data.start.toDate();
-                    else if (data.date?.toDate) dateObj = data.date.toDate();
-                    else if (data.start) dateObj = new Date(data.start);
-
-                    const isToday = new Date().toDateString() === dateObj.toDateString();
-
-                    return {
-                        id: doc.id,
-                        day: dateObj.toLocaleDateString('en-US', { weekday: 'long' }),
-                        time: dateObj.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' }),
-                        status: 'SCHEDULED', // Regular classes are usually scheduled
-                        isToday: isToday,
-                        topic: data.title || 'Regular Class',
-                        link: data.meetLink,
-                        type: 'class',
-                        coachId: data.coachId // IMPORTANT: Capture coachId from class
-                    };
-                });
-
-                // Fallback: If still no coach assigned, try to grab it from the first class found
-                setCoach(prev => {
-                    if (!prev && classes.length > 0) {
-                        const firstClass = classes.find(c => c.coachId);
-                        if (firstClass) {
-                            getDoc(doc(db, COLLECTIONS.COACHES, firstClass.coachId)).then(snap => {
-                                if (snap.exists()) setCoach(snap.data());
-                            });
-                        }
-                    }
-                    return prev;
-                });
-
-                // Merge with existing demos (scheduleItems currently only has demos)
-                // We need to be careful not to overwrite demos blindly. 
-                // Let's use a functional update to merge carefully or just maintain two state variables.
-                // Simpler: Update scheduleItems to include both. 
-                // For now, let's just use a separate state or merge logic inside the effect?
-                // Better: Let's move setScheduleItems to a combiner function or effect.
-                // Actually, let's just append to the state.
-                setScheduleItems(prev => {
-                    // Filter out old class items to avoid duplicates on re-render
-                    const demos = prev.filter(i => i.type !== 'class');
-                    const all = [...demos, ...classes].sort((a, b) => {
-                        // Simple sort helper if needed, or rely on render order
-                        return 0;
-                    });
-                    return all;
-                });
-            });
-        }
 
         // 3. Listen to Broadcasts (Announcements)
         const qBroadcasts = query(
@@ -273,7 +200,6 @@ const ParentDashboard = () => {
             return () => {
                 unsubscribeStudent();
                 unsubscribeDemos();
-                if (unsubscribeSchedule) unsubscribeSchedule();
                 unsubscribeBroadcasts();
             };
         } catch (error) {
@@ -291,6 +217,69 @@ const ParentDashboard = () => {
             return () => { };
         }
     }, [currentUser]);
+
+    // 2b. Listen to Class Schedule (Regular Batches)
+    // Separate useEffect because it depends on student state which is populated asynchronously
+    useEffect(() => {
+        if (!student?.batchId && !student?.batchName && !student?.assignedBatchName) return;
+        if (!db) return;
+
+        const batchNames = new Set([
+            student.batchName,
+            student.assignedBatchName
+        ].filter(Boolean));
+
+        const qSchedule = query(collection(db, COLLECTIONS.SCHEDULE));
+
+        const unsubscribeSchedule = onSnapshot(qSchedule, (snapshot) => {
+            const classes = snapshot.docs
+                .filter(d => batchNames.has(d.data().batchName))
+                .map(d => {
+                    const data = d.data();
+                    let dateObj = new Date();
+                    if (data.start?.toDate) dateObj = data.start.toDate();
+                    else if (data.date?.toDate) dateObj = data.date.toDate();
+                    else if (data.start) dateObj = new Date(data.start);
+
+                    const isToday = new Date().toDateString() === dateObj.toDateString();
+
+                    return {
+                        id: d.id,
+                        day: dateObj.toLocaleDateString('en-US', { weekday: 'long' }),
+                        time: dateObj.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' }),
+                        status: 'SCHEDULED',
+                        isToday: isToday,
+                        topic: data.title || 'Regular Class',
+                        link: data.meetLink,
+                        type: 'class',
+                        coachId: data.coachId
+                    };
+                });
+
+            // Fallback: If still no coach assigned, try to grab it from the first class
+            setCoach(prev => {
+                if (!prev && classes.length > 0) {
+                    const firstClass = classes.find(c => c.coachId);
+                    if (firstClass) {
+                        getDoc(doc(db, COLLECTIONS.COACHES, firstClass.coachId)).then(snap => {
+                            if (snap.exists()) setCoach(snap.data());
+                        });
+                    }
+                }
+                return prev;
+            });
+
+            // Merge classes with existing demo schedule items
+            setScheduleItems(prev => {
+                const demos = prev.filter(i => i.type !== 'class');
+                return [...demos, ...classes];
+            });
+        }, (error) => {
+            console.error('Schedule listener error:', error);
+        });
+
+        return () => unsubscribeSchedule();
+    }, [student?.batchId, student?.batchName, student?.assignedBatchName]);
 
     // Fetch Chess Assignments
     useEffect(() => {
@@ -364,6 +353,30 @@ const ParentDashboard = () => {
             return () => { };
         }
     }, [student?.assignedCoachId, student?.assignedBatch, student?.assignedBatchName, student?.batchName, currentUser?.uid]);
+
+    // Fetch attendance stats for student
+    useEffect(() => {
+        if (!currentUser?.uid || !db) return;
+
+        const q = query(
+            collection(db, 'attendance'),
+            where('studentId', '==', currentUser.uid)
+        );
+
+        const unsub = onSnapshot(q, (snapshot) => {
+            let present = 0;
+            let total = 0;
+            snapshot.docs.forEach(d => {
+                total++;
+                if (d.data().status === 'present') present++;
+            });
+            setAttendanceStats({ present, total });
+        }, (error) => {
+            console.error('Attendance listener error:', error);
+        });
+
+        return () => unsub();
+    }, [currentUser?.uid]);
 
     // Dynamic Progress Calculation based on skills mastered
     const TOTAL_SKILLS = 7; // Total curriculum skills
@@ -681,6 +694,43 @@ const ParentDashboard = () => {
                                 <span>Contact info kept private for safety</span>
                             </div>
                         </div>
+
+                        {/* Attendance Widget */}
+                        {attendanceStats.total > 0 && (
+                            <div className={`content-card ${cardsVisible ? 'visible' : ''}`}>
+                                <div className="card-header-row">
+                                    <h3>Attendance</h3>
+                                </div>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '20px', padding: '8px 0' }}>
+                                    <div style={{
+                                        width: '72px', height: '72px', borderRadius: '50%',
+                                        background: `conic-gradient(${attendanceStats.total > 0 && (attendanceStats.present / attendanceStats.total) >= 0.75 ? '#16a34a' : '#f59e0b'} ${(attendanceStats.present / attendanceStats.total) * 360}deg, #f1f5f9 0deg)`,
+                                        display: 'flex', alignItems: 'center', justifyContent: 'center'
+                                    }}>
+                                        <div style={{
+                                            width: '56px', height: '56px', borderRadius: '50%',
+                                            background: 'white', display: 'flex', alignItems: 'center',
+                                            justifyContent: 'center', fontWeight: '800', fontSize: '18px',
+                                            color: attendanceStats.total > 0 && (attendanceStats.present / attendanceStats.total) >= 0.75 ? '#16a34a' : '#f59e0b'
+                                        }}>
+                                            {attendanceStats.total > 0 ? Math.round((attendanceStats.present / attendanceStats.total) * 100) : 0}%
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <div style={{ fontSize: '14px', color: '#334155', fontWeight: '600' }}>
+                                            {attendanceStats.present} / {attendanceStats.total} classes
+                                        </div>
+                                        <div style={{ fontSize: '13px', color: '#64748b', marginTop: '4px' }}>
+                                            {attendanceStats.total > 0 && (attendanceStats.present / attendanceStats.total) >= 0.85
+                                                ? 'Excellent attendance!'
+                                                : attendanceStats.total > 0 && (attendanceStats.present / attendanceStats.total) >= 0.7
+                                                    ? 'Good attendance'
+                                                    : 'Needs improvement'}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        )}
 
                         {/* Next Class Card */}
                         {scheduleItems.filter(i => i.status === 'SCHEDULED' || i.status === 'upcoming').length > 0 && (
