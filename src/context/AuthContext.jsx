@@ -95,8 +95,19 @@ export const AuthProvider = ({ children }) => {
     const [userRole, setUserRole] = useState(null);
     const [userData, setUserData] = useState(null);
     const [loading, setLoading] = useState(true);
-    // Tracks the UID of the user who opened this tab/session
-    const sessionUidRef = useRef(null);
+
+    // Tab-specific session isolation using sessionStorage (persists across page reloads in same tab)
+    const getSessionUid = () => sessionStorage.getItem('sessionUid');
+    const setSessionUid = (uid) => sessionStorage.setItem('sessionUid', uid);
+    const clearSessionUid = () => sessionStorage.removeItem('sessionUid');
+
+    // Mark tab as locked when contamination detected - persists across page reloads
+    const isTabLocked = () => sessionStorage.getItem('tabLocked') === 'true';
+    const lockTab = () => sessionStorage.setItem('tabLocked', 'true');
+    const unlockTab = () => sessionStorage.removeItem('tabLocked');
+
+    // Guard flag to block state updates if session contamination detected
+    const isSessionValidRef = useRef(true);
 
     // Signup function with auto-role detection
     const signup = async (email, password, additionalData = {}) => {
@@ -234,30 +245,59 @@ export const AuthProvider = ({ children }) => {
 
         // Original Firebase auth code
         const unsubscribe = onAuthStateChanged(auth, async (user) => {
-            // Session isolation: if a DIFFERENT user logs in on another tab/device,
-            // invalidate this session to prevent dashboard cross-contamination.
-            // BUT: only enforce on subsequent changes (not on initial login)
-            if (user && sessionUidRef.current && sessionUidRef.current !== user.uid) {
-                // Different user detected - sign out this session
-                try {
-                    await signOut(auth);
-                } catch (e) {
-                    console.warn('Failed to sign out on session mismatch:', e);
-                }
-                setCurrentUser(null);
-                setUserRole(null);
-                setUserData(null);
+            console.log('🔐 onAuthStateChanged fired. User:', user?.uid, 'Email:', user?.email);
+
+            // FIRST CHECK: Is this tab locked due to contamination?
+            if (isTabLocked()) {
+                console.log('🔒 TAB IS LOCKED. Ignoring all state updates. User must refresh page.');
                 setLoading(false);
                 return;
             }
 
-            // On first login, record the session UID
-            if (user && !sessionUidRef.current) {
-                sessionUidRef.current = user.uid;
+            // Session isolation: check if this tab's session matches the incoming user
+            const storedSessionUid = getSessionUid();
+            console.log('📍 Session isolation check - Stored UID:', storedSessionUid, 'Incoming UID:', user?.uid);
+
+            if (user && storedSessionUid && storedSessionUid !== user.uid) {
+                // Different user detected - SESSION CONTAMINATION!
+                console.warn('🚨 SESSION MISMATCH! This tab had UID', storedSessionUid, 'but received user', user.uid);
+                console.warn('🔄 RELOADING PAGE to prevent contamination. This is the safest approach.');
+
+                // Mark that tab is locked
+                lockTab();
+
+                // Reload the page - this completely wipes state and forces fresh auth flow
+                // Add small delay to ensure console logs are visible
+                setTimeout(() => {
+                    window.location.reload();
+                }, 100);
+                return;
+            }
+
+            // If session was invalidated by guard flag, don't process further
+            if (!isSessionValidRef.current) {
+                console.log('⛔ Session is invalid. Skipping state update.');
+                setLoading(false);
+                return;
+            }
+
+            // Re-enable session on successful login (only when re-enabling a valid session)
+            if (user && storedSessionUid === user.uid) {
+                isSessionValidRef.current = true;
+            }
+
+            // On first login, record the session UID in sessionStorage (tab-specific)
+            if (user && !storedSessionUid) {
+                console.log('✅ First login in this tab. Storing session UID:', user.uid);
+                setSessionUid(user.uid);
+                isSessionValidRef.current = true;
             }
             // On logout, clear the session UID
             if (!user) {
-                sessionUidRef.current = null;
+                console.log('🔓 User logged out. Clearing session UID');
+                clearSessionUid();
+                unlockTab(); // Allow re-login if user was locked
+                isSessionValidRef.current = true;
             }
 
             setCurrentUser(user);
@@ -269,6 +309,7 @@ export const AuthProvider = ({ children }) => {
 
                     if (userDoc.exists()) {
                         const data = userDoc.data();
+                        console.log('📄 Fetched user data. Role:', data.role, 'Name:', data.fullName);
                         setUserRole(data.role);
                         setUserData(data);
                     } else {
@@ -280,6 +321,7 @@ export const AuthProvider = ({ children }) => {
                             createdAt: serverTimestamp(),
                             recovered: true
                         });
+                        console.log('📝 Created new user doc with role:', detectedRole);
                         setUserRole(detectedRole);
                     }
                 } catch (err) {

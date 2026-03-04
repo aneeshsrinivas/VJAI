@@ -14,8 +14,8 @@ const PricingSection = () => {
             desc: 'Perfect for those starting their chess journey or building strong foundational skills.',
             pricingTiers: [
                 '1 Month: $60',
-                '3 Months: $160',
-                '4 Months: $200'
+                '3 Months: $180',
+                '4 Months: $240'
             ],
             cta: 'Join This Class',
             popular: false
@@ -27,8 +27,8 @@ const PricingSection = () => {
             desc: 'For players advancing their tactical understanding and competitive readiness.',
             pricingTiers: [
                 '1 Month: $70',
-                '3 Months: $187',
-                '4 Months: $233'
+                '3 Months: $210',
+                '4 Months: $280'
             ],
             cta: 'Join This Class',
             popular: true

@@ -14,8 +14,8 @@ const mockPlans = [
         numericPrice: 60,
         period: '/ Month',
         desc: 'Perfect for those starting their chess journey or building strong foundational skills.',
-        features: ['1 Month: $60', '3 Months: $160', '4 Months: $200'],
-        type: '1-on-1',
+        features: ['1 Month: $60', '3 Months: $180', '4 Months: $240'],
+        type: 'group',
         level: 'Beginner',
         cta: 'Select Plan',
         popular: false,
@@ -28,8 +28,8 @@ const mockPlans = [
         numericPrice: 70,
         period: '/ Month',
         desc: 'For players advancing their tactical understanding and competitive readiness.',
-        features: ['1 Month: $70', '3 Months: $187', '4 Months: $233'],
-        type: '1-on-1',
+        features: ['1 Month: $70', '3 Months: $210', '4 Months: $280'],
+        type: 'group',
         level: 'Intermediate',
         cta: 'Select Plan',
         popular: true,
@@ -38,8 +38,8 @@ const mockPlans = [
 ];
 
 const PERIOD_PRICES = {
-    'beginner-advanced':  { 1: 60,  3: 160, 4: 200 },
-    'intermediate-i-ii':  { 1: 70,  3: 187, 4: 233 },
+    'beginner-advanced':  { 1: 60,  3: 180, 4: 240 },
+    'intermediate-i-ii':  { 1: 70,  3: 210, 4: 280 },
 };
 
 const PERIOD_SAVINGS  = { 1: null, 3: 'Save 11%', 4: 'Save 17%' };

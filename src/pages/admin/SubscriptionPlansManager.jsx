@@ -9,139 +9,79 @@ import ConfirmDialog from '../../components/ui/ConfirmDialog';
 import { toast, ToastContainer } from 'react-toastify';
 import { Plus, X, Edit2, Trash2, CreditCard, Package, CheckCircle, Shield, Star, RefreshCw } from 'lucide-react';
 
-// Default plans — 4 batches × 3 durations = 12 plans
+// Default plans — 2 tiers × 3 durations = 6 plans
 const defaultPlans = [
     {
         id: 'beginner-1m',
-        name: 'Beginner — 1 Month',
-        description: 'Group coaching for beginners',
+        name: 'Group Beginner Training — 1 Month',
+        description: 'Group coaching for beginners and advanced beginners',
         price: 60,
         billingCycle: 'MONTHLY',
         level: 'beginner',
         duration: '1',
+        classType: 'GROUP',
         features: ['Dedicated coach assignment', 'Group lesson plans', '4 sessions/month', 'Progress tracking'],
-        isActive: true, isFeatured: false, sortOrder: 0
+        isActive: true, isFeatured: true, sortOrder: 0
     },
     {
         id: 'beginner-3m',
-        name: 'Beginner — 3 Months',
-        description: 'Group coaching for beginners (3 months)',
-        price: 160,
+        name: 'Group Beginner Training — 3 Months',
+        description: 'Group coaching for beginners and advanced beginners (3 months)',
+        price: 180,
         billingCycle: 'QUARTERLY',
         level: 'beginner',
         duration: '3',
+        classType: 'GROUP',
         features: ['Dedicated coach assignment', 'Group lesson plans', '12 sessions total', 'Progress tracking'],
         isActive: true, isFeatured: false, sortOrder: 1
     },
     {
         id: 'beginner-4m',
-        name: 'Beginner — 4 Months',
-        description: 'Group coaching for beginners (4 months)',
-        price: 200,
+        name: 'Group Beginner Training — 4 Months',
+        description: 'Group coaching for beginners and advanced beginners (4 months)',
+        price: 240,
         billingCycle: 'QUARTERLY',
         level: 'beginner',
         duration: '4',
+        classType: 'GROUP',
         features: ['Dedicated coach assignment', 'Group lesson plans', '16 sessions total', 'Progress tracking'],
         isActive: true, isFeatured: false, sortOrder: 2
     },
     {
-        id: 'advanced-beginner-1m',
-        name: 'Advanced Beginner — 1 Month',
-        description: 'Group coaching for advanced beginners',
-        price: 60,
+        id: 'intermediate-1m',
+        name: 'Group Intermediate Training — 1 Month',
+        description: 'Group coaching for Intermediate-I and Intermediate-II players',
+        price: 70,
         billingCycle: 'MONTHLY',
-        level: 'advanced-beginner',
+        level: 'intermediate',
         duration: '1',
-        features: ['Dedicated coach assignment', 'Tactics training', '4 sessions/month', 'Game analysis'],
-        isActive: true, isFeatured: false, sortOrder: 3
+        classType: 'GROUP',
+        features: ['Expert coach assignment', 'Advanced tactics', '4 sessions/month', 'Tournament prep'],
+        isActive: true, isFeatured: true, sortOrder: 3
     },
     {
-        id: 'advanced-beginner-3m',
-        name: 'Advanced Beginner — 3 Months',
-        description: 'Group coaching for advanced beginners (3 months)',
-        price: 160,
+        id: 'intermediate-3m',
+        name: 'Group Intermediate Training — 3 Months',
+        description: 'Group coaching for Intermediate-I and Intermediate-II players (3 months)',
+        price: 210,
         billingCycle: 'QUARTERLY',
-        level: 'advanced-beginner',
+        level: 'intermediate',
         duration: '3',
-        features: ['Dedicated coach assignment', 'Tactics training', '12 sessions total', 'Game analysis'],
+        classType: 'GROUP',
+        features: ['Expert coach assignment', 'Advanced tactics', '12 sessions total', 'Tournament prep'],
         isActive: true, isFeatured: false, sortOrder: 4
     },
     {
-        id: 'advanced-beginner-4m',
-        name: 'Advanced Beginner — 4 Months',
-        description: 'Group coaching for advanced beginners (4 months)',
-        price: 200,
+        id: 'intermediate-4m',
+        name: 'Group Intermediate Training — 4 Months',
+        description: 'Group coaching for Intermediate-I and Intermediate-II players (4 months)',
+        price: 280,
         billingCycle: 'QUARTERLY',
-        level: 'advanced-beginner',
+        level: 'intermediate',
         duration: '4',
-        features: ['Dedicated coach assignment', 'Tactics training', '16 sessions total', 'Game analysis'],
+        classType: 'GROUP',
+        features: ['Expert coach assignment', 'Advanced tactics', '16 sessions total', 'Tournament prep'],
         isActive: true, isFeatured: false, sortOrder: 5
-    },
-    {
-        id: 'intermediate-I-1m',
-        name: 'Intermediate-I — 1 Month',
-        description: 'Advanced coaching for Intermediate-I players',
-        price: 70,
-        billingCycle: 'MONTHLY',
-        level: 'intermediate-I',
-        duration: '1',
-        features: ['Expert FIDE Master coach', 'Advanced tactics', '4 sessions/month', 'Tournament prep'],
-        isActive: true, isFeatured: true, sortOrder: 6
-    },
-    {
-        id: 'intermediate-I-3m',
-        name: 'Intermediate-I — 3 Months',
-        description: 'Advanced coaching for Intermediate-I players (3 months)',
-        price: 187,
-        billingCycle: 'QUARTERLY',
-        level: 'intermediate-I',
-        duration: '3',
-        features: ['Expert FIDE Master coach', 'Advanced tactics', '12 sessions total', 'Tournament prep'],
-        isActive: true, isFeatured: false, sortOrder: 7
-    },
-    {
-        id: 'intermediate-I-4m',
-        name: 'Intermediate-I — 4 Months',
-        description: 'Advanced coaching for Intermediate-I players (4 months)',
-        price: 233,
-        billingCycle: 'QUARTERLY',
-        level: 'intermediate-I',
-        duration: '4',
-        features: ['Expert FIDE Master coach', 'Advanced tactics', '16 sessions total', 'Tournament prep'],
-        isActive: true, isFeatured: false, sortOrder: 8
-    },
-    {
-        id: 'intermediate-II-1m',
-        name: 'Intermediate-II — 1 Month',
-        description: 'Advanced coaching for Intermediate-II players',
-        price: 70,
-        billingCycle: 'MONTHLY',
-        level: 'intermediate-II',
-        duration: '1',
-        features: ['Expert FIDE Master coach', 'Opening repertoire', '4 sessions/month', 'Tournament prep'],
-        isActive: true, isFeatured: false, sortOrder: 9
-    },
-    {
-        id: 'intermediate-II-3m',
-        name: 'Intermediate-II — 3 Months',
-        description: 'Advanced coaching for Intermediate-II players (3 months)',
-        price: 187,
-        billingCycle: 'QUARTERLY',
-        level: 'intermediate-II',
-        duration: '3',
-        features: ['Expert FIDE Master coach', 'Opening repertoire', '12 sessions total', 'Tournament prep'],
-        isActive: true, isFeatured: false, sortOrder: 10
-    },
-    {
-        id: 'intermediate-II-4m',
-        name: 'Intermediate-II — 4 Months',
-        description: 'Advanced coaching for Intermediate-II players (4 months)',
-        price: 233,
-        billingCycle: 'QUARTERLY',
-        level: 'intermediate-II',
-        duration: '4',
-        features: ['Expert FIDE Master coach', 'Opening repertoire', '16 sessions total', 'Tournament prep'],
-        isActive: true, isFeatured: false, sortOrder: 11
     }
 ];
 
