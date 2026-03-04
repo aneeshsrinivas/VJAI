@@ -247,7 +247,18 @@ const ChatPage = ({ userRole: propRole }) => {
     useEffect(() => {
         if (role === 'ADMIN') {
             getDocs(collection(db, 'users')).then(snap => {
-                setUsers(snap.docs.map(d => ({ id: d.id, ...d.data() })));
+                const allUsers = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+                // Deduplicate by email and exclude admin accounts from the dropdown
+                const seen = new Set();
+                const dedupedUsers = allUsers.filter(u => {
+                    const r = (u.role || '').toLowerCase();
+                    if (r === 'admin') return false; // don't show admin in dropdown
+                    const key = (u.email || '').toLowerCase();
+                    if (!key || seen.has(key)) return false;
+                    seen.add(key);
+                    return true;
+                });
+                setUsers(dedupedUsers);
             }).catch(err => console.error('Error fetching users:', err));
 
             getDocs(collection(db, 'batches')).then(snap => {

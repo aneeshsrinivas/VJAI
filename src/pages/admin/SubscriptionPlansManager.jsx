@@ -3,66 +3,102 @@ import { collection, getDocs, doc, updateDoc, addDoc, deleteDoc, onSnapshot, que
 import { db } from '../../lib/firebase';
 import Card from '../../components/ui/Card';
 import Button from '../../components/ui/Button';
+import { useTheme } from '../../context/ThemeContext';
 import Input from '../../components/ui/Input';
+import ConfirmDialog from '../../components/ui/ConfirmDialog';
 import { toast, ToastContainer } from 'react-toastify';
 import { Plus, X, Edit2, Trash2, CreditCard, Package, CheckCircle, Shield, Star, RefreshCw } from 'lucide-react';
 
-// Default plans - only the two 1-on-1 plans
+// Default plans — 2 tiers × 3 durations = 6 plans
 const defaultPlans = [
     {
-        id: 'one-on-one-beginner',
-        name: 'Personal Beginner Training',
-        description: '1-on-1 personalized coaching for beginners',
+        id: 'beginner-1m',
+        name: 'Group Beginner Training — 1 Month',
+        description: 'Group coaching for beginners and advanced beginners',
         price: 60,
         billingCycle: 'MONTHLY',
         level: 'beginner',
-        classType: 'one-on-one',
-        features: [
-            'Dedicated coach assignment',
-            'Personalized lesson plans',
-            'Flexible scheduling',
-            '4 sessions per month',
-            'Progress tracking dashboard',
-            'Direct coach messaging'
-        ],
-        isActive: true,
-        isFeatured: false,
-        sortOrder: 0
+        duration: '1',
+        classType: 'GROUP',
+        features: ['Dedicated coach assignment', 'Group lesson plans', '4 sessions/month', 'Progress tracking'],
+        isActive: true, isFeatured: true, sortOrder: 0
     },
     {
-        id: 'one-on-one-intermediate',
-        name: 'Personal Intermediate Training',
-        description: '1-on-1 advanced coaching for intermediate players',
+        id: 'beginner-3m',
+        name: 'Group Beginner Training — 3 Months',
+        description: 'Group coaching for beginners and advanced beginners (3 months)',
+        price: 180,
+        billingCycle: 'QUARTERLY',
+        level: 'beginner',
+        duration: '3',
+        classType: 'GROUP',
+        features: ['Dedicated coach assignment', 'Group lesson plans', '12 sessions total', 'Progress tracking'],
+        isActive: true, isFeatured: false, sortOrder: 1
+    },
+    {
+        id: 'beginner-4m',
+        name: 'Group Beginner Training — 4 Months',
+        description: 'Group coaching for beginners and advanced beginners (4 months)',
+        price: 240,
+        billingCycle: 'QUARTERLY',
+        level: 'beginner',
+        duration: '4',
+        classType: 'GROUP',
+        features: ['Dedicated coach assignment', 'Group lesson plans', '16 sessions total', 'Progress tracking'],
+        isActive: true, isFeatured: false, sortOrder: 2
+    },
+    {
+        id: 'intermediate-1m',
+        name: 'Group Intermediate Training — 1 Month',
+        description: 'Group coaching for Intermediate-I and Intermediate-II players',
         price: 70,
         billingCycle: 'MONTHLY',
         level: 'intermediate',
-        classType: 'one-on-one',
-        features: [
-            'Expert FIDE Master coach',
-            'Advanced tactics training',
-            'Tournament preparation',
-            '4 sessions per month',
-            'Game analysis included',
-            'Opening repertoire building'
-        ],
-        isActive: true,
-        isFeatured: true,
-        sortOrder: 1
+        duration: '1',
+        classType: 'GROUP',
+        features: ['Expert coach assignment', 'Advanced tactics', '4 sessions/month', 'Tournament prep'],
+        isActive: true, isFeatured: true, sortOrder: 3
+    },
+    {
+        id: 'intermediate-3m',
+        name: 'Group Intermediate Training — 3 Months',
+        description: 'Group coaching for Intermediate-I and Intermediate-II players (3 months)',
+        price: 210,
+        billingCycle: 'QUARTERLY',
+        level: 'intermediate',
+        duration: '3',
+        classType: 'GROUP',
+        features: ['Expert coach assignment', 'Advanced tactics', '12 sessions total', 'Tournament prep'],
+        isActive: true, isFeatured: false, sortOrder: 4
+    },
+    {
+        id: 'intermediate-4m',
+        name: 'Group Intermediate Training — 4 Months',
+        description: 'Group coaching for Intermediate-I and Intermediate-II players (4 months)',
+        price: 280,
+        billingCycle: 'QUARTERLY',
+        level: 'intermediate',
+        duration: '4',
+        classType: 'GROUP',
+        features: ['Expert coach assignment', 'Advanced tactics', '16 sessions total', 'Tournament prep'],
+        isActive: true, isFeatured: false, sortOrder: 5
     }
 ];
 
 const SubscriptionPlansManager = () => {
+    const { isDark } = useTheme();
     const [plans, setPlans] = useState([]);
     const [loading, setLoading] = useState(true);
     const [showAddModal, setShowAddModal] = useState(false);
     const [editingPlan, setEditingPlan] = useState(null);
+    const [confirmDialog, setConfirmDialog] = useState(null);
     const [formData, setFormData] = useState({
         name: '',
         description: '',
         price: '',
         billingCycle: 'MONTHLY',
         level: 'beginner',
-        classType: 'group',
+        duration: '1',
         features: [''],
         isActive: true,
         isFeatured: false,
@@ -94,7 +130,7 @@ const SubscriptionPlansManager = () => {
             price: '',
             billingCycle: 'MONTHLY',
             level: 'beginner',
-            classType: 'group',
+            duration: '1',
             features: [''],
             isActive: true,
             isFeatured: false,
@@ -116,7 +152,7 @@ const SubscriptionPlansManager = () => {
             price: plan.price || '',
             billingCycle: plan.billingCycle || 'MONTHLY',
             level: plan.level || 'beginner',
-            classType: plan.classType || 'group',
+            duration: plan.duration || '1',
             features: plan.features?.length > 0 ? plan.features : [''],
             isActive: plan.isActive !== false,
             isFeatured: plan.isFeatured || false,
@@ -161,7 +197,7 @@ const SubscriptionPlansManager = () => {
             price: parseFloat(formData.price),
             billingCycle: formData.billingCycle,
             level: formData.level,
-            classType: formData.classType,
+            duration: formData.duration,
             features: formData.features.filter(f => f.trim() !== ''),
             isActive: formData.isActive,
             isFeatured: formData.isFeatured,
@@ -187,15 +223,20 @@ const SubscriptionPlansManager = () => {
         }
     };
 
-    const handleDelete = async (plan) => {
-        if (!window.confirm(`Delete plan "${plan.name}"? This cannot be undone.`)) return;
-
-        try {
-            await deleteDoc(doc(db, 'subscriptionPlans', plan.id));
-            toast.success('Plan deleted successfully');
-        } catch (error) {
-            toast.error('Failed to delete plan: ' + error.message);
-        }
+    const handleDelete = (plan) => {
+        setConfirmDialog({
+            title: 'Delete Plan',
+            message: `Delete plan "${plan.name}"? This cannot be undone.`,
+            confirmLabel: 'Delete',
+            onConfirm: async () => {
+                try {
+                    await deleteDoc(doc(db, 'subscriptionPlans', plan.id));
+                    toast.success('Plan deleted successfully');
+                } catch (error) {
+                    toast.error('Failed to delete plan: ' + error.message);
+                }
+            }
+        });
     };
 
     const handleToggleActive = async (plan) => {
@@ -211,51 +252,49 @@ const SubscriptionPlansManager = () => {
     };
 
     // Seed default plans from mockData
-    const handleSeedDefaultPlans = async () => {
-        if (!window.confirm('This will add the 2 default 1-on-1 plans from the pricing page. Existing plans with the same ID will be skipped. Continue?')) {
-            return;
-        }
+    const handleSeedDefaultPlans = () => {
+        setConfirmDialog({
+            title: 'Seed Default Plans',
+            message: 'This will add the 2 default 1-on-1 plans from the pricing page. Existing plans with the same ID will be skipped. Continue?',
+            confirmLabel: 'Seed Plans',
+            variant: 'warning',
+            onConfirm: async () => {
+                try {
+                    let added = 0;
+                    let skipped = 0;
 
-        try {
-            const existingIds = plans.map(p => p.id);
-            let added = 0;
-            let skipped = 0;
+                    for (const plan of defaultPlans) {
+                        const exists = plans.some(p => p.id === plan.id || p.planId === plan.id || p.name === plan.name);
+                        if (exists) { skipped++; continue; }
 
-            for (const plan of defaultPlans) {
-                // Check if plan with this planId already exists
-                const exists = plans.some(p => p.planId === plan.id || p.name === plan.name);
-                
-                if (exists) {
-                    skipped++;
-                    continue;
+                        await addDoc(collection(db, 'subscriptionPlans'), {
+                            planId: plan.id,
+                            name: plan.name,
+                            description: plan.description,
+                            price: plan.price,
+                            billingCycle: plan.billingCycle,
+                            level: plan.level,
+                            classType: plan.classType,
+                            features: plan.features,
+                            isActive: plan.isActive,
+                            isFeatured: plan.isFeatured,
+                            sortOrder: plan.sortOrder,
+                            createdAt: serverTimestamp(),
+                            updatedAt: serverTimestamp()
+                        });
+                        added++;
+                    }
+
+                    if (added > 0) {
+                        toast.success(`Added ${added} default plans! ${skipped > 0 ? `(${skipped} already existed)` : ''}`);
+                    } else {
+                        toast.info('All default plans already exist.');
+                    }
+                } catch (error) {
+                    toast.error('Failed to seed plans: ' + error.message);
                 }
-
-                await addDoc(collection(db, 'subscriptionPlans'), {
-                    planId: plan.id,
-                    name: plan.name,
-                    description: plan.description,
-                    price: plan.price,
-                    billingCycle: plan.billingCycle,
-                    level: plan.level,
-                    classType: plan.classType,
-                    features: plan.features,
-                    isActive: plan.isActive,
-                    isFeatured: plan.isFeatured,
-                    sortOrder: plan.sortOrder,
-                    createdAt: serverTimestamp(),
-                    updatedAt: serverTimestamp()
-                });
-                added++;
             }
-
-            if (added > 0) {
-                toast.success(`Added ${added} default plans! ${skipped > 0 ? `(${skipped} already existed)` : ''}`);
-            } else {
-                toast.info('All default plans already exist.');
-            }
-        } catch (error) {
-            toast.error('Failed to seed plans: ' + error.message);
-        }
+        });
     };
 
     const getLevelColor = (level) => {
@@ -469,7 +508,7 @@ const SubscriptionPlansManager = () => {
                     justifyContent: 'center',
                     zIndex: 1000
                 }} onClick={() => { setShowAddModal(false); resetForm(); }}>
-                    <div className="modal-content" style={{
+                    <div className={`modal-content ${isDark ? 'dark-mode' : ''}`} style={{
                         borderRadius: '16px',
                         width: '600px',
                         maxWidth: '95%',
@@ -480,7 +519,7 @@ const SubscriptionPlansManager = () => {
                         {/* Modal Header */}
                         <div style={{
                             padding: '24px',
-                            borderBottom: '1px solid #f0f0f0',
+                            borderBottom: `1px solid ${isDark ? '#2d2f3e' : '#f0f0f0'}`,
                             display: 'flex',
                             justifyContent: 'space-between',
                             alignItems: 'center'
@@ -561,7 +600,8 @@ const SubscriptionPlansManager = () => {
                                             borderRadius: '8px',
                                             border: '1px solid #ddd',
                                             fontSize: '14px',
-                                            backgroundColor: 'white'
+                                            backgroundColor: isDark ? '#2a2d3e' : 'white',
+                                        color: isDark ? '#f0f0f0' : '#333'
                                         }}
                                     >
                                         <option value="MONTHLY">Monthly</option>
@@ -587,34 +627,37 @@ const SubscriptionPlansManager = () => {
                                             borderRadius: '8px',
                                             border: '1px solid #ddd',
                                             fontSize: '14px',
-                                            backgroundColor: 'white'
+                                            backgroundColor: isDark ? '#2a2d3e' : 'white',
+                                        color: isDark ? '#f0f0f0' : '#333'
                                         }}
                                     >
                                         <option value="beginner">Beginner</option>
-                                        <option value="intermediate">Intermediate</option>
-                                        <option value="advanced">Advanced</option>
+                                        <option value="advanced-beginner">Advanced Beginner</option>
+                                        <option value="intermediate-I">Intermediate-I</option>
+                                        <option value="intermediate-II">Intermediate-II</option>
                                         <option value="all">All Levels</option>
                                     </select>
                                 </div>
                                 <div>
                                     <label style={{ display: 'block', marginBottom: '6px', fontWeight: '600', fontSize: '14px' }}>
-                                        Class Type
+                                        Duration
                                     </label>
                                     <select
-                                        value={formData.classType}
-                                        onChange={(e) => setFormData({ ...formData, classType: e.target.value })}
+                                        value={formData.duration || '1'}
+                                        onChange={(e) => setFormData({ ...formData, duration: e.target.value })}
                                         style={{
                                             width: '100%',
                                             padding: '12px',
                                             borderRadius: '8px',
                                             border: '1px solid #ddd',
                                             fontSize: '14px',
-                                            backgroundColor: 'white'
+                                            backgroundColor: isDark ? '#2a2d3e' : 'white',
+                                        color: isDark ? '#f0f0f0' : '#333'
                                         }}
                                     >
-                                        <option value="group">Group Class</option>
-                                        <option value="one-on-one">1:1 Coaching</option>
-                                        <option value="hybrid">Hybrid</option>
+                                        <option value="1">1 Month</option>
+                                        <option value="3">3 Months</option>
+                                        <option value="4">4 Months</option>
                                     </select>
                                 </div>
                             </div>
@@ -713,6 +756,16 @@ const SubscriptionPlansManager = () => {
                         </form>
                     </div>
                 </div>
+            )}
+            {confirmDialog && (
+                <ConfirmDialog
+                    title={confirmDialog.title}
+                    message={confirmDialog.message}
+                    confirmLabel={confirmDialog.confirmLabel || 'Confirm'}
+                    variant={confirmDialog.variant || 'danger'}
+                    onConfirm={() => { confirmDialog.onConfirm(); setConfirmDialog(null); }}
+                    onCancel={() => setConfirmDialog(null)}
+                />
             )}
         </div>
     );

@@ -163,36 +163,36 @@ app.post('/api/email/student-welcome', async (req, res) => {
 			return res.status(400).json({ success: false, error: 'Missing required fields' });
 		}
 
-		const loginLink = process.env.FRONTEND_URL || 'http://localhost:5173';
+		const loginLink = process.env.FRONTEND_URL || 'https://vjai.onrender.com';
 
 		const mailOptions = {
-			from: `"VJ AI Chess Academy" <${process.env.EMAIL_USER}>`,
+			from: `"Indian Chess Academy" <${process.env.EMAIL_USER}>`,
 			to: parentEmail,
-			subject: `🎉 Welcome to VJ AI Chess Academy, ${studentName}!`,
+			subject: `🎉 Welcome to Indian Chess Academy, ${studentName}!`,
 			html: `
 				<div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
 					<div style="text-align: center; margin-bottom: 30px;">
-						<h1 style="color: #1a365d;">♟️ VJ AI Chess Academy</h1>
+						<h1 style="color: #1a365d;">♟️ Indian Chess Academy</h1>
 					</div>
-					
+
 					<p>Dear <strong>${parentName}</strong>,</p>
-					
-					<p>Welcome to VJ AI Chess Academy! 🎉</p>
-					
+
+					<p>Welcome to Indian Chess Academy! 🎉</p>
+
 					<p>We are excited to have <strong>${studentName}</strong> join our chess learning community. Your account has been created successfully.</p>
-					
+
 					<div style="background-color: #f7fafc; border-radius: 8px; padding: 20px; margin: 20px 0; border-left: 4px solid #3182ce;">
 						<h3 style="margin-top: 0; color: #2d3748;">🔐 Your Login Credentials</h3>
 						<p style="margin: 5px 0;"><strong>Email:</strong> ${parentEmail}</p>
 						<p style="margin: 5px 0;"><strong>Password:</strong> ${password}</p>
 					</div>
-					
+
 					<p style="color: #e53e3e; font-size: 14px;">⚠️ Please change your password after your first login for security.</p>
-					
+
 					<div style="text-align: center; margin: 30px 0;">
 						<a href="${loginLink}/login" style="background-color: #3182ce; color: white; padding: 12px 30px; text-decoration: none; border-radius: 5px; font-weight: bold;">Login to Dashboard</a>
 					</div>
-					
+
 					<p>Once logged in, you can:</p>
 					<ul>
 						<li>View your assigned coach and batch</li>
@@ -200,11 +200,11 @@ app.post('/api/email/student-welcome', async (req, res) => {
 						<li>Track assignments and progress</li>
 						<li>Access learning materials</li>
 					</ul>
-					
+
 					<p>If you have any questions, feel free to reach out to us.</p>
-					
-					<p>Best regards,<br><strong>VJ AI Chess Academy Team</strong></p>
-					
+
+					<p>Best regards,<br><strong>Indian Chess Academy Team</strong></p>
+
 					<hr style="border: none; border-top: 1px solid #e2e8f0; margin: 30px 0;">
 					<p style="font-size: 12px; color: #718096; text-align: center;">
 						This is an automated email. Please do not reply directly to this message.
@@ -235,36 +235,36 @@ app.post('/api/email/coach-welcome', async (req, res) => {
 			return res.status(400).json({ success: false, error: 'Missing required fields' });
 		}
 
-		const loginLink = process.env.FRONTEND_URL || 'http://localhost:5173';
+		const loginLink = process.env.FRONTEND_URL || 'https://vjai.onrender.com';
 
 		const mailOptions = {
-			from: `"VJ AI Chess Academy" <${process.env.EMAIL_USER}>`,
+			from: `"Indian Chess Academy" <${process.env.EMAIL_USER}>`,
 			to: personalEmail,
-			subject: `🎓 Welcome to the Faculty - VJ AI Chess Academy`,
+			subject: `🎓 Welcome to the Faculty - Indian Chess Academy`,
 			html: `
 				<div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
 					<div style="text-align: center; margin-bottom: 30px;">
-						<h1 style="color: #1a365d;">♟️ VJ AI Chess Academy</h1>
+						<h1 style="color: #1a365d;">♟️ Indian Chess Academy</h1>
 					</div>
-					
+
 					<p>Dear <strong>${fullName}</strong>,</p>
-					
-					<p>We are delighted to welcome you to the VJ AI Chess Academy teaching faculty! 🎉</p>
-					
+
+					<p>We are delighted to welcome you to the Indian Chess Academy teaching faculty! 🎉</p>
+
 					<p>Your coach account has been created successfully. You can now access the Coach Dashboard to manage your profile, batches, and students.</p>
-					
+
 					<div style="background-color: #f0fff4; border-radius: 8px; padding: 20px; margin: 20px 0; border-left: 4px solid #38a169;">
 						<h3 style="margin-top: 0; color: #2d3748;">🔐 Your Login Credentials</h3>
 						<p style="margin: 5px 0;"><strong>Login Email:</strong> ${assignedEmail}</p>
 						<p style="margin: 5px 0;"><strong>Password:</strong> ${password}</p>
 					</div>
-					
+
 					<p style="color: #e53e3e; font-size: 14px;">⚠️ Please change your password after your first login for security.</p>
-					
+
 					<div style="text-align: center; margin: 30px 0;">
 						<a href="${loginLink}/login" style="background-color: #38a169; color: white; padding: 12px 30px; text-decoration: none; border-radius: 5px; font-weight: bold;">Login to Coach Dashboard</a>
 					</div>
-					
+
 					<p>As a coach, you can:</p>
 					<ul>
 						<li>Manage your assigned batches and students</li>
@@ -273,11 +273,11 @@ app.post('/api/email/coach-welcome', async (req, res) => {
 						<li>Track student progress</li>
 						<li>Upload learning materials</li>
 					</ul>
-					
+
 					<p>We look forward to seeing your expertise in action!</p>
-					
-					<p>Best regards,<br><strong>VJ AI Chess Academy Admin Team</strong></p>
-					
+
+					<p>Best regards,<br><strong>Indian Chess Academy Admin Team</strong></p>
+
 					<hr style="border: none; border-top: 1px solid #e2e8f0; margin: 30px 0;">
 					<p style="font-size: 12px; color: #718096; text-align: center;">
 						This is an automated email. Please do not reply directly to this message.
@@ -309,7 +309,7 @@ app.post('/api/email/send', async (req, res) => {
 		}
 
 		const mailOptions = {
-			from: `"VJ AI Chess Academy" <${process.env.EMAIL_USER}>`,
+			from: `"Indian Chess Academy" <${process.env.EMAIL_USER}>`,
 			to,
 			subject,
 			...(html && { html }),
@@ -390,6 +390,133 @@ app.post('/api/chess/puzzle', async (req, res) => {
 		});
 	} catch (err) {
 		console.error('Puzzle generation error:', err);
+		res.status(500).json({ success: false, error: err.message });
+	}
+});
+
+// ==========================================
+// LICHESS API PROXY (rate-limited)
+// ==========================================
+
+const lichessRateLimit = new Map();
+const LICHESS_RATE_LIMIT = 30;      // max requests
+const LICHESS_RATE_WINDOW = 60000;  // per 60 seconds
+
+function checkLichessRateLimit(ip) {
+	const now = Date.now();
+	const entry = lichessRateLimit.get(ip);
+	if (!entry || now > entry.resetTime) {
+		lichessRateLimit.set(ip, { count: 1, resetTime: now + LICHESS_RATE_WINDOW });
+		return true;
+	}
+	if (entry.count >= LICHESS_RATE_LIMIT) return false;
+	entry.count++;
+	return true;
+}
+
+// Clean up stale rate-limit entries every 5 minutes
+setInterval(() => {
+	const now = Date.now();
+	for (const [ip, entry] of lichessRateLimit.entries()) {
+		if (now > entry.resetTime) lichessRateLimit.delete(ip);
+	}
+}, 300000);
+
+/**
+ * Validate & fetch Lichess user profile
+ * GET /api/lichess/user/:username
+ */
+app.get('/api/lichess/user/:username', async (req, res) => {
+	try {
+		const ip = req.ip || req.connection.remoteAddress;
+		if (!checkLichessRateLimit(ip)) {
+			return res.status(429).json({ success: false, error: 'Rate limit exceeded. Try again later.' });
+		}
+
+		const { username } = req.params;
+		if (!username || username.length < 2 || username.length > 20) {
+			return res.status(400).json({ success: false, error: 'Invalid username' });
+		}
+
+		const response = await fetch(`https://lichess.org/api/user/${encodeURIComponent(username)}`, {
+			headers: { 'Accept': 'application/json' }
+		});
+
+		if (!response.ok) {
+			if (response.status === 404) {
+				return res.status(404).json({ success: false, error: 'Lichess user not found' });
+			}
+			return res.status(502).json({ success: false, error: 'Lichess API error' });
+		}
+
+		const data = await response.json();
+		res.json({
+			success: true,
+			data: {
+				username: data.username,
+				rapid: data.perfs?.rapid?.rating || null,
+				rapidGames: data.perfs?.rapid?.games || 0,
+				puzzle: data.perfs?.puzzle?.rating || null,
+				puzzleGames: data.perfs?.puzzle?.games || 0,
+				createdAt: data.createdAt,
+				online: data.online || false,
+				playTime: data.playTime?.total || 0,
+			}
+		});
+	} catch (err) {
+		console.error('Lichess user fetch error:', err);
+		res.status(500).json({ success: false, error: err.message });
+	}
+});
+
+/**
+ * Fetch Lichess rating history (Rapid + Puzzle)
+ * GET /api/lichess/rating-history/:username
+ */
+app.get('/api/lichess/rating-history/:username', async (req, res) => {
+	try {
+		const ip = req.ip || req.connection.remoteAddress;
+		if (!checkLichessRateLimit(ip)) {
+			return res.status(429).json({ success: false, error: 'Rate limit exceeded. Try again later.' });
+		}
+
+		const { username } = req.params;
+		if (!username || username.length < 2 || username.length > 20) {
+			return res.status(400).json({ success: false, error: 'Invalid username' });
+		}
+
+		const response = await fetch(`https://lichess.org/api/user/${encodeURIComponent(username)}/rating-history`, {
+			headers: { 'Accept': 'application/json' }
+		});
+
+		if (!response.ok) {
+			if (response.status === 404) {
+				return res.status(404).json({ success: false, error: 'Lichess user not found' });
+			}
+			return res.status(502).json({ success: false, error: 'Lichess API error' });
+		}
+
+		const data = await response.json();
+
+		// Filter to Rapid and Puzzle only
+		const rapidData = data.find(cat => cat.name === 'Rapid');
+		const puzzleData = data.find(cat => cat.name === 'Puzzles');
+
+		const formatPoints = (category) => {
+			if (!category || !category.points) return [];
+			return category.points.map(([year, month, day, rating]) => ({
+				date: `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`,
+				rating
+			}));
+		};
+
+		res.json({
+			success: true,
+			rapid: formatPoints(rapidData),
+			puzzle: formatPoints(puzzleData),
+		});
+	} catch (err) {
+		console.error('Lichess rating history error:', err);
 		res.status(500).json({ success: false, error: err.message });
 	}
 });

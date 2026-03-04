@@ -24,11 +24,14 @@
     padding: 24px;
     width: 500px;
     max-width: 95vw;
-    max-height: 90vh;
+    max-height: 85vh;
     overflow-y: auto;
+    overflow-x: hidden;
     box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
     position: relative;
     transition: transform 0.1s;
+    display: flex;
+    flex-direction: column;
 }
 
 .demo-outcome-modal.shake-error {
@@ -170,7 +173,11 @@
     cursor: pointer;
     transition: all 0.2s;
     font-size: 13px;
-    color: #666;
+    color: #000;
+}
+
+.outcome-option span {
+    color: #000;
 }
 
 .outcome-option input {
@@ -246,6 +253,12 @@
     resize: vertical;
 }
 
+.demo-outcome-modal form {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+}
+
 .error-message {
     background: #FEE2E2;
     color: #991B1B;
@@ -260,6 +273,11 @@
     gap: 12px;
     justify-content: flex-end;
     margin-top: 20px;
+    position: sticky;
+    bottom: 0;
+    background: #fff;
+    padding-top: 16px;
+    border-top: 1px solid #E5E7EB;
 }
 
 /* Confetti Animation */
@@ -312,4 +330,104 @@
     .modal-actions button {
         width: 100%;
     }
+}
+
+/* Dark Mode Overrides */
+.demo-outcome-modal.dark-mode {
+    background: #1a1d27;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    color: #f0f0f0;
+}
+
+.demo-outcome-modal.dark-mode h2 {
+    color: #f0f0f0;
+}
+
+.demo-outcome-modal.dark-mode .modal-close {
+    color: #e2e8f0;
+}
+
+.demo-outcome-modal.dark-mode .modal-close:hover {
+    background: rgba(255, 255, 255, 0.1);
+}
+
+.demo-outcome-modal.dark-mode .demo-info {
+    background: rgba(59, 130, 246, 0.1);
+    border: 1px solid rgba(59, 130, 246, 0.2);
+}
+
+.demo-outcome-modal.dark-mode .demo-info p {
+    color: #f0f0f0;
+}
+
+.demo-outcome-modal.dark-mode .demo-info strong {
+    color: #93c5fd;
+}
+
+.demo-outcome-modal.dark-mode .progress-bar {
+    background: rgba(255, 255, 255, 0.1);
+}
+
+.demo-outcome-modal.dark-mode .progress-text {
+    color: #cbd5e1;
+}
+
+.demo-outcome-modal.dark-mode .outcome-option {
+    border-color: rgba(255, 255, 255, 0.1);
+    color: #cbd5e1;
+    background: #0f1117;
+}
+
+.demo-outcome-modal.dark-mode .outcome-option span {
+    color: #cbd5e1;
+}
+
+.demo-outcome-modal.dark-mode .outcome-option:hover {
+    border-color: #3b82f6;
+    background: rgba(59, 130, 246, 0.1);
+}
+
+.demo-outcome-modal.dark-mode .outcome-option.selected.attended {
+    border-color: #10B981;
+    background: rgba(16, 185, 129, 0.1);
+    color: #34d399;
+}
+
+.demo-outcome-modal.dark-mode .outcome-option.selected.no-show {
+    border-color: #EF4444;
+    background: rgba(239, 68, 68, 0.1);
+    color: #f87171;
+}
+
+.demo-outcome-modal.dark-mode .outcome-option.selected.interested {
+    border-color: #F59E0B;
+    background: rgba(245, 158, 11, 0.1);
+    color: #fbbf24;
+}
+
+.demo-outcome-modal.dark-mode .form-group label {
+    color: #c0c0c0;
+}
+
+.demo-outcome-modal.dark-mode .form-group select,
+.demo-outcome-modal.dark-mode .form-group textarea {
+    background: #0f1117;
+    border-color: rgba(255, 255, 255, 0.1);
+    color: #f0f0f0;
+}
+
+.demo-outcome-modal.dark-mode .form-group select:focus,
+.demo-outcome-modal.dark-mode .form-group textarea:focus {
+    border-color: #3b82f6;
+}
+
+.demo-outcome-modal.dark-mode .error-message {
+    background: rgba(239, 68, 68, 0.1);
+    color: #f87171;
+    border: 1px solid rgba(239, 68, 68, 0.2);
+}
+
+.demo-outcome-modal.dark-mode .modal-actions {
+    background: #1a1d27;
+    border-top-color: rgba(255, 255, 255, 0.1);
 }

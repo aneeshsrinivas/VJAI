@@ -1,11 +1,11 @@
-import React, { createContext, useContext, useEffect, useState } from 'react';
+import React, { createContext, useContext, useEffect, useState, useRef } from 'react';
 import {
     createUserWithEmailAndPassword,
     signInWithEmailAndPassword,
     signOut,
     onAuthStateChanged
 } from 'firebase/auth';
-import { doc, getDoc, setDoc, updateDoc, serverTimestamp } from 'firebase/firestore';
+import { doc, getDoc, setDoc, updateDoc, serverTimestamp, collection, addDoc } from 'firebase/firestore';
 import { auth, db } from '../lib/firebase';
 
 const AuthContext = createContext();
@@ -26,9 +26,19 @@ const detectRoleFromEmail = (email) => {
         return 'admin';
     }
 
-    // Coach emails (any @coach.com domain)
+    // Coach emails (@coach.com domain)
     if (lowerEmail.endsWith('@coach.com')) {
         return 'coach';
+    }
+
+    // Student emails (@student.com domain)
+    if (lowerEmail.endsWith('@student.com')) {
+        return 'customer'; // Students use customer role
+    }
+
+    // Admin emails (@chess.com domain)
+    if (lowerEmail.endsWith('@chess.com')) {
+        return 'admin';
     }
 
     // Parent/Customer emails (gmail.com and others)
@@ -36,7 +46,7 @@ const detectRoleFromEmail = (email) => {
 };
 
 // Development mode flag - set to true to bypass Firebase for testing
-const DEV_MODE = true;
+const DEV_MODE = false;
 const DEV_USER = {
     uid: 'dev-user-001',
     email: 'parent@example.com'
@@ -50,11 +60,54 @@ const DEV_ADMIN_USER = {
     email: 'indianchessacademy@chess.com'
 };
 
+const LICHESS_API_BASE = import.meta.env.VITE_SERVER_URL || 'http://localhost:3001';
+
+// Fire-and-forget: sync Lichess ratings if approved and last sync > 24h
+async function syncLichessRating(uid, username) {
+    try {
+        const res = await fetch(`${LICHESS_API_BASE}/api/lichess/user/${encodeURIComponent(username)}`);
+        const json = await res.json();
+        if (!json.success) return;
+
+        const { rapid, puzzle } = json.data;
+
+        // Write new rating snapshot to subcollection
+        await addDoc(collection(db, 'users', uid, 'ratingHistory'), {
+            rapid: rapid || 0,
+            puzzle: puzzle || 0,
+            timestamp: serverTimestamp(),
+            source: 'sync',
+        });
+
+        // Update current ratings + lastSyncedAt on user doc
+        await updateDoc(doc(db, 'users', uid), {
+            currentRapid: rapid || 0,
+            currentPuzzle: puzzle || 0,
+            lastSyncedAt: serverTimestamp(),
+        });
+    } catch (err) {
+        console.error('Lichess rating sync failed:', err);
+    }
+}
+
 export const AuthProvider = ({ children }) => {
     const [currentUser, setCurrentUser] = useState(null);
     const [userRole, setUserRole] = useState(null);
     const [userData, setUserData] = useState(null);
     const [loading, setLoading] = useState(true);
+
+    // Tab-specific session isolation using sessionStorage (persists across page reloads in same tab)
+    const getSessionUid = () => sessionStorage.getItem('sessionUid');
+    const setSessionUid = (uid) => sessionStorage.setItem('sessionUid', uid);
+    const clearSessionUid = () => sessionStorage.removeItem('sessionUid');
+
+    // Mark tab as locked when contamination detected - persists across page reloads
+    const isTabLocked = () => sessionStorage.getItem('tabLocked') === 'true';
+    const lockTab = () => sessionStorage.setItem('tabLocked', 'true');
+    const unlockTab = () => sessionStorage.removeItem('tabLocked');
+
+    // Guard flag to block state updates if session contamination detected
+    const isSessionValidRef = useRef(true);
 
     // Signup function with auto-role detection
     const signup = async (email, password, additionalData = {}) => {
@@ -100,6 +153,17 @@ export const AuthProvider = ({ children }) => {
                 finalRole = storedRole || detectedRole;
                 setUserRole(finalRole);
                 setUserData(userDoc.data());
+
+                // Trigger Lichess rating sync for approved customer accounts
+                const ud = userDoc.data();
+                if (storedRole === 'customer' && ud.lichessStatus === 'approved' && ud.lichessUsername) {
+                    const lastSync = ud.lastSyncedAt?.toDate?.() || new Date(0);
+                    const hoursSinceSync = (Date.now() - lastSync.getTime()) / (1000 * 60 * 60);
+                    if (hoursSinceSync >= 24) {
+                        syncLichessRating(user.uid, ud.lichessUsername); // fire-and-forget
+                    }
+                }
+
                 return { user, role: storedRole };
             } else {
                 // Create user doc if missing (for admin or new users)
@@ -117,8 +181,6 @@ export const AuthProvider = ({ children }) => {
             setUserRole(detectedRole);
             return { user, role: detectedRole };
         }
-
-        return { user, role: finalRole };
     };
 
     // Logout function
@@ -183,6 +245,61 @@ export const AuthProvider = ({ children }) => {
 
         // Original Firebase auth code
         const unsubscribe = onAuthStateChanged(auth, async (user) => {
+            console.log('🔐 onAuthStateChanged fired. User:', user?.uid, 'Email:', user?.email);
+
+            // FIRST CHECK: Is this tab locked due to contamination?
+            if (isTabLocked()) {
+                console.log('🔒 TAB IS LOCKED. Ignoring all state updates. User must refresh page.');
+                setLoading(false);
+                return;
+            }
+
+            // Session isolation: check if this tab's session matches the incoming user
+            const storedSessionUid = getSessionUid();
+            console.log('📍 Session isolation check - Stored UID:', storedSessionUid, 'Incoming UID:', user?.uid);
+
+            if (user && storedSessionUid && storedSessionUid !== user.uid) {
+                // Different user detected - SESSION CONTAMINATION!
+                console.warn('🚨 SESSION MISMATCH! This tab had UID', storedSessionUid, 'but received user', user.uid);
+                console.warn('🔄 RELOADING PAGE to prevent contamination. This is the safest approach.');
+
+                // Mark that tab is locked
+                lockTab();
+
+                // Reload the page - this completely wipes state and forces fresh auth flow
+                // Add small delay to ensure console logs are visible
+                setTimeout(() => {
+                    window.location.reload();
+                }, 100);
+                return;
+            }
+
+            // If session was invalidated by guard flag, don't process further
+            if (!isSessionValidRef.current) {
+                console.log('⛔ Session is invalid. Skipping state update.');
+                setLoading(false);
+                return;
+            }
+
+            // Re-enable session on successful login (only when re-enabling a valid session)
+            if (user && storedSessionUid === user.uid) {
+                isSessionValidRef.current = true;
+            }
+
+            // On first login, record the session UID in sessionStorage (tab-specific)
+            if (user && !storedSessionUid) {
+                console.log('✅ First login in this tab. Storing session UID:', user.uid);
+                setSessionUid(user.uid);
+                isSessionValidRef.current = true;
+            }
+            // On logout, clear the session UID
+            if (!user) {
+                console.log('🔓 User logged out. Clearing session UID');
+                clearSessionUid();
+                unlockTab(); // Allow re-login if user was locked
+                isSessionValidRef.current = true;
+            }
+
             setCurrentUser(user);
             if (user) {
                 try {
@@ -192,6 +309,7 @@ export const AuthProvider = ({ children }) => {
 
                     if (userDoc.exists()) {
                         const data = userDoc.data();
+                        console.log('📄 Fetched user data. Role:', data.role, 'Name:', data.fullName);
                         setUserRole(data.role);
                         setUserData(data);
                     } else {
@@ -203,6 +321,7 @@ export const AuthProvider = ({ children }) => {
                             createdAt: serverTimestamp(),
                             recovered: true
                         });
+                        console.log('📝 Created new user doc with role:', detectedRole);
                         setUserRole(detectedRole);
                     }
                 } catch (err) {

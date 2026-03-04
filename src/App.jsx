@@ -18,10 +18,13 @@ import ParentSchedule from './pages/parent/ParentSchedule';
 import ParentAssignments from './pages/parent/ParentAssignments';
 import ParentPayments from './pages/parent/ParentPayments';
 import ParentSettings from './pages/parent/ParentSettings';
+import ParentLichess from './pages/parent/ParentLichess';
 import CoachPage from './pages/CoachPage';
 import CoachBatches from './pages/coach/CoachBatches';
 import CoachSchedule from './pages/coach/CoachSchedule';
 import CoachStudents from './pages/coach/CoachStudents';
+import CoachLichess from './pages/coach/CoachLichess';
+import CoachAttendance from './pages/coach/CoachAttendance';
 import StudentPage from './pages/StudentPage';
 import AdminDashboard from './pages/AdminDashboard';
 import PlaceholderPage from './pages/PlaceholderPage';
@@ -37,11 +40,13 @@ import AnalyticsPage from './pages/admin/AnalyticsPage';
 import LiveAnalytics from './pages/admin/LiveAnalytics';
 import AdminCoachApplications from './pages/admin/AdminCoachApplications';
 import SkillSetsPage from './pages/admin/SkillSetsPage';
+import AttendanceReport from './pages/admin/AttendanceReport';
 import ChatPage from './pages/common/ChatPage';
 import PlanSelection from './pages/PlanSelection';
 import PaymentCheckout from './pages/PaymentCheckout';
 import PaymentSuccess from './pages/PaymentSuccess';
 import DemoBooking from './pages/DemoBooking';
+import DemoConfirmation from './pages/DemoConfirmation';
 import AboutUs from './pages/AboutUs';
 import Services from './pages/Services';
 import ContactUs from './pages/ContactUs';
@@ -141,7 +146,7 @@ function App() {
           <Route path="/registration-success" element={<PageTransition><RegistrationSuccessPage /></PageTransition>} />
           <Route path="/login" element={<PageTransition><Login /></PageTransition>} />
           <Route path="/demo-booking" element={<PageTransition><DemoBooking /></PageTransition>} />
-          <Route path="/demo-confirmation" element={<PageTransition><PlaceholderPage title="Demo Request Submitted!" message="Thank you! Our team will contact you within 24 hours to schedule your free demo class." /></PageTransition>} />
+          <Route path="/demo-confirmation" element={<PageTransition><DemoConfirmation /></PageTransition>} />
           <Route path="/book-demo" element={<PageTransition><PlaceholderPage title="Book a Free Demo" /></PageTransition>} />
 
           {/* Payment Routes */}
@@ -157,6 +162,7 @@ function App() {
             <Route path="/parent/assignments" element={<ParentAssignments />} />
             <Route path="/parent/payments" element={<ParentPayments />} />
             <Route path="/parent/settings" element={<ParentSettings />} />
+            <Route path="/parent/lichess" element={<ParentLichess />} />
           </Route>
 
           {/* Student Routes */}
@@ -169,6 +175,8 @@ function App() {
             <Route path="/coach/batches" element={<CoachBatches />} />
             <Route path="/coach/schedule" element={<CoachSchedule />} />
             <Route path="/coach/chat" element={<ChatPage userRole="COACH" />} />
+            <Route path="/coach/lichess" element={<CoachLichess />} />
+            <Route path="/coach/attendance" element={<CoachAttendance />} />
           </Route>
 
           {/* Admin Routes */}
@@ -189,6 +197,7 @@ function App() {
             <Route path="/admin/live-analytics" element={<LiveAnalytics />} />
             <Route path="/admin/applications" element={<AdminCoachApplications />} />
             <Route path="/admin/skillsets" element={<SkillSetsPage />} />
+            <Route path="/admin/attendance" element={<AttendanceReport />} />
           </Route>
         </Routes>
       </AnimatePresence>

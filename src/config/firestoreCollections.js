@@ -52,3 +52,9 @@ export const SUBSCRIPTION_STATUS = {
     SUSPENDED: 'SUSPENDED',
     CANCELLED: 'CANCELLED'
 };
+
+export const LICHESS_STATUS = {
+    PENDING: 'pending',
+    APPROVED: 'approved',
+    REJECTED: 'rejected'
+};

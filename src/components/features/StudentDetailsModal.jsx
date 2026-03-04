@@ -57,7 +57,8 @@ const StudentDetailsModal = ({ isOpen, onClose, student }) => {
                 width: '100%', maxWidth: '500px',
                 boxShadow: '0 25px 60px -12px rgba(0, 0, 0, 0.3)',
                 position: 'relative',
-                animation: 'scaleUp 0.2s cubic-bezier(0.16, 1, 0.3, 1)'
+                animation: 'scaleUp 0.2s cubic-bezier(0.16, 1, 0.3, 1)',
+                maxHeight: '90vh', overflowY: 'auto'
             }} onClick={e => e.stopPropagation()}>
 
                 <button onClick={onClose} style={{

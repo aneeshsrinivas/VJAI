@@ -5,6 +5,7 @@ import { useTheme } from '../../context/ThemeContext';
 import Card from '../../components/ui/Card';
 import Button from '../../components/ui/Button';
 import Input from '../../components/ui/Input';
+import ConfirmDialog from '../../components/ui/ConfirmDialog';
 import { toast, ToastContainer } from 'react-toastify';
 import { Target, Plus, Trash2, Edit2, Save, X, ChevronDown, ChevronUp, Star, BookOpen, Trophy } from 'lucide-react';
 
@@ -18,6 +19,7 @@ const SkillSetsPage = () => {
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
     const [expandedLevel, setExpandedLevel] = useState('beginner');
+    const [confirmDialog, setConfirmDialog] = useState(null);
     const [editingSkill, setEditingSkill] = useState(null);
     const [newSkill, setNewSkill] = useState({ name: '', category: 'Strategy' });
 
@@ -135,22 +137,26 @@ const SkillSetsPage = () => {
     };
 
     const handleDeleteSkill = async (level, skillId) => {
-        if (!window.confirm('Are you sure you want to delete this skill?')) return;
-
-        const updatedSkills = {
-            ...skillSets,
-            [level]: skillSets[level].filter(s => s.id !== skillId)
-        };
-
-        setSaving(true);
-        try {
-            await setDoc(doc(db, 'skillsets', level), { skills: updatedSkills[level] });
-            setSkillSets(updatedSkills);
-            toast.success('Skill deleted');
-        } catch (error) {
-            toast.error('Failed to delete skill');
-        }
-        setSaving(false);
+        setConfirmDialog({
+            title: 'Delete Skill',
+            message: 'Are you sure you want to delete this skill? This cannot be undone.',
+            confirmLabel: 'Delete',
+            onConfirm: async () => {
+                const updatedSkills = {
+                    ...skillSets,
+                    [level]: skillSets[level].filter(s => s.id !== skillId)
+                };
+                setSaving(true);
+                try {
+                    await setDoc(doc(db, 'skillsets', level), { skills: updatedSkills[level] });
+                    setSkillSets(updatedSkills);
+                    toast.success('Skill deleted');
+                } catch (error) {
+                    toast.error('Failed to delete skill');
+                }
+                setSaving(false);
+            }
+        });
     };
 
     const handleUpdateSkill = async (level, skillId, updatedData) => {
@@ -219,7 +225,7 @@ const SkillSetsPage = () => {
                 </div>
                 <div>
                     <h1 style={{ margin: 0, fontSize: '24px', color: isDark ? '#f0f0f0' : '#181818' }}>Skill Sets Management</h1>
-                    <p className="sub-text" style={{ margin: '4px 0 0', color: isDark ? '#a0a0k0' : '#666' }}>Define curriculum skills for each level</p>
+                    <p className="sub-text" style={{ margin: '4px 0 0', color: isDark ? '#a0a0a0' : '#666' }}>Define curriculum skills for each level</p>
                 </div>
             </div>
 
@@ -442,6 +448,15 @@ const SkillSetsPage = () => {
                     </Card>
                 );
             })}
+            {confirmDialog && (
+                <ConfirmDialog
+                    title={confirmDialog.title}
+                    message={confirmDialog.message}
+                    confirmLabel={confirmDialog.confirmLabel || 'Confirm'}
+                    onConfirm={() => { confirmDialog.onConfirm(); setConfirmDialog(null); }}
+                    onCancel={() => setConfirmDialog(null)}
+                />
+            )}
         </div>
     );
 };

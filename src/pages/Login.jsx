@@ -18,8 +18,13 @@ const Login = () => {
     useEffect(() => {
         try {
             const saved = JSON.parse(localStorage.getItem('vjai_saved_accounts') || '[]');
-            if (Array.isArray(saved)) setSavedAccounts(saved);
-        } catch (err) { console.error(err); }
+            if (Array.isArray(saved)) {
+                setSavedAccounts(saved);
+                console.log('✅ Loaded saved accounts:', saved.length > 0 ? saved.map(a => a.e) : 'None');
+            }
+        } catch (err) {
+            console.error('Error loading saved accounts:', err);
+        }
     }, []);
 
     const handleLogin = async (e) => {
@@ -32,6 +37,7 @@ const Login = () => {
                 const newAccount = { e: email, p: password, role, name: email.split('@')[0] };
                 const updated = [newAccount, ...savedAccounts.filter(a => a.e !== email)].slice(0, 5);
                 localStorage.setItem('vjai_saved_accounts', JSON.stringify(updated));
+                console.log('✅ Saved login credentials with "Remember me":', email);
             }
             if (role === 'admin') navigate('/admin');
             else if (role === 'coach') navigate('/coach');
@@ -119,7 +125,7 @@ const Login = () => {
                             {showAccounts && savedAccounts.length > 0 && (
                                 <div className="saved-accounts-dropdown">
                                     {savedAccounts.map((acc, idx) => (
-                                        <div key={idx} className="saved-account-item" onClick={() => selectAccount(acc)}>
+                                        <div key={idx} className="saved-account-item" onMouseDown={() => selectAccount(acc)}>
                                             <div>
                                                 <span className="saved-email">{acc.e}</span>
                                                 <span className="saved-role">Saved &bull; {acc.role}</span>

@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
-import { initializeApp } from 'firebase/app';
+import { initializeApp, getApps } from 'firebase/app';
 import { getAuth, createUserWithEmailAndPassword } from 'firebase/auth';
-import { doc, setDoc } from 'firebase/firestore';
+import { doc, setDoc, serverTimestamp } from 'firebase/firestore';
 import { db } from '../../../lib/firebase';
 import Input from '../../ui/Input';
 import Button from '../../ui/Button';
@@ -16,7 +16,7 @@ const firebaseConfig = {
     appId: import.meta.env.VITE_FIREBASE_APP_ID
 };
 
-const secondaryApp = initializeApp(firebaseConfig, "SecondaryApp_Coach");
+const secondaryApp = getApps().find(app => app.name === 'SecondaryApp_Coach') || initializeApp(firebaseConfig, "SecondaryApp_Coach");
 const secondaryAuth = getAuth(secondaryApp);
 
 // Email API URL
@@ -31,6 +31,7 @@ const AddCoachModal = ({ isOpen, onClose, onSuccess }) => {
         title: 'Trainer',
         fideRating: '',
         experience: '',
+        bio: '', // Professional bio/description
         password: 'CoachPassword123'
     });
     const [loading, setLoading] = useState(false);
@@ -49,14 +50,53 @@ const AddCoachModal = ({ isOpen, onClose, onSuccess }) => {
         setLoading(true);
         setError('');
 
-        try {
-            // Validate assigned email ends with @coach.com
-            if (!formData.assignedEmail.endsWith('@coach.com')) {
-                setError('Assigned email must end with @coach.com');
-                setLoading(false);
-                return;
-            }
+        // Validate required fields
+        if (!formData.fullName.trim()) {
+            setError('Full name is required');
+            setLoading(false);
+            return;
+        }
 
+        if (!formData.personalEmail.trim()) {
+            setError('Personal email is required');
+            setLoading(false);
+            return;
+        }
+
+        if (!formData.phone.trim()) {
+            setError('Phone number is required');
+            setLoading(false);
+            return;
+        }
+
+        if (!formData.experience.trim()) {
+            setError('Experience (years) is required');
+            setLoading(false);
+            return;
+        }
+
+        // Validate assigned email ends with @coach.com and has proper format
+        if (!formData.assignedEmail.trim()) {
+            setError('Assigned email is required');
+            setLoading(false);
+            return;
+        }
+
+        if (!formData.assignedEmail.trim().endsWith('@coach.com')) {
+            setError('Assigned email must end with @coach.com');
+            setLoading(false);
+            return;
+        }
+
+        // Validate email format is not just @coach.com
+        const emailPart = formData.assignedEmail.trim().replace('@coach.com', '');
+        if (!emailPart || emailPart.length < 3) {
+            setError('Assigned email must have a valid name part (e.g., john.doe@coach.com)');
+            setLoading(false);
+            return;
+        }
+
+        try {
             // 1. Create User in Firebase Auth (Secondary) with assigned email
             const userCredential = await createUserWithEmailAndPassword(secondaryAuth, formData.assignedEmail, formData.password);
             const user = userCredential.user;
@@ -76,6 +116,22 @@ const AddCoachModal = ({ isOpen, onClose, onSuccess }) => {
                 bio: formData.bio || '',
                 createdBy: 'ADMIN',
                 status: 'ACTIVE'
+            });
+
+            // 3. Create coaches document (uses auth UID as doc ID so CoachRoster can find it)
+            await setDoc(doc(db, 'coaches', user.uid), {
+                fullName: formData.fullName,
+                email: formData.assignedEmail,
+                personalEmail: formData.personalEmail,
+                phone: formData.phone,
+                title: formData.title,
+                fideRating: formData.fideRating,
+                experience: formData.experience,
+                bio: formData.bio || '',
+                status: 'ACTIVE',
+                accountId: user.uid,
+                createdAt: serverTimestamp(),
+                updatedAt: serverTimestamp()
             });
 
             // 3. Success

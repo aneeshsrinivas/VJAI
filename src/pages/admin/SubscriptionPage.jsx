@@ -44,8 +44,10 @@ const SubscriptionPage = () => {
     useEffect(() => {
         const fetchStudents = async () => {
             try {
-                const snapshot = await getDocs(collection(db, 'students'));
-                const studentList = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                const snapshot = await getDocs(collection(db, 'users'));
+                const studentList = snapshot.docs
+                    .filter(d => ['customer', 'CUSTOMER'].includes(d.data().role))
+                    .map(doc => ({ id: doc.id, ...doc.data() }));
                 setStudents(studentList);
             } catch (error) {
                 console.error('Error fetching students:', error);
@@ -114,8 +116,8 @@ const SubscriptionPage = () => {
     };
 
     const planOptions = [
-        { id: 'ONE_ON_ONE_BEGINNER', name: 'Personal Beginner Training - Monthly', amount: 60 },
-        { id: 'ONE_ON_ONE_INTERMEDIATE', name: 'Personal Intermediate Training - Monthly', amount: 70 },
+        { id: 'ONE_ON_ONE_BEGINNER', name: 'Group Beginner Training - Monthly', amount: 60 },
+        { id: 'ONE_ON_ONE_INTERMEDIATE', name: 'Group Intermediate Training - Monthly', amount: 70 },
     ];
 
     const handlePlanChange = (planId) => {

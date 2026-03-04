@@ -1,17 +1,79 @@
 import React, { useState, useEffect } from 'react';
-import { collection, getDocs, updateDoc, doc, serverTimestamp, addDoc, query, where, deleteDoc, setDoc } from 'firebase/firestore';
+import { collection, getDocs, updateDoc, doc, serverTimestamp, addDoc, query, where, deleteDoc, setDoc, onSnapshot } from 'firebase/firestore';
 import { db } from '../../lib/firebase';
 import Card from '../../components/ui/Card';
 import Button from '../../components/ui/Button';
 import AddCoachModal from '../../components/features/admin/AddCoachModal';
 import ManageBatchesModal from '../../components/features/admin/ManageBatchesModal';
+import ConfirmDialog from '../../components/ui/ConfirmDialog';
 import { User, Mail, Phone, Star, Trash2, BookOpen } from 'lucide-react';
 import { toast, ToastContainer } from 'react-toastify';
+import { useTheme } from '../../context/ThemeContext';
+import { createCoachAccount } from '../../services/adminAuthService';
 import '../../pages/Dashboard.css';
 
 import AdminCoachApplications from './AdminCoachApplications';
 
+// Helper Component to display batches for a specific coach
+const CoachBatchesBadges = ({ coachId }) => {
+    const [batchesByCoach, setBatchesByCoach] = React.useState([]);
+
+    React.useEffect(() => {
+        const fetchCoachBatches = async () => {
+            try {
+                const snap = await getDocs(collection(db, 'coaches', coachId, 'batches'));
+                const list = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+                setBatchesByCoach(list);
+            } catch (err) {
+                console.error('Error loading batches for coach:', err);
+                setBatchesByCoach([]);
+            }
+        };
+
+        if (coachId) {
+            fetchCoachBatches();
+        }
+    }, [coachId]);
+
+    return batchesByCoach.length > 0 ? (
+        <div style={{ marginBottom: '14px' }}>
+            <div className="sub-text" style={{ fontSize: '11px', fontWeight: '600', marginBottom: '6px', textTransform: 'uppercase' }}>
+                {batchesByCoach.length} Batch{batchesByCoach.length !== 1 ? 'es' : ''}
+            </div>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
+                {batchesByCoach.slice(0, 2).map(batch => (
+                    <span key={batch.id} style={{
+                        display: 'inline-block',
+                        backgroundColor: '#E0F2FE',
+                        color: '#0369A1',
+                        padding: '4px 10px',
+                        borderRadius: '6px',
+                        fontSize: '12px',
+                        fontWeight: '600'
+                    }}>
+                        {batch.name || 'Batch'}
+                    </span>
+                ))}
+                {batchesByCoach.length > 2 && (
+                    <span style={{
+                        display: 'inline-block',
+                        backgroundColor: '#F3F4F6',
+                        color: '#666',
+                        padding: '4px 10px',
+                        borderRadius: '6px',
+                        fontSize: '12px',
+                        fontWeight: '600'
+                    }}>
+                        +{batchesByCoach.length - 2} more
+                    </span>
+                )}
+            </div>
+        </div>
+    ) : null;
+};
+
 const CoachRoster = () => {
+    const { isDark } = useTheme();
     const [activeTab, setActiveTab] = useState('roster');
     const [isAddModalOpen, setAddModalOpen] = useState(false);
     const [selectedCoachForBatches, setSelectedCoachForBatches] = useState(null);
@@ -19,10 +81,9 @@ const CoachRoster = () => {
     const [loading, setLoading] = useState(true);
     const [editingCoach, setEditingCoach] = useState(null);
     const [isEditOpen, setEditOpen] = useState(false);
-    const [batches, setBatches] = useState([]);
-    const [newBatchName, setNewBatchName] = useState('');
-    const [batchSearch, setBatchSearch] = useState('');
+    const [newLoginPassword, setNewLoginPassword] = useState('');
     const [isCreateBatchModalOpen, setIsCreateBatchModalOpen] = useState(false);
+    const [confirmDialog, setConfirmDialog] = useState(null);
     const [batchFormData, setBatchFormData] = useState({
         name: '',
         level: 'beginner',
@@ -32,89 +93,50 @@ const CoachRoster = () => {
         description: ''
     });
 
-    const fetchCoaches = async () => {
+    useEffect(() => {
+        if (activeTab !== 'roster') return;
+
         setLoading(true);
-        try {
-            const coachSnapshot = await getDocs(collection(db, 'coaches'));
-            let coachList = coachSnapshot.docs.map(doc => ({
+        const q = query(collection(db, 'coaches'), where('status', '==', 'ACTIVE'));
+
+        const unsubscribe = onSnapshot(q, (coachSnapshot) => {
+            const coachList = coachSnapshot.docs.map(doc => ({
                 id: doc.id,
                 ...doc.data()
             }));
-
-            const usersSnapshot = await getDocs(collection(db, 'users'));
-            const coachUsers = usersSnapshot.docs
-                .filter(doc => doc.data().role === 'coach')
-                .map(doc => ({
-                    id: doc.id,
-                    name: doc.data().fullName || doc.data().email?.split('@')[0] || 'Coach',
-                    email: doc.data().email,
-                    title: doc.data().chessTitle || 'Chess Trainer',
-                    rating: doc.data().rating || '-',
-                    bio: doc.data().bio || 'No bio provided',
-                    phone: doc.data().phone || '-'
-                }));
-
-            const existingIds = coachList.map(c => c.id);
-            coachUsers.forEach(u => {
-                if (!existingIds.includes(u.id)) {
-                    coachList.push(u);
-                }
-            });
-
             setCoaches(coachList);
-        } catch (error) {
-            console.error('Error fetching coaches:', error);
-        } finally {
             setLoading(false);
-        }
-    };
+        }, (error) => {
+            console.error('Error setting up coach listener:', error);
+            setLoading(false);
+        });
 
-    useEffect(() => {
-        if (activeTab === 'roster') {
-            fetchCoaches();
-        }
+        // Cleanup listener on unmount or tab change
+        return () => unsubscribe();
     }, [activeTab]);
-
-    useEffect(() => {
-        const fetchBatchesForEditingCoach = async () => {
-            if (!editingCoach?.id) return;
-            try {
-                const snap = await getDocs(collection(db, 'coaches', editingCoach.id, 'batches'));
-                const list = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-                setBatches(list);
-            } catch (err) {
-                console.error('Error loading batches:', err);
-            }
-        };
-        fetchBatchesForEditingCoach();
-    }, [editingCoach?.id]);
 
     const handleAddSuccess = () => {
         setAddModalOpen(false);
-        fetchCoaches();
+        // Don't call fetchCoaches() - the real-time listener will automatically update the list
     };
 
-    const handleDeleteCoach = async (coach) => {
-        const confirmMsg = `Delete coach "${coach.name || coach.coachName || 'Unknown'}"?\n\nThis will remove them from the roster but NOT delete their Firebase Auth account.`;
-        if (!window.confirm(confirmMsg)) return;
-
-        try {
-            // Delete from users collection
-            await deleteDoc(doc(db, 'users', coach.id));
-
-            // Also try to delete from coaches collection if exists
-            try {
-                await deleteDoc(doc(db, 'coaches', coach.id));
-            } catch (e) {
-                // May not exist in coaches collection
+    const handleDeleteCoach = (coach) => {
+        setConfirmDialog({
+            title: 'Delete Coach',
+            message: `Delete coach "${coach.fullName || 'Unknown'}"?\n\nThis will remove them from the roster but NOT delete their Firebase Auth account.`,
+            confirmLabel: 'Delete',
+            onConfirm: async () => {
+                try {
+                    await deleteDoc(doc(db, 'users', coach.id));
+                    try { await deleteDoc(doc(db, 'coaches', coach.id)); } catch (e) {}
+                    toast.success('Coach removed from roster');
+                    // No need to call fetchCoaches() anymore - real-time listener will update automatically
+                } catch (error) {
+                    console.error('Error deleting coach:', error);
+                    toast.error('Failed to delete coach');
+                }
             }
-
-            toast.success('Coach removed from roster');
-            fetchCoaches();
-        } catch (error) {
-            console.error('Error deleting coach:', error);
-            toast.error('Failed to delete coach');
-        }
+        });
     };
 
     return (
@@ -190,11 +212,11 @@ const CoachRoster = () => {
                                             fontSize: '22px',
                                             flexShrink: 0
                                         }}>
-                                            {(coach.name || coach.fullName || coach.coachName || 'C').charAt(0).toUpperCase()}
+                                            {(coach.fullName || 'C').charAt(0).toUpperCase()}
                                         </div>
                                         <div style={{ flex: 1 }}>
                                             <h3 style={{ margin: '0 0 4px 0', fontSize: '18px', fontWeight: '700', color: '#1E3A8A' }}>
-                                                {coach.name || coach.fullName || coach.coachName || 'Unknown'}
+                                                {coach.fullName || 'Unknown'}
                                             </h3>
                                             <p style={{ margin: 0, fontSize: '13px', color: '#666' }}>
                                                 {coach.title || 'Coach'}
@@ -217,44 +239,7 @@ const CoachRoster = () => {
                                     </div>
 
                                     {/* Assigned Batches Badge */}
-                                    {coach.assignedBatchIds && coach.assignedBatchIds.length > 0 && (
-                                        <div style={{ marginBottom: '14px' }}>
-                                            <div className="sub-text" style={{ fontSize: '11px', fontWeight: '600', marginBottom: '6px', textTransform: 'uppercase' }}>
-                                                {coach.assignedBatchIds.length} Batch{coach.assignedBatchIds.length !== 1 ? 'es' : ''}
-                                            </div>
-                                            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
-                                                {coach.assignedBatchIds.slice(0, 2).map(bid => {
-                                                    const batch = batches.find(b => b.id === bid);
-                                                    return (
-                                                        <span key={bid} style={{
-                                                            display: 'inline-block',
-                                                            backgroundColor: '#E0F2FE',
-                                                            color: '#0369A1',
-                                                            padding: '4px 10px',
-                                                            borderRadius: '6px',
-                                                            fontSize: '12px',
-                                                            fontWeight: '600'
-                                                        }}>
-                                                            {batch?.name || 'Batch'}
-                                                        </span>
-                                                    );
-                                                })}
-                                                {coach.assignedBatchIds.length > 2 && (
-                                                    <span style={{
-                                                        display: 'inline-block',
-                                                        backgroundColor: '#F3F4F6',
-                                                        color: '#666',
-                                                        padding: '4px 10px',
-                                                        borderRadius: '6px',
-                                                        fontSize: '12px',
-                                                        fontWeight: '600'
-                                                    }}>
-                                                        +{coach.assignedBatchIds.length - 2} more
-                                                    </span>
-                                                )}
-                                            </div>
-                                        </div>
-                                    )}
+                                    <CoachBatchesBadges coachId={coach.id} />
 
                                     {/* Action Buttons */}
                                     <div style={{ display: 'flex', gap: '8px', marginTop: '16px' }}>
@@ -263,11 +248,10 @@ const CoachRoster = () => {
                                             onClick={() => {
                                                 setEditingCoach({
                                                     ...coach,
-                                                    assignedBatchIds:
-                                                        coach.assignedBatchIds ||
-                                                        (coach.assignedBatchId ? [coach.assignedBatchId] : []) ||
-                                                        (coach.batchIds || [])
+                                                    assignedBatchIds: coach.assignedBatchIds || [],
+                                                    _originalEmail: coach.email // track for change detection
                                                 });
+                                                setNewLoginPassword('');
                                                 setEditOpen(true);
                                             }}
                                             style={{
@@ -351,7 +335,7 @@ const CoachRoster = () => {
                     zIndex: 1200,
                     padding: '20px'
                 }}>
-                    <div className="modal-content" style={{
+                    <div className={`modal-content ${isDark ? 'dark-mode' : ''}`} style={{
                         borderRadius: '12px',
                         width: '100%',
                         maxWidth: '600px',
@@ -363,7 +347,7 @@ const CoachRoster = () => {
                         {/* Modal Header */}
                         <div style={{
                             padding: '24px',
-                            borderBottom: '1px solid #f0f0f0',
+                            borderBottom: `1px solid ${isDark ? '#2d2f3e' : '#f0f0f0'}`,
                             display: 'flex',
                             alignItems: 'center',
                             justifyContent: 'space-between'
@@ -400,11 +384,10 @@ const CoachRoster = () => {
                                     Full Name
                                 </label>
                                 <input
-                                    value={editingCoach.name || editingCoach.fullName || ''}
+                                    value={editingCoach.fullName || ''}
                                     onChange={(e) =>
                                         setEditingCoach(prev => ({
                                             ...prev,
-                                            name: e.target.value,
                                             fullName: e.target.value
                                         }))
                                     }
@@ -472,6 +455,29 @@ const CoachRoster = () => {
                                 />
                             </div>
 
+                            {/* New password field — only shown when login email is changed */}
+                            {editingCoach.email !== editingCoach._originalEmail && (
+                                <div style={{ marginBottom: '16px', padding: '12px', backgroundColor: '#FFF3CD', borderRadius: '8px', border: '1px solid #FBBF24' }}>
+                                    <p style={{ margin: '0 0 8px 0', fontSize: '13px', color: '#92400E', fontWeight: '600' }}>
+                                        ⚠️ Email changed — a new login account will be created. Set a temporary password:
+                                    </p>
+                                    <input
+                                        type="text"
+                                        value={newLoginPassword}
+                                        onChange={(e) => setNewLoginPassword(e.target.value)}
+                                        placeholder="New temporary password (min 6 chars)"
+                                        style={{
+                                            width: '100%',
+                                            padding: '10px 12px',
+                                            borderRadius: '8px',
+                                            border: '1px solid #FBBF24',
+                                            fontSize: '14px',
+                                            boxSizing: 'border-box'
+                                        }}
+                                    />
+                                </div>
+                            )}
+
                             {/* Phone Input */}
                             <div style={{ marginBottom: '16px' }}>
                                 <label style={{ display: 'block', fontWeight: '600', marginBottom: '6px', color: '#333', fontSize: '14px' }}>
@@ -517,7 +523,8 @@ const CoachRoster = () => {
                                         border: '1px solid #ddd',
                                         fontSize: '14px',
                                         boxSizing: 'border-box',
-                                        backgroundColor: 'white'
+                                        backgroundColor: isDark ? '#2a2d3e' : 'white',
+                                        color: isDark ? '#f0f0f0' : '#333'
                                     }}
                                 >
                                     <option value="Trainer">Trainer</option>
@@ -616,8 +623,8 @@ const CoachRoster = () => {
                                 display: 'flex',
                                 justifyContent: 'flex-end',
                                 gap: '10px',
-                                borderTop: '1px solid #f0f0f0',
-                                backgroundColor: '#F9FAFB'
+                                borderTop: `1px solid ${isDark ? '#2d2f3e' : '#f0f0f0'}`,
+                                backgroundColor: isDark ? '#12141c' : '#F9FAFB'
                             }}
                         >
                             <Button
@@ -642,12 +649,10 @@ const CoachRoster = () => {
                             <Button
                                 onClick={async () => {
                                     try {
-                                        const coachRef = doc(db, 'coaches', editingCoach.id);
+                                        const emailChanged = editingCoach.email !== editingCoach._originalEmail;
                                         const selectedBatchIds = editingCoach.assignedBatchIds || [];
-
-
-                                        await updateDoc(coachRef, {
-                                            fullName: editingCoach.name || editingCoach.fullName,
+                                        const coachFields = {
+                                            fullName: editingCoach.fullName,
                                             email: editingCoach.email,
                                             personalEmail: editingCoach.personalEmail || '',
                                             phone: editingCoach.phone || '',
@@ -657,34 +662,77 @@ const CoachRoster = () => {
                                             experience: editingCoach.experience || '',
                                             bio: editingCoach.bio || '',
                                             assignedBatchIds: selectedBatchIds,
-                                            assignedBatchId: selectedBatchIds[0] || null,
                                             updatedAt: serverTimestamp()
-                                        }, { merge: true });
+                                        };
 
-                                        // Also update the users collection
-                                        const userRef = doc(db, 'users', editingCoach.id);
-                                        await updateDoc(userRef, {
-                                            fullName: editingCoach.name || editingCoach.fullName,
-                                            email: editingCoach.email,
-                                            personalEmail: editingCoach.personalEmail || '',
-                                            phone: editingCoach.phone || '',
-                                            title: editingCoach.title || 'Trainer',
-                                            fideRating: editingCoach.fideRating || editingCoach.rating || '',
-                                            rating: editingCoach.fideRating || editingCoach.rating || '',
-                                            experience: editingCoach.experience || '',
-                                            bio: editingCoach.bio || '',
-                                            updatedAt: serverTimestamp()
-                                        }).catch(() => {
-                                            // User doc might not exist, ignore error
-                                        });
+                                        if (emailChanged) {
+                                            if (!newLoginPassword.trim() || newLoginPassword.trim().length < 6) {
+                                                toast.error('Please set a temporary password (min 6 chars) for the new email');
+                                                return;
+                                            }
+                                            const authResult = await createCoachAccount(editingCoach.email.trim(), newLoginPassword.trim());
+                                            if (!authResult.success) {
+                                                toast.error('Failed to create new login: ' + authResult.error);
+                                                return;
+                                            }
+                                            const newUID = authResult.uid;
+                                            const oldAccountId = editingCoach.accountId;
+
+                                            // Create new users doc with new UID
+                                            await setDoc(doc(db, 'users', newUID), {
+                                                email: editingCoach.email,
+                                                fullName: editingCoach.fullName,
+                                                role: 'coach',
+                                                personalEmail: editingCoach.personalEmail || '',
+                                                phone: editingCoach.phone || '',
+                                                title: editingCoach.title || 'Trainer',
+                                                fideRating: editingCoach.fideRating || editingCoach.rating || '',
+                                                experience: editingCoach.experience || '',
+                                                bio: editingCoach.bio || '',
+                                                createdAt: serverTimestamp(),
+                                                updatedAt: serverTimestamp()
+                                            });
+
+                                            // Update coaches doc with new accountId
+                                            await updateDoc(doc(db, 'coaches', editingCoach.id), {
+                                                ...coachFields,
+                                                accountId: newUID
+                                            });
+
+                                            // Remove old users doc
+                                            if (oldAccountId) {
+                                                await deleteDoc(doc(db, 'users', oldAccountId)).catch(() => {});
+                                            }
+
+                                            toast.success('Coach updated! New login email is active.');
+                                        } else {
+                                            // No email change — update coaches doc
+                                            await updateDoc(doc(db, 'coaches', editingCoach.id), coachFields);
+
+                                            // Update users doc using accountId (not id)
+                                            if (editingCoach.accountId) {
+                                                await updateDoc(doc(db, 'users', editingCoach.accountId), {
+                                                    fullName: editingCoach.fullName,
+                                                    email: editingCoach.email,
+                                                    personalEmail: editingCoach.personalEmail || '',
+                                                    phone: editingCoach.phone || '',
+                                                    title: editingCoach.title || 'Trainer',
+                                                    fideRating: editingCoach.fideRating || editingCoach.rating || '',
+                                                    experience: editingCoach.experience || '',
+                                                    bio: editingCoach.bio || '',
+                                                    updatedAt: serverTimestamp()
+                                                }).catch(() => {});
+                                            }
+
+                                            toast.success('Coach updated successfully!');
+                                        }
 
                                         setEditOpen(false);
                                         setEditingCoach(null);
-                                        fetchCoaches();
-                                        toast.success('Coach updated successfully!');
+                                        setNewLoginPassword('');
 
                                     } catch (err) {
-                                        alert('Failed to save coach: ' + err.message);
+                                        toast.error('Failed to save coach: ' + err.message);
                                     }
                                 }}
                                 style={{
@@ -716,7 +764,7 @@ const CoachRoster = () => {
                     zIndex: 1300,
                     padding: '20px'
                 }}>
-                    <div className="modal-content" style={{
+                    <div className={`modal-content ${isDark ? 'dark-mode' : ''}`} style={{
                         borderRadius: '12px',
                         width: '100%',
                         maxWidth: '500px',
@@ -725,7 +773,7 @@ const CoachRoster = () => {
                         {/* Modal Header */}
                         <div style={{
                             padding: '24px',
-                            borderBottom: '1px solid #f0f0f0',
+                            borderBottom: `1px solid ${isDark ? '#2d2f3e' : '#f0f0f0'}`,
                             display: 'flex',
                             alignItems: 'center',
                             justifyContent: 'space-between'
@@ -788,8 +836,9 @@ const CoachRoster = () => {
                                     }}
                                 >
                                     <option value="beginner">Beginner</option>
-                                    <option value="intermediate">Intermediate</option>
-                                    <option value="advance">Advance</option>
+                                    <option value="advanced-beginner">Advanced Beginner</option>
+                                    <option value="intermediate-I">Intermediate-I</option>
+                                    <option value="intermediate-II">Intermediate-II</option>
                                 </select>
                             </div>
 
@@ -901,8 +950,8 @@ const CoachRoster = () => {
                             display: 'flex',
                             justifyContent: 'flex-end',
                             gap: '10px',
-                            borderTop: '1px solid #f0f0f0',
-                            backgroundColor: '#F9FAFB'
+                            borderTop: `1px solid ${isDark ? '#2d2f3e' : '#f0f0f0'}`,
+                            backgroundColor: isDark ? '#12141c' : '#F9FAFB'
                         }}>
                             <Button
                                 onClick={() => setIsCreateBatchModalOpen(false)}
@@ -923,19 +972,19 @@ const CoachRoster = () => {
                             <Button
                                 onClick={async () => {
                                     if (!batchFormData.name.trim()) {
-                                        alert('Please enter batch name');
+                                        toast.warn('Please enter batch name');
                                         return;
                                     }
                                     if (batchFormData.daysOfWeek.length === 0) {
-                                        alert('Please select at least one day of week');
+                                        toast.warn('Please select at least one day of week');
                                         return;
                                     }
                                     if (!batchFormData.time) {
-                                        alert('Please select start time');
+                                        toast.warn('Please select start time');
                                         return;
                                     }
                                     if (!batchFormData.duration || parseFloat(batchFormData.duration) <= 0) {
-                                        alert('Please enter valid duration');
+                                        toast.warn('Please enter valid duration');
                                         return;
                                     }
 
@@ -952,18 +1001,17 @@ const CoachRoster = () => {
                                             reports: [],
                                             createdAt: serverTimestamp()
                                         };
-                                        const ref = await addDoc(collection(db, 'coaches', editingCoach.id, 'batches'), payload);
+                                        const ref = await addDoc(collection(db, 'coaches', editingCoach.accountId || editingCoach.id, 'batches'), payload);
                                         const created = { id: ref.id, ...payload };
-                                        setBatches(prev => [created, ...prev]);
                                         setEditingCoach(prev => ({
                                             ...prev,
                                             assignedBatchIds: [...(prev.assignedBatchIds || []), ref.id]
                                         }));
                                         setIsCreateBatchModalOpen(false);
-                                        alert('Batch created successfully!');
+                                        toast.success('Batch created successfully!');
                                     } catch (err) {
                                         console.error('Error creating batch:', err);
-                                        alert('Failed to create batch: ' + err.message);
+                                        toast.error('Failed to create batch: ' + err.message);
                                     }
                                 }}
                                 style={{
@@ -995,6 +1043,15 @@ const CoachRoster = () => {
                 coach={selectedCoachForBatches}
                 onClose={() => setSelectedCoachForBatches(null)}
             />
+            {confirmDialog && (
+                <ConfirmDialog
+                    title={confirmDialog.title}
+                    message={confirmDialog.message}
+                    confirmLabel={confirmDialog.confirmLabel || 'Confirm'}
+                    onConfirm={() => { confirmDialog.onConfirm(); setConfirmDialog(null); }}
+                    onCancel={() => setConfirmDialog(null)}
+                />
+            )}
         </div>
     );
 };

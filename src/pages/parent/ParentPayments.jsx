@@ -220,7 +220,7 @@ const ParentPayments = () => {
                                     {currentPlan?.price
                                         ? `$${currentPlan.price.toLocaleString()}`
                                         : subscription?.amount
-                                        ? `₹${subscription.amount.toLocaleString()}`
+                                        ? `$${subscription.amount.toLocaleString()}`
                                         : '—'}
                                 </span>
                                 <span style={{ color: 'rgba(255,255,255,0.6)' }}>
@@ -345,7 +345,7 @@ const ParentPayments = () => {
                                             onMouseLeave={(e) => e.currentTarget.style.background = c.tableRowBase}>
                                             <td style={{ padding: '16px 24px', color: c.tableText, fontWeight: '500' }}>{formatDate(tx.date)}</td>
                                             <td style={{ padding: '16px 24px', color: c.tableText }}>{tx.description || tx.planName || 'Subscription Payment'}</td>
-                                            <td style={{ padding: '16px 24px', fontWeight: '700', color: c.tableAmountText }}>₹{tx.amount?.toLocaleString() || '0'}</td>
+                                            <td style={{ padding: '16px 24px', fontWeight: '700', color: c.tableAmountText }}>${tx.amount?.toLocaleString() || '0'}</td>
                                             <td style={{ padding: '16px 24px' }}>
                                                 <span style={{
                                                     display: 'inline-flex',

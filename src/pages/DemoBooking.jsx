@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, Calendar, Clock, User, Mail, Phone, GraduationCap, MessageSquare, Award } from 'lucide-react';
 import { createDemoRequest } from '../services/firestoreService';
+import { emailService } from '../services/emailService';
 import './DemoBooking.css';
 
 const DemoBooking = () => {
@@ -39,8 +40,28 @@ const DemoBooking = () => {
             timezone: 'IST'
         };
         try {
-            await createDemoRequest(payload);
-            navigate('/demo-confirmation');
+            const result = await createDemoRequest(payload);
+
+            if (result.success) {
+                // Send confirmation email to parent
+                try {
+                    await emailService.sendDemoRequestConfirmation({
+                        parentEmail: formData.email,
+                        parentName: formData.parentName,
+                        studentName: formData.studentName,
+                        preferredDate: formData.preferredDate,
+                        preferredTime: formData.preferredTime,
+                        demoId: result.demoId
+                    });
+                } catch (emailError) {
+                    console.error('Email sending failed:', emailError);
+                    // Non-blocking error - don't fail the submission if email fails
+                }
+
+                navigate('/demo-confirmation');
+            } else {
+                alert('Failed to book demo: ' + result.error);
+            }
         } catch (error) {
             console.error(error);
             alert('Failed to book demo: ' + error.message);

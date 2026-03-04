@@ -15,6 +15,7 @@ const CoachNavbar = () => {
         { path: '/coach/schedule', label: 'Schedule' },
         { path: '/coach/batches', label: 'Batches' },
         { path: '/coach/chat', label: 'Messages' },
+        { path: '/coach/lichess', label: '🔗 Lichess Requests' },
     ];
 
     const isActive = (path) => location.pathname === path;

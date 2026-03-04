@@ -7,6 +7,7 @@ import Button from '../../components/ui/Button';
 import AssignCoachModal from '../../components/features/AssignCoachModal';
 import DemoOutcomeModal from '../../components/features/DemoOutcomeModal';
 import ConvertStudentModal from '../../components/features/ConvertStudentModal';
+import ConfirmDialog from '../../components/ui/ConfirmDialog';
 import { toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { Trash2, Edit, Link, CheckCircle } from 'lucide-react';
@@ -22,6 +23,7 @@ const DemosPage = () => {
     const [selectedDemo, setSelectedDemo] = useState(null);
     const [demos, setDemos] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [confirmDialog, setConfirmDialog] = useState(null);
 
     useEffect(() => {
         fetchDemos();
@@ -83,34 +85,44 @@ const DemosPage = () => {
         setOutcomeModalOpen(true);
     };
 
-    const handleDeleteClick = async (demoId) => {
-        if (window.confirm('Are you sure you want to delete this demo request? This action cannot be undone.')) {
-            setLoading(true);
-            const result = await deleteDemo(demoId);
-            if (result.success) {
-                toast.success('Demo request deleted successfully');
-                fetchDemos();
-            } else {
-                toast.error('Failed to delete demo: ' + result.error);
-            }
-            setLoading(false);
-        }
-    };
-
-    const handleApprovePayment = async (demo) => {
-        if (window.confirm(`Confirm payment for ${demo.studentName}? This will create a student account.`)) {
-            setLoading(true);
-            try {
-                await conversionService.approvePayment(demo.id);
-                toast.success('Payment Approved! Student Account Created.');
-                fetchDemos();
-            } catch (error) {
-                console.error(error);
-                toast.error('Approval Failed: ' + error.message);
-            } finally {
+    const handleDeleteClick = (demoId) => {
+        setConfirmDialog({
+            title: 'Delete Demo Request',
+            message: 'Are you sure you want to delete this demo request? This action cannot be undone.',
+            confirmLabel: 'Delete',
+            onConfirm: async () => {
+                setLoading(true);
+                const result = await deleteDemo(demoId);
+                if (result.success) {
+                    toast.success('Demo request deleted successfully');
+                    fetchDemos();
+                } else {
+                    toast.error('Failed to delete demo: ' + result.error);
+                }
                 setLoading(false);
             }
-        }
+        });
+    };
+
+    const handleApprovePayment = (demo) => {
+        setConfirmDialog({
+            title: 'Confirm Payment',
+            message: `Confirm payment for ${demo.studentName}? This will create a student account.`,
+            confirmLabel: 'Confirm',
+            variant: 'warning',
+            onConfirm: async () => {
+                setLoading(true);
+                try {
+                    await conversionService.approvePayment(demo.id);
+                    toast.success('Payment Approved! Student Account Created.');
+                    fetchDemos();
+                } catch (error) {
+                    console.error(error);
+                    toast.error('Approval Failed: ' + error.message);
+                }
+                setLoading(false);
+            }
+        });
     };
 
     const copyPaymentLink = (demoId) => {
@@ -330,6 +342,16 @@ const DemosPage = () => {
                         setConvertModalOpen(false);
                         toast.success('Student account created successfully!');
                     }}
+                />
+            )}
+            {confirmDialog && (
+                <ConfirmDialog
+                    title={confirmDialog.title}
+                    message={confirmDialog.message}
+                    confirmLabel={confirmDialog.confirmLabel || 'Confirm'}
+                    variant={confirmDialog.variant || 'danger'}
+                    onConfirm={() => { confirmDialog.onConfirm(); setConfirmDialog(null); }}
+                    onCancel={() => setConfirmDialog(null)}
                 />
             )}
         </div>

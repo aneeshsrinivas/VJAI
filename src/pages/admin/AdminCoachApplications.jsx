@@ -1,12 +1,13 @@
 import React, { useState, useEffect } from 'react';
-import { collection, query, where, onSnapshot, doc, updateDoc, serverTimestamp, addDoc } from 'firebase/firestore';
+import { collection, query, where, onSnapshot, doc, updateDoc, serverTimestamp } from 'firebase/firestore';
 import { db } from '../../lib/firebase';
-import { emailService } from '../../services/emailService';
 import { useAuth } from '../../context/AuthContext';
 import Card from '../../components/ui/Card';
 import Button from '../../components/ui/Button';
+import ConfirmDialog from '../../components/ui/ConfirmDialog';
+import ApproveCoachModal from '../../components/features/ApproveCoachModal';
 import { toast, ToastContainer } from 'react-toastify';
-import { FileText, CheckCircle, XCircle, Clock, User, Mail, Phone, Award, Calendar } from 'lucide-react';
+import { FileText, CheckCircle, XCircle, Clock, Mail, Phone, Award, Calendar } from 'lucide-react';
 import 'react-toastify/dist/ReactToastify.css';
 
 // Color scheme
@@ -22,9 +23,8 @@ const AdminCoachApplications = () => {
     const [applications, setApplications] = useState([]);
     const [loading, setLoading] = useState(true);
     const [selectedApp, setSelectedApp] = useState(null);
+    const [confirmDialog, setConfirmDialog] = useState(null);
     const [modalOpen, setModalOpen] = useState(false);
-    const [password, setPassword] = useState('');
-    const [processing, setProcessing] = useState(false);
 
     // Real-time listener for pending coach applications
     useEffect(() => {
@@ -43,69 +43,25 @@ const AdminCoachApplications = () => {
         return () => unsubscribe();
     }, []);
 
-    const handleApprove = async () => {
-        if (!selectedApp || !password.trim()) {
-            toast.error('Please enter a temporary password');
-            return;
-        }
-
-        setProcessing(true);
-        try {
-            // Update coach status to ACTIVE
-            await updateDoc(doc(db, 'coaches', selectedApp.id), {
-                status: 'ACTIVE',
-                approvedBy: currentUser?.uid || 'admin',
-                approvedAt: serverTimestamp(),
-                tempPassword: password,
-                updatedAt: serverTimestamp()
-            });
-
-            // Create user account record
-            await addDoc(collection(db, 'users'), {
-                email: selectedApp.email,
-                fullName: selectedApp.fullName,
-                role: 'coach',
-                coachId: selectedApp.id,
-                createdAt: serverTimestamp()
-            });
-
-            // Send Email with Credentials
-            const emailResult = await emailService.sendCoachWelcomeEmail({
-                email: selectedApp.email,
-                fullName: selectedApp.fullName,
-                password: password
-            });
-
-            if (!emailResult.success) {
-                toast.warning('Coach approved, but failed to send email: ' + emailResult.error);
-            } else {
-                toast.success(`${selectedApp.fullName} approved & email sent!`);
-            }
-            setModalOpen(false);
-            setSelectedApp(null);
-            setPassword('');
-        } catch (error) {
-            console.error('Error approving coach:', error);
-            toast.error('Failed to approve: ' + error.message);
-        } finally {
-            setProcessing(false);
-        }
-    };
-
     const handleReject = async (app) => {
-        if (!window.confirm(`Are you sure you want to reject ${app.fullName}'s application?`)) return;
-
-        try {
-            await updateDoc(doc(db, 'coaches', app.id), {
-                status: 'REJECTED',
-                rejectedBy: currentUser?.uid || 'admin',
-                rejectedAt: serverTimestamp(),
-                updatedAt: serverTimestamp()
-            });
-            toast.info('Application rejected');
-        } catch (error) {
-            toast.error('Failed to reject: ' + error.message);
-        }
+        setConfirmDialog({
+            title: 'Reject Application',
+            message: `Reject ${app.fullName}'s coach application? This action cannot be undone.`,
+            confirmLabel: 'Reject',
+            onConfirm: async () => {
+                try {
+                    await updateDoc(doc(db, 'coaches', app.id), {
+                        status: 'REJECTED',
+                        rejectedBy: currentUser?.uid || 'admin',
+                        rejectedAt: serverTimestamp(),
+                        updatedAt: serverTimestamp()
+                    });
+                    toast.info('Application rejected');
+                } catch (error) {
+                    toast.error('Failed to reject: ' + error.message);
+                }
+            }
+        });
     };
 
     const formatDate = (timestamp) => {
@@ -247,55 +203,15 @@ const AdminCoachApplications = () => {
 
             {/* Approve Modal */}
             {modalOpen && selectedApp && (
-                <div className="modal-overlay" style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000 }}>
-                    <div className="modal-content" style={{ borderRadius: '16px', padding: '24px', width: '450px', maxWidth: '95%' }}>
-                        <h2 style={{ margin: '0 0 20px', display: 'flex', alignItems: 'center', gap: '10px' }}>
-                            <CheckCircle size={24} color={COLORS.oliveGreen} />
-                            Approve Coach Application
-                        </h2>
-
-                        <div className="admin-panel-list-item" style={{ padding: '16px', borderRadius: '10px', marginBottom: '20px' }}>
-                            <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '12px' }}>
-                                <div style={{ width: '48px', height: '48px', borderRadius: '12px', backgroundColor: COLORS.deepBlue, color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: '700', fontSize: '18px' }}>
-                                    {selectedApp.fullName?.charAt(0) || 'C'}
-                                </div>
-                                <div>
-                                    <div style={{ fontWeight: '600' }}>{selectedApp.fullName}</div>
-                                    <div className="sub-text" style={{ fontSize: '13px' }}>{selectedApp.email}</div>
-                                </div>
-                            </div>
-                            <div className="sub-text" style={{ display: 'flex', gap: '16px', fontSize: '13px' }}>
-                                <span>Experience: {selectedApp.experience} years</span>
-                                <span>FIDE: {selectedApp.fideRating || 'Unrated'}</span>
-                            </div>
-                        </div>
-
-                        <div style={{ marginBottom: '20px' }}>
-                            <label style={{ display: 'block', marginBottom: '8px', fontWeight: '600' }}>
-                                Set Temporary Password *
-                            </label>
-                            <p className="sub-text" style={{ fontSize: '12px', marginBottom: '8px' }}>
-                                Share this password securely with the coach. They will use their email and this password to login.
-                            </p>
-                            <input
-                                type="text"
-                                value={password}
-                                onChange={(e) => setPassword(e.target.value)}
-                                placeholder="e.g. CoachPass@2024"
-                                style={{ width: '100%', padding: '12px', border: `2px solid ${COLORS.deepBlue}`, borderRadius: '8px', fontSize: '14px' }}
-                            />
-                        </div>
-
-                        <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end' }}>
-                            <Button variant="secondary" onClick={() => { setModalOpen(false); setSelectedApp(null); setPassword(''); }}>
-                                Cancel
-                            </Button>
-                            <Button onClick={handleApprove} disabled={processing} style={{ backgroundColor: COLORS.oliveGreen, border: 'none' }}>
-                                {processing ? 'Approving...' : 'Approve & Create Account'}
-                            </Button>
-                        </div>
-                    </div>
-                </div>
+                <ApproveCoachModal
+                    application={selectedApp}
+                    onClose={() => { setModalOpen(false); setSelectedApp(null); }}
+                    onSuccess={() => {
+                        setModalOpen(false);
+                        setSelectedApp(null);
+                        toast.success(`${selectedApp?.fullName || 'Coach'} approved & credentials sent!`);
+                    }}
+                />
             )}
 
             <style>{`
@@ -303,6 +219,15 @@ const AdminCoachApplications = () => {
                     to { transform: rotate(360deg); }
                 }
             `}</style>
+            {confirmDialog && (
+                <ConfirmDialog
+                    title={confirmDialog.title}
+                    message={confirmDialog.message}
+                    confirmLabel={confirmDialog.confirmLabel || 'Confirm'}
+                    onConfirm={() => { confirmDialog.onConfirm(); setConfirmDialog(null); }}
+                    onCancel={() => setConfirmDialog(null)}
+                />
+            )}
         </div>
     );
 };

@@ -2,12 +2,14 @@ import React, { useState, useEffect, useRef } from 'react';
 import { collection, query, where, getDocs, addDoc, doc, serverTimestamp, setDoc, onSnapshot } from 'firebase/firestore';
 import { db } from '../../lib/firebase';
 import { useAuth } from '../../context/AuthContext';
+import { useTheme } from '../../context/ThemeContext';
 import Card from '../../components/ui/Card';
 import Button from '../../components/ui/Button';
 import { Send, Search, ChevronDown, MessageSquare } from 'lucide-react';
 
 const DirectChatPage = () => {
     const { currentUser } = useAuth();
+    const { isDark } = useTheme();
     const [selectedUser, setSelectedUser] = useState(null);
     const [users, setUsers] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -146,8 +148,9 @@ const DirectChatPage = () => {
                             width: '100%',
                             padding: '12px 16px',
                             borderRadius: '10px',
-                            border: '1px solid #ddd',
-                            background: 'white',
+                            border: `1px solid ${isDark ? '#3d3f55' : '#ddd'}`,
+                            background: isDark ? '#1a1d27' : 'white',
+                            color: isDark ? '#f0f0f0' : '#333',
                             display: 'flex',
                             justifyContent: 'space-between',
                             alignItems: 'center',
@@ -169,7 +172,7 @@ const DirectChatPage = () => {
                                     </div>
                                     <div style={{ textAlign: 'left' }}>
                                         <div className="chat-user-name" style={{ fontWeight: '600' }}>{selectedUser.name}</div>
-                                        <div className="chat-user-email" style={{ fontSize: '12px', color: '#666' }}>{selectedUser.email}</div>
+                                        <div className="chat-user-email" style={{ fontSize: '12px', color: isDark ? '#9ca3af' : '#666' }}>{selectedUser.email}</div>
                                     </div>
                                 </>
                             ) : (
@@ -188,8 +191,8 @@ const DirectChatPage = () => {
                             right: 0,
                             marginTop: '4px',
                             borderRadius: '10px',
-                            border: '1px solid #ddd',
-                            background: 'white',
+                            border: `1px solid ${isDark ? '#3d3f55' : '#ddd'}`,
+                            background: isDark ? '#1a1d27' : 'white',
                             boxShadow: '0 8px 24px rgba(0,0,0,0.12)',
                             zIndex: 100,
                             maxHeight: '300px',
@@ -197,7 +200,7 @@ const DirectChatPage = () => {
                             flexDirection: 'column'
                         }}>
                             {/* Search */}
-                            <div style={{ padding: '12px', borderBottom: '1px solid #eee' }}>
+                            <div style={{ padding: '12px', borderBottom: `1px solid ${isDark ? '#2d2f3e' : '#eee'}` }}>
                                 <div style={{ position: 'relative' }}>
                                     <Search size={16} style={{ position: 'absolute', left: '10px', top: '50%', transform: 'translateY(-50%)', color: '#999' }} />
                                     <input

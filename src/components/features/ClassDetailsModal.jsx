@@ -46,7 +46,8 @@ const ClassDetailsModal = ({ isOpen, onClose, classData }) => {
         }} onClick={onClose}>
             <div style={{
                 background: 'white', padding: '24px', borderRadius: '20px',
-                width: '100%', maxWidth: '450px', boxShadow: '0 20px 40px rgba(0,0,0,0.2)'
+                width: '100%', maxWidth: '450px', boxShadow: '0 20px 40px rgba(0,0,0,0.2)',
+                maxHeight: '90vh', overflowY: 'auto'
             }} onClick={e => e.stopPropagation()}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
                     <h2 style={{ margin: 0, fontSize: '20px', color: '#1e293b' }}>Class Details</h2>
