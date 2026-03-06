@@ -252,6 +252,17 @@ const PaymentCheckout = () => {
             };
             await addDoc(collection(db, 'subscriptions'), subscriptionData);
 
+            // Update user document so StudentDatabase shows correct student name/age
+            if (parentId) {
+                await updateDoc(doc(db, 'users', parentId), {
+                    studentName: formData.studentName,
+                    studentAge: formData.studentAge,
+                    learningLevel: plan.level || 'Beginner',
+                    studentType: plan.type || (plan.classType === 'one-on-one' ? '1-on-1' : 'Group'),
+                    updatedAt: serverTimestamp()
+                });
+            }
+
             if (demoId) {
                 await conversionService.submitPaymentProof(demoId, plan, {
                     method: 'Razorpay',
@@ -332,6 +343,17 @@ const PaymentCheckout = () => {
                 updatedAt: serverTimestamp()
             };
             await addDoc(collection(db, 'subscriptions'), subscriptionData);
+
+            // Update user document so StudentDatabase shows correct student name/age
+            if (parentId) {
+                await updateDoc(doc(db, 'users', parentId), {
+                    studentName: formData.studentName,
+                    studentAge: formData.studentAge,
+                    learningLevel: plan.level || 'Beginner',
+                    studentType: plan.type || (plan.classType === 'one-on-one' ? '1-on-1' : 'Group'),
+                    updatedAt: serverTimestamp()
+                });
+            }
 
             if (formData.paymentMethod === 'upi') {
                 if (demoId) {
