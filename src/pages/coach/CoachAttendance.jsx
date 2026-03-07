@@ -17,7 +17,7 @@ const CoachAttendance = () => {
     const [students, setStudents] = useState([]);
     const [attendance, setAttendance] = useState({});
     const [existingRecords, setExistingRecords] = useState({});
-    const [loading, setLoading] = useState(true);
+    const [loading, setLoading] = useState(false);
     const [saving, setSaving] = useState(false);
     const [recentHistory, setRecentHistory] = useState([]);
     const [coachDocId, setCoachDocId] = useState(null);

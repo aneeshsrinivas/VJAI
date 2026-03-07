@@ -17,7 +17,7 @@ const CoachStudents = () => {
     const navigate = useNavigate();
     const { currentUser } = useAuth();
     const [students, setStudents] = useState([]);
-    const [loading, setLoading] = useState(true);
+    const [loading, setLoading] = useState(false);
     const [searchQuery, setSearchQuery] = useState('');
     const [filterLevel, setFilterLevel] = useState('all');
     const [filterBatch, setFilterBatch] = useState('all');

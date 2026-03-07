@@ -19,7 +19,7 @@ const CoachBatches = () => {
     const [createPuzzleBatch, setCreatePuzzleBatch] = useState(null);
     const [selectedAssignment, setSelectedAssignment] = useState(null);
     const [batches, setBatches] = useState([]);
-    const [loading, setLoading] = useState(true);
+    const [loading, setLoading] = useState(false);
     const [assignments, setAssignments] = useState([]);
     const [uploadLog, setUploadLog] = useState([]);
     const { currentUser } = useAuth();
