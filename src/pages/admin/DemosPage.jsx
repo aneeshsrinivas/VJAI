@@ -6,7 +6,6 @@ import Card from '../../components/ui/Card';
 import Button from '../../components/ui/Button';
 import AssignCoachModal from '../../components/features/AssignCoachModal';
 import DemoOutcomeModal from '../../components/features/DemoOutcomeModal';
-import ConvertStudentModal from '../../components/features/ConvertStudentModal';
 import ConfirmDialog from '../../components/ui/ConfirmDialog';
 import { toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
@@ -19,7 +18,6 @@ const DemosPage = () => {
     const [searchTerm, setSearchTerm] = useState('');
     const [assignModalOpen, setAssignModalOpen] = useState(false);
     const [outcomeModalOpen, setOutcomeModalOpen] = useState(false);
-    const [convertModalOpen, setConvertModalOpen] = useState(false);
     const [selectedDemo, setSelectedDemo] = useState(null);
     const [demos, setDemos] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -270,24 +268,18 @@ const DemosPage = () => {
                                                 </Button>
                                             )}
 
-                                            {/* Action: Convert */}
+                                            {/* Action: Copy Payment Link (for online payment) */}
                                             {(demo.status === 'INTERESTED' || demo.status === 'ATTENDED') && (
-                                                <>
-                                                    <Button size="sm" style={{ backgroundColor: 'var(--color-warm-orange)' }} onClick={() => {
-                                                        setSelectedDemo(demo);
-                                                        setConvertModalOpen(true);
-                                                    }}>
-                                                        Convert
-                                                    </Button>
+                                                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '12px', color: '#666' }}>
                                                     <Button
                                                         size="sm"
                                                         variant="secondary"
                                                         onClick={() => copyPaymentLink(demo.id)}
-                                                        title="Copy payment link"
+                                                        title="Copy payment link to send to parent"
                                                     >
-                                                        <Link size={14} />
+                                                        <Link size={14} style={{ marginRight: '4px' }} /> Copy Payment Link
                                                     </Button>
-                                                </>
+                                                </div>
                                             )}
 
                                             {/* Action: Approve Payment */}
@@ -369,17 +361,6 @@ const DemosPage = () => {
                 />
             )}
 
-            {convertModalOpen && selectedDemo && (
-                <ConvertStudentModal
-                    demo={selectedDemo}
-                    onClose={() => setConvertModalOpen(false)}
-                    onSuccess={() => {
-                        fetchDemos();
-                        setConvertModalOpen(false);
-                        toast.success('Student account created successfully!');
-                    }}
-                />
-            )}
             {confirmDialog && (
                 <ConfirmDialog
                     title={confirmDialog.title}
