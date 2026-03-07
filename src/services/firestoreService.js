@@ -397,7 +397,7 @@ export const getCoachApplications = async () => {
     }
 };
 
-export const approveCoachApplication = async (applicationId, uid, password, adminId, coachEmail, coachFullName) => {
+export const approveCoachApplication = async (applicationId, uid, password, adminId, coachEmail, coachFullName, assignedGroup, assignedBatch) => {
     try {
         // 1. Create users/{uid} doc so the coach can log in via AuthContext
         await setDoc(doc(db, 'users', uid), {
@@ -419,12 +419,14 @@ export const approveCoachApplication = async (applicationId, uid, password, admi
             updatedAt: serverTimestamp()
         });
 
-        // 3. Update Coach Doc to ACTIVE
+        // 3. Update Coach Doc to ACTIVE with group/batch assignment
         const coachRef = doc(db, COLLECTIONS.COACHES, applicationId);
         await updateDoc(coachRef, {
             status: 'ACTIVE',
             accountId: uid,
             approvedBy: adminId,
+            assignedGroup: assignedGroup || null,
+            assignedBatch: assignedBatch || null,
             updatedAt: serverTimestamp()
         });
 

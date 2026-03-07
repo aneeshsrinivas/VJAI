@@ -9,79 +9,51 @@ import ConfirmDialog from '../../components/ui/ConfirmDialog';
 import { toast, ToastContainer } from 'react-toastify';
 import { Plus, X, Edit2, Trash2, CreditCard, Package, CheckCircle, Shield, Star, RefreshCw } from 'lucide-react';
 
-// Default plans — 2 tiers × 3 durations = 6 plans
+// Default plans — 4 group categories matching pricing page
 const defaultPlans = [
     {
-        id: 'beginner-1m',
-        name: 'Group Beginner Training — 1 Month',
-        description: 'Group coaching for beginners and advanced beginners',
+        id: 'group-beginner',
+        name: 'Group Beginner',
+        description: 'Perfect for those starting their chess journey or building strong foundational skills.',
         price: 60,
         billingCycle: 'MONTHLY',
         level: 'beginner',
-        duration: '1',
         classType: 'GROUP',
-        features: ['Dedicated coach assignment', 'Group lesson plans', '4 sessions/month', 'Progress tracking'],
-        isActive: true, isFeatured: true, sortOrder: 0
+        features: ['1 Month: $60', '3 Months: $180', '4 Months: $240', 'Dedicated coach assignment', 'Group lesson plans', '4 sessions/month', 'Progress tracking'],
+        isActive: true, isFeatured: false, sortOrder: 0
     },
     {
-        id: 'beginner-3m',
-        name: 'Group Beginner Training — 3 Months',
-        description: 'Group coaching for beginners and advanced beginners (3 months)',
-        price: 180,
-        billingCycle: 'QUARTERLY',
-        level: 'beginner',
-        duration: '3',
+        id: 'group-advanced-beginner',
+        name: 'Group Advanced Beginner',
+        description: 'For students who know the basics and are ready to develop stronger foundations and tactics.',
+        price: 60,
+        billingCycle: 'MONTHLY',
+        level: 'advanced-beginner',
         classType: 'GROUP',
-        features: ['Dedicated coach assignment', 'Group lesson plans', '12 sessions total', 'Progress tracking'],
+        features: ['1 Month: $60', '3 Months: $180', '4 Months: $240', 'Dedicated coach assignment', 'Group lesson plans', '4 sessions/month', 'Progress tracking'],
         isActive: true, isFeatured: false, sortOrder: 1
     },
     {
-        id: 'beginner-4m',
-        name: 'Group Beginner Training — 4 Months',
-        description: 'Group coaching for beginners and advanced beginners (4 months)',
-        price: 240,
-        billingCycle: 'QUARTERLY',
-        level: 'beginner',
-        duration: '4',
-        classType: 'GROUP',
-        features: ['Dedicated coach assignment', 'Group lesson plans', '16 sessions total', 'Progress tracking'],
-        isActive: true, isFeatured: false, sortOrder: 2
-    },
-    {
-        id: 'intermediate-1m',
-        name: 'Group Intermediate Training — 1 Month',
-        description: 'Group coaching for Intermediate-I and Intermediate-II players',
+        id: 'group-intermediate-I',
+        name: 'Group Intermediate-I',
+        description: 'For players advancing their tactical understanding and competitive readiness.',
         price: 70,
         billingCycle: 'MONTHLY',
-        level: 'intermediate',
-        duration: '1',
+        level: 'intermediate-I',
         classType: 'GROUP',
-        features: ['Expert coach assignment', 'Advanced tactics', '4 sessions/month', 'Tournament prep'],
+        features: ['1 Month: $70', '3 Months: $210', '4 Months: $280', 'Expert coach assignment', 'Advanced tactics & strategy', '4 sessions/month', 'Tournament preparation'],
+        isActive: true, isFeatured: true, sortOrder: 2
+    },
+    {
+        id: 'group-intermediate-II',
+        name: 'Group Intermediate-II',
+        description: 'For experienced players refining advanced techniques and preparing for competitive play.',
+        price: 70,
+        billingCycle: 'MONTHLY',
+        level: 'intermediate-II',
+        classType: 'GROUP',
+        features: ['1 Month: $70', '3 Months: $210', '4 Months: $280', 'Expert coach assignment', 'Advanced tactics & strategy', '4 sessions/month', 'Tournament preparation'],
         isActive: true, isFeatured: true, sortOrder: 3
-    },
-    {
-        id: 'intermediate-3m',
-        name: 'Group Intermediate Training — 3 Months',
-        description: 'Group coaching for Intermediate-I and Intermediate-II players (3 months)',
-        price: 210,
-        billingCycle: 'QUARTERLY',
-        level: 'intermediate',
-        duration: '3',
-        classType: 'GROUP',
-        features: ['Expert coach assignment', 'Advanced tactics', '12 sessions total', 'Tournament prep'],
-        isActive: true, isFeatured: false, sortOrder: 4
-    },
-    {
-        id: 'intermediate-4m',
-        name: 'Group Intermediate Training — 4 Months',
-        description: 'Group coaching for Intermediate-I and Intermediate-II players (4 months)',
-        price: 280,
-        billingCycle: 'QUARTERLY',
-        level: 'intermediate',
-        duration: '4',
-        classType: 'GROUP',
-        features: ['Expert coach assignment', 'Advanced tactics', '16 sessions total', 'Tournament prep'],
-        isActive: true, isFeatured: false, sortOrder: 5
     }
 ];
 
@@ -255,7 +227,7 @@ const SubscriptionPlansManager = () => {
     const handleSeedDefaultPlans = () => {
         setConfirmDialog({
             title: 'Seed Default Plans',
-            message: 'This will add the 2 default 1-on-1 plans from the pricing page. Existing plans with the same ID will be skipped. Continue?',
+            message: 'This will add the 4 default group plans (Beginner, Advanced Beginner, Intermediate-I, Intermediate-II). Existing plans with the same ID will be skipped. Continue?',
             confirmLabel: 'Seed Plans',
             variant: 'warning',
             onConfirm: async () => {

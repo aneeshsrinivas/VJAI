@@ -42,37 +42,81 @@ export const mockPlans = [
     id: 'group-beginner',
     type: 'Group',
     level: 'Beginner',
-    name: 'Group Beginner Class',
-    price: 40,
+    name: 'Group Beginner',
+    price: 60,
     billingCycle: 'month',
+    description: 'Perfect for those starting their chess journey or building strong foundational skills.',
     features: [
-      'Small batch (max 8 students)',
-      'Peer learning environment',
-      'Fixed schedule (3x/week)',
-      '12 sessions per month',
-      'Batch group chat access',
-      'Shared learning materials'
+      '1 Month: $60',
+      '3 Months: $180',
+      '4 Months: $240',
+      'Dedicated coach assignment',
+      'Group lesson plans',
+      '4 sessions/month',
+      'Progress tracking'
     ],
     recommended: false,
     color: 'var(--color-deep-blue)'
   },
   {
-    id: 'group-intermediate',
+    id: 'group-advanced-beginner',
     type: 'Group',
-    level: 'Intermediate',
-    name: 'Group Intermediate Class',
-    price: 50,
+    level: 'Advanced Beginner',
+    name: 'Group Advanced Beginner',
+    price: 60,
     billingCycle: 'month',
+    description: 'For students who know the basics and are ready to develop stronger foundations and tactics.',
     features: [
-      'Skill-matched batches',
-      'Competitive practice games',
-      'Fixed schedule (3x/week)',
-      '12 sessions per month',
-      'Tournament opportunities',
-      'Rating improvement focus'
+      '1 Month: $60',
+      '3 Months: $180',
+      '4 Months: $240',
+      'Dedicated coach assignment',
+      'Group lesson plans',
+      '4 sessions/month',
+      'Progress tracking'
     ],
     recommended: false,
     color: 'var(--color-deep-blue)'
+  },
+  {
+    id: 'group-intermediate-I',
+    type: 'Group',
+    level: 'Intermediate',
+    name: 'Group Intermediate-I',
+    price: 70,
+    billingCycle: 'month',
+    description: 'For players advancing their tactical understanding and competitive readiness.',
+    features: [
+      '1 Month: $70',
+      '3 Months: $210',
+      '4 Months: $280',
+      'Expert coach assignment',
+      'Advanced tactics & strategy',
+      '4 sessions/month',
+      'Tournament preparation'
+    ],
+    recommended: true,
+    color: 'var(--color-orange)'
+  },
+  {
+    id: 'group-intermediate-II',
+    type: 'Group',
+    level: 'Intermediate',
+    name: 'Group Intermediate-II',
+    price: 70,
+    billingCycle: 'month',
+    description: 'For experienced players refining advanced techniques and preparing for competitive play.',
+    features: [
+      '1 Month: $70',
+      '3 Months: $210',
+      '4 Months: $280',
+      'Expert coach assignment',
+      'Advanced tactics & strategy',
+      '4 sessions/month',
+      'Tournament preparation'
+    ],
+    recommended: true,
+    color: 'var(--color-orange)'
   }
 ];
 
