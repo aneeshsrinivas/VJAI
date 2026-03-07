@@ -189,7 +189,7 @@ const DemoOutcomeModal = ({ demo, onClose, onSuccess, mandatory = false }) => {
     const completionPct = getCompletionPercentage();
 
     return (
-        <div className={`modal-overlay ${mandatory ? 'mandatory' : ''}`} onClick={(e) => e.target === e.currentTarget && handleClose()}>
+        <div className={`modal-overlay ${mandatory ? 'mandatory' : ''}`}>
             {showConfetti && (
                 <div className="confetti-container">
                     {[...Array(50)].map((_, i) => (

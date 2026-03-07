@@ -28,8 +28,18 @@ const ScheduleClassModal = ({ isOpen, onClose, batchId, batchName, onSuccess }) 
         const fetchBatches = async () => {
             if (!currentUser?.uid) return;
             try {
-                // Fetch from coaches/{coachId}/batches subcollection
-                const batchesRef = collection(db, 'coaches', currentUser.uid, 'batches');
+                // First resolve coachDocId
+                const coachesRef = collection(db, 'coaches');
+                const qCoach = window.firebaseQuery(coachesRef, window.firebaseWhere('accountId', '==', currentUser.uid));
+                const coachSnap = await getDocs(qCoach);
+                
+                let coachDocId = currentUser.uid; // fallback
+                if (!coachSnap.empty) {
+                    coachDocId = coachSnap.docs[0].id;
+                }
+
+                // Fetch from coaches/{coachDocId}/batches subcollection
+                const batchesRef = collection(db, 'coaches', coachDocId, 'batches');
                 const snap = await getDocs(batchesRef);
                 const list = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
                 setBatches(list);
@@ -45,7 +55,11 @@ const ScheduleClassModal = ({ isOpen, onClose, batchId, batchName, onSuccess }) 
             }
         };
         if (isOpen) {
-            fetchBatches();
+            import('firebase/firestore').then(mod => {
+                 window.firebaseQuery = mod.query;
+                 window.firebaseWhere = mod.where;
+                 fetchBatches();
+            });
         }
     }, [isOpen, currentUser, batchId]);
 
@@ -160,25 +174,8 @@ const ScheduleClassModal = ({ isOpen, onClose, batchId, batchName, onSuccess }) 
                         </div>
                     </div>
 
-                    <div style={{ marginBottom: '16px' }}>
-                        <label style={{ display: 'block', fontSize: '14px', fontWeight: '600', marginBottom: '8px', color: isDark ? '#c0c0c0' : '#334155' }}>Meeting Link</label>
-                        <div style={{ position: 'relative' }}>
-                            <Video size={18} style={{ position: 'absolute', left: '12px', top: '12px', color: isDark ? '#a0a0k0' : '#94a3b8' }} />
-                            <input
-                                type="url"
-                                name="meetLink"
-                                placeholder="https://meet.google.com/..."
-                                value={formData.meetLink}
-                                onChange={handleChange}
-                                style={{
-                                    width: '100%', padding: '10px 10px 10px 40px',
-                                    borderRadius: '8px', border: isDark ? '1px solid rgba(255,255,255,0.1)' : '1px solid #cbd5e1', outline: 'none',
-                                    background: isDark ? '#0f1117' : 'white',
-                                    color: isDark ? '#f0f0f0' : '#1e293b'
-                                }}
-                            />
-                        </div>
-                    </div>
+                    {/* Meet link removed as it is now handled by profile URLs */}
+
 
                     <div style={{ marginBottom: '16px' }}>
                         <label style={{ display: 'block', fontSize: '14px', fontWeight: '600', marginBottom: '8px', color: isDark ? '#c0c0c0' : '#334155' }}>Select Batch</label>

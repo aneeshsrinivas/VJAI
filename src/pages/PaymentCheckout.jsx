@@ -357,6 +357,13 @@ const PaymentCheckout = () => {
                     ...formData,
                     amount: amountINR,
                 });
+                // Update demo status to CONVERTED now that payment is done
+                try {
+                    await updateDoc(doc(db, 'demos', demoId), {
+                        status: 'CONVERTED',
+                        updatedAt: serverTimestamp()
+                    });
+                } catch (e) { /* demo may not exist */ }
             }
 
             toast.success('🎉 Payment successful!');
@@ -548,6 +555,17 @@ const PaymentCheckout = () => {
                     updatedAt: serverTimestamp()
                 });
 
+                // Also update the student record status
+                const q = query(collection(db, 'students'), where('accountId', '==', parentId));
+                const studentDocs = await getDocs(q);
+                const updatePromises = studentDocs.docs.map(docSnap => 
+                    updateDoc(doc(db, 'students', docSnap.id), {
+                        status: 'PENDING_COACH',
+                        updatedAt: serverTimestamp()
+                    })
+                );
+                await Promise.all(updatePromises);
+
                 // Notify Admin
                 await addDoc(collection(db, 'admin_notifications'), {
                     type: 'PAYMENT_RECEIVED',
@@ -566,6 +584,11 @@ const PaymentCheckout = () => {
                         method: 'simulated',
                         ...formData,
                         amount: amountINR,
+                    });
+                    // Update demo status to CONVERTED now that payment is done
+                    await updateDoc(doc(db, 'demos', demoId), {
+                        status: 'CONVERTED',
+                        updatedAt: serverTimestamp()
                     });
                 } catch (e) { /* demo may not exist */ }
             }

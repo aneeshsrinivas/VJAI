@@ -6,10 +6,12 @@ import ConfirmDialog from '../../ui/ConfirmDialog';
 import { toast } from 'react-toastify';
 import { Trash2, Plus, Calendar, Clock, BarChart } from 'lucide-react';
 import { useTheme } from '../../../context/ThemeContext';
+import { useAuth } from '../../../context/AuthContext';
 
 const ManageBatchesModal = ({ isOpen, onClose, coach }) => {
     // ✅ All hooks FIRST (before any conditional returns)
     const { isDark } = useTheme();
+    const { currentUser } = useAuth();
     const [confirmDialog, setConfirmDialog] = useState(null);
     const [batches, setBatches] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -59,10 +61,10 @@ const ManageBatchesModal = ({ isOpen, onClose, coach }) => {
 
             // Create a corresponding group chat for this batch
             await addDoc(collection(db, 'chats'), {
-                chatType: 'BATCH',
+                chatType: 'BATCH_GROUP',
                 batchId: batchRef.id,
-                batchName: newBatch.name,
-                participants: [coach.accountId], // Coach is the first participant
+                name: `Batch: ${newBatch.name}`,
+                participants: [coach.accountId, currentUser?.uid].filter(Boolean), // Coach and Admin
                 coachId: coach.accountId,
                 coachName: coach.fullName || 'Coach',
                 lastMessage: `Group chat for ${newBatch.name} created.`,

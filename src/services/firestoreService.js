@@ -364,10 +364,10 @@ export const convertDemoToPendingStudent = async (demoId, accountId, paymentData
         // NO SUBSCRIPTION RECORD CREATED YET. THIS HAPPENS AT CHECKOUT.
         // NO MESSAGING CHAT CREATED YET.
 
-        // 3. Update demo status to CONVERTED
+        // 3. Update demo status to PAYMENT_PENDING (NOT CONVERTED — conversion happens after payment)
         const demoRef = doc(db, COLLECTIONS.DEMOS, demoId);
         await updateDoc(demoRef, {
-            status: DEMO_STATUS.CONVERTED,
+            status: 'PAYMENT_PENDING',
             updatedAt: serverTimestamp()
         });
 

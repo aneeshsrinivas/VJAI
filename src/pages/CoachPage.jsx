@@ -597,20 +597,31 @@ const CoachPage = () => {
                                 </div>
 
                                 <div style={{ paddingTop: '16px', borderTop: '1px dashed #e2e8f0', marginTop: '4px' }}>
-                                    {selectedDemo.meetingLink ? (
-                                        <a
-                                            href={selectedDemo.meetingLink}
-                                            target="_blank"
-                                            rel="noreferrer"
-                                            className="btn-join"
-                                            style={{
-                                                justifyContent: 'center', width: '100%', textDecoration: 'none',
-                                                padding: '12px', fontSize: '15px'
-                                            }}
-                                        >
-                                            <Video size={18} /> Join Class Room
-                                        </a>
-                                    ) : (
+                                    {selectedDemo.meetingLink ? (() => {
+                                        const now = new Date().getTime();
+                                        const demoTime = selectedDemo.scheduledAt?.toDate
+                                            ? selectedDemo.scheduledAt.toDate().getTime()
+                                            : new Date(selectedDemo.scheduledAt || 0).getTime();
+                                        const isJoinable = demoTime - now <= 10 * 60 * 1000;
+                                        return (
+                                            <button
+                                                disabled={!isJoinable}
+                                                style={{
+                                                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                                    gap: '8px', width: '100%', padding: '12px', fontSize: '15px',
+                                                    fontWeight: '600', borderRadius: '10px', border: 'none',
+                                                    backgroundColor: isJoinable ? '#FC8A24' : '#94a3b8',
+                                                    color: 'white',
+                                                    cursor: isJoinable ? 'pointer' : 'not-allowed',
+                                                    opacity: isJoinable ? 1 : 0.8,
+                                                    transition: 'all 0.3s ease'
+                                                }}
+                                                onClick={() => isJoinable && window.open(selectedDemo.meetingLink, '_blank')}
+                                            >
+                                                <Video size={18} /> {isJoinable ? 'Join Class Room' : 'Starts Soon'}
+                                            </button>
+                                        );
+                                    })() : (
                                         <div style={{ textAlign: 'center', color: '#ef4444', fontSize: '14px', background: '#fef2f2', padding: '10px', borderRadius: '8px' }}>
                                             Checking for meeting link...
                                         </div>

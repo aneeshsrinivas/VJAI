@@ -391,37 +391,61 @@ const CoachDashboard = () => {
                             </div>
                         ) : (
                             <div className="demos-list">
-                                {upcomingEvents.map((event, index) => (
-                                    <div key={event.id} className={`demo-card ${event.type === 'demo' ? 'demo-event' : 'class-event'}`} style={{ animationDelay: `${index * 0.1}s`, borderLeft: event.type === 'demo' ? '4px solid #10B981' : '4px solid #3B82F6' }}>
-                                        <div className="demo-time">
-                                            <span className="time-badge">
-                                                {event.scheduledStart
-                                                    ? new Date(event.scheduledStart).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-                                                    : 'TBD'}
-                                            </span>
-                                            <span className="date-text">
-                                                {event.scheduledStart
-                                                    ? new Date(event.scheduledStart).toLocaleDateString([], { weekday: 'short', month: 'short', day: 'numeric' })
-                                                    : ''}
-                                            </span>
+                                {upcomingEvents.map((event, index) => {
+                                    const now = new Date().getTime();
+                                    const eventTime = new Date(event.scheduledStart).getTime();
+                                    const isJoinable = eventTime - now <= 10 * 60 * 1000;
+                                    
+                                    return (
+                                        <div key={event.id} className={`demo-card ${event.type === 'demo' ? 'demo-event' : 'class-event'}`} style={{ animationDelay: `${index * 0.1}s`, borderLeft: event.type === 'demo' ? '4px solid #10B981' : '4px solid #3B82F6' }}>
+                                            <div className="demo-time">
+                                                <span className="time-badge">
+                                                    {event.scheduledStart
+                                                        ? new Date(event.scheduledStart).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+                                                        : 'TBD'}
+                                                </span>
+                                                <span className="date-text">
+                                                    {event.scheduledStart
+                                                        ? new Date(event.scheduledStart).toLocaleDateString([], { weekday: 'short', month: 'short', day: 'numeric' })
+                                                        : ''}
+                                                </span>
+                                            </div>
+                                            <div className="demo-info">
+                                                <h4>
+                                                    {event.type === 'demo' ? '🎯' : '📚'} {event.studentName}
+                                                </h4>
+                                                <p>
+                                                    {event.type === 'demo'
+                                                        ? `${event.chessExperience || 'Beginner'} • Demo`
+                                                        : `${event.title} • Class`}
+                                                </p>
+                                            </div>
+                                            {event.meetingLink && (
+                                                <button 
+                                                    className="btn-join" 
+                                                    disabled={!isJoinable}
+                                                    style={{
+                                                        backgroundColor: isJoinable ? '#FC8A24' : '#94a3b8',
+                                                        cursor: isJoinable ? 'pointer' : 'not-allowed',
+                                                        opacity: isJoinable ? 1 : 0.8,
+                                                        color: 'white',
+                                                        border: 'none',
+                                                        padding: '8px 16px',
+                                                        borderRadius: '8px',
+                                                        display: 'flex',
+                                                        alignItems: 'center',
+                                                        gap: '8px',
+                                                        fontWeight: '600',
+                                                        transition: 'all 0.3s ease'
+                                                    }}
+                                                    onClick={() => isJoinable && window.open(event.meetingLink, '_blank')}
+                                                >
+                                                    <Play size={16} /> {isJoinable ? 'Join' : 'Starts Soon'}
+                                                </button>
+                                            )}
                                         </div>
-                                        <div className="demo-info">
-                                            <h4>
-                                                {event.type === 'demo' ? '🎯' : '📚'} {event.studentName}
-                                            </h4>
-                                            <p>
-                                                {event.type === 'demo'
-                                                    ? `${event.chessExperience || 'Beginner'} • Demo`
-                                                    : `${event.title} • Class`}
-                                            </p>
-                                        </div>
-                                        {event.meetingLink && (
-                                            <button className="btn-join" onClick={() => window.open(event.meetingLink, '_blank')}>
-                                                <Play size={16} /> Join
-                                            </button>
-                                        )}
-                                    </div>
-                                ))}
+                                    );
+                                })}
                             </div>
                         )}
                     </div>
