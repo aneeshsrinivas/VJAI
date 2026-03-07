@@ -397,8 +397,13 @@
     color: rgba(255, 255, 255, 0.22);
 }
 
-.login-form input:focus {
+.login-form input:focus,
+.login-form input:hover {
     outline: none;
+    background: rgba(255, 255, 255, 0.06) !important;
+    background-color: rgba(255, 255, 255, 0.06) !important;
+    color: #ffffff !important;
+    border-color: rgba(255, 255, 255, 0.25) !important;
 }
 
 /* Autofill styling - override browser defaults */

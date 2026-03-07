@@ -7,6 +7,7 @@ import { toast } from 'react-toastify';
 import { ClipboardCheck, Download, Search, Filter, Users, Calendar, BarChart3 } from 'lucide-react';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
+import { useTheme } from '../../context/ThemeContext';
 import './AttendanceReport.css';
 
 const COLORS = {
@@ -16,6 +17,7 @@ const COLORS = {
 };
 
 const AttendanceReport = () => {
+    const { isDark } = useTheme();
     const [records, setRecords] = useState([]);
     const [loading, setLoading] = useState(true);
     const [coaches, setCoaches] = useState([]);
@@ -193,10 +195,10 @@ const AttendanceReport = () => {
         <div className="attendance-report-page">
             <div className="report-header">
                 <div>
-                    <h1 style={{ margin: 0, color: COLORS.deepBlue, display: 'flex', alignItems: 'center', gap: '10px' }}>
+                    <h1 style={{ margin: 0, color: isDark ? '#f0f0f0' : COLORS.deepBlue, display: 'flex', alignItems: 'center', gap: '10px' }}>
                         <ClipboardCheck size={28} /> Attendance Report
                     </h1>
-                    <p style={{ color: '#666', margin: '8px 0 0' }}>View and export student attendance records</p>
+                    <p style={{ color: isDark ? '#94a3b8' : '#666', margin: '8px 0 0' }}>View and export student attendance records</p>
                 </div>
                 <Button onClick={exportPDF} disabled={filteredRecords.length === 0} style={{ backgroundColor: COLORS.oliveGreen, border: 'none', display: 'flex', alignItems: 'center', gap: '6px' }}>
                     <Download size={16} /> Export PDF
@@ -275,8 +277,8 @@ const AttendanceReport = () => {
             {/* Per-student summary */}
             {Object.keys(studentStats).length > 0 && (
                 <Card style={{ padding: '0', marginBottom: '24px', overflow: 'hidden' }}>
-                    <div style={{ padding: '16px 24px', borderBottom: '2px solid #003366', background: '#f8fafc' }}>
-                        <h3 style={{ margin: 0, color: COLORS.deepBlue, fontSize: '16px' }}>Student Summary</h3>
+                    <div style={{ padding: '16px 24px', borderBottom: `2px solid ${isDark ? 'rgba(255,255,255,0.1)' : '#003366'}`, background: isDark ? '#0f1117' : '#f8fafc' }}>
+                        <h3 style={{ margin: 0, color: isDark ? '#f0f0f0' : COLORS.deepBlue, fontSize: '16px' }}>Student Summary</h3>
                     </div>
                     <div style={{ overflowX: 'auto' }}>
                         <table className="report-table">
@@ -313,8 +315,8 @@ const AttendanceReport = () => {
 
             {/* Detailed Records */}
             <Card style={{ padding: '0', overflow: 'hidden' }}>
-                <div style={{ padding: '16px 24px', borderBottom: '2px solid #003366', background: '#f8fafc' }}>
-                    <h3 style={{ margin: 0, color: COLORS.deepBlue, fontSize: '16px' }}>
+                <div style={{ padding: '16px 24px', borderBottom: `2px solid ${isDark ? 'rgba(255,255,255,0.1)' : '#003366'}`, background: isDark ? '#0f1117' : '#f8fafc' }}>
+                    <h3 style={{ margin: 0, color: isDark ? '#f0f0f0' : COLORS.deepBlue, fontSize: '16px' }}>
                         Detailed Records ({filteredRecords.length})
                     </h3>
                 </div>

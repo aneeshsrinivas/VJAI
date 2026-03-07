@@ -6,9 +6,11 @@ import Button from '../../components/ui/Button';
 import Input from '../../components/ui/Input';
 import { toast, ToastContainer } from 'react-toastify';
 import { TrendingUp, TrendingDown, DollarSign, Users, AlertCircle, CheckCircle, Calendar, X } from 'lucide-react';
+import { useTheme } from '../../context/ThemeContext';
 import './FinanceReports.css';
 
 const FinanceReports = () => {
+    const { isDark } = useTheme();
     const [subscriptions, setSubscriptions] = useState([]);
     const [transactions, setTransactions] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -498,11 +500,11 @@ const FinanceReports = () => {
                         <button className="modal-close" onClick={() => setReminderModalOpen(false)}><X size={20} /></button>
                         <h2 style={{ marginBottom: '20px' }}>Send Payment Reminders</h2>
                         <div style={{ marginBottom: '20px' }}>
-                            <p style={{ color: '#666' }}>
+                            <p style={{ color: isDark ? '#cbd5e1' : '#666' }}>
                                 This will send payment reminders to all accounts with overdue payments.
                             </p>
-                            <div style={{ marginTop: '16px', padding: '16px', backgroundColor: '#FEF3C7', borderRadius: '8px' }}>
-                                <strong>{stats.overdueCount}</strong> overdue subscriptions will receive reminders.
+                            <div style={{ marginTop: '16px', padding: '16px', backgroundColor: isDark ? 'rgba(245, 158, 11, 0.1)' : '#FEF3C7', borderRadius: '8px', border: isDark ? '1px solid rgba(245, 158, 11, 0.3)' : 'none' }}>
+                                <strong style={{ color: isDark ? '#fbbf24' : '#92400e' }}>{stats.overdueCount}</strong> <span style={{ color: isDark ? '#fbbf24' : '#92400e' }}>overdue subscriptions will receive reminders.</span>
                             </div>
                         </div>
                         <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end' }}>
