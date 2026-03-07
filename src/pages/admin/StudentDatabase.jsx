@@ -66,7 +66,8 @@ const StudentDatabase = () => {
                         assigned_coach_id: data.assignedCoach || data.assignedCoachId || '-',
                         chess_usernames: data.chessUsername || '-',
                         rating: data.fideRating || 'Unrated',
-                        status: data.status || 'ACTIVE'
+                        status: data.status || 'ACTIVE',
+                        meetingLink: data.meetingLink || ''
                     };
                 });
             setStudents(studentList);
@@ -166,6 +167,7 @@ const StudentDatabase = () => {
                 assignedBatch: editingStudent.assigned_batch_id || null,
                 assignedBatchId: editingStudent.assigned_batch_id || null,
                 assignedBatchName: editingStudent.assigned_batch_name || null,
+                meetingLink: editingStudent.meetingLink || null,
                 updatedAt: serverTimestamp()
             });
 
@@ -176,6 +178,23 @@ const StudentDatabase = () => {
                     studentsId: arrayUnion(editingStudent.id),
                     updatedAt: serverTimestamp()
                 });
+
+                // Also auto-add student to the batch's group chat if it exists
+                try {
+                    const chatsRef = collection(db, 'chats');
+                    const qChat = query(chatsRef, where('batchId', '==', editingStudent.assigned_batch_id));
+                    const chatSnap = await getDocs(qChat);
+                    
+                    if (!chatSnap.empty) {
+                        const chatDoc = chatSnap.docs[0];
+                        await updateDoc(doc(db, 'chats', chatDoc.id), {
+                            participants: arrayUnion(editingStudent.id)
+                        });
+                        console.log(`Added student ${editingStudent.id} to batch chat ${chatDoc.id}`);
+                    }
+                } catch (chatErr) {
+                    console.error('Error auto-adding student to chat:', chatErr);
+                }
             }
 
             toast.success('Student updated successfully!');
@@ -514,30 +533,45 @@ const StudentDatabase = () => {
                             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
                                 <div>
                                     <label style={{ display: 'block', marginBottom: '6px', fontWeight: '600', color: COLORS.deepBlue, fontSize: '14px' }}>Assigned Coach</label>
-                                    <select value={editingStudent.assigned_coach_id || ''} onChange={(e) => setEditingStudent({ ...editingStudent, assigned_coach_id: e.target.value })} style={{ width: '100%', padding: '12px', border: '1px solid #ddd', borderRadius: '8px', fontSize: '14px' }}>
+                                    <select 
+                                        value={editingStudent.assigned_coach_id || ''} 
+                                        onChange={(e) => setEditingStudent({ ...editingStudent, assigned_coach_id: e.target.value })} 
+                                        style={{ width: '100%', padding: '12px', border: '1px solid #ddd', borderRadius: '8px', fontSize: '14px' }}
+                                    >
                                         <option value="">-- No Coach --</option>
                                         {coaches.map(c => (<option key={c.id} value={c.id}>{c.name}</option>))}
                                     </select>
                                 </div>
                                 <div>
-                                    <label style={{ display: 'block', marginBottom: '6px', fontWeight: '600', color: COLORS.deepBlue, fontSize: '14px' }}>Assigned Batch</label>
-                                    <select
-                                        value={editingStudent.assigned_batch_id || ''}
-                                        onChange={(e) => {
-                                            const selectedBatch = batches.find(b => b.id === e.target.value);
-                                            setEditingStudent({
-                                                ...editingStudent,
-                                                assigned_batch_id: e.target.value,
-                                                assigned_batch_name: selectedBatch?.name || ''
-                                            });
-                                        }}
-                                        disabled={!editingStudent.assigned_coach_id}
-                                        style={{ width: '100%', padding: '12px', border: '1px solid #ddd', borderRadius: '8px', fontSize: '14px', backgroundColor: !editingStudent.assigned_coach_id ? '#f5f5f5' : '#fff', cursor: !editingStudent.assigned_coach_id ? 'not-allowed' : 'pointer' }}
-                                    >
-                                        <option value="">{!editingStudent.assigned_coach_id ? '-- Select Coach First --' : '-- No Batch --'}</option>
-                                        {batches.map(b => (<option key={b.id} value={b.id}>{b.name}</option>))}
-                                    </select>
+                                    <label style={{ display: 'block', marginBottom: '6px', fontWeight: '600', color: COLORS.deepBlue, fontSize: '14px' }}>Meeting Link</label>
+                                    <input
+                                        type="text"
+                                        placeholder="Zoom or Google Meet link"
+                                        value={editingStudent.meetingLink || ''}
+                                        onChange={(e) => setEditingStudent({ ...editingStudent, meetingLink: e.target.value })}
+                                        style={{ width: '100%', padding: '12px', border: '1px solid #ddd', borderRadius: '8px', fontSize: '14px' }}
+                                    />
                                 </div>
+                            </div>
+
+                            <div>
+                                <label style={{ display: 'block', marginBottom: '6px', fontWeight: '600', color: COLORS.deepBlue, fontSize: '14px' }}>Assigned Batch</label>
+                                <select
+                                    value={editingStudent.assigned_batch_id || ''}
+                                    onChange={(e) => {
+                                        const selectedBatch = batches.find(b => b.id === e.target.value);
+                                        setEditingStudent({
+                                            ...editingStudent,
+                                            assigned_batch_id: e.target.value,
+                                            assigned_batch_name: selectedBatch?.name || ''
+                                        });
+                                    }}
+                                    disabled={!editingStudent.assigned_coach_id}
+                                    style={{ width: '100%', padding: '12px', border: '1px solid #ddd', borderRadius: '8px', fontSize: '14px', backgroundColor: !editingStudent.assigned_coach_id ? '#f5f5f5' : '#fff', cursor: !editingStudent.assigned_coach_id ? 'not-allowed' : 'pointer' }}
+                                >
+                                    <option value="">{!editingStudent.assigned_coach_id ? '-- Select Coach First --' : '-- No Batch --'}</option>
+                                    {batches.map(b => (<option key={b.id} value={b.id}>{b.name}</option>))}
+                                </select>
                             </div>
                         </div>
 

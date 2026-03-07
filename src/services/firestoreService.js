@@ -403,6 +403,7 @@ export const createParentAccount = async (uid, email, adminId, extraData = {}) =
             studentAge: extraData.studentAge || '',
             parentName: extraData.parentName || '',
             learningLevel: extraData.learningLevel || '',
+            meetingLink: extraData.meetingLink || '', // Store the demo meeting link as default
             createdAt: serverTimestamp(),
             updatedAt: serverTimestamp()
         });

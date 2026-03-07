@@ -43,7 +43,7 @@ const ManageBatchesModal = ({ isOpen, onClose, coach }) => {
         try {
             const coachDocId = coach.id;
             // Add to coach's subcollection
-            await addDoc(collection(db, 'coaches', coachDocId, 'batches'), {
+            const batchRef = await addDoc(collection(db, 'coaches', coachDocId, 'batches'), {
                 name: newBatch.name,
                 schedule: newBatch.schedule,
                 level: newBatch.level.toLowerCase(),
@@ -56,8 +56,22 @@ const ManageBatchesModal = ({ isOpen, onClose, coach }) => {
                 reports: [],
                 createdAt: serverTimestamp()
             });
+
+            // Create a corresponding group chat for this batch
+            await addDoc(collection(db, 'chats'), {
+                chatType: 'BATCH',
+                batchId: batchRef.id,
+                batchName: newBatch.name,
+                participants: [coach.accountId], // Coach is the first participant
+                coachId: coach.accountId,
+                coachName: coach.fullName || 'Coach',
+                lastMessage: `Group chat for ${newBatch.name} created.`,
+                lastMessageAt: serverTimestamp(),
+                createdAt: serverTimestamp()
+            });
+
             setNewBatch({ name: '', schedule: '', level: 'Beginner' });
-            toast.success(`Batch "${newBatch.name}" assigned successfully!`);
+            toast.success(`Batch "${newBatch.name}" and group chat created!`);
         } catch (e) {
             console.error("Error adding batch:", e);
             toast.error("Failed to add batch");

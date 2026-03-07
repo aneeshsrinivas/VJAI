@@ -31,7 +31,7 @@ const CoachStudents = () => {
         const q = query(
             collection(db, 'users'),
             where('assignedCoachId', '==', currentUser.uid),
-            where('role', '==', 'customer') // Ensure we only get students
+            where('role', 'in', ['student', 'customer'])
         );
 
         const unsubscribe = onSnapshot(q, (snapshot) => {

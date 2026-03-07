@@ -7,16 +7,21 @@ import { collection, query, where, onSnapshot, doc, getDoc, limit } from 'fireba
 import { db } from '../lib/firebase';
 import { COLLECTIONS } from '../config/firestoreCollections';
 import {
-    Calendar, Users, MessageSquare, BookOpen, Clock, Video,
-    Upload, FileText, Star, Target, Award, TrendingUp,
-    ChevronRight, Zap, GraduationCap, Sparkles, Trophy,
-    Play, ArrowRight, Flame, Brain, CheckCircle2
+    Clock, Users, Calendar, TrendingUp, BookOpen, ChevronRight,
+    MessageSquare, GraduationCap, Video, CheckCircle2,
+    Sparkles, Brain, Star, Play, PlayCircle, Plus, Upload, Trash2,
+    FileText
 } from 'lucide-react';
+import { useTheme } from '../context/ThemeContext';
+import CreateChessPuzzleModal from '../components/features/CreateChessPuzzleModal';
+import UploadMaterialModal from '../components/features/UploadMaterialModal';
+import CreateAssignmentModal from '../components/features/CreateAssignmentModal';
 import './CoachDashboard.css';
 
 const CoachDashboard = () => {
     const navigate = useNavigate();
     const { currentUser, userData } = useAuth();
+    const { isDark } = useTheme();
     const fileInputRef = useRef(null);
 
     // State for dynamic data
@@ -28,7 +33,9 @@ const CoachDashboard = () => {
     const [loading, setLoading] = useState(true);
     const [cardsVisible, setCardsVisible] = useState(false);
     const [uploadingFile, setUploadingFile] = useState(false);
-    const [selectedBatchForUpload, setSelectedBatchForUpload] = useState('');
+    const [selectedBatchForUpload, setSelectedBatchForUpload] = useState(null);
+    const [createAssignmentBatch, setCreateAssignmentBatch] = useState(null);
+    const [createPuzzleBatch, setCreatePuzzleBatch] = useState(null);
     const [activeTab, setActiveTab] = useState('overview');
     const [schedule, setSchedule] = useState([]);
 
@@ -141,14 +148,21 @@ const CoachDashboard = () => {
         };
     }, [currentUser]);
 
-    // Fetch students and batches using the Firestore coach doc ID
-    // (assignedCoachId on students stores the Firestore doc ID, not the auth UID)
+    // Fetch students and batches
+    // Students are in the 'users' collection; admin may assign by coachDocId OR auth UID
     useEffect(() => {
-        if (!coachDocId) return;
+        if (!currentUser?.uid) return;
 
+        const idsToQuery = [currentUser.uid];
+        if (coachDocId && coachDocId !== currentUser.uid) {
+            idsToQuery.push(coachDocId);
+        }
+
+        // Query students assigned to this coach (by auth UID or coach doc ID)
         const studentsQuery = query(
-            collection(db, COLLECTIONS.STUDENTS),
-            where('assignedCoachId', '==', coachDocId)
+            collection(db, 'users'),
+            where('assignedCoachId', 'in', idsToQuery),
+            where('role', 'in', ['student', 'customer'])
         );
 
         const unsubStudents = onSnapshot(studentsQuery, (snapshot) => {
@@ -158,13 +172,24 @@ const CoachDashboard = () => {
             setStudents([]);
         });
 
+        // Batches: try coachDocId first, fallback to auth UID
+        const batchPath = coachDocId || currentUser.uid;
         const unsubBatches = onSnapshot(
-            collection(db, COLLECTIONS.COACHES, coachDocId, 'batches'),
+            collection(db, COLLECTIONS.COACHES, batchPath, 'batches'),
             (snapshot) => {
                 setBatches(snapshot.docs.map(d => ({ id: d.id, ...d.data() })));
             },
             (error) => {
                 console.error('Batches query error:', error);
+                // If coachDocId path failed, try auth UID as fallback
+                if (batchPath !== currentUser.uid) {
+                    const unsubFallback = onSnapshot(
+                        collection(db, COLLECTIONS.COACHES, currentUser.uid, 'batches'),
+                        (snap) => setBatches(snap.docs.map(d => ({ id: d.id, ...d.data() }))),
+                        () => setBatches([])
+                    );
+                    return () => unsubFallback();
+                }
                 setBatches([]);
             }
         );
@@ -173,7 +198,9 @@ const CoachDashboard = () => {
             unsubStudents();
             unsubBatches();
         };
-    }, [coachDocId]);
+    }, [coachDocId, currentUser]);
+
+    const getGreeting = () => {
         const hour = new Date().getHours();
         if (hour < 12) return { text: 'Good Morning', emoji: '🌅' };
         if (hour < 17) return { text: 'Good Afternoon', emoji: '☀️' };
@@ -551,14 +578,30 @@ const CoachDashboard = () => {
 
                         <div className="batches-list">
                             {batches.map(batch => (
-                                <div key={batch.id} className="batch-card">
-                                    <div className="batch-header">
-                                        <span className="batch-name">{batch.name}</span>
-                                        <span className={`batch-level ${batch.level}`}>{batch.level}</span>
+                                <div key={batch.id} className="batch-card" style={{ padding: '20px', borderRadius: '16px', background: isDark ? 'rgba(255,255,255,0.03)' : '#f8fafc', border: isDark ? '1px solid rgba(255,255,255,0.08)' : '1px solid #e2e8f0' }}>
+                                    <div className="batch-header" style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '12px' }}>
+                                        <span className="batch-name" style={{ fontWeight: '700', fontSize: '16px' }}>{batch.name}</span>
+                                        <span className={`batch-level ${batch.level}`} style={{ fontSize: '11px', padding: '2px 8px', borderRadius: '10px', background: batch.level === 'beginner' ? '#dcfce7' : '#dbeafe', color: batch.level === 'beginner' ? '#166534' : '#1e40af' }}>{batch.level}</span>
                                     </div>
-                                    <div className="batch-meta">
+                                    <div className="batch-meta" style={{ display: 'flex', gap: '12px', fontSize: '13px', color: '#64748b', marginBottom: '20px' }}>
                                         <span>👥 {batch.studentsId?.length ?? 0} students</span>
                                         <span>📅 {batch.schedule || 'Flexible'}</span>
+                                    </div>
+                                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+                                        <button 
+                                            className="btn-batch-action" 
+                                            onClick={() => setCreatePuzzleBatch(batch)}
+                                            style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', padding: '8px', fontSize: '12px', borderRadius: '8px', border: '1px solid #10b981', background: '#ecfdf5', color: '#047857', fontWeight: '600' }}
+                                        >
+                                            <PlayCircle size={14} /> Puzzle
+                                        </button>
+                                        <button 
+                                            className="btn-batch-action" 
+                                            onClick={() => setSelectedBatchForUpload(batch)}
+                                            style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', padding: '8px', fontSize: '12px', borderRadius: '8px', border: '1px solid #3b82f6', background: '#eff6ff', color: '#1d4ed8', fontWeight: '600' }}
+                                        >
+                                            <Upload size={14} /> Material
+                                        </button>
                                     </div>
                                 </div>
                             ))}
@@ -589,6 +632,59 @@ const CoachDashboard = () => {
                     </div>
                 </div>
             </div>
+
+            {/* Modals */}
+            <CreateChessPuzzleModal 
+                isOpen={!!createPuzzleBatch} 
+                onClose={() => setCreatePuzzleBatch(null)} 
+                batchId={createPuzzleBatch?.id}
+                batchName={createPuzzleBatch?.name}
+                onSuccess={() => {}}
+            />
+
+            <UploadMaterialModal
+                isOpen={!!selectedBatchForUpload}
+                onClose={() => setSelectedBatchForUpload(null)}
+                batchId={selectedBatchForUpload?.id}
+                batchName={selectedBatchForUpload?.name}
+                onSuccess={() => {}}
+            />
+
+            <CreateAssignmentModal
+                isOpen={!!createAssignmentBatch}
+                onClose={() => setCreateAssignmentBatch(null)}
+                batchId={createAssignmentBatch?.id}
+                batchName={createAssignmentBatch?.name}
+                onSuccess={() => {}}
+            />
+            {/* Floating Contact Admin Button */}
+            <button
+                className="floating-contact-admin"
+                onClick={() => navigate('/coach/chat')}
+                style={{
+                    position: 'fixed',
+                    bottom: '30px',
+                    right: '30px',
+                    width: '60px',
+                    height: '60px',
+                    borderRadius: '50%',
+                    background: '#FC8A24',
+                    color: 'white',
+                    border: 'none',
+                    boxShadow: '0 4px 15px rgba(252, 138, 36, 0.4)',
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    zIndex: 1000,
+                    transition: 'transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275)'
+                }}
+                onMouseEnter={(e) => e.currentTarget.style.transform = 'scale(1.1)'}
+                onMouseLeave={(e) => e.currentTarget.style.transform = 'scale(1)'}
+                title="Contact Admin Support"
+            >
+                <MessageSquare size={28} color="white" />
+            </button>
         </div>
     );
 };

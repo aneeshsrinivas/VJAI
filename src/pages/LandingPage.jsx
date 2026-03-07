@@ -3,6 +3,7 @@ import { createPortal } from 'react-dom';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ToastContainer } from 'react-toastify';
+import { useAuth } from '../context/AuthContext';
 import Button from '../components/ui/Button';
 import Footer from '../components/layout/Footer';
 import CTASection from '../components/shared/CTASection';
@@ -21,6 +22,17 @@ const LandingPage = () => {
     const navigate = useNavigate();
     const [activeFAQ, setActiveFAQ] = useState(null);
     const [activeModal, setActiveModal] = useState(null);
+
+    const { userData } = useAuth();
+
+    useEffect(() => {
+        if (userData?.role) {
+            console.log('🔄 User already logged in on Home, redirecting to dashboard:', userData.role);
+            if (userData.role === 'admin') navigate('/admin');
+            else if (userData.role === 'coach') navigate('/coach');
+            else if (userData.role === 'customer' || userData.role === 'student') navigate('/parent');
+        }
+    }, [userData, navigate]);
 
     useEffect(() => {
         if (activeModal) {

@@ -30,7 +30,7 @@ const ParentDashboard = () => {
     const [student, setStudent] = useState(null);
     const [coach, setCoach] = useState(null);
     const [broadcasts, setBroadcasts] = useState([]);
-    const [scheduleItems, setScheduleItems] = useState([]);
+    const [subscription, setSubscription] = useState(null);
     const [chessAssignments, setChessAssignments] = useState([]);
     const [selectedAssignment, setSelectedAssignment] = useState(null);
     const [loading, setLoading] = useState(true);
@@ -39,6 +39,7 @@ const ParentDashboard = () => {
     // UI State
     const [cardsVisible, setCardsVisible] = useState(false);
     const [progress, setProgress] = useState(0);
+    const [scheduleItems, setScheduleItems] = useState([]);
 
     // 1. Listen to Student Data (for realtime Level & Coach assignment)
     useEffect(() => {
@@ -71,7 +72,7 @@ const ParentDashboard = () => {
             // Admin updates 'users' collection, NOT 'students'
             const userDocRef = doc(db, 'users', currentUser.uid);
 
-            const unsubscribeStudent = onSnapshot(userDocRef, async (snapshot) => {
+            const unsubStudent = onSnapshot(userDocRef, async (snapshot) => {
                 if (snapshot.exists()) {
                     const studentData = { id: snapshot.id, ...snapshot.data() };
                     setStudent(studentData);
@@ -198,7 +199,7 @@ const ParentDashboard = () => {
             });
 
             return () => {
-                unsubscribeStudent();
+                unsubStudent();
                 unsubscribeDemos();
                 unsubscribeBroadcasts();
             };
@@ -522,7 +523,6 @@ const ParentDashboard = () => {
                     </div>
                 </div>
             </section>
-
             {/* Main Content Grid */}
             <div className="dashboard-content">
                 {student?.status === 'PAYMENT_PENDING' && (
@@ -561,10 +561,10 @@ const ParentDashboard = () => {
                                         studentAge: student?.age || student?.studentAge || '',
                                     }
                                 }
-                            })} 
-                            style={{ 
-                                background: 'white', 
-                                color: '#b91c1c', 
+                            })}
+                            style={{
+                                background: 'white',
+                                color: '#b91c1c',
                                 fontWeight: 'bold',
                                 whiteSpace: 'nowrap',
                                 padding: '12px 24px',
@@ -601,290 +601,314 @@ const ParentDashboard = () => {
                         </div>
                     </div>
                 )}
+
                 {/* Render main content only if fully active */}
                 {student?.status !== 'PAYMENT_PENDING' && (
-                <div className="content-grid">
-                    {/* Left Column */}
-                    <div className="main-column">
-
-                        {/* Announcements Section (Dynamic) */}
-                        {broadcasts.length > 0 && (
-                            <div className={`content-card announcement-card ${cardsVisible ? 'visible' : ''}`}>
-                                <div className="card-header-row">
-                                    <div className="card-title-group">
-                                        <Megaphone size={22} color="#f59e0b" />
-                                        <h3>Announcements</h3>
-                                    </div>
-                                </div>
-                                <div className="announcement-list">
-                                    {broadcasts.map(broadcast => (
-                                        <div key={broadcast.id} className="announcement-item">
-                                            <div className="ann-icon">
-                                                <Bell size={16} />
-                                            </div>
-                                            <div className="ann-content">
-                                                <div className="ann-header">
-                                                    <span className="ann-subject">{broadcast.subject}</span>
-                                                    <span className="ann-date">{formatDate(broadcast.createdAt)}</span>
-                                                </div>
-                                                <p className="ann-message">{broadcast.message}</p>
-                                            </div>
+                    <div className="content-grid">
+                        {/* Left Column */}
+                        <div className="main-column">
+                            {/* Announcements Section */}
+                            {broadcasts.length > 0 && (
+                                <div className={`content-card announcement-card ${cardsVisible ? 'visible' : ''}`}>
+                                    <div className="card-header-row">
+                                        <div className="card-title-group">
+                                            <Megaphone size={22} color="#f59e0b" />
+                                            <h3>Announcements</h3>
                                         </div>
-                                    ))}
-                                </div>
-                            </div>
-                        )}
-
-
-
-                        {/* Chess Assignments Section */}
-                        {chessAssignments.length > 0 && (
-                            <div className={`content-card ${cardsVisible ? 'visible' : ''}`}>
-                                <div className="card-header-row">
-                                    <div className="card-title-group">
-                                        <ChessBishopIcon size={22} color="#181818" />
-                                        <h3>Chess Assignments</h3>
                                     </div>
-                                </div>
-                                <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                                    {chessAssignments.map((assignment) => (
-                                        <div
-                                            key={assignment.id}
-                                            onClick={() => setSelectedAssignment(assignment)}
-                                            style={{
-                                                padding: '16px',
-                                                background: '#f8fafc',
-                                                borderRadius: '8px',
-                                                border: '1px solid #e2e8f0',
-                                                cursor: 'pointer',
-                                                transition: 'all 0.2s',
-                                            }}
-                                            onMouseEnter={(e) => {
-                                                e.currentTarget.style.background = '#eff6ff';
-                                                e.currentTarget.style.borderColor = '#3b82f6';
-                                            }}
-                                            onMouseLeave={(e) => {
-                                                e.currentTarget.style.background = '#f8fafc';
-                                                e.currentTarget.style.borderColor = '#e2e8f0';
-                                            }}
-                                        >
-                                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start', marginBottom: '8px' }}>
-                                                <div>
-                                                    <h4 style={{ margin: 0, color: '#1e293b', fontSize: '16px', fontWeight: '600' }}>
-                                                        {assignment.title}
-                                                    </h4>
-                                                    <div style={{ fontSize: '13px', color: '#64748b', marginTop: '4px' }}>
-                                                        {assignment.type} • {assignment.batchName}
+                                    <div className="announcement-list">
+                                        {broadcasts.map(broadcast => (
+                                            <div key={broadcast.id} className="announcement-item">
+                                                <div className="ann-icon">
+                                                    <Bell size={16} />
+                                                </div>
+                                                <div className="ann-content">
+                                                    <div className="ann-header">
+                                                        <span className="ann-subject">{broadcast.subject}</span>
+                                                        <span className="ann-date">{formatDate(broadcast.createdAt)}</span>
                                                     </div>
+                                                    <p className="ann-message">{broadcast.message}</p>
                                                 </div>
-                                                <span style={{
-                                                    padding: '4px 12px',
-                                                    background: assignment.isSubmitted ? '#dcfce7' : '#dbeafe',
-                                                    color: assignment.isSubmitted ? '#166534' : '#1e40af',
-                                                    borderRadius: '12px',
-                                                    fontSize: '12px',
-                                                    fontWeight: '600'
-                                                }}>
-                                                    {assignment.isSubmitted ? 'Submitted' : 'View'}
-                                                </span>
                                             </div>
-                                            <p style={{ margin: 0, fontSize: '14px', color: '#475569', lineHeight: '1.5' }}>
-                                                {assignment.description?.substring(0, 80)}{assignment.description?.length > 80 ? '...' : ''}
-                                            </p>
-                                        </div>
-                                    ))}
-                                </div>
-                            </div>
-                        )}
-
-                        {/* Quick Actions Grid */}
-                        <div className={`quick-actions-grid ${cardsVisible ? 'visible' : ''}`}>
-                            {quickActions.map((action, index) => {
-                                const IconComponent = action.icon;
-                                return (
-                                    <button
-                                        key={index}
-                                        className="quick-action-card"
-                                        onClick={() => navigate(action.path)}
-                                        style={{ '--card-gradient': action.gradient }}
-                                    >
-                                        <div className="action-icon-circle">
-                                            <IconComponent size={24} color="white" />
-                                        </div>
-                                        <div className="action-text">
-                                            <span className="action-title">{action.label}</span>
-                                            <span className="action-desc">{action.description}</span>
-                                        </div>
-                                        <span className="action-arrow">→</span>
-                                    </button>
-                                );
-                            })}
-                        </div>
-                    </div>
-
-                    {/* Right Sidebar */}
-                    <div className="sidebar-column">
-                        {/* Coach Card - Dynamic */}
-                        <div className={`content-card coach-card ${cardsVisible ? 'visible' : ''}`}>
-                            <div className="card-header-row">
-                                <h3>Your Coach</h3>
-                            </div>
-                            <div className="coach-profile">
-                                <div className="coach-avatar-large" style={{ overflow: 'hidden' }}>
-                                    {coach?.photoURL ? (
-                                        <img src={coach.photoURL} alt="Coach" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                                    ) : (
-                                        <ChessBishopIcon size={40} color="#181818" />
-                                    )}
-                                </div>
-                                <div className="coach-info">
-                                    <h4 className="coach-name">{coach ? (coach.fullName || coach.studentName || 'Abhiram Bhat') : 'Abhiram Bhat'}</h4>
-                                    <div className="coach-badges">
-                                        <span className="badge fide">{coach?.title || 'Coach'}</span>
-                                        <span className="badge rating">
-                                            <StarIcon size={12} color="#D4AF37" filled />
-                                            {coach?.rating || '5.0'}
-                                        </span>
+                                        ))}
                                     </div>
-                                    {student?.assignedBatchName && (
-                                        <p className="assigned-batch" style={{ margin: '8px 0 0 0', fontSize: '14px', color: '#666' }}>
-                                            <strong>Batch:</strong> {student.assignedBatchName}
-                                        </p>
-                                    )}
                                 </div>
-                            </div>
-                            <div className="coach-stats-row">
-                                <div className="coach-stat">
-                                    <span className="stat-value">{coach?.sessions || '0'}</span>
-                                    <span className="stat-label">Sessions</span>
+                            )}
+
+                            {/* Chess Assignments Section */}
+                            {chessAssignments.length > 0 && (
+                                <div className={`content-card ${cardsVisible ? 'visible' : ''}`}>
+                                    <div className="card-header-row">
+                                        <div className="card-title-group">
+                                            <ChessBishopIcon size={22} color="#181818" />
+                                            <h3>Chess Assignments</h3>
+                                        </div>
+                                    </div>
+                                    <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                                        {chessAssignments.map((assignment) => (
+                                            <div
+                                                key={assignment.id}
+                                                onClick={() => setSelectedAssignment(assignment)}
+                                                style={{
+                                                    padding: '16px',
+                                                    background: '#f8fafc',
+                                                    borderRadius: '8px',
+                                                    border: '1px solid #e2e8f0',
+                                                    cursor: 'pointer',
+                                                    transition: 'all 0.2s',
+                                                }}
+                                                onMouseEnter={(e) => {
+                                                    e.currentTarget.style.background = '#eff6ff';
+                                                    e.currentTarget.style.borderColor = '#3b82f6';
+                                                }}
+                                                onMouseLeave={(e) => {
+                                                    e.currentTarget.style.background = '#f8fafc';
+                                                    e.currentTarget.style.borderColor = '#e2e8f0';
+                                                }}
+                                            >
+                                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start', marginBottom: '8px' }}>
+                                                    <div>
+                                                        <h4 style={{ margin: 0, color: '#1e293b', fontSize: '16px', fontWeight: '600' }}>
+                                                            {assignment.title}
+                                                        </h4>
+                                                        <div style={{ fontSize: '13px', color: '#64748b', marginTop: '4px' }}>
+                                                            {assignment.type} • {assignment.batchName}
+                                                        </div>
+                                                    </div>
+                                                    <span style={{
+                                                        padding: '4px 12px',
+                                                        background: assignment.isSubmitted ? '#dcfce7' : '#dbeafe',
+                                                        color: assignment.isSubmitted ? '#166534' : '#1e40af',
+                                                        borderRadius: '12px',
+                                                        fontSize: '12px',
+                                                        fontWeight: '600'
+                                                    }}>
+                                                        {assignment.isSubmitted ? 'Submitted' : 'View'}
+                                                    </span>
+                                                </div>
+                                                <p style={{ margin: 0, fontSize: '14px', color: '#475569', lineHeight: '1.5' }}>
+                                                    {assignment.description?.substring(0, 80)}{assignment.description?.length > 80 ? '...' : ''}
+                                                </p>
+                                            </div>
+                                        ))}
+                                    </div>
                                 </div>
-                                <div className="coach-stat">
-                                    <span className="stat-value">{coach?.experience || '5+'}</span>
-                                    <span className="stat-label">Years Exp</span>
-                                </div>
-                                <div className="coach-stat">
-                                    <span className="stat-value">{coach?.studentCount || '50+'}</span>
-                                    <span className="stat-label">Students</span>
-                                </div>
-                            </div>
-                            <div className="privacy-notice">
-                                <LockIcon size={14} color="#999" />
-                                <span>Contact info kept private for safety</span>
+                            )}
+
+                            {/* Quick Actions Grid */}
+                            <div className={`quick-actions-grid ${cardsVisible ? 'visible' : ''}`}>
+                                {quickActions.map((action, index) => {
+                                    const IconComponent = action.icon;
+                                    return (
+                                        <button
+                                            key={index}
+                                            className="quick-action-card"
+                                            onClick={() => navigate(action.path)}
+                                            style={{ '--card-gradient': action.gradient }}
+                                        >
+                                            <div className="action-icon-circle">
+                                                <IconComponent size={24} color="white" />
+                                            </div>
+                                            <div className="action-text">
+                                                <span className="action-title">{action.label}</span>
+                                                <span className="action-desc">{action.description}</span>
+                                            </div>
+                                            <span className="action-arrow">→</span>
+                                        </button>
+                                    );
+                                })}
                             </div>
                         </div>
 
-                        {/* Attendance Widget */}
-                        {attendanceStats.total > 0 && (
-                            <div className={`content-card ${cardsVisible ? 'visible' : ''}`}>
+                        {/* Right Sidebar */}
+                        <div className="sidebar-column">
+                            {/* Coach Card */}
+                            <div className={`content-card coach-card ${cardsVisible ? 'visible' : ''}`}>
                                 <div className="card-header-row">
-                                    <h3>Attendance</h3>
+                                    <h3>Your Coach</h3>
                                 </div>
-                                <div style={{ display: 'flex', alignItems: 'center', gap: '20px', padding: '8px 0' }}>
-                                    <div style={{
-                                        width: '72px', height: '72px', borderRadius: '50%',
-                                        background: `conic-gradient(${attendanceStats.total > 0 && (attendanceStats.present / attendanceStats.total) >= 0.75 ? '#16a34a' : '#f59e0b'} ${(attendanceStats.present / attendanceStats.total) * 360}deg, #f1f5f9 0deg)`,
-                                        display: 'flex', alignItems: 'center', justifyContent: 'center'
-                                    }}>
-                                        <div style={{
-                                            width: '56px', height: '56px', borderRadius: '50%',
-                                            background: 'white', display: 'flex', alignItems: 'center',
-                                            justifyContent: 'center', fontWeight: '800', fontSize: '18px',
-                                            color: attendanceStats.total > 0 && (attendanceStats.present / attendanceStats.total) >= 0.75 ? '#16a34a' : '#f59e0b'
-                                        }}>
-                                            {attendanceStats.total > 0 ? Math.round((attendanceStats.present / attendanceStats.total) * 100) : 0}%
-                                        </div>
+                                <div className="coach-profile">
+                                    <div className="coach-avatar-large" style={{ overflow: 'hidden' }}>
+                                        {coach?.photoURL ? (
+                                            <img src={coach.photoURL} alt="Coach" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                                        ) : (
+                                            <ChessBishopIcon size={40} color="#181818" />
+                                        )}
                                     </div>
-                                    <div>
-                                        <div style={{ fontSize: '14px', color: '#334155', fontWeight: '600' }}>
-                                            {attendanceStats.present} / {attendanceStats.total} classes
+                                    <div className="coach-info">
+                                        <h4 className="coach-name">{coach ? (coach.fullName || coach.studentName || 'Coach Assigned') : 'Assigning Coach...'}</h4>
+                                        <div className="coach-badges">
+                                            <span className="badge fide">{coach?.title || 'Instructor'}</span>
+                                            <span className="badge rating">
+                                                <StarIcon size={12} color="#D4AF37" filled />
+                                                {coach?.rating || '5.0'}
+                                            </span>
                                         </div>
-                                        <div style={{ fontSize: '13px', color: '#64748b', marginTop: '4px' }}>
-                                            {attendanceStats.total > 0 && (attendanceStats.present / attendanceStats.total) >= 0.85
-                                                ? 'Excellent attendance!'
-                                                : attendanceStats.total > 0 && (attendanceStats.present / attendanceStats.total) >= 0.7
-                                                    ? 'Good attendance'
-                                                    : 'Needs improvement'}
-                                        </div>
+                                        {student?.assignedBatchName && (
+                                            <p className="assigned-batch" style={{ margin: '8px 0 0 0', fontSize: '14px', color: '#666' }}>
+                                                <strong>Batch:</strong> {student.assignedBatchName}
+                                            </p>
+                                        )}
+                                    </div>
+                                </div>
+                                <div className="coach-stats-row">
+                                    <div className="coach-stat">
+                                        <span className="stat-value">{coach?.sessions || '0'}</span>
+                                        <span className="stat-label">Sessions</span>
+                                    </div>
+                                    <div className="coach-stat">
+                                        <span className="stat-value">{coach?.experience || '5+'}</span>
+                                        <span className="stat-label">Years Exp</span>
+                                    </div>
+                                    <div className="coach-stat">
+                                        <span className="stat-value">{coach?.studentCount || '50+'}</span>
+                                        <span className="stat-label">Students</span>
                                     </div>
                                 </div>
                             </div>
-                        )}
 
-                        {/* Next Class Card */}
-                        {scheduleItems.filter(i => i.status === 'SCHEDULED' || i.status === 'upcoming').length > 0 && (
-                            <div className={`content-card next-class-card ${cardsVisible ? 'visible' : ''}`}>
-                                <div className="live-badge">
-                                    <span className="live-dot"></span>
-                                    UPCOMING
-                                </div>
-                                <div className="next-class-content">
-                                    <div className="class-time-big">
-                                        <span className="time-prefix">Next Class</span>
-                                        <span className="time-main">
-                                            {scheduleItems.find(i => i.status === 'SCHEDULED' || i.status === 'upcoming').time}
+                            {/* Subscription Card */}
+                            {subscription && (
+                                <div className={`content-card ${cardsVisible ? 'visible' : ''}`} style={{ borderLeft: '4px solid #FC8A24' }}>
+                                    <div className="card-header-row">
+                                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                            <StarIcon size={18} color="#FC8A24" filled />
+                                            <h4 style={{ margin: 0, fontSize: '15px', fontWeight: '700' }}>Active Plan</h4>
+                                        </div>
+                                        <span style={{ fontSize: '11px', padding: '2px 8px', borderRadius: '10px', background: '#fef3c7', color: '#92400e', fontWeight: 'bold' }}>
+                                            {subscription.status}
                                         </span>
                                     </div>
-                                    <div className="countdown-pill">
-                                        <ClockIcon size={14} color="#6B8E23" />
-                                        {scheduleItems.find(i => i.status === 'SCHEDULED' || i.status === 'upcoming').day}
-                                    </div>
-                                    <div className="class-topic-box">
-                                        <span className="topic-pre">Topic:</span>
-                                        <span className="topic-main">Demo/Intro</span>
+                                    <div style={{ marginTop: '12px' }}>
+                                        <div style={{ fontSize: '18px', fontWeight: '800', color: '#1e293b' }}>
+                                            {subscription.planName || 'Chess Pro Plan'}
+                                        </div>
+                                        <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '12px', fontSize: '13px', color: '#64748b' }}>
+                                            <span>Next Billing:</span>
+                                            <span style={{ fontWeight: '600', color: '#1e293b' }}>
+                                                {subscription.nextDueAt?.toDate ? subscription.nextDueAt.toDate().toLocaleDateString() : 'N/A'}
+                                            </span>
+                                        </div>
                                     </div>
                                     <button
-                                        className="join-now-btn"
-                                        onClick={() => window.open(scheduleItems[0].link || 'https://meet.google.com', '_blank')}
+                                        onClick={() => navigate('/parent/payments')}
+                                        style={{ width: '100%', marginTop: '16px', padding: '8px', borderRadius: '8px', border: '1px solid #e2e8f0', background: 'white', color: '#64748b', fontSize: '12px', fontWeight: '600', cursor: 'pointer' }}
                                     >
-                                        <VideoIcon size={20} color="white" />
-                                        Join Class Now
+                                        Manage Subscription
                                     </button>
                                 </div>
-                            </div>
-                        )}
+                            )}
 
-                        {/* Motivational Card */}
-                        <div className={`content-card motivation-card ${cardsVisible ? 'visible' : ''}`}>
-                            <img
-                                src="https://images.unsplash.com/photo-1560174038-da43ac74f01b?w=400&q=80"
-                                alt="Chess"
-                                className="motivation-img"
-                            />
-                            <div className="motivation-overlay">
-                                <p className="motivation-quote">"Every chess master was once a beginner."</p>
-                                <span className="motivation-author">— Irving Chernev</span>
-                            </div>
+                            {/* Attendance Widget */}
+                            {attendanceStats.total > 0 && (
+                                <div className={`content-card ${cardsVisible ? 'visible' : ''}`}>
+                                    <div className="card-header-row">
+                                        <h3>Attendance</h3>
+                                    </div>
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: '20px', padding: '8px 0' }}>
+                                        <div style={{
+                                            width: '72px', height: '72px', borderRadius: '50%',
+                                            background: `conic-gradient(${attendanceStats.total > 0 && (attendanceStats.present / attendanceStats.total) >= 0.75 ? '#16a34a' : '#f59e0b'} ${(attendanceStats.present / attendanceStats.total) * 360}deg, #f1f5f9 0deg)`,
+                                            display: 'flex', alignItems: 'center', justifyContent: 'center'
+                                        }}>
+                                            <div style={{
+                                                width: '56px', height: '56px', borderRadius: '50%',
+                                                background: 'white', display: 'flex', alignItems: 'center',
+                                                justifyContent: 'center', fontWeight: '800', fontSize: '18px',
+                                                color: attendanceStats.total > 0 && (attendanceStats.present / attendanceStats.total) >= 0.75 ? '#16a34a' : '#f59e0b'
+                                            }}>
+                                                {attendanceStats.total > 0 ? Math.round((attendanceStats.present / attendanceStats.total) * 100) : 0}%
+                                            </div>
+                                        </div>
+                                        <div>
+                                            <div style={{ fontSize: '14px', color: '#334155', fontWeight: '600' }}>
+                                                {attendanceStats.present} / {attendanceStats.total} classes
+                                            </div>
+                                            <div style={{ fontSize: '13px', color: '#64748b', marginTop: '4px' }}>
+                                                {attendanceStats.total > 0 && (attendanceStats.present / attendanceStats.total) >= 0.85 ? 'Excellent!' : 'Good progress'}
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            )}
+
+                            {/* Next Class Card */}
+                            {scheduleItems.some(i => i.status === 'SCHEDULED' || i.status === 'upcoming') && (
+                                <div className={`content-card next-class-card ${cardsVisible ? 'visible' : ''}`}>
+                                    <div className="live-badge">
+                                        <span className="live-dot"></span>
+                                        UPCOMING
+                                    </div>
+                                    <div className="next-class-content">
+                                        <div className="class-time-big">
+                                            <span className="time-prefix">Next Class</span>
+                                            <span className="time-main">
+                                                {scheduleItems.find(i => i.status === 'SCHEDULED' || i.status === 'upcoming').time}
+                                            </span>
+                                        </div>
+                                        <div className="countdown-pill">
+                                            <ClockIcon size={14} color="#6B8E23" />
+                                            {scheduleItems.find(i => i.status === 'SCHEDULED' || i.status === 'upcoming').day}
+                                        </div>
+                                        <div className="class-topic-box">
+                                            <span className="topic-pre">Topic:</span>
+                                            <span className="topic-main">Regular Class</span>
+                                        </div>
+                                        <button
+                                            className="join-now-btn"
+                                            onClick={() => window.open(scheduleItems.find(i => i.status === 'SCHEDULED' || i.status === 'upcoming').link || student?.meetingLink || 'https://us06web.zoom.us/j/2884373632', '_blank')}
+                                        >
+                                            <VideoIcon size={20} color="white" />
+                                            Join Class Now
+                                        </button>
+                                    </div>
+                                </div>
+                            )}
                         </div>
                     </div>
-                </div>
-                )} {/* end PAYMENT_PENDING conditional */}
+                )}
             </div>
+
+            {/* Floating Contact Admin Button */}
+            <button
+                className="floating-contact-admin"
+                onClick={() => navigate('/parent/chat')}
+                style={{
+                    position: 'fixed',
+                    bottom: '30px',
+                    right: '30px',
+                    width: '60px',
+                    height: '60px',
+                    borderRadius: '50%',
+                    background: '#FC8A24',
+                    color: 'white',
+                    border: 'none',
+                    boxShadow: '0 4px 15px rgba(252, 138, 36, 0.4)',
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    zIndex: 1000,
+                    transition: 'transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275)'
+                }}
+                onMouseEnter={(e) => e.currentTarget.style.transform = 'scale(1.1)'}
+                onMouseLeave={(e) => e.currentTarget.style.transform = 'scale(1)'}
+                title="Contact Admin Support"
+            >
+                <ChatIcon size={28} color="white" />
+            </button>
 
             <ReviewRequestModal
                 isOpen={isReviewModalOpen}
                 onClose={() => setReviewModalOpen(false)}
+                studentName={student?.studentName || student?.fullName || 'Student'}
             />
 
             <StudentChessAssignmentModal
                 isOpen={!!selectedAssignment}
-                onClose={async () => {
-                    // Check if the assignment was just submitted to update the UI immediately
-                    if (selectedAssignment) {
-                        try {
-                            const subRef = doc(db, 'chessAssignment', selectedAssignment.id, 'submissions', currentUser.uid);
-                            const subSnap = await getDoc(subRef);
-                            if (subSnap.exists()) {
-                                setChessAssignments(prev => prev.map(a =>
-                                    a.id === selectedAssignment.id ? { ...a, isSubmitted: true } : a
-                                ));
-                            }
-                        } catch (e) {
-                            console.error("Error refreshing submission status:", e);
-                        }
-                    }
-                    setSelectedAssignment(null);
-                }}
+                onClose={() => setSelectedAssignment(null)}
                 assignment={selectedAssignment}
+                studentId={currentUser?.uid}
             />
         </div>
     );

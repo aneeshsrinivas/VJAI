@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { collection, query, where, onSnapshot, addDoc, doc, getDoc, updateDoc, serverTimestamp } from 'firebase/firestore';
+import { collection, query, where, onSnapshot, addDoc, doc, getDoc, getDocs, updateDoc, serverTimestamp } from 'firebase/firestore';
 import { db } from '../../lib/firebase';
 import { useAuth } from '../../context/AuthContext';
 import { useTheme } from '../../context/ThemeContext';
@@ -20,18 +20,61 @@ const CoachAttendance = () => {
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
     const [recentHistory, setRecentHistory] = useState([]);
+    const [coachDocId, setCoachDocId] = useState(null);
 
-    // Fetch coach's batches
+    // Step 1: Resolve coachDocId from coaches collection
     useEffect(() => {
         if (!currentUser?.uid) return;
-        const batchesRef = collection(db, 'coaches', currentUser.uid, 'batches');
+
+        const resolveCoachId = async () => {
+            try {
+                // Try to find the coach doc whose accountId matches our auth UID
+                const coachQuery = query(
+                    collection(db, 'coaches'),
+                    where('accountId', '==', currentUser.uid)
+                );
+                const coachSnap = await getDocs(coachQuery);
+                if (!coachSnap.empty) {
+                    setCoachDocId(coachSnap.docs[0].id);
+                } else {
+                    // Fallback: the coach doc ID might be the auth UID directly
+                    setCoachDocId(currentUser.uid);
+                }
+            } catch (err) {
+                console.error('Could not resolve coachDocId, falling back to uid:', err);
+                setCoachDocId(currentUser.uid);
+            }
+        };
+        resolveCoachId();
+    }, [currentUser]);
+
+    // Step 2: Fetch batches using the resolved coachDocId
+    useEffect(() => {
+        if (!coachDocId) return;
+        const batchesRef = collection(db, 'coaches', coachDocId, 'batches');
         const unsub = onSnapshot(batchesRef, (snapshot) => {
             const list = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
             setBatches(list);
             setLoading(false);
+        }, (error) => {
+            console.error('Batch fetch error:', error);
+            // Fallback: try auth UID directly if coachDocId is different
+            if (coachDocId !== currentUser?.uid) {
+                const fallbackRef = collection(db, 'coaches', currentUser.uid, 'batches');
+                onSnapshot(fallbackRef, (snap) => {
+                    setBatches(snap.docs.map(d => ({ id: d.id, ...d.data() })));
+                    setLoading(false);
+                }, () => {
+                    setBatches([]);
+                    setLoading(false);
+                });
+            } else {
+                setBatches([]);
+                setLoading(false);
+            }
         });
         return () => unsub();
-    }, [currentUser]);
+    }, [coachDocId, currentUser]);
 
     // Fetch students when batch selected
     useEffect(() => {
