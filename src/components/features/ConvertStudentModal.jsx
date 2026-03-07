@@ -172,7 +172,7 @@ Indian Chess Academy Team
 
     return (
         <div className="modal-overlay">
-            <div className={`modal-content demo-outcome-modal ${isDark ? 'dark-mode' : ''}`} data-lenis-prevent="true" onWheel={(e) => e.stopPropagation()}>
+            <div className={`modal-content demo-outcome-modal ${isDark ? 'dark-mode' : ''}`}>
                 <button className="modal-close" onClick={onClose}>&times;</button>
                 <h2>Convert to Student</h2>
                 <p className="modal-subtitle">Create account for {demo.studentName}</p>

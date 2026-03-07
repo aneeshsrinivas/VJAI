@@ -174,7 +174,7 @@ const AddCoachModal = ({ isOpen, onClose, onSuccess }) => {
 
     return (
         <div className="modal-overlay">
-            <div className="modal-content" style={{ width: '600px', maxWidth: '90%', maxHeight: '90vh', display: 'flex', flexDirection: 'column' }} data-lenis-prevent="true" onWheel={(e) => e.stopPropagation()}>
+            <div className="modal-content" style={{ width: '600px', maxWidth: '90%', maxHeight: '90vh', display: 'flex', flexDirection: 'column' }}>
                 <button className="modal-close" onClick={onClose}>&times;</button>
                 <h2 className="modal-title">Add New Coach</h2>
 

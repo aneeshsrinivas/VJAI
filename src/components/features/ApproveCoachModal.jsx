@@ -158,7 +158,7 @@ Indian Chess Academy Team
 
     return (
         <div className="modal-overlay">
-            <div className={`modal-content demo-outcome-modal ${isDark ? 'dark-mode' : ''}`} data-lenis-prevent="true" onWheel={(e) => e.stopPropagation()}>
+            <div className={`modal-content demo-outcome-modal ${isDark ? 'dark-mode' : ''}`}>
                 <button className="modal-close" onClick={onClose}>&times;</button>
                 <h2>Approve Coach Application</h2>
                 <div className="demo-info">

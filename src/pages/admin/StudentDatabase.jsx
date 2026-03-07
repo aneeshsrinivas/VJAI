@@ -357,8 +357,8 @@ const StudentDatabase = () => {
                     zIndex: 1000, backdropFilter: 'blur(4px)'
                 }}>
                     <div className="modal-content" style={{
-                        maxWidth: '500px', width: '90%', maxHeight: '90vh', overflowY: 'auto'
-                    }} data-lenis-prevent="true" onWheel={(e) => e.stopPropagation()}>
+                        borderRadius: '16px', width: '500px', maxWidth: '95%'
+                    }}>
                         <div style={{
                             padding: '20px 24px', borderBottom: '1px solid #eee',
                             display: 'flex', justifyContent: 'space-between', alignItems: 'center'
