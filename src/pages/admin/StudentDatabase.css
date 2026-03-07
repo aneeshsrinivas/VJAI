@@ -1,5 +1,11 @@
 /* src/pages/admin/StudentDatabase.css */
 
+/* Content Card Animation - Make visible */
+.content-card.visible {
+    transform: translateY(0);
+    opacity: 1;
+}
+
 /* Light Mode / Base Classes */
 .students-table .primary-text {
     color: #181818;

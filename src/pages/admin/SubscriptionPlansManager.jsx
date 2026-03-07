@@ -7,7 +7,7 @@ import { useTheme } from '../../context/ThemeContext';
 import Input from '../../components/ui/Input';
 import ConfirmDialog from '../../components/ui/ConfirmDialog';
 import { toast, ToastContainer } from 'react-toastify';
-import { Plus, X, Edit2, Trash2, CreditCard, Package, CheckCircle, Shield, Star, RefreshCw } from 'lucide-react';
+import { Plus, X, Edit2, Trash2, CreditCard, Package, CheckCircle, Shield, Star, RefreshCw, User, Users } from 'lucide-react';
 
 // Default plans — 4 group categories matching pricing page
 const defaultPlans = [
@@ -279,7 +279,7 @@ const SubscriptionPlansManager = () => {
     };
 
     const getClassTypeIcon = (type) => {
-        return type === 'one-on-one' ? '👤' : '👥';
+        return type === 'one-on-one' ? <User size={20} /> : <Users size={20} />;
     };
 
     return (
@@ -340,7 +340,7 @@ const SubscriptionPlansManager = () => {
                     </div>
                 </Card>
             ) : (
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: '24px' }}>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(380px, 1fr))', gap: '24px' }}>
                     {plans.map(plan => (
                         <Card key={plan.id} style={{
                             padding: '0',
@@ -354,7 +354,7 @@ const SubscriptionPlansManager = () => {
                                 <div style={{
                                     position: 'absolute',
                                     top: '12px',
-                                    right: '12px',
+                                    left: '12px',
                                     background: 'linear-gradient(135deg, #FFD700 0%, #FFA500 100%)',
                                     color: '#000',
                                     padding: '4px 10px',
@@ -363,11 +363,40 @@ const SubscriptionPlansManager = () => {
                                     fontWeight: '700',
                                     display: 'flex',
                                     alignItems: 'center',
-                                    gap: '4px'
+                                    gap: '4px',
+                                    zIndex: 10
                                 }}>
                                     <Star size={12} fill="#000" /> FEATURED
                                 </div>
                             )}
+
+                            {/* Delete Plan Button */}
+                            <button
+                                onClick={(e) => { e.stopPropagation(); handleDelete(plan); }}
+                                style={{
+                                    position: 'absolute',
+                                    top: '12px',
+                                    right: '12px',
+                                    background: 'rgba(220, 38, 38, 0.9)',
+                                    color: 'white',
+                                    border: 'none',
+                                    borderRadius: '8px',
+                                    width: '32px',
+                                    height: '32px',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                    cursor: 'pointer',
+                                    zIndex: 10,
+                                    boxShadow: '0 2px 4px rgba(0,0,0,0.2)',
+                                    transition: 'all 0.2s ease'
+                                }}
+                                title="Delete Plan"
+                                onMouseEnter={(e) => e.currentTarget.style.transform = 'scale(1.1)'}
+                                onMouseLeave={(e) => e.currentTarget.style.transform = 'scale(1)'}
+                            >
+                                <Trash2 size={16} />
+                            </button>
 
                             {/* Plan Header */}
                             <div style={{
@@ -453,14 +482,6 @@ const SubscriptionPlansManager = () => {
                                 >
                                     {plan.isActive ? 'Deactivate' : 'Activate'}
                                 </Button>
-                                <Button
-                                    size="sm"
-                                    variant="secondary"
-                                    onClick={() => handleDelete(plan)}
-                                    style={{ color: '#DC2626' }}
-                                >
-                                    <Trash2 size={14} />
-                                </Button>
                             </div>
                         </Card>
                     ))}
@@ -508,7 +529,7 @@ const SubscriptionPlansManager = () => {
                         </div>
 
                         {/* Modal Body - Scrollable */}
-                        <form onSubmit={handleSubmit} style={{ flex: 1, overflowY: 'auto', padding: '24px' }}>
+                        <form onSubmit={handleSubmit} style={{ flex: 1, overflowY: 'auto', padding: '24px' }} data-lenis-prevent="true" onWheel={(e) => e.stopPropagation()}>
                             {/* Plan Name */}
                             <div style={{ marginBottom: '20px' }}>
                                 <label style={{ display: 'block', marginBottom: '6px', fontWeight: '600', fontSize: '14px' }}>

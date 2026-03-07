@@ -33,9 +33,17 @@ const StudentDatabase = () => {
 
 
     useEffect(() => {
+        if (!db) {
+            console.error('Firestore database (db) is null. Check Firebase initialization.');
+            toast.error('Firestore database not initialized');
+            setLoading(false);
+            return;
+        }
+
         // Query all users — filter client-side to avoid Firestore 'in' operator bug in onSnapshot
         const q = query(collection(db, 'users'));
         setLoading(true);
+
         const unsubscribe = onSnapshot(q, (querySnapshot) => {
             const studentList = querySnapshot.docs
                 .filter(doc => doc.data().role?.toLowerCase() === 'customer' || doc.data().studentName)
@@ -207,7 +215,7 @@ const StudentDatabase = () => {
                 </Button>
             </div>
 
-            <Card className="content-card" style={{ padding: '24px' }}>
+            <Card className="content-card visible" style={{ padding: '24px' }}>
                 {/* Filters */}
                 <div className="filters-row" style={{ display: 'flex', gap: '16px', marginBottom: '24px', flexWrap: 'wrap' }}>
                     <div style={{ position: 'relative', flex: '1', minWidth: '250px' }}>
