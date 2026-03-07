@@ -19,12 +19,12 @@ import VideoIcon from '../components/icons/VideoIcon';
 import GreetingIcon from '../components/icons/GreetingIcon';
 import ChessBishopIcon from '../components/icons/ChessBishopIcon';
 import ClockIcon from '../components/icons/ClockIcon';
-import { Bell, Megaphone, AlertTriangle } from 'lucide-react';
+import { Bell, Megaphone, AlertTriangle, ShieldAlert, Mail } from 'lucide-react';
 import './ParentDashboard.css';
 
 const ParentDashboard = () => {
     const navigate = useNavigate();
-    const { currentUser, userData } = useAuth();
+    const { currentUser, userData, logout } = useAuth();
     const { isDark } = useTheme();
     const [isReviewModalOpen, setReviewModalOpen] = useState(false);
 
@@ -576,6 +576,101 @@ const ParentDashboard = () => {
                     </div>
                 </div>
             </section>
+            
+            {/* 🛑 ACCESS RESTRICTED SCREEN for BLOCKED Users */}
+            {student?.status === 'BLOCKED' && (
+                <div style={{
+                    position: 'fixed',
+                    top: 0,
+                    left: 0,
+                    right: 0,
+                    bottom: 0,
+                    background: isDark ? '#0f1117' : '#f8fafc',
+                    zIndex: 9999,
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    padding: '24px'
+                }}>
+                    <div style={{
+                        maxWidth: '500px',
+                        width: '100%',
+                        background: isDark ? '#1e2330' : 'white',
+                        padding: '48px 32px',
+                        borderRadius: '24px',
+                        textAlign: 'center',
+                        boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)',
+                        border: isDark ? '1px solid rgba(239, 68, 68, 0.2)' : '1px solid #fee2e2'
+                    }}>
+                        <div style={{
+                            width: '80px',
+                            height: '80px',
+                            background: '#fef2f2',
+                            borderRadius: '50%',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            margin: '0 auto 24px',
+                            boxShadow: '0 0 0 8px #fff5f5'
+                        }}>
+                            <ShieldAlert size={40} color="#ef4444" />
+                        </div>
+                        
+                        <h2 style={{ 
+                            fontSize: '28px', 
+                            fontWeight: '800', 
+                            color: isDark ? '#f8fafc' : '#0f172a',
+                            marginBottom: '16px',
+                            letterSpacing: '-0.025em'
+                        }}>
+                            Access Restricted
+                        </h2>
+                        
+                        <p style={{ 
+                            fontSize: '16px', 
+                            color: isDark ? '#94a3b8' : '#64748b',
+                            lineHeight: '1.6',
+                            marginBottom: '32px'
+                        }}>
+                            Your account has been restricted by the administration. This may be due to pending documentation, payment verification issues, or policy violations.
+                        </p>
+                        
+                        <div style={{
+                            background: isDark ? '#0f1117' : '#f8fafc',
+                            padding: '20px',
+                            borderRadius: '16px',
+                            marginBottom: '32px',
+                            textAlign: 'left'
+                        }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '12px' }}>
+                                <Mail size={18} color="# FC8A24" />
+                                <span style={{ fontWeight: '600', color: isDark ? '#e2e8f0' : '#334155' }}>Contact Support</span>
+                            </div>
+                            <p style={{ fontSize: '14px', margin: 0, color: isDark ? '#94a3b8' : '#64748b' }}>
+                                Please reach out to <a href="mailto:support@indianchessacademy.com" style={{ color: '#FC8A24', fontWeight: '600', textDecoration: 'none' }}>support@indianchessacademy.com</a> to resolve this and restore access.
+                            </p>
+                        </div>
+                        
+                        <Button 
+                            onClick={async () => {
+                                await logout();
+                                window.location.href = '/';
+                            }}
+                            style={{ 
+                                width: '100%', 
+                                padding: '14px', 
+                                background: 'linear-gradient(135deg, #1e293b 0%, #0f172a 100%)',
+                                border: 'none',
+                                color: 'white',
+                                fontWeight: '700'
+                            }}
+                        >
+                            Logout & Exit
+                        </Button>
+                    </div>
+                </div>
+            )}
+
             {/* Main Content Grid */}
             <div className="dashboard-content">
                 {student?.status === 'PAYMENT_PENDING' && (

@@ -390,8 +390,18 @@ const StudentDatabase = () => {
                                                         <span className="primary-text" style={{ fontSize: '14px', fontWeight: '600' }}>{student.rating}</span>
                                                     </div>
                                                     <span style={{
-                                                        backgroundColor: student.status === 'ACTIVE' ? '#E8F5E9' : student.status === 'PAUSED' ? '#FFF3E0' : (student.status === 'PENDING_COACH' || student.status === 'PAYMENT_PENDING') ? '#FFF9C4' : '#FFEBEE',
-                                                        color: student.status === 'ACTIVE' ? '#2E7D32' : student.status === 'PAUSED' ? '#EF6C00' : (student.status === 'PENDING_COACH' || student.status === 'PAYMENT_PENDING') ? '#F57F17' : '#C62828',
+                                                        backgroundColor: 
+                                                            student.status === 'ACTIVE' ? '#E8F5E9' : 
+                                                            student.status === 'PAUSED' ? '#FFF3E0' : 
+                                                            (student.status === 'PENDING_COACH' || student.status === 'PAYMENT_PENDING') ? '#FFF9C4' : 
+                                                            student.status === 'BLOCKED' ? '#FFEBEE' : 
+                                                            student.status === 'REJECTED' ? '#F5F5F5' : '#FFEBEE',
+                                                        color: 
+                                                            student.status === 'ACTIVE' ? '#2E7D32' : 
+                                                            student.status === 'PAUSED' ? '#EF6C00' : 
+                                                            (student.status === 'PENDING_COACH' || student.status === 'PAYMENT_PENDING') ? '#F57F17' : 
+                                                            student.status === 'BLOCKED' ? '#C62828' : 
+                                                            student.status === 'REJECTED' ? '#616161' : '#C62828',
                                                         padding: '3px 8px', borderRadius: '4px', fontSize: '12px', fontWeight: '600', whiteSpace: 'nowrap'
                                                     }}>
                                                         {student.status.replace('_', ' ')}
@@ -523,6 +533,8 @@ const StudentDatabase = () => {
                                         <option value="PENDING_COACH">Pending Coach</option>
                                         <option value="PAYMENT_PENDING">Payment Pending</option>
                                         <option value="PAUSED">Paused</option>
+                                        <option value="BLOCKED">Blocked</option>
+                                        <option value="REJECTED">Rejected</option>
                                         <option value="CANCELLED">Cancelled</option>
                                     </select>
                                 </div>
