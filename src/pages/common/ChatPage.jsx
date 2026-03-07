@@ -383,7 +383,8 @@ const ChatPage = ({ userRole: propRole }) => {
 
                 // Add admin/user specific fields for direct chats
                 if (selectedChat.chatType === 'ADMIN_PARENT' || selectedChat.chatType === 'ADMIN_COACH') {
-                    chatData.adminId = role === 'ADMIN' ? currentUser.uid : selectedChat.participants?.find(p => p !== currentUser.uid);
+                    const adminId = role === 'ADMIN' ? currentUser.uid : selectedChat.participants?.find(p => p !== currentUser.uid);
+                    if (adminId) chatData.adminId = adminId;
                     chatData.userId = role === 'ADMIN' ? selectedChat.userId : currentUser.uid;
                 }
 
@@ -636,43 +637,46 @@ const ChatPage = ({ userRole: propRole }) => {
                         </div>
                     )}
 
-                    {role === 'CUSTOMER' && (
-                        <div style={{ padding: '12px', borderBottom: `1px solid ${COLORS.deepBlue}20` }}>
-                            <li
+                    {(role === 'CUSTOMER' || role === 'COACH') && (
+                        <div style={{ padding: '0 12px 12px', borderBottom: `1px solid ${COLORS.deepBlue}20` }}>
+                            <div style={{ fontSize: '12px', fontWeight: '600', color: isDark ? '#c0c0c0' : COLORS.deepBlue, marginBottom: '8px', paddingLeft: '4px' }}>Support</div>
+                            <div
+                                className={`chat-item ${selectedChat?.chatType === 'ADMIN_PARENT' || selectedChat?.chatType === 'ADMIN_COACH' ? 'active' : ''}`}
                                 onClick={() => {
                                     // Use consistent format: userId_admin
                                     const chatId = `${currentUser?.uid}_admin`;
-                                    console.log('Customer clicking admin chat, chatId:', chatId);
-                                    const adminChat = chats.find(c => c.id === chatId || c.chatType === 'ADMIN_PARENT');
+                                    const expectedChatType = role === 'COACH' ? 'ADMIN_COACH' : 'ADMIN_PARENT';
+                                    
+                                    const adminChat = chats.find(c => c.id === chatId || c.chatType === expectedChatType);
                                     if (adminChat) {
                                         setSelectedChat(adminChat);
                                     } else {
                                         setSelectedChat({
                                             id: chatId,
                                             name: 'Admin Support',
-                                            chatType: 'ADMIN_PARENT',
+                                            chatType: expectedChatType,
                                             userId: currentUser?.uid,
                                             participants: [currentUser?.uid]
                                         });
                                     }
                                 }}
                                 style={{
-                                    padding: '8px 12px',
-                                    fontSize: '12px',
-                                    color: selectedChat?.chatType === 'ADMIN_PARENT' ? COLORS.orange : COLORS.deepBlue,
-                                    backgroundColor: selectedChat?.chatType === 'ADMIN_PARENT' ? `${COLORS.deepBlue}10` : 'transparent',
-                                    borderLeft: selectedChat?.chatType === 'ADMIN_PARENT' ? `3px solid ${COLORS.orange}` : '3px solid transparent',
-                                    cursor: 'pointer',
-                                    transition: 'all 0.2s',
-                                    marginBottom: '8px',
-                                    borderRadius: '0',
-                                    listStyle: 'none'
+                                    borderLeftColor: (selectedChat?.chatType === 'ADMIN_PARENT' || selectedChat?.chatType === 'ADMIN_COACH') ? COLORS.orange : 'transparent',
+                                    marginBottom: 0
                                 }}
-                                onMouseOver={(e) => e.currentTarget.style.backgroundColor = `${COLORS.deepBlue}05`}
-                                onMouseOut={(e) => e.currentTarget.style.backgroundColor = selectedChat?.chatType === 'ADMIN_PARENT' ? `${COLORS.deepBlue}10` : 'transparent'}
                             >
-                                💬 Chat with Admin
-                            </li>
+                                <div className="chat-item-icon" style={{ backgroundColor: '#FFF3E0' }}>
+                                    <User size={18} color={COLORS.orange} />
+                                </div>
+                                <div className="chat-item-content">
+                                    <div className="chat-item-header">
+                                        <span className="chat-item-name" style={{ color: COLORS.orange, fontWeight: '700' }}>Admin</span>
+                                    </div>
+                                    <div className="chat-item-message" style={{ color: isDark ? '#999999' : 'inherit' }}>
+                                        Support & Inquiries
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     )}
 
