@@ -4,7 +4,7 @@
  */
 
 import { db } from '../lib/firebase';
-import { doc, getDoc, updateDoc, addDoc, collection, serverTimestamp, setDoc } from 'firebase/firestore';
+import { doc, getDoc, updateDoc, addDoc, collection, serverTimestamp, setDoc, query, where, getDocs } from 'firebase/firestore';
 import { emailService } from './emailService';
 import { createParentAuthAccount } from './adminAuthService';
 
@@ -12,6 +12,7 @@ export const conversionService = {
     /**
      * Step 1: User submits payment proof / payment is verified
      * Updates demo status to PAYMENT_COMPLETED (payment verified, waiting for admin to convert)
+     * Also updates parent's user status to PENDING_COACH if parent account exists
      */
     submitPaymentProof: async (demoId, planDetails, paymentDetails) => {
         try {
@@ -22,6 +23,9 @@ export const conversionService = {
                 throw new Error('Demo not found');
             }
 
+            const demoData = demoSnap.data();
+
+            // Update demo status to PAYMENT_COMPLETED
             await updateDoc(demoRef, {
                 status: 'PAYMENT_COMPLETED',
                 selectedPlan: planDetails,
@@ -32,6 +36,30 @@ export const conversionService = {
                 updatedAt: serverTimestamp()
             });
 
+            // Try to find and update parent's user account if it exists
+            if (demoData.parentEmail) {
+                try {
+                    const parentQuery = query(
+                        collection(db, 'users'),
+                        where('email', '==', demoData.parentEmail)
+                    );
+                    const parentSnap = await getDocs(parentQuery);
+
+                    if (!parentSnap.empty) {
+                        // Update existing parent user to PENDING_COACH status
+                        // (they've paid, waiting for admin coach assignment)
+                        const parentUid = parentSnap.docs[0].id;
+                        await updateDoc(doc(db, 'users', parentUid), {
+                            status: 'PENDING_COACH',
+                            updatedAt: serverTimestamp()
+                        });
+                    }
+                } catch (userUpdateError) {
+                    // Don't fail demo payment if user update fails
+                    console.warn('Could not update parent user status:', userUpdateError);
+                }
+            }
+
             return { success: true };
         } catch (error) {
             console.error('Error submitting payment proof:', error);
@@ -40,7 +68,7 @@ export const conversionService = {
     },
 
     /**
-     * Step 2: Admin approves payment → Creates Student & Subscription
+     * Step 2: Admin approves payment → Creates or Updates Student & Subscription
      */
     approvePayment: async (demoId) => {
         try {
@@ -58,17 +86,33 @@ export const conversionService = {
                 throw new Error('Demo is not pending payment approval');
             }
 
-            // 2. Create a REAL Firebase Auth account with temporary password
-            const tempPassword = `Temp${Date.now().toString().slice(-6)}!`;
-            const authResult = await createParentAuthAccount(demoData.parentEmail, tempPassword);
+            // 2. Check if parent user already exists with this email
+            let realUid;
+            let existingUserFound = false;
 
-            if (!authResult.success) {
-                throw new Error(`Failed to create auth account: ${authResult.error}`);
+            const parentQuery = query(
+                collection(db, 'users'),
+                where('email', '==', demoData.parentEmail)
+            );
+            const existingUserSnap = await getDocs(parentQuery);
+
+            if (!existingUserSnap.empty) {
+                // Parent already has a user account - update it instead of creating new
+                realUid = existingUserSnap.docs[0].id;
+                existingUserFound = true;
+            } else {
+                // Create a REAL Firebase Auth account with temporary password
+                const tempPassword = `Temp${Date.now().toString().slice(-6)}!`;
+                const authResult = await createParentAuthAccount(demoData.parentEmail, tempPassword);
+
+                if (!authResult.success) {
+                    throw new Error(`Failed to create auth account: ${authResult.error}`);
+                }
+
+                realUid = authResult.uid;
             }
 
-            const realUid = authResult.uid;
-
-            // 3. Create users document so parent can login via AuthContext
+            // 3. Create or update users document
             //    Include ALL student fields so coach queries, assignments, etc. work
             await setDoc(doc(db, 'users', realUid), {
                 email: demoData.parentEmail,
@@ -86,9 +130,9 @@ export const conversionService = {
                 status: 'ACTIVE',
                 source: 'DEMO_CONVERSION',
                 demoId: demoId,
-                createdAt: serverTimestamp(),
+                createdAt: existingUserFound ? serverTimestamp() : undefined,  // Preserve original createdAt if updating
                 lastLoginAt: serverTimestamp()
-            });
+            }, { merge: existingUserFound }); // Merge if updating existing user
 
             // 4. Create Student Record in 'students' collection
             const studentRef = await addDoc(collection(db, 'students'), {
@@ -129,16 +173,18 @@ export const conversionService = {
                 updatedAt: serverTimestamp()
             });
 
-            // 7. Send Welcome Email with credentials
-            try {
-                const EMAIL_API_URL = import.meta.env.VITE_EMAIL_API_URL || 'http://localhost:3001';
-                await fetch(`${EMAIL_API_URL}/api/email/send`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        to: demoData.parentEmail,
-                        subject: `Welcome to Indian Chess Academy - Your LMS Access for ${demoData.studentName}`,
-                        text: `Dear ${demoData.parentName},
+            // 7. Send Welcome Email with credentials (only if account was created, not updated)
+            if (!existingUserFound) {
+                try {
+                    const tempPassword = `Temp${Date.now().toString().slice(-6)}!`;
+                    const EMAIL_API_URL = import.meta.env.VITE_EMAIL_API_URL || 'http://localhost:3001';
+                    await fetch(`${EMAIL_API_URL}/api/email/send`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            to: demoData.parentEmail,
+                            subject: `Welcome to Indian Chess Academy - Your LMS Access for ${demoData.studentName}`,
+                            text: `Dear ${demoData.parentName},
 
 Thank you for your payment! Your account has been created. 🎉
 
@@ -161,11 +207,12 @@ Indian Chess Academy Team
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 📧 Support: indianchessacademy@email.com`
-                    })
-                });
-            } catch (emailError) {
-                console.error('Failed to send welcome email but payment was approved:', emailError);
-                // We don't throw here to avoid rolling back the approval if email fails
+                        })
+                    });
+                } catch (emailError) {
+                    console.error('Failed to send welcome email but payment was approved:', emailError);
+                    // We don't throw here to avoid rolling back the approval if email fails
+                }
             }
 
             return { success: true, studentId: studentRef.id };

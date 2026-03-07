@@ -43,7 +43,7 @@ const PaymentCheckout = () => {
 
         // Auto-redirect after 3 seconds or when user clicks confirmation
         setTimeout(() => {
-            if (demoId && user?.uid) {
+            if (demoId) {
                 // Redirect to parent dashboard if came from a demo
                 navigate('/parent/dashboard', { state: { paymentSuccess: true } });
             } else {
@@ -1003,7 +1003,7 @@ const PaymentCheckout = () => {
                             </p>
                             <button
                                 onClick={() => {
-                                    if (demoId && user?.uid) {
+                                    if (demoId) {
                                         navigate('/parent/dashboard', { state: { paymentSuccess: true } });
                                     } else {
                                         navigate('/payment/success');
