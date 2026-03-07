@@ -171,7 +171,7 @@ const DirectChatPage = () => {
                                         {selectedUser.name.charAt(0).toUpperCase()}
                                     </div>
                                     <div style={{ textAlign: 'left' }}>
-                                        <div className="chat-user-name" style={{ fontWeight: '600' }}>{selectedUser.name}</div>
+                                        <div className="chat-user-name" style={{ fontWeight: '600', color: isDark ? '#f0f0f0' : '#333' }}>{selectedUser.name}</div>
                                         <div className="chat-user-email" style={{ fontSize: '12px', color: isDark ? '#9ca3af' : '#666' }}>{selectedUser.email}</div>
                                     </div>
                                 </>
@@ -251,8 +251,8 @@ const DirectChatPage = () => {
                                                 {user.name.charAt(0).toUpperCase()}
                                             </div>
                                             <div>
-                                                <div className="chat-user-name" style={{ fontWeight: '500', fontSize: '13px' }}>{user.name}</div>
-                                                <div className="chat-user-email" style={{ fontSize: '11px', color: '#888' }}>{user.email}</div>
+                                                <div className="chat-user-name" style={{ fontWeight: '500', fontSize: '13px', color: isDark ? '#f0f0f0' : '#333' }}>{user.name}</div>
+                                                <div className="chat-user-email" style={{ fontSize: '11px', color: isDark ? '#9ca3af' : '#888' }}>{user.email}</div>
                                             </div>
                                         </div>
                                     ))
