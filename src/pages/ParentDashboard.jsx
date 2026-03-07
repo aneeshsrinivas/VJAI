@@ -548,12 +548,19 @@ const ParentDashboard = () => {
                                 </p>
                             </div>
                         </div>
-                        <Button 
-                            onClick={() => navigate('/pricing', { 
-                                state: { 
-                                    recommendedLevel: student?.level || student?.learningLevel || 'beginner', 
-                                    recommendedType: student?.studentType || 'group' 
-                                } 
+                        <Button
+                            onClick={() => navigate('/pricing', {
+                                state: {
+                                    recommendedLevel: student?.level || student?.learningLevel || 'beginner',
+                                    recommendedType: student?.studentType || 'group',
+                                    prefillData: {
+                                        parentName: student?.parentName || '',
+                                        parentEmail: student?.email || student?.parentEmail || '',
+                                        parentPhone: student?.phone || '',
+                                        studentName: student?.name || student?.studentName || '',
+                                        studentAge: student?.age || student?.studentAge || '',
+                                    }
+                                }
                             })} 
                             style={{ 
                                 background: 'white', 
@@ -569,6 +576,33 @@ const ParentDashboard = () => {
                         </Button>
                     </div>
                 )}
+
+                {/* Coach assignment pending banner */}
+                {student?.status === 'PENDING_COACH' && (
+                    <div style={{
+                        background: 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)',
+                        color: 'white',
+                        padding: '20px 24px',
+                        borderRadius: '12px',
+                        marginBottom: '24px',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '16px',
+                        boxShadow: '0 4px 6px -1px rgba(245, 158, 11, 0.2)'
+                    }}>
+                        <div style={{ background: 'rgba(255,255,255,0.2)', padding: '12px', borderRadius: '50%', flexShrink: 0 }}>
+                            <Bell size={28} color="white" />
+                        </div>
+                        <div>
+                            <h3 style={{ margin: '0 0 4px 0', fontSize: '18px', fontWeight: '600', color: 'white' }}>Payment Received — Coach Being Assigned</h3>
+                            <p style={{ margin: 0, color: 'rgba(255,255,255,0.9)', fontSize: '14px' }}>
+                                Thank you for your payment! Our admin team will assign a coach to your account shortly. You will receive an email notification once this is done.
+                            </p>
+                        </div>
+                    </div>
+                )}
+                {/* Render main content only if fully active */}
+                {student?.status !== 'PAYMENT_PENDING' && (
                 <div className="content-grid">
                     {/* Left Column */}
                     <div className="main-column">
@@ -823,6 +857,7 @@ const ParentDashboard = () => {
                         </div>
                     </div>
                 </div>
+                )} {/* end PAYMENT_PENDING conditional */}
             </div>
 
             <ReviewRequestModal

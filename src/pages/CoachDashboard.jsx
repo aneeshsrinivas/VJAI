@@ -3,7 +3,7 @@ import Card from '../components/ui/Card';
 import Button from '../components/ui/Button';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { collection, query, where, onSnapshot, doc, getDoc, orderBy, limit } from 'firebase/firestore';
+import { collection, query, where, onSnapshot, doc, getDoc, limit } from 'firebase/firestore';
 import { db } from '../lib/firebase';
 import { COLLECTIONS } from '../config/firestoreCollections';
 import {
@@ -21,6 +21,7 @@ const CoachDashboard = () => {
 
     // State for dynamic data
     const [coachProfile, setCoachProfile] = useState(null);
+    const [coachDocId, setCoachDocId] = useState(null); // Firestore doc ID (not auth UID)
     const [students, setStudents] = useState([]);
     const [demos, setDemos] = useState([]);
     const [batches, setBatches] = useState([]);
@@ -91,7 +92,9 @@ const CoachDashboard = () => {
 
             const unsubCoach = onSnapshot(coachQuery, async (snapshot) => {
                 if (!snapshot.empty) {
-                    setCoachProfile({ id: snapshot.docs[0].id, ...snapshot.docs[0].data() });
+                    const docId = snapshot.docs[0].id;
+                    setCoachProfile({ id: docId, ...snapshot.docs[0].data() });
+                    setCoachDocId(docId);
                 } else {
                     const userDoc = await getDoc(doc(db, 'users', currentUser.uid));
                     if (userDoc.exists()) {
@@ -108,20 +111,6 @@ const CoachDashboard = () => {
 
             return unsubCoach;
         };
-
-        // Students
-        const studentsQuery = query(
-            collection(db, COLLECTIONS.STUDENTS),
-            where('assignedCoachId', '==', currentUser.uid)
-        );
-
-        const unsubStudents = onSnapshot(studentsQuery, (snapshot) => {
-            const list = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
-            setStudents(list);
-        }, (error) => {
-            console.error('Students query error:', error);
-            setStudents([]);
-        });
 
         // Demos - simplified query to avoid index requirement
         const demosQuery = query(
@@ -145,21 +134,46 @@ const CoachDashboard = () => {
             setDemos([]);
         });
 
-        // Mock batches for now
-        setBatches([
-            { id: 'batch-1', name: 'Beginner Stars ⭐', studentCount: 4, level: 'beginner', nextClass: 'Tomorrow 5PM' },
-            { id: 'batch-2', name: 'Rising Knights ♞', studentCount: 6, level: 'intermediate', nextClass: 'Today 7PM' }
-        ]);
-
         fetchCoachProfile();
 
         return () => {
-            unsubStudents();
             unsubDemos();
         };
     }, [currentUser]);
 
-    const getGreeting = () => {
+    // Fetch students and batches using the Firestore coach doc ID
+    // (assignedCoachId on students stores the Firestore doc ID, not the auth UID)
+    useEffect(() => {
+        if (!coachDocId) return;
+
+        const studentsQuery = query(
+            collection(db, COLLECTIONS.STUDENTS),
+            where('assignedCoachId', '==', coachDocId)
+        );
+
+        const unsubStudents = onSnapshot(studentsQuery, (snapshot) => {
+            setStudents(snapshot.docs.map(d => ({ id: d.id, ...d.data() })));
+        }, (error) => {
+            console.error('Students query error:', error);
+            setStudents([]);
+        });
+
+        const unsubBatches = onSnapshot(
+            collection(db, COLLECTIONS.COACHES, coachDocId, 'batches'),
+            (snapshot) => {
+                setBatches(snapshot.docs.map(d => ({ id: d.id, ...d.data() })));
+            },
+            (error) => {
+                console.error('Batches query error:', error);
+                setBatches([]);
+            }
+        );
+
+        return () => {
+            unsubStudents();
+            unsubBatches();
+        };
+    }, [coachDocId]);
         const hour = new Date().getHours();
         if (hour < 12) return { text: 'Good Morning', emoji: '🌅' };
         if (hour < 17) return { text: 'Good Afternoon', emoji: '☀️' };
@@ -250,7 +264,7 @@ const CoachDashboard = () => {
                                 <Calendar size={16} />
                                 <span>Schedule</span>
                             </button>
-                            <button className="btn-glass" onClick={() => navigate('/chat')}>
+                            <button className="btn-glass" onClick={() => navigate('/coach/chat')}>
                                 <MessageSquare size={16} />
                                 <span>Chat</span>
                             </button>
@@ -316,12 +330,12 @@ const CoachDashboard = () => {
                             <Star size={28} />
                         </div>
                         <div className="card-data">
-                            <span className="card-number">4.9<span className="star">⭐</span></span>
-                            <span className="card-label">Coach Rating</span>
+                            <span className="card-number" style={{ fontSize: '16px' }}>Pending</span>
+                            <span className="card-label">Lichess Rating</span>
                         </div>
                     </div>
-                    <div className="card-trend positive">
-                        <Award size={14} /> Excellent
+                    <div className="card-trend neutral">
+                        <Clock size={14} /> Integration pending
                     </div>
                 </div>
             </div>
@@ -543,8 +557,8 @@ const CoachDashboard = () => {
                                         <span className={`batch-level ${batch.level}`}>{batch.level}</span>
                                     </div>
                                     <div className="batch-meta">
-                                        <span>👥 {batch.studentCount} students</span>
-                                        <span>📅 {batch.nextClass}</span>
+                                        <span>👥 {batch.studentsId?.length ?? 0} students</span>
+                                        <span>📅 {batch.schedule || 'Flexible'}</span>
                                     </div>
                                 </div>
                             ))}
@@ -563,7 +577,7 @@ const CoachDashboard = () => {
                                 <Users size={20} />
                                 <span>Batches</span>
                             </button>
-                            <button onClick={() => navigate('/chat')} className="quick-btn">
+                            <button onClick={() => navigate('/coach/chat')} className="quick-btn">
                                 <MessageSquare size={20} />
                                 <span>Chat</span>
                             </button>

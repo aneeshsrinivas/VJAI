@@ -373,11 +373,15 @@ const CoachRoster = () => {
                         </div>
 
                         {/* Modal Content */}
-                        <div style={{
-                            padding: '24px',
-                            overflowY: 'auto',
-                            flex: 1
-                        }}>
+                        <div 
+                            data-lenis-prevent="true"
+                            onWheel={(e) => e.stopPropagation()}
+                            style={{
+                                padding: '24px',
+                                overflowY: 'auto',
+                                flex: 1
+                            }}
+                        >
                             {/* Name Input */}
                             <div style={{ marginBottom: '16px' }}>
                                 <label style={{ display: 'block', fontWeight: '600', marginBottom: '6px', color: '#333', fontSize: '14px' }}>

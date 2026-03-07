@@ -170,10 +170,14 @@ const PlanSelection = () => {
 
     const handleContinue = () => {
         if (selectedPlan) {
+            // Forward any prefill data and location state from the referring page
+            const { prefillData, ...restState } = location.state || {};
             navigate('/payment/checkout', {
                 state: {
                     plan: { ...selectedPlan, price: getPrice(selectedPlan) },
-                    demoId
+                    demoId,
+                    prefillData,   // pass through prefill so checkout can use it
+                    ...restState   // forward recommendedLevel, recommendedType etc.
                 }
             });
         }

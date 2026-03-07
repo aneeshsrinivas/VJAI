@@ -59,19 +59,52 @@ export const createDemoRequest = async (demoData) => {
 };
 
 /**
- * Get All Demos (Admin Only)
+ * Get All Demos (Admin Only) — also includes PAYMENT_PENDING users from the users collection
  */
 export const getAllDemos = async () => {
     try {
+        // 1. Fetch all demo documents
         const q = query(collection(db, COLLECTIONS.DEMOS), orderBy('createdAt', 'desc'));
         const snapshot = await getDocs(q);
         const demos = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-        return { success: true, demos };
+
+        // 2. Fetch users with PAYMENT_PENDING or PENDING_COACH status who may not have a demo doc
+        const pendingUsersQ = query(
+            collection(db, 'users'),
+            where('role', '==', 'student'),
+            where('status', 'in', ['PAYMENT_PENDING', 'PENDING_COACH'])
+        );
+        const pendingUsersSnap = await getDocs(pendingUsersQ);
+
+        // 3. Build a set of emails already covered by demo docs to avoid duplicates
+        const demoEmails = new Set(demos.map(d => (d.parentEmail || d.email || '').toLowerCase()));
+
+        const pendingUserDemos = pendingUsersSnap.docs
+            .map(doc => {
+                const d = doc.data();
+                return {
+                    id: `user_${doc.id}`,   // prefix so it doesn't collide with demo IDs
+                    _userId: doc.id,
+                    studentName: d.studentName || d.fullName || 'Unknown',
+                    parentName: d.parentName || d.fullName || '',
+                    parentEmail: d.email || '',
+                    parentPhone: d.phone || '',
+                    status: d.status === 'PENDING_COACH' ? 'PAYMENT_PENDING' : 'PAYMENT_PENDING',
+                    assignedCoachId: d.assignedCoachId || null,
+                    chessExperience: d.learningLevel || 'beginner',
+                    createdAt: d.createdAt || null,
+                    _fromUsersCollection: true,
+                };
+            })
+            .filter(u => !demoEmails.has((u.parentEmail || '').toLowerCase()));
+
+        return { success: true, demos: [...demos, ...pendingUserDemos] };
     } catch (error) {
         console.error('Error fetching demos:', error);
         return { success: false, error: error.message };
     }
 };
+
 
 /**
  * Get Demos by Status (Admin Dashboard Filtering)
@@ -349,12 +382,27 @@ export const convertDemoToPendingStudent = async (demoId, accountId, paymentData
 // ACCOUNT OPERATIONS
 // ==========================================
 
-export const createParentAccount = async (uid, email, adminId) => {
+export const createParentAccount = async (uid, email, adminId, extraData = {}) => {
     try {
+        // Write to 'accounts' collection (legacy access tracking)
         await setDoc(doc(db, COLLECTIONS.ACCOUNTS, uid), {
             email: email,
             role: 'CUSTOMER',
             createdByAdminId: adminId,
+            createdAt: serverTimestamp(),
+            updatedAt: serverTimestamp()
+        });
+
+        // Write to 'users' collection (source of truth for ParentDashboard status gating)
+        await setDoc(doc(db, 'users', uid), {
+            email: email,
+            role: 'student',
+            status: 'PAYMENT_PENDING',   // ← gated: dashboard will show payment banner
+            createdByAdminId: adminId,
+            studentName: extraData.studentName || '',
+            studentAge: extraData.studentAge || '',
+            parentName: extraData.parentName || '',
+            learningLevel: extraData.learningLevel || '',
             createdAt: serverTimestamp(),
             updatedAt: serverTimestamp()
         });
@@ -365,6 +413,7 @@ export const createParentAccount = async (uid, email, adminId) => {
         return { success: false, error: error.message };
     }
 };
+
 
 // ==========================================
 // STUDENT OPERATIONS
@@ -496,6 +545,19 @@ export const approveCoachApplication = async (applicationId, uid, password, admi
             assignedBatch: assignedBatch || null,
             updatedAt: serverTimestamp()
         });
+
+        // 4. ALSO create a document in the 'batches' subcollection 
+        // because ManageBatchesModal.jsx reads from there!
+        if (assignedBatch) {
+            await addDoc(collection(db, COLLECTIONS.COACHES, applicationId, 'batches'), {
+                name: assignedBatch,
+                level: (assignedGroup || 'Beginner').toLowerCase(),
+                schedule: 'Flexible',
+                studentsId: [],
+                createdAt: serverTimestamp(),
+                updatedAt: serverTimestamp()
+            });
+        }
 
         return { success: true };
     } catch (error) {

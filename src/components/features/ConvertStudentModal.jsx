@@ -57,8 +57,13 @@ const ConvertStudentModal = ({ demo, onClose, onSuccess }) => {
 
             const realUid = authResult.uid;
 
-            // 2. Create Account Doc in Firestore with real UID
-            await createParentAccount(realUid, formData.email, currentUser?.uid, formData.password);
+            // 2. Create Account Doc in Firestore with real UID (sets status: PAYMENT_PENDING)
+            await createParentAccount(realUid, formData.email, currentUser?.uid, {
+                studentName: demo.studentName || '',
+                studentAge: demo.studentAge || '',
+                parentName: demo.parentName || '',
+                learningLevel: demo.recommendedLevel || demo.chessExperience || '',
+            });
 
             // 3. Convert Demo & Create Student/Subscription
             const paymentData = {

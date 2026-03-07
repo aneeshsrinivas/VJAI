@@ -15,7 +15,7 @@ const PaymentCheckout = () => {
     const location = useLocation();
     const navigate = useNavigate();
     const { user } = useAuth();
-    const { plan, demoId } = location.state || {};
+    const { plan, demoId, prefillData } = location.state || {};
 
     const [formData, setFormData] = useState({
         studentName: '',
@@ -44,7 +44,23 @@ const PaymentCheckout = () => {
         loadRazorpayScript();
     }, []);
 
-    // Pre-fill form with user data if logged in
+    // Apply prefillData passed from the dashboard → pricing → checkout navigation chain
+    useEffect(() => {
+        if (prefillData) {
+            setFormData(prev => ({
+                ...prev,
+                parentName: prefillData.parentName || prev.parentName,
+                parentEmail: prefillData.parentEmail || prev.parentEmail,
+                parentPhone: prefillData.parentPhone || prev.parentPhone,
+                studentName: prefillData.studentName || prev.studentName,
+                studentAge: prefillData.studentAge || prev.studentAge,
+            }));
+        }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);  // run once on mount, prefillData is from static location.state
+
+
+    // Pre-fill form with user data if logged in, including demo booking data
     useEffect(() => {
         const fetchUserData = async () => {
             if (user?.uid) {
@@ -54,9 +70,12 @@ const PaymentCheckout = () => {
                         const userData = userDoc.data();
                         setFormData(prev => ({
                             ...prev,
-                            parentName: userData.fullName || userData.name || '',
+                            parentName: userData.fullName || userData.parentName || userData.name || '',
                             parentEmail: userData.email || user.email || '',
-                            parentPhone: userData.phone || userData.phoneNumber || ''
+                            parentPhone: userData.phone || userData.phoneNumber || '',
+                            // Also prefill student info if available on user doc
+                            studentName: prev.studentName || userData.studentName || '',
+                            studentAge: prev.studentAge || userData.studentAge || '',
                         }));
                     } else {
                         setFormData(prev => ({
@@ -71,6 +90,30 @@ const PaymentCheckout = () => {
         };
         fetchUserData();
     }, [user]);
+
+    // If launched from dashboard with a demoId, prefill from demo document
+    useEffect(() => {
+        if (!demoId) return;
+        const fetchDemoData = async () => {
+            try {
+                const demoDoc = await getDoc(doc(db, 'demos', demoId));
+                if (demoDoc.exists()) {
+                    const d = demoDoc.data();
+                    setFormData(prev => ({
+                        ...prev,
+                        parentName: prev.parentName || d.parentName || '',
+                        parentEmail: prev.parentEmail || d.parentEmail || d.email || '',
+                        parentPhone: prev.parentPhone || d.parentPhone || '',
+                        studentName: prev.studentName || d.studentName || '',
+                        studentAge: prev.studentAge || d.studentAge || '',
+                    }));
+                }
+            } catch (err) {
+                console.error('Error fetching demo data for prefill:', err);
+            }
+        };
+        fetchDemoData();
+    }, [demoId]);
 
     // Fetch students based on parent email
     useEffect(() => {
@@ -433,6 +476,101 @@ const PaymentCheckout = () => {
         }
     };
 
+    // ── Simulate Payment (TEST ONLY) ───────────────────────────────────────────
+    const handleSimulatePayment = async () => {
+        if (!formData.studentName || !formData.parentName || !formData.parentEmail) {
+            toast.error('Please fill in Student Name, Parent Name, and Email before simulating.');
+            return;
+        }
+        setIsProcessing(true);
+        try {
+            const parentId = user?.uid || null;
+            const paymentData = {
+                parentId,
+                parentEmail: formData.parentEmail,
+                parentName: formData.parentName,
+                studentName: formData.studentName,
+                studentAge: formData.studentAge,
+                planId: plan.id || plan.planId,
+                planName: plan.name,
+                amount: amountINR,
+                subtotal: Math.round(pricing.subtotal * 83),
+                discount: Math.round(pricing.discount * 83),
+                familyMembers,
+                paymentMethod: 'simulated',
+                currency: 'INR',
+                status: 'COMPLETED',
+                simulated: true,
+                createdAt: serverTimestamp(),
+                completedAt: serverTimestamp(),
+            };
+            const paymentRef = await addDoc(collection(db, 'payments'), paymentData);
+
+            await addDoc(collection(db, 'subscriptions'), {
+                parentId,
+                parentEmail: formData.parentEmail,
+                parentName: formData.parentName,
+                studentName: formData.studentName,
+                planId: plan.id || plan.planId,
+                planName: plan.name,
+                amount: amountINR,
+                billingCycle: plan.billingCycle || 'MONTHLY',
+                status: 'ACTIVE',
+                paymentMethod: 'simulated',
+                paymentId: paymentRef.id,
+                nextDueAt: getNextDueDate(plan.billingCycle),
+                createdAt: serverTimestamp(),
+                updatedAt: serverTimestamp()
+            });
+
+            if (parentId) {
+                await updateDoc(doc(db, 'users', parentId), {
+                    studentName: formData.studentName,
+                    studentAge: formData.studentAge,
+                    learningLevel: plan.level || 'Beginner',
+                    studentType: plan.type || (plan.classType === 'one-on-one' ? '1-on-1' : 'Group'),
+                    status: 'PENDING_COACH',
+                    updatedAt: serverTimestamp()
+                });
+
+                // Notify Admin
+                await addDoc(collection(db, 'admin_notifications'), {
+                    type: 'PAYMENT_RECEIVED',
+                    title: 'New Payment Received (Simulated)',
+                    message: `${formData.parentName} has completed payment for ${formData.studentName}. Please assign a coach to activate the account.`,
+                    parentId,
+                    amount: amountINR,
+                    status: 'unread',
+                    createdAt: serverTimestamp()
+                });
+            }
+
+            if (demoId) {
+                try {
+                    await updateDoc(doc(db, 'demos', demoId), {
+                        status: 'PAYMENT_PENDING',
+                        updatedAt: serverTimestamp()
+                    });
+                } catch (e) { /* demo may not exist */ }
+            }
+
+            toast.success('✅ Payment simulated! Redirecting...');
+            navigate('/payment/success', {
+                state: {
+                    plan,
+                    pricing: { ...pricing, amountINR },
+                    manualApproval: false,
+                    paymentId: paymentRef.id,
+                    paymentMethod: 'simulated',
+                }
+            });
+        } catch (error) {
+            console.error('Simulate payment error:', error);
+            toast.error('Simulation failed: ' + error.message);
+            setIsProcessing(false);
+        }
+    };
+
     return (
         <div className="checkout-page">
             <ToastContainer position="top-right" autoClose={4000} hideProgressBar={false} />
@@ -693,6 +831,43 @@ const PaymentCheckout = () => {
                             <p style={{ textAlign: 'center', fontSize: '12px', color: '#999', marginTop: '12px' }}>
                                 🔐 Secured by Razorpay. SSL encrypted & PCI DSS compliant.
                             </p>
+
+                            {/* ── DEV ONLY Simulate Button ─── */}
+                            <div style={{ marginTop: '24px', borderTop: '1px dashed #e2e8f0', paddingTop: '20px' }}>
+                                <p style={{ textAlign: 'center', fontSize: '11px', color: '#94a3b8', marginBottom: '12px', textTransform: 'uppercase', letterSpacing: '1px' }}>
+                                    🧪 Dev / Testing Only
+                                </p>
+                                <button
+                                    type="button"
+                                    id="simulate-payment-btn"
+                                    onClick={handleSimulatePayment}
+                                    disabled={isProcessing}
+                                    style={{
+                                        width: '100%',
+                                        padding: '14px',
+                                        borderRadius: '10px',
+                                        border: '2px dashed #f59e0b',
+                                        background: 'rgba(245, 158, 11, 0.07)',
+                                        color: '#b45309',
+                                        fontWeight: '700',
+                                        fontSize: '14px',
+                                        cursor: isProcessing ? 'not-allowed' : 'pointer',
+                                        opacity: isProcessing ? 0.6 : 1,
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        justifyContent: 'center',
+                                        gap: '8px',
+                                        transition: 'all 0.2s'
+                                    }}
+                                    onMouseEnter={(e) => { if (!isProcessing) e.currentTarget.style.background = 'rgba(245, 158, 11, 0.15)'; }}
+                                    onMouseLeave={(e) => { e.currentTarget.style.background = 'rgba(245, 158, 11, 0.07)'; }}
+                                >
+                                    ⚡ Simulate Payment Success
+                                </button>
+                                <p style={{ textAlign: 'center', fontSize: '11px', color: '#94a3b8', marginTop: '8px' }}>
+                                    Bypasses Razorpay for testing. Does not charge any real money.
+                                </p>
+                            </div>
                         </form>
                     </div>
 

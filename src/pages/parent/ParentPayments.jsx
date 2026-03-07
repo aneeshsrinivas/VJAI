@@ -44,17 +44,17 @@ const ParentPayments = () => {
     };
 
     useEffect(() => {
-        console.log("user payment page with email: ", currentUser);
         const fetchData = async () => {
-            if (!currentUser?.email) {
+            if (!currentUser?.uid) {
                 setLoading(false);
                 return;
             }
 
             try {
-                console.log('Fetching data for user email:', currentUser.email);
+                const uid = currentUser.uid;
+                const email = currentUser.email?.toLowerCase();
 
-                // Step 1: Fetch ALL subscriptions and filter by parentEmail matching user's email
+                // Fetch all subscriptions and find by uid OR email
                 const allSubsSnapshot = await getDocs(collection(db, 'subscriptions'));
                 const allSubs = allSubsSnapshot.docs.map(doc => ({
                     id: doc.id,
@@ -62,43 +62,31 @@ const ParentPayments = () => {
                     nextDueAt: doc.data().nextDueAt?.toDate?.() || null
                 }));
 
-                console.log('All subscriptions:', allSubs);
-
-                // Find subscription matching user's email
-                const userSubscription = allSubs.find(sub =>
-                    sub.parentEmail?.toLowerCase() === currentUser.email?.toLowerCase()
-                );
-
-                console.log('Found user subscription:', userSubscription);
+                // Match by parentId (uid) first, then fall back to parentEmail match
+                const userSubscription =
+                    allSubs.find(sub => sub.parentId === uid) ||
+                    allSubs.find(sub => sub.parentEmail?.toLowerCase() === email);
 
                 if (userSubscription) {
                     setSubscription(userSubscription);
 
-                    // Step 2: Fetch the plan details using planId
                     if (userSubscription.planId) {
                         const planDoc = await getDoc(doc(db, 'subscriptionPlans', userSubscription.planId));
                         if (planDoc.exists()) {
-                            setCurrentPlan({
-                                id: planDoc.id,
-                                ...planDoc.data()
-                            });
-                            console.log('Found plan:', planDoc.data());
+                            setCurrentPlan({ id: planDoc.id, ...planDoc.data() });
                         } else {
                             const plansSnapshot = await getDocs(collection(db, 'subscriptionPlans'));
                             const matchingPlan = plansSnapshot.docs.find(d =>
                                 d.data().planId === userSubscription.planId || d.id === userSubscription.planId
                             );
                             if (matchingPlan) {
-                                setCurrentPlan({
-                                    id: matchingPlan.id,
-                                    ...matchingPlan.data()
-                                });
+                                setCurrentPlan({ id: matchingPlan.id, ...matchingPlan.data() });
                             }
                         }
                     }
                 }
 
-                // Step 3: Fetch ALL payments and filter by parentEmail
+                // Fetch all payments and find by parentId OR parentEmail
                 const allPaymentsSnapshot = await getDocs(collection(db, 'payments'));
                 const allPayments = allPaymentsSnapshot.docs.map(doc => ({
                     id: doc.id,
@@ -107,10 +95,10 @@ const ParentPayments = () => {
                 }));
 
                 const userPayments = allPayments.filter(payment =>
-                    payment.parentEmail?.toLowerCase() === currentUser.email?.toLowerCase()
+                    payment.parentId === uid ||
+                    payment.parentEmail?.toLowerCase() === email
                 );
 
-                console.log('User payments:', userPayments);
                 setTransactions(userPayments);
 
             } catch (error) {

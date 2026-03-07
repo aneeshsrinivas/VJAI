@@ -90,7 +90,11 @@ const ManageBatchesModal = ({ isOpen, onClose, coach }) => {
                 </div>
 
                 {/* List */}
-                <div style={{ marginBottom: '24px', maxHeight: '300px', overflowY: 'auto' }}>
+                <div 
+                    data-lenis-prevent="true"
+                    onWheel={(e) => e.stopPropagation()}
+                    style={{ marginBottom: '24px', maxHeight: '300px', overflowY: 'auto' }}
+                >
                     {loading ? (
                         <div style={{ color: isDark ? '#aaa' : '#666', fontStyle: 'italic' }}>Loading batches...</div>
                     ) : batches.length === 0 ? (

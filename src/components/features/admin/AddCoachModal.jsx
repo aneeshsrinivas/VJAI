@@ -180,7 +180,13 @@ const AddCoachModal = ({ isOpen, onClose, onSuccess }) => {
 
                 {error && <div className="error-message" style={{ color: 'red', marginBottom: '16px' }}>{error}</div>}
 
-                <form onSubmit={handleSubmit} className="evaluation-form" style={{ overflowY: 'auto', flex: 1, paddingRight: '8px' }}>
+                <form 
+                    onSubmit={handleSubmit} 
+                    className="evaluation-form" 
+                    data-lenis-prevent="true"
+                    onWheel={(e) => e.stopPropagation()}
+                    style={{ overflowY: 'auto', flex: 1, paddingRight: '8px' }}
+                >
                     <div className="form-row">
                         <Input
                             label="Full Name"
