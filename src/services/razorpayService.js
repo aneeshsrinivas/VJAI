@@ -17,7 +17,12 @@ export const createRazorpayOrder = async (amountINR, receipt, notes) => {
         body: JSON.stringify({ amountINR, receipt, notes }),
     });
     const data = await res.json();
-    if (!data.success) throw new Error(data.error || 'Failed to create order');
+
+    // Check both HTTP status and API response success flag
+    if (!res.ok || !data.success) {
+        throw new Error(data.error || data.message || `Failed to create order (HTTP ${res.status})`);
+    }
+
     return data.order;
 };
 
@@ -35,7 +40,12 @@ export const verifyRazorpayPayment = async (orderId, paymentId, signature) => {
         }),
     });
     const data = await res.json();
-    if (!data.success) throw new Error(data.message || 'Payment verification failed');
+
+    // Check both HTTP status and API response success flag
+    if (!res.ok || !data.success) {
+        throw new Error(data.message || data.error || `Payment verification failed (HTTP ${res.status})`);
+    }
+
     return data;
 };
 

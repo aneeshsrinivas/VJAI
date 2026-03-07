@@ -6,8 +6,10 @@ import { COLLECTIONS } from '../../config/firestoreCollections';
 import Button from '../ui/Button';
 import { Upload, Link, FileText, X, Check } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
+import { useTheme } from '../../context/ThemeContext';
 
 const UploadMaterialModal = ({ isOpen, onClose, batch }) => {
+    const { isDark } = useTheme();
     if (!isOpen || !batch) return null;
     const { currentUser } = useAuth(); // for createdBy
 
@@ -85,17 +87,18 @@ const UploadMaterialModal = ({ isOpen, onClose, batch }) => {
                 backgroundColor: 'rgba(0,0,0,0.5)', display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: 1000
             }}>
                 <div className="modal-content" style={{
-                    background: 'white', borderRadius: '16px', padding: '40px',
-                    textAlign: 'center', boxShadow: '0 20px 60px rgba(0,0,0,0.2)', width: '400px'
+                    background: isDark ? '#1a1d27' : 'white', borderRadius: '16px', padding: '40px',
+                    textAlign: 'center', boxShadow: isDark ? '0 20px 60px rgba(0,0,0,0.5)' : '0 20px 60px rgba(0,0,0,0.2)', width: '400px',
+                    color: isDark ? '#f0f0f0' : 'inherit'
                 }}>
                     <div style={{
-                        width: '80px', height: '80px', background: '#ecfdf5', borderRadius: '50%',
+                        width: '80px', height: '80px', background: isDark ? 'rgba(16,185,129,0.1)' : '#ecfdf5', borderRadius: '50%',
                         display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 20px'
                     }}>
-                        <Check size={40} color="#10b981" />
+                        <Check size={40} color={isDark ? '#34d399' : '#10b981'} />
                     </div>
-                    <h2 style={{ margin: '0 0 8px', color: '#065f46' }}>Upload Successful!</h2>
-                    <p style={{ color: '#6b7280' }}>Your material has been added to the batch.</p>
+                    <h2 style={{ margin: '0 0 8px', color: isDark ? '#34d399' : '#065f46' }}>Upload Successful!</h2>
+                    <p style={{ color: isDark ? '#94a3b8' : '#6b7280' }}>Your material has been added to the batch.</p>
                 </div>
             </div>
         );
@@ -107,21 +110,22 @@ const UploadMaterialModal = ({ isOpen, onClose, batch }) => {
             backgroundColor: 'rgba(0,0,0,0.5)', display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: 1000
         }}>
             <div className="modal-content" onClick={e => e.stopPropagation()} style={{
-                maxWidth: '500px', width: '90%', background: 'white', borderRadius: '16px', padding: '24px',
-                boxShadow: '0 20px 60px rgba(0,0,0,0.2)',
-                maxHeight: '90vh', overflowY: 'auto'
+                maxWidth: '500px', width: '90%', background: isDark ? '#1a1d27' : 'white', borderRadius: '16px', padding: '24px',
+                boxShadow: isDark ? '0 20px 60px rgba(0,0,0,0.5)' : '0 20px 60px rgba(0,0,0,0.2)',
+                maxHeight: '90vh', overflowY: 'auto',
+                color: isDark ? '#f0f0f0' : 'inherit'
             }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '20px' }}>
                     <div>
-                        <h2 style={{ margin: '0 0 8px', color: '#1e293b' }}>Upload Material</h2>
-                        <p style={{ margin: 0, color: '#64748b', fontSize: '14px' }}>Target Batch: <strong>{batch.name}</strong></p>
+                        <h2 style={{ margin: '0 0 8px', color: isDark ? '#f0f0f0' : '#1e293b' }}>Upload Material</h2>
+                        <p style={{ margin: 0, color: isDark ? '#94a3b8' : '#64748b', fontSize: '14px' }}>Target Batch: <strong style={{color: isDark ? '#f0f0f0' : 'inherit'}}>{batch.name}</strong></p>
                     </div>
-                    <button onClick={onClose} style={{ background: 'none', border: 'none', cursor: 'pointer' }}><X size={24} color="#94a3b8" /></button>
+                    <button onClick={onClose} style={{ background: 'none', border: 'none', cursor: 'pointer' }}><X size={24} color={isDark ? '#94a3b8' : '#94a3b8'} /></button>
                 </div>
 
                 {/* Material Type Selector */}
                 <div style={{ marginBottom: '20px' }}>
-                    <label style={{ display: 'block', marginBottom: '8px', fontWeight: '600', fontSize: '14px' }}>Material Type</label>
+                    <label style={{ display: 'block', marginBottom: '8px', fontWeight: '600', fontSize: '14px', color: isDark ? '#cbd5e1' : 'inherit' }}>Material Type</label>
                     <div style={{ display: 'flex', gap: '12px' }}>
                         <button
                             type="button"
@@ -129,12 +133,12 @@ const UploadMaterialModal = ({ isOpen, onClose, batch }) => {
                             style={{
                                 flex: 1,
                                 padding: '10px',
-                                background: type === 'PDF' ? '#eff6ff' : '#f8fafc',
-                                border: type === 'PDF' ? '1px solid #3b82f6' : '1px solid #e2e8f0',
+                                background: type === 'PDF' ? (isDark ? 'rgba(59,130,246,0.1)' : '#eff6ff') : (isDark ? 'rgba(255,255,255,0.05)' : '#f8fafc'),
+                                border: type === 'PDF' ? `1px solid ${isDark ? '#3b82f6' : '#3b82f6'}` : `1px solid ${isDark ? 'rgba(255,255,255,0.1)' : '#e2e8f0'}`,
                                 borderRadius: '8px',
                                 cursor: 'pointer',
                                 fontWeight: type === 'PDF' ? '600' : '400',
-                                color: type === 'PDF' ? '#1d4ed8' : '#64748b',
+                                color: type === 'PDF' ? (isDark ? '#60a5fa' : '#1d4ed8') : (isDark ? '#94a3b8' : '#64748b'),
                                 display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px'
                             }}
                         >
@@ -146,12 +150,12 @@ const UploadMaterialModal = ({ isOpen, onClose, batch }) => {
                             style={{
                                 flex: 1,
                                 padding: '10px',
-                                background: type === 'PGN' ? '#eff6ff' : '#f8fafc',
-                                border: type === 'PGN' ? '1px solid #3b82f6' : '1px solid #e2e8f0',
+                                background: type === 'PGN' ? (isDark ? 'rgba(59,130,246,0.1)' : '#eff6ff') : (isDark ? 'rgba(255,255,255,0.05)' : '#f8fafc'),
+                                border: type === 'PGN' ? `1px solid ${isDark ? '#3b82f6' : '#3b82f6'}` : `1px solid ${isDark ? 'rgba(255,255,255,0.1)' : '#e2e8f0'}`,
                                 borderRadius: '8px',
                                 cursor: 'pointer',
                                 fontWeight: type === 'PGN' ? '600' : '400',
-                                color: type === 'PGN' ? '#1d4ed8' : '#64748b',
+                                color: type === 'PGN' ? (isDark ? '#60a5fa' : '#1d4ed8') : (isDark ? '#94a3b8' : '#64748b'),
                                 display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px'
                             }}
                         >
@@ -161,25 +165,25 @@ const UploadMaterialModal = ({ isOpen, onClose, batch }) => {
                 </div>
 
                 <div style={{ marginBottom: '20px' }}>
-                    <label style={{ display: 'block', marginBottom: '8px', fontWeight: '600', fontSize: '14px' }}>Title</label>
+                    <label style={{ display: 'block', marginBottom: '8px', fontWeight: '600', fontSize: '14px', color: isDark ? '#cbd5e1' : 'inherit' }}>Title</label>
                     <input
                         value={title}
                         onChange={e => setTitle(e.target.value)}
                         placeholder="e.g. Masterclass on Rook Endgames"
-                        style={{ width: '100%', padding: '12px', border: '1px solid #e2e8f0', borderRadius: '8px', fontSize: '14px' }}
+                        style={{ width: '100%', padding: '12px', border: `1px solid ${isDark ? 'rgba(255,255,255,0.1)' : '#e2e8f0'}`, background: isDark ? 'rgba(255,255,255,0.05)' : 'white', borderRadius: '8px', fontSize: '14px', color: isDark ? '#f0f0f0' : 'inherit' }}
                     />
                 </div>
 
                 {/* Input Method Tabs */}
-                <div style={{ marginBottom: '16px', display: 'flex', borderBottom: '1px solid #e2e8f0' }}>
+                <div style={{ marginBottom: '16px', display: 'flex', borderBottom: `1px solid ${isDark ? 'rgba(255,255,255,0.1)' : '#e2e8f0'}` }}>
                     <button
                         onClick={() => setUploadMode('FILE')}
                         style={{
                             padding: '8px 16px',
                             background: 'none',
                             border: 'none',
-                            borderBottom: uploadMode === 'FILE' ? '2px solid #3b82f6' : '2px solid transparent',
-                            color: uploadMode === 'FILE' ? '#3b82f6' : '#64748b',
+                            borderBottom: uploadMode === 'FILE' ? `2px solid ${isDark ? '#60a5fa' : '#3b82f6'}` : '2px solid transparent',
+                            color: uploadMode === 'FILE' ? (isDark ? '#60a5fa' : '#3b82f6') : (isDark ? '#94a3b8' : '#64748b'),
                             fontWeight: '600',
                             cursor: 'pointer'
                         }}
@@ -192,8 +196,8 @@ const UploadMaterialModal = ({ isOpen, onClose, batch }) => {
                             padding: '8px 16px',
                             background: 'none',
                             border: 'none',
-                            borderBottom: uploadMode === 'LINK' ? '2px solid #3b82f6' : '2px solid transparent',
-                            color: uploadMode === 'LINK' ? '#3b82f6' : '#64748b',
+                            borderBottom: uploadMode === 'LINK' ? `2px solid ${isDark ? '#60a5fa' : '#3b82f6'}` : '2px solid transparent',
+                            color: uploadMode === 'LINK' ? (isDark ? '#60a5fa' : '#3b82f6') : (isDark ? '#94a3b8' : '#64748b'),
                             fontWeight: '600',
                             cursor: 'pointer'
                         }}
@@ -205,11 +209,11 @@ const UploadMaterialModal = ({ isOpen, onClose, batch }) => {
                 <div style={{ marginBottom: '24px' }}>
                     {uploadMode === 'FILE' ? (
                         <div style={{
-                            border: '2px dashed #cbd5e1',
+                            border: `2px dashed ${isDark ? 'rgba(255,255,255,0.2)' : '#cbd5e1'}`,
                             borderRadius: '8px',
                             padding: '32px',
                             textAlign: 'center',
-                            background: '#f8fafc',
+                            background: isDark ? 'rgba(255,255,255,0.03)' : '#f8fafc',
                             cursor: 'pointer',
                             position: 'relative'
                         }}>
@@ -222,32 +226,32 @@ const UploadMaterialModal = ({ isOpen, onClose, batch }) => {
                             />
                             {file ? (
                                 <div>
-                                    <div style={{ color: '#059669', marginBottom: '8px' }}><Check size={32} style={{ margin: '0 auto' }} /></div>
-                                    <p style={{ margin: 0, color: '#334155', fontWeight: '500' }}>{file.name}</p>
-                                    <p style={{ margin: '4px 0 0', color: '#64748b', fontSize: '12px' }}>{(file.size / 1024).toFixed(1)} KB</p>
+                                    <div style={{ color: isDark ? '#34d399' : '#059669', marginBottom: '8px' }}><Check size={32} style={{ margin: '0 auto' }} /></div>
+                                    <p style={{ margin: 0, color: isDark ? '#f0f0f0' : '#334155', fontWeight: '500' }}>{file.name}</p>
+                                    <p style={{ margin: '4px 0 0', color: isDark ? '#94a3b8' : '#64748b', fontSize: '12px' }}>{(file.size / 1024).toFixed(1)} KB</p>
                                 </div>
                             ) : (
                                 <div>
-                                    <Upload size={32} color="#94a3b8" style={{ margin: '0 auto 12px' }} />
-                                    <p style={{ margin: 0, color: '#64748b' }}>Click or Drag file to upload</p>
-                                    <p style={{ margin: '4px 0 0', color: '#94a3b8', fontSize: '12px' }}>PDF, PGN, or Images</p>
+                                    <Upload size={32} color={isDark ? '#475569' : '#94a3b8'} style={{ margin: '0 auto 12px' }} />
+                                    <p style={{ margin: 0, color: isDark ? '#94a3b8' : '#64748b' }}>Click or Drag file to upload</p>
+                                    <p style={{ margin: '4px 0 0', color: isDark ? '#475569' : '#94a3b8', fontSize: '12px' }}>PDF, PGN, or Images</p>
                                 </div>
                             )}
                         </div>
                     ) : (
-                        <div style={{ display: 'flex', alignItems: 'center', border: '1px solid #e2e8f0', borderRadius: '8px', padding: '0 12px', background: 'white' }}>
-                            <Link size={16} color="#94a3b8" />
+                        <div style={{ display: 'flex', alignItems: 'center', border: `1px solid ${isDark ? 'rgba(255,255,255,0.1)' : '#e2e8f0'}`, borderRadius: '8px', padding: '0 12px', background: isDark ? 'rgba(255,255,255,0.05)' : 'white' }}>
+                            <Link size={16} color={isDark ? '#94a3b8' : '#94a3b8'} />
                             <input
                                 value={url}
                                 onChange={e => setUrl(e.target.value)}
                                 placeholder="https://drive.google.com/..."
-                                style={{ width: '100%', padding: '12px', border: 'none', fontSize: '14px', outline: 'none' }}
+                                style={{ width: '100%', padding: '12px', border: 'none', fontSize: '14px', outline: 'none', background: 'transparent', color: isDark ? '#f0f0f0' : 'inherit' }}
                             />
                         </div>
                     )}
                 </div>
 
-                <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '12px', borderTop: '1px solid #f1f5f9', paddingTop: '16px' }}>
+                <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '12px', borderTop: `1px solid ${isDark ? 'rgba(255,255,255,0.1)' : '#f1f5f9'}`, paddingTop: '16px' }}>
                     <Button variant="secondary" onClick={onClose}>Cancel</Button>
                     <Button onClick={handleUpload} disabled={loading}>
                         {loading ? 'Uploading...' : 'Upload Material'}

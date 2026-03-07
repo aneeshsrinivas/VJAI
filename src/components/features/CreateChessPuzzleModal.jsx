@@ -5,10 +5,12 @@ import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
 import { useAuth } from '../../context/AuthContext';
 import { FileText, AlignLeft, X } from 'lucide-react';
 import ChessBoardEditor from '../chess/ChessBoardEditor';
+import { useTheme } from '../../context/ThemeContext';
 
 const CreateChessPuzzleModal = ({ isOpen, onClose, batchId, batchName, onSuccess }) => {
     if (!isOpen) return null;
 
+    const { isDark } = useTheme();
     const { currentUser } = useAuth();
     const [loading, setLoading] = useState(false);
     const [fen, setFen] = useState('rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1');
@@ -57,15 +59,16 @@ const CreateChessPuzzleModal = ({ isOpen, onClose, batchId, batchName, onSuccess
             zIndex: 1000, fontFamily: "'Figtree', sans-serif"
         }}>
             <div style={{
-                background: 'white', borderRadius: '16px', padding: '24px',
+                background: isDark ? '#1a1d27' : 'white', borderRadius: '16px', padding: '24px',
                 width: '100%', maxWidth: '900px',
                 maxHeight: '90vh', overflowY: 'auto',
-                boxShadow: '0 10px 40px rgba(0,0,0,0.2)'
+                boxShadow: isDark ? '0 10px 40px rgba(0,0,0,0.5)' : '0 10px 40px rgba(0,0,0,0.2)',
+                color: isDark ? '#f0f0f0' : 'inherit'
             }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '20px' }}>
-                    <h2 style={{ margin: 0, fontSize: '20px', color: '#1e293b' }}>Create Chess Puzzle</h2>
+                    <h2 style={{ margin: 0, fontSize: '20px', color: isDark ? '#f0f0f0' : '#1e293b' }}>Create Chess Puzzle</h2>
                     <button onClick={onClose} style={{ background: 'none', border: 'none', cursor: 'pointer' }}>
-                        <X size={24} color="#64748b" />
+                        <X size={24} color={isDark ? '#94a3b8' : '#64748b'} />
                     </button>
                 </div>
 
@@ -76,7 +79,7 @@ const CreateChessPuzzleModal = ({ isOpen, onClose, batchId, batchName, onSuccess
                         <div style={{ flex: 1, minWidth: '300px' }}>
                             <form id="puzzleForm" onSubmit={handleSubmit}>
                                 <div style={{ marginBottom: '16px' }}>
-                                    <label style={{ display: 'block', fontSize: '14px', fontWeight: '600', marginBottom: '8px', color: '#334155' }}>Title</label>
+                                    <label style={{ display: 'block', fontSize: '14px', fontWeight: '600', marginBottom: '8px', color: isDark ? '#cbd5e1' : '#334155' }}>Title</label>
                                     <div style={{ position: 'relative' }}>
                                         <FileText size={18} style={{ position: 'absolute', left: '12px', top: '12px', color: '#94a3b8' }} />
                                         <input
@@ -88,14 +91,16 @@ const CreateChessPuzzleModal = ({ isOpen, onClose, batchId, batchName, onSuccess
                                             onChange={handleChange}
                                             style={{
                                                 width: '100%', padding: '10px 10px 10px 40px',
-                                                borderRadius: '8px', border: '1px solid #cbd5e1', outline: 'none'
+                                                borderRadius: '8px', border: `1px solid ${isDark ? 'rgba(255,255,255,0.1)' : '#cbd5e1'}`, outline: 'none',
+                                                background: isDark ? 'rgba(255,255,255,0.05)' : 'white',
+                                                color: isDark ? '#f0f0f0' : 'inherit'
                                             }}
                                         />
                                     </div>
                                 </div>
 
                                 <div style={{ marginBottom: '24px' }}>
-                                    <label style={{ display: 'block', fontSize: '14px', fontWeight: '600', marginBottom: '8px', color: '#334155' }}>Description</label>
+                                    <label style={{ display: 'block', fontSize: '14px', fontWeight: '600', marginBottom: '8px', color: isDark ? '#cbd5e1' : '#334155' }}>Description</label>
                                     <textarea
                                         name="description"
                                         required
@@ -105,21 +110,23 @@ const CreateChessPuzzleModal = ({ isOpen, onClose, batchId, batchName, onSuccess
                                         onChange={handleChange}
                                         style={{
                                             width: '100%', padding: '12px',
-                                            borderRadius: '8px', border: '1px solid #cbd5e1', outline: 'none', resize: 'none'
+                                            borderRadius: '8px', border: `1px solid ${isDark ? 'rgba(255,255,255,0.1)' : '#cbd5e1'}`, outline: 'none', resize: 'none',
+                                            background: isDark ? 'rgba(255,255,255,0.05)' : 'white',
+                                            color: isDark ? '#f0f0f0' : 'inherit'
                                         }}
                                     />
                                 </div>
 
-                                <div style={{ background: '#f1f5f9', padding: '16px', borderRadius: '8px', marginBottom: '16px' }}>
-                                    <h4 style={{ margin: '0 0 8px', fontSize: '14px' }}>Assigning to:</h4>
-                                    <div style={{ fontWeight: 'bold', color: '#0f172a' }}>{batchName || 'Global'}</div>
+                                <div style={{ background: isDark ? 'rgba(255,255,255,0.05)' : '#f1f5f9', padding: '16px', borderRadius: '8px', marginBottom: '16px' }}>
+                                    <h4 style={{ margin: '0 0 8px', fontSize: '14px', color: isDark ? '#cbd5e1' : 'inherit' }}>Assigning to:</h4>
+                                    <div style={{ fontWeight: 'bold', color: isDark ? '#f0f0f0' : '#0f172a' }}>{batchName || 'Global'}</div>
                                 </div>
                             </form>
                         </div>
 
                         {/* Right Column: Board Editor */}
                         <div style={{ flex: '0 0 auto' }}>
-                            <label style={{ display: 'block', fontSize: '14px', fontWeight: '600', marginBottom: '8px', color: '#334155' }}>Setup Board Position</label>
+                            <label style={{ display: 'block', fontSize: '14px', fontWeight: '600', marginBottom: '8px', color: isDark ? '#cbd5e1' : '#334155' }}>Setup Board Position</label>
                             <ChessBoardEditor
                                 onChange={setFen}
                                 initialFen={fen}
@@ -128,7 +135,7 @@ const CreateChessPuzzleModal = ({ isOpen, onClose, batchId, batchName, onSuccess
 
                     </div>
 
-                    <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '12px', borderTop: '1px solid #e2e8f0', paddingTop: '20px' }}>
+                    <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '12px', borderTop: `1px solid ${isDark ? 'rgba(255,255,255,0.1)' : '#e2e8f0'}`, paddingTop: '20px' }}>
                         <Button type="button" variant="secondary" onClick={onClose}>Cancel</Button>
                         <Button type="submit" form="puzzleForm" disabled={loading}>
                             {loading ? 'Creating...' : 'Assign Puzzle'}

@@ -59,7 +59,7 @@ const Sidebar = ({ role = 'admin', activePath = '/dashboard' }) => {
                 <span className="sidebar-title">{role === 'admin' ? 'ICA Admin' : 'Coach Portal'}</span>
             </div>
 
-            <nav className="sidebar-nav" data-lenis-prevent>
+            <nav className="sidebar-nav" data-lenis-prevent="true" onWheel={(e) => e.stopPropagation()}>
                 {links.map((link) => (
                     <div
                         key={link.path}

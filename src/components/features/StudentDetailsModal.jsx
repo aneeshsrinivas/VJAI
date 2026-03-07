@@ -3,8 +3,10 @@ import { X, Calendar, MapPin, Clipboard } from 'lucide-react';
 import { doc, getDoc } from 'firebase/firestore';
 import { db } from '../../lib/firebase';
 import { useAuth } from '../../context/AuthContext';
+import { useTheme } from '../../context/ThemeContext';
 
 const StudentDetailsModal = ({ isOpen, onClose, student }) => {
+    const { isDark } = useTheme();
     const { currentUser } = useAuth();
     const [batchName, setBatchName] = useState(null);
     const [loading, setLoading] = useState(false);
@@ -53,19 +55,20 @@ const StudentDetailsModal = ({ isOpen, onClose, student }) => {
             backdropFilter: 'blur(4px)'
         }} onClick={onClose}>
             <div style={{
-                background: 'white', borderRadius: '24px', padding: '32px',
+                background: isDark ? '#1a1d27' : 'white', borderRadius: '24px', padding: '32px',
                 width: '100%', maxWidth: '500px',
-                boxShadow: '0 25px 60px -12px rgba(0, 0, 0, 0.3)',
+                boxShadow: isDark ? '0 25px 60px -12px rgba(0, 0, 0, 0.7)' : '0 25px 60px -12px rgba(0, 0, 0, 0.3)',
                 position: 'relative',
                 animation: 'scaleUp 0.2s cubic-bezier(0.16, 1, 0.3, 1)',
-                maxHeight: '90vh', overflowY: 'auto'
+                maxHeight: '90vh', overflowY: 'auto',
+                color: isDark ? '#f0f0f0' : 'inherit'
             }} onClick={e => e.stopPropagation()}>
 
                 <button onClick={onClose} style={{
                     position: 'absolute', top: '24px', right: '24px',
-                    background: '#f1f5f9', border: 'none', borderRadius: '50%',
+                    background: isDark ? 'rgba(255,255,255,0.1)' : '#f1f5f9', border: 'none', borderRadius: '50%',
                     width: '36px', height: '36px', display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    cursor: 'pointer', color: '#64748b'
+                    cursor: 'pointer', color: isDark ? '#cbd5e1' : '#64748b'
                 }}>
                     <X size={20} />
                 </button>
@@ -90,7 +93,7 @@ const StudentDetailsModal = ({ isOpen, onClose, student }) => {
                                             cy="60"
                                             r="52"
                                             fill="none"
-                                            stroke="#e2e8f0"
+                                            stroke={isDark ? 'rgba(255,255,255,0.1)' : '#e2e8f0'}
                                             strokeWidth="8"
                                         />
                                         {/* Progress circle */}
@@ -136,7 +139,7 @@ const StudentDetailsModal = ({ isOpen, onClose, student }) => {
                             );
                         })()}
                     </div>
-                    <h2 style={{ margin: '0 0 4px', fontSize: '24px', fontWeight: 'bold', color: '#1e293b' }}>
+                    <h2 style={{ margin: '0 0 4px', fontSize: '24px', fontWeight: 'bold', color: isDark ? '#f0f0f0' : '#1e293b' }}>
                         {student.studentName}
                     </h2>
                     {/* Level badge */}
@@ -154,33 +157,33 @@ const StudentDetailsModal = ({ isOpen, onClose, student }) => {
                     }}>
                         {student.level || 'Beginner'}
                     </span>
-                    <p style={{ margin: 0, color: '#64748b' }}>{student.studentAge} Years Old</p>
+                    <p style={{ margin: 0, color: isDark ? '#94a3b8' : '#64748b' }}>{student.studentAge} Years Old</p>
                     {/* Skills progress text */}
-                    <p style={{ margin: '8px 0 0', fontSize: '13px', color: '#64748b' }}>
-                        <strong style={{ color: '#1e293b' }}>{(student.skillsMastered || []).length}/7</strong> Skills Mastered
+                    <p style={{ margin: '8px 0 0', fontSize: '13px', color: isDark ? '#94a3b8' : '#64748b' }}>
+                        <strong style={{ color: isDark ? '#f0f0f0' : '#1e293b' }}>{(student.skillsMastered || []).length}/7</strong> Skills Mastered
                     </p>
                 </div>
 
                 <div style={{ display: 'grid', gap: '16px' }}>
-                    <div style={{ background: '#f8fafc', padding: '16px', borderRadius: '16px', display: 'flex', alignItems: 'center', gap: '12px' }}>
-                        <div style={{ background: 'white', padding: '8px', borderRadius: '8px', boxShadow: '0 2px 4px rgba(0,0,0,0.05)' }}>
+                    <div style={{ background: isDark ? 'rgba(255,255,255,0.05)' : '#f8fafc', padding: '16px', borderRadius: '16px', display: 'flex', alignItems: 'center', gap: '12px' }}>
+                        <div style={{ background: isDark ? 'rgba(255,255,255,0.1)' : 'white', padding: '8px', borderRadius: '8px', boxShadow: '0 2px 4px rgba(0,0,0,0.05)' }}>
                             <Calendar size={18} color="#f59e0b" />
                         </div>
                         <div>
-                            <div style={{ fontSize: '12px', color: '#64748b' }}>Joined Date</div>
-                            <div style={{ fontWeight: '600', color: '#1e293b' }}>
+                            <div style={{ fontSize: '12px', color: isDark ? '#94a3b8' : '#64748b' }}>Joined Date</div>
+                            <div style={{ fontWeight: '600', color: isDark ? '#f0f0f0' : '#1e293b' }}>
                                 {student.createdAt?.toDate?.()?.toLocaleDateString() || 'Recently'}
                             </div>
                         </div>
                     </div>
 
-                    <div style={{ background: '#f8fafc', padding: '16px', borderRadius: '16px', display: 'flex', alignItems: 'center', gap: '12px' }}>
-                        <div style={{ background: 'white', padding: '8px', borderRadius: '8px', boxShadow: '0 2px 4px rgba(0,0,0,0.05)' }}>
+                    <div style={{ background: isDark ? 'rgba(255,255,255,0.05)' : '#f8fafc', padding: '16px', borderRadius: '16px', display: 'flex', alignItems: 'center', gap: '12px' }}>
+                        <div style={{ background: isDark ? 'rgba(255,255,255,0.1)' : 'white', padding: '8px', borderRadius: '8px', boxShadow: '0 2px 4px rgba(0,0,0,0.05)' }}>
                             <Clipboard size={18} color="#8b5cf6" />
                         </div>
                         <div>
-                            <div style={{ fontSize: '12px', color: '#64748b' }}>Assigned Batch</div>
-                            <div style={{ fontWeight: '600', color: '#1e293b' }}>
+                            <div style={{ fontSize: '12px', color: isDark ? '#94a3b8' : '#64748b' }}>Assigned Batch</div>
+                            <div style={{ fontWeight: '600', color: isDark ? '#f0f0f0' : '#1e293b' }}>
                                 {loading ? 'Loading...' : (batchName || 'No Batch Assigned')}
                             </div>
                         </div>

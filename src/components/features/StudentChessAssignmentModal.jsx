@@ -3,10 +3,12 @@ import Button from '../ui/Button';
 import { db } from '../../lib/firebase';
 import { collection, doc, setDoc, serverTimestamp } from 'firebase/firestore';
 import { useAuth } from '../../context/AuthContext';
+import { useTheme } from '../../context/ThemeContext';
 import { X, Send } from 'lucide-react';
 import SimpleChessBoard from '../chess/SimpleChessBoard';
 
 const StudentChessAssignmentModal = ({ isOpen, onClose, assignment }) => {
+    const { isDark } = useTheme();
     if (!isOpen || !assignment) return null;
 
     const { currentUser, userData } = useAuth();
@@ -64,25 +66,26 @@ const StudentChessAssignmentModal = ({ isOpen, onClose, assignment }) => {
             zIndex: 1000, fontFamily: "'Figtree', sans-serif"
         }}>
             <div style={{
-                background: 'white', borderRadius: '16px', padding: '24px',
+                background: isDark ? '#1a1d27' : 'white', borderRadius: '16px', padding: '24px',
                 width: '100%', maxWidth: '600px',
                 maxHeight: '95vh', overflowY: 'auto',
-                boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)'
+                boxShadow: isDark ? '0 20px 25px -5px rgba(0, 0, 0, 0.5)' : '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)',
+                color: isDark ? '#f0f0f0' : 'inherit'
             }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '20px', borderBottom: '1px solid #e2e8f0', paddingBottom: '16px' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '20px', borderBottom: `1px solid ${isDark ? 'rgba(255,255,255,0.1)' : '#e2e8f0'}`, paddingBottom: '16px' }}>
                     <div>
-                        <h2 style={{ margin: 0, fontSize: '20px', color: '#1e293b' }}>{assignment.title}</h2>
-                        <p style={{ margin: '4px 0 0', color: '#64748b', fontSize: '14px' }}>
+                        <h2 style={{ margin: 0, fontSize: '20px', color: isDark ? '#f0f0f0' : '#1e293b' }}>{assignment.title}</h2>
+                        <p style={{ margin: '4px 0 0', color: isDark ? '#94a3b8' : '#64748b', fontSize: '14px' }}>
                             Posted by {assignment.coachName}
                         </p>
                     </div>
                     <button onClick={onClose} style={{ background: 'none', border: 'none', cursor: 'pointer' }}>
-                        <X size={24} color="#64748b" />
+                        <X size={24} color={isDark ? '#94a3b8' : '#64748b'} />
                     </button>
                 </div>
 
-                <div style={{ marginBottom: '20px', background: '#f8fafc', padding: '16px', borderRadius: '8px', fontSize: '15px', color: '#334155', lineHeight: '1.5' }}>
-                    <strong>Instructions:</strong> {assignment.description}
+                <div style={{ marginBottom: '20px', background: isDark ? 'rgba(255,255,255,0.05)' : '#f8fafc', padding: '16px', borderRadius: '8px', fontSize: '15px', color: isDark ? '#cbd5e1' : '#334155', lineHeight: '1.5' }}>
+                    <strong style={{ color: isDark ? '#f0f0f0' : 'inherit' }}>Instructions:</strong> {assignment.description}
                 </div>
 
                 <div style={{ display: 'flex', justifyContent: 'center', paddingBottom: '20px' }}>
@@ -94,7 +97,7 @@ const StudentChessAssignmentModal = ({ isOpen, onClose, assignment }) => {
                     />
                 </div>
 
-                <div style={{ borderTop: '1px solid #e2e8f0', paddingTop: '20px', display: 'flex', justifyContent: 'flex-end', gap: '12px' }}>
+                <div style={{ borderTop: `1px solid ${isDark ? 'rgba(255,255,255,0.1)' : '#e2e8f0'}`, paddingTop: '20px', display: 'flex', justifyContent: 'flex-end', gap: '12px' }}>
                     <Button variant="ghost" onClick={onClose}>Close</Button>
                     <Button onClick={handleSubmit} disabled={submitting}>
                         <Send size={16} style={{ marginRight: '6px' }} />

@@ -9,6 +9,7 @@ import { toast, ToastContainer } from 'react-toastify';
 import { Edit2, X, Save, Search, Users } from 'lucide-react';
 import 'react-toastify/dist/ReactToastify.css';
 import '../../pages/Dashboard.css';
+import '../../components/ui/Modal.css';
 import './StudentDatabase.css';
 
 // ICA Colors
