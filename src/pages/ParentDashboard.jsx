@@ -523,6 +523,45 @@ const ParentDashboard = () => {
                                 <span>Batch: <strong style={{ color: '#fbbf24' }}>{student?.assignedBatchName || student?.batchName || 'No Batch'}</strong></span>
                             </div>
                         </div>
+                        {/* Attendance Card */}
+                        {attendanceStats.total > 0 && (
+                            <div className="progress-card-floating" style={{ marginTop: '16px' }}>
+                                <div className="progress-header">
+                                    <div className="progress-info">
+                                        <span className="progress-label">Attendance</span>
+                                        <span className="milestone-name">{attendanceStats.present} / {attendanceStats.total}</span>
+                                    </div>
+                                </div>
+                                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '16px', padding: '12px 0' }}>
+                                    <div style={{
+                                        width: '80px',
+                                        height: '80px',
+                                        borderRadius: '50%',
+                                        background: `conic-gradient(${(attendanceStats.present / attendanceStats.total) >= 0.75 ? '#10b981' : '#f59e0b'} ${(attendanceStats.present / attendanceStats.total) * 360}deg, rgba(0,0,0,0.05) 0deg)`,
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        justifyContent: 'center',
+                                        boxShadow: `0 0 0 3px ${(attendanceStats.present / attendanceStats.total) >= 0.75 ? '#d1fae5' : '#fef3c7'}`
+                                    }}>
+                                        <div style={{
+                                            fontSize: '24px',
+                                            fontWeight: '800',
+                                            color: (attendanceStats.present / attendanceStats.total) >= 0.75 ? '#059669' : '#d97706'
+                                        }}>
+                                            {Math.round((attendanceStats.present / attendanceStats.total) * 100)}%
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <div style={{ fontSize: '13px', color: '#666', fontWeight: '600' }}>
+                                            Classes Attended
+                                        </div>
+                                        <div style={{ fontSize: '12px', color: '#94a3b8', marginTop: '4px' }}>
+                                            {(attendanceStats.present / attendanceStats.total) >= 0.85 ? '✓ Excellent!' : (attendanceStats.present / attendanceStats.total) >= 0.75 ? '✓ Good!' : '⚠ Keep improving'}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        )}
                     </div>
                 </div>
             </section>
