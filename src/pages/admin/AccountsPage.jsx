@@ -4,8 +4,10 @@ import { db } from '../../lib/firebase';
 import Card from '../../components/ui/Card';
 import Input from '../../components/ui/Input';
 import Button from '../../components/ui/Button';
+import { useTheme } from '../../context/ThemeContext';
 
 const AccountsPage = () => {
+    const { isDark } = useTheme();
     const [accounts, setAccounts] = useState([]);
     const [loading, setLoading] = useState(true);
     const [filterRole, setFilterRole] = useState('');
@@ -64,7 +66,7 @@ const AccountsPage = () => {
                                 onChange={(e) => setSearchTerm(e.target.value)}
                             />
                             <select
-                                style={{ padding: '12px', borderRadius: '8px', border: '1px solid #BDBDBD' }}
+                                style={{ padding: '12px', borderRadius: '8px', border: `1px solid ${isDark ? 'rgba(255,255,255,0.1)' : '#BDBDBD'}`, background: isDark ? '#1a1d27' : 'white', color: isDark ? '#f0f0f0' : 'inherit' }}
                                 value={filterRole}
                                 onChange={(e) => setFilterRole(e.target.value)}
                             >
@@ -84,7 +86,7 @@ const AccountsPage = () => {
                         ) : (
                             <table style={{ width: '100%', borderCollapse: 'collapse' }}>
                                 <thead>
-                                    <tr style={{ borderBottom: '2px solid #eee', textAlign: 'left', color: '#999', fontSize: '12px', textTransform: 'uppercase' }}>
+                                    <tr style={{ borderBottom: `2px solid ${isDark ? 'rgba(255,255,255,0.1)' : '#eee'}`, textAlign: 'left', color: '#999', fontSize: '12px', textTransform: 'uppercase' }}>
                                         <th style={{ padding: '12px' }}>Account ID</th>
                                         <th style={{ padding: '12px' }}>Email (Login)</th>
                                         <th style={{ padding: '12px' }}>Role</th>
@@ -94,7 +96,7 @@ const AccountsPage = () => {
                                 </thead>
                                 <tbody>
                                     {filteredAccounts.map(acc => (
-                                        <tr key={acc.id} style={{ borderBottom: '1px solid #f5f5f5' }}>
+                                        <tr key={acc.id} style={{ borderBottom: `1px solid ${isDark ? 'rgba(255,255,255,0.05)' : '#f5f5f5'}` }}>
                                             <td style={{ padding: '16px 12px', fontFamily: 'monospace', color: '#666' }}>
                                                 {acc.id.substring(0, 12)}...
                                             </td>

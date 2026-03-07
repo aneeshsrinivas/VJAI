@@ -7,9 +7,11 @@ import Button from '../../components/ui/Button';
 import Input from '../../components/ui/Input';
 import { toast, ToastContainer } from 'react-toastify';
 import { Send, FileText, Clock, Users } from 'lucide-react';
+import { useTheme } from '../../context/ThemeContext';
 
 const BroadcastPage = () => {
     const { currentUser } = useAuth();
+    const { isDark } = useTheme();
     const [broadcasts, setBroadcasts] = useState([]);
     const [loading, setLoading] = useState(true);
     const [sending, setSending] = useState(false);
@@ -145,7 +147,7 @@ const BroadcastPage = () => {
                                 name="studentType"
                                 value={formData.studentType}
                                 onChange={handleInputChange}
-                                style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid #ccc' }}
+                                style={{ width: '100%', padding: '10px', borderRadius: '8px', border: `1px solid ${isDark ? 'rgba(255,255,255,0.1)' : '#ccc'}`, background: isDark ? '#1a1d27' : 'white', color: isDark ? '#f0f0f0' : 'inherit' }}
                             >
                                 <option value="ALL">All Types</option>
                                 <option value="1:1">1:1 Students</option>
@@ -158,7 +160,7 @@ const BroadcastPage = () => {
                                 name="level"
                                 value={formData.level}
                                 onChange={handleInputChange}
-                                style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid #ccc' }}
+                                style={{ width: '100%', padding: '10px', borderRadius: '8px', border: `1px solid ${isDark ? 'rgba(255,255,255,0.1)' : '#ccc'}`, background: isDark ? '#1a1d27' : 'white', color: isDark ? '#f0f0f0' : 'inherit' }}
                             >
                                 <option value="ALL">All Levels</option>
                                 <option value="BEGINNER">Beginner</option>
@@ -190,7 +192,9 @@ const BroadcastPage = () => {
                                 height: '200px',
                                 padding: '12px',
                                 borderRadius: '8px',
-                                border: '1px solid #ccc',
+                                border: `1px solid ${isDark ? 'rgba(255,255,255,0.1)' : '#ccc'}`,
+                                background: isDark ? '#1a1d27' : 'white',
+                                color: isDark ? '#f0f0f0' : 'inherit',
                                 fontFamily: 'inherit',
                                 resize: 'vertical'
                             }}
@@ -209,7 +213,7 @@ const BroadcastPage = () => {
 
             {/* Recent Broadcasts */}
             <div style={{ marginTop: '32px' }}>
-                <h3 style={{ borderBottom: '1px solid #eee', paddingBottom: '8px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <h3 style={{ borderBottom: `1px solid ${isDark ? 'rgba(255,255,255,0.1)' : '#eee'}`, paddingBottom: '8px', display: 'flex', alignItems: 'center', gap: '8px' }}>
                     <FileText size={18} />
                     Recent Broadcasts
                 </h3>
@@ -222,7 +226,7 @@ const BroadcastPage = () => {
                         </div>
                     ) : (
                         broadcasts.slice(0, 5).map(broadcast => (
-                            <div key={broadcast.id} className="broadcast-item admin-panel-list-item" style={{ padding: '16px', borderRadius: '8px', border: '1px solid #eee' }}>
+                            <div key={broadcast.id} className="broadcast-item admin-panel-list-item" style={{ padding: '16px', borderRadius: '8px', border: `1px solid ${isDark ? 'rgba(255,255,255,0.1)' : '#eee'}` }}>
                                 <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px' }}>
                                     <strong>{broadcast.subject}</strong>
                                     <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>

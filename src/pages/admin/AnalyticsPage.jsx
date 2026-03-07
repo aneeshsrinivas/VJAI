@@ -4,6 +4,7 @@ import { db } from '../../lib/firebase';
 import Card from '../../components/ui/Card';
 import Button from '../../components/ui/Button';
 import { TrendingUp, Users, Clock, Award, Filter, Download } from 'lucide-react';
+import { useTheme } from '../../context/ThemeContext';
 
 const DEMO_STATUSES = {
     BOOKED: ['PENDING', 'SCHEDULED', 'ATTENDED', 'NO_SHOW', 'INTERESTED', 'CONVERTED', 'REJECTED'],
@@ -13,6 +14,7 @@ const DEMO_STATUSES = {
 };
 
 const AnalyticsPage = () => {
+    const { isDark } = useTheme();
     const [dateRange, setDateRange] = useState('All Time');
     const [loading, setLoading] = useState(true);
 
@@ -90,7 +92,7 @@ const AnalyticsPage = () => {
     const FunnelBar = ({ data }) => {
         const max = data[0]?.count || 1;
         return (
-            <div className="admin-panel-card" style={{ padding: '16px', border: '1px solid #eee', borderRadius: '8px', marginBottom: '16px' }}>
+            <div className="admin-panel-card" style={{ padding: '16px', border: `1px solid ${isDark ? 'rgba(255,255,255,0.1)' : '#eee'}`, borderRadius: '8px', marginBottom: '16px' }}>
                 <h4 style={{ margin: '0 0 16px 0' }}>Group Batch Conversion Funnel</h4>
                 {data.length === 0 ? (
                     <p className="sub-text" style={{ textAlign: 'center', padding: '16px' }}>No demo data yet</p>
@@ -165,7 +167,7 @@ const AnalyticsPage = () => {
                         ) : (
                             <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '14px' }}>
                                 <thead>
-                                    <tr style={{ textAlign: 'left', borderBottom: '2px solid #eee' }}>
+                                    <tr style={{ textAlign: 'left', borderBottom: `2px solid ${isDark ? 'rgba(255,255,255,0.1)' : '#eee'}` }}>
                                         <th style={{ padding: '12px' }}>Coach Name</th>
                                         <th style={{ padding: '12px', textAlign: 'center' }}>Demos Assigned</th>
                                         <th style={{ padding: '12px', textAlign: 'center' }}>Attendance Rate</th>
@@ -176,7 +178,7 @@ const AnalyticsPage = () => {
                                 </thead>
                                 <tbody>
                                     {coachMetrics.map((coach, i) => (
-                                        <tr key={i} style={{ borderBottom: '1px solid #f0f0f0' }}>
+                                        <tr key={i} style={{ borderBottom: `1px solid ${isDark ? 'rgba(255,255,255,0.05)' : '#f0f0f0'}` }}>
                                             <td style={{ padding: '12px', fontWeight: 'bold' }}>{coach.name}</td>
                                             <td style={{ padding: '12px', textAlign: 'center' }}>{coach.demos}</td>
                                             <td style={{ padding: '12px', textAlign: 'center' }}>{coach.attendance}</td>
