@@ -345,7 +345,7 @@ const FinanceReports = () => {
             {/* Generate Invoice Modal */}
             {invoiceModalOpen && (
                 <div className="modal-overlay" onClick={() => setInvoiceModalOpen(false)}>
-                    <div className="modal-content" onClick={e => e.stopPropagation()} style={{ maxWidth: '500px' }}>
+                    <div className="modal-content" onClick={e => e.stopPropagation()} style={{ maxWidth: '500px' }} data-lenis-prevent="true" onWheel={(e) => e.stopPropagation()}>
                         <button className="modal-close" onClick={() => setInvoiceModalOpen(false)}><X size={20} /></button>
                         <h2 style={{ marginBottom: '20px' }}>Generate Invoice</h2>
                         <form onSubmit={handleGenerateInvoice}>
@@ -388,7 +388,7 @@ const FinanceReports = () => {
             {/* Record Payment Modal */}
             {paymentModalOpen && (
                 <div className="modal-overlay" onClick={() => setPaymentModalOpen(false)}>
-                    <div className="modal-content" onClick={e => e.stopPropagation()} style={{ maxWidth: '500px' }}>
+                    <div className="modal-content" onClick={e => e.stopPropagation()} style={{ maxWidth: '500px' }} data-lenis-prevent="true" onWheel={(e) => e.stopPropagation()}>
                         <button className="modal-close" onClick={() => setPaymentModalOpen(false)}><X size={20} /></button>
                         <h2 style={{ marginBottom: '20px' }}>Record Payment</h2>
                         <form onSubmit={handleRecordPayment}>
@@ -442,7 +442,7 @@ const FinanceReports = () => {
             {/* Apply Discount Modal */}
             {discountModalOpen && (
                 <div className="modal-overlay" onClick={() => setDiscountModalOpen(false)}>
-                    <div className="modal-content" onClick={e => e.stopPropagation()} style={{ maxWidth: '500px' }}>
+                    <div className="modal-content" onClick={e => e.stopPropagation()} style={{ maxWidth: '500px' }} data-lenis-prevent="true" onWheel={(e) => e.stopPropagation()}>
                         <button className="modal-close" onClick={() => setDiscountModalOpen(false)}><X size={20} /></button>
                         <h2 style={{ marginBottom: '20px' }}>Apply Discount</h2>
                         <form onSubmit={handleApplyDiscount}>
@@ -494,7 +494,7 @@ const FinanceReports = () => {
             {/* Send Reminders Modal */}
             {reminderModalOpen && (
                 <div className="modal-overlay" onClick={() => setReminderModalOpen(false)}>
-                    <div className="modal-content" onClick={e => e.stopPropagation()} style={{ maxWidth: '500px' }}>
+                    <div className="modal-content" onClick={e => e.stopPropagation()} style={{ maxWidth: '500px' }} data-lenis-prevent="true" onWheel={(e) => e.stopPropagation()}>
                         <button className="modal-close" onClick={() => setReminderModalOpen(false)}><X size={20} /></button>
                         <h2 style={{ marginBottom: '20px' }}>Send Payment Reminders</h2>
                         <div style={{ marginBottom: '20px' }}>

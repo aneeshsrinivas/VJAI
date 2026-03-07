@@ -90,7 +90,7 @@ const UploadMaterialModal = ({ isOpen, onClose, batch }) => {
                     background: isDark ? '#1a1d27' : 'white', borderRadius: '16px', padding: '40px',
                     textAlign: 'center', boxShadow: isDark ? '0 20px 60px rgba(0,0,0,0.5)' : '0 20px 60px rgba(0,0,0,0.2)', width: '400px',
                     color: isDark ? '#f0f0f0' : 'inherit'
-                }}>
+                }} data-lenis-prevent="true" onWheel={(e) => e.stopPropagation()}>
                     <div style={{
                         width: '80px', height: '80px', background: isDark ? 'rgba(16,185,129,0.1)' : '#ecfdf5', borderRadius: '50%',
                         display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 20px'
@@ -114,7 +114,7 @@ const UploadMaterialModal = ({ isOpen, onClose, batch }) => {
                 boxShadow: isDark ? '0 20px 60px rgba(0,0,0,0.5)' : '0 20px 60px rgba(0,0,0,0.2)',
                 maxHeight: '90vh', overflowY: 'auto',
                 color: isDark ? '#f0f0f0' : 'inherit'
-            }}>
+            }} data-lenis-prevent="true" onWheel={(e) => e.stopPropagation()}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '20px' }}>
                     <div>
                         <h2 style={{ margin: '0 0 8px', color: isDark ? '#f0f0f0' : '#1e293b' }}>Upload Material</h2>

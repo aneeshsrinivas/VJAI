@@ -222,7 +222,7 @@ const SubscriptionPage = () => {
             {/* Add Subscription Modal */}
             {showAddModal && (
                 <div className="modal-overlay" style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000 }} onClick={() => setShowAddModal(false)}>
-                    <div className="modal-content" style={{ borderRadius: '12px', padding: '24px', width: '500px', maxWidth: '90%' }} onClick={e => e.stopPropagation()}>
+                    <div className="modal-content" style={{ borderRadius: '12px', padding: '24px', width: '500px', maxWidth: '90%' }} onClick={e => e.stopPropagation()} data-lenis-prevent="true" onWheel={(e) => e.stopPropagation()}>
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
                             <h3 style={{ margin: 0 }}>Add New Subscription</h3>
                             <button onClick={() => setShowAddModal(false)} style={{ background: 'none', border: 'none', cursor: 'pointer' }}><X size={20} /></button>

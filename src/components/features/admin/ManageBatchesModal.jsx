@@ -83,7 +83,7 @@ const ManageBatchesModal = ({ isOpen, onClose, coach }) => {
 
     return (
         <div className="modal-overlay" onClick={onClose}>
-            <div className={`modal-content ${isDark ? 'dark-mode' : ''}`} style={{ maxWidth: '600px', width: '90%' }} onClick={e => e.stopPropagation()}>
+            <div className={`modal-content ${isDark ? 'dark-mode' : ''}`} style={{ maxWidth: '600px', width: '90%' }} onClick={e => e.stopPropagation()} data-lenis-prevent="true" onWheel={(e) => e.stopPropagation()}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
                     <h2 style={{ margin: 0 }}>Manage Batches for {coach.fullName || 'Coach'}</h2>
                     <button onClick={onClose} style={{ background: 'none', border: 'none', fontSize: '24px', cursor: 'pointer', color: isDark ? '#aaa' : '#666' }}>&times;</button>
