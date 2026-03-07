@@ -6,79 +6,20 @@
     opacity: 1;
 }
 
-/* Students Table - Proper Column Distribution */
+/* Students Table - Basic Styling */
 .students-table {
-    table-layout: fixed;
     width: 100%;
     border-collapse: collapse;
-}
-
-.students-table thead {
-    background-color: #f8f8f8;
 }
 
 .students-table th {
     text-align: left;
     vertical-align: middle;
     font-weight: 600;
-    padding: 12px !important;
-    word-break: break-word;
 }
 
 .students-table td {
-    padding: 16px 12px !important;
     vertical-align: middle;
-    word-break: break-word;
-    overflow-wrap: break-word;
-}
-
-/* Column-specific widths - distribute content across columns */
-.students-table th:nth-child(1),
-.students-table td:nth-child(1) {
-    width: 18%;
-    /* Student Info */
-}
-
-.students-table th:nth-child(2),
-.students-table td:nth-child(2) {
-    width: 18%;
-    /* Parent Contact */
-}
-
-.students-table th:nth-child(3),
-.students-table td:nth-child(3) {
-    width: 12%;
-    /* Type & Level */
-}
-
-.students-table th:nth-child(4),
-.students-table td:nth-child(4) {
-    width: 16%;
-    /* Batch / Coach */
-}
-
-.students-table th:nth-child(5),
-.students-table td:nth-child(5) {
-    width: 12%;
-    /* Location */
-}
-
-.students-table th:nth-child(6),
-.students-table td:nth-child(6) {
-    width: 10%;
-    /* Rating */
-}
-
-.students-table th:nth-child(7),
-.students-table td:nth-child(7) {
-    width: 8%;
-    /* Status */
-}
-
-.students-table th:nth-child(8),
-.students-table td:nth-child(8) {
-    width: 6%;
-    /* Actions */
 }
 
 /* Light Mode / Base Classes */
