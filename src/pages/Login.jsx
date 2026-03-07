@@ -6,7 +6,7 @@ import './Login.css';
 
 const Login = () => {
     const navigate = useNavigate();
-    const { login, switchDevUser, isDevMode } = useAuth();
+    const { login, switchDevUser, isDevMode, userData } = useAuth();
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [error, setError] = useState('');
@@ -26,6 +26,16 @@ const Login = () => {
             console.error('Error loading saved accounts:', err);
         }
     }, []);
+
+    // Automatic redirection if already logged in
+    useEffect(() => {
+        if (userData?.role) {
+            console.log('🔄 User already logged in, redirecting based on role:', userData.role);
+            if (userData.role === 'admin') navigate('/admin');
+            else if (userData.role === 'coach') navigate('/coach');
+            else if (userData.role === 'customer' || userData.role === 'student') navigate('/parent');
+        }
+    }, [userData, navigate]);
 
     const handleLogin = async (e) => {
         e.preventDefault();
