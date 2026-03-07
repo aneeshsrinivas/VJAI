@@ -263,8 +263,8 @@ const ParentSchedule = () => {
                                                         fontWeight: 'bold',
                                                         padding: '4px 10px',
                                                         borderRadius: '20px',
-                                                        background: slot.type === 'Live Class' ? '#E0F2FE' : '#F3E8FF',
-                                                        color: slot.type === 'Live Class' ? '#0284C7' : '#9333EA',
+                                                        background: slot.type === 'Live Class' ? (isDark ? 'rgba(2, 132, 199, 0.25)' : '#0284C7') : (isDark ? 'rgba(147, 51, 234, 0.25)' : '#9333EA'),
+                                                        color: slot.type === 'Live Class' ? (isDark ? '#06B6D4' : 'white') : (isDark ? '#D8B4FE' : 'white'),
                                                         textTransform: 'uppercase'
                                                     }}>
                                                         {slot.type}
