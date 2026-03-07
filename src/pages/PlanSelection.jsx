@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
-import { useNavigate, useSearchParams } from 'react-router-dom';
+import { useNavigate, useSearchParams, useLocation } from 'react-router-dom';
 import { collection, getDocs, query, where, orderBy } from 'firebase/firestore';
 import { db } from '../lib/firebase';
 import './PlanSelection.css';
@@ -80,7 +80,9 @@ const LockIcon    = () => <svg width="15" height="15" viewBox="0 0 24 24" fill="
 const PlanSelection = () => {
     const navigate = useNavigate();
     const [searchParams] = useSearchParams();
+    const location = useLocation();
     const demoId = searchParams.get('demoId');
+    const { recommendedLevel, recommendedType } = location.state || {};
 
     const [plans, setPlans] = useState(mockPlans);
     const [loading, setLoading] = useState(false);
@@ -121,6 +123,17 @@ const PlanSelection = () => {
                         };
                     });
                     setPlans(plansList);
+                    
+                    if (recommendedLevel || recommendedType) {
+                        const recPlan = plansList.find(p => 
+                            (!recommendedLevel || p.level.toLowerCase() === recommendedLevel.toLowerCase()) && 
+                            (!recommendedType || p.type.toLowerCase() === recommendedType.toLowerCase())
+                        ) || plansList.find(p => p.level.toLowerCase() === (recommendedLevel?.toLowerCase() || 'beginner'));
+                        
+                        if (recPlan) {
+                            setSelectedPlan(recPlan);
+                        }
+                    }
                 }
             } catch (error) {
                 console.error('Error fetching plans:', error);

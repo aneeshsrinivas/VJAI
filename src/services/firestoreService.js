@@ -278,6 +278,73 @@ export const convertDemoToStudent = async (demoId, accountId, paymentData) => {
     }
 };
 
+/**
+ * Convert Demo to Pending Student (Pre-payment LMS Access)
+ */
+export const convertDemoToPendingStudent = async (demoId, accountId, paymentData) => {
+    try {
+        const demoDoc = await getDoc(doc(db, COLLECTIONS.DEMOS, demoId));
+        if (!demoDoc.exists()) {
+            return { success: false, error: 'Demo not found' };
+        }
+        const demoData = demoDoc.data();
+
+        // 1. Create users document so student can login with AuthContext
+        await setDoc(doc(db, 'users', accountId), {
+            email: paymentData.loginEmail || demoData.parentEmail,
+            fullName: demoData.parentName,
+            role: 'customer',
+            studentName: demoData.studentName,
+            studentAge: demoData.studentAge || null,
+            timezone: demoData.timezone || '',
+            studentType: demoData.recommendedStudentType || 'group',
+            learningLevel: demoData.recommendedLevel || 'beginner',
+            level: demoData.recommendedLevel || 'beginner',
+            phone: demoData.parentPhone || demoData.phone || '',
+            status: 'PAYMENT_PENDING',
+            assignedCoachId: demoData.assignedCoachId || null,
+            source: 'DEMO_CONVERSION',
+            demoId: demoId,
+            createdAt: serverTimestamp(),
+            lastLoginAt: serverTimestamp(),
+            createdByAdminId: paymentData.adminId,
+        });
+
+        // 2. Create student record
+        const studentRef = await addDoc(collection(db, COLLECTIONS.STUDENTS), {
+            accountId: accountId,
+            studentName: demoData.studentName,
+            studentAge: demoData.studentAge || null,
+            parentName: demoData.parentName,
+            parentEmail: paymentData.loginEmail || demoData.parentEmail,
+            parentPhone: demoData.parentPhone || '',
+            timezone: demoData.timezone,
+            studentType: demoData.recommendedStudentType || 'group',
+            level: demoData.recommendedLevel || 'beginner',
+            rating: null,
+            assignedCoachId: demoData.assignedCoachId,
+            status: 'PAYMENT_PENDING',
+            createdAt: serverTimestamp(),
+            updatedAt: serverTimestamp()
+        });
+
+        // NO SUBSCRIPTION RECORD CREATED YET. THIS HAPPENS AT CHECKOUT.
+        // NO MESSAGING CHAT CREATED YET.
+
+        // 3. Update demo status to CONVERTED
+        const demoRef = doc(db, COLLECTIONS.DEMOS, demoId);
+        await updateDoc(demoRef, {
+            status: DEMO_STATUS.CONVERTED,
+            updatedAt: serverTimestamp()
+        });
+
+        return { success: true, studentId: studentRef.id };
+    } catch (error) {
+        console.error('Error converting demo to pending student:', error);
+        return { success: false, error: error.message };
+    }
+};
+
 // ==========================================
 // ACCOUNT OPERATIONS
 // ==========================================

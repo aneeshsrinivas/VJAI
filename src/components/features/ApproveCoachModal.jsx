@@ -105,7 +105,7 @@ const ApproveCoachModal = ({ application, onClose, onSuccess }) => {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({
-                            to: trimmedEmail,
+                            to: application.email,
                             subject: 'Welcome to Indian Chess Academy - Coach Account Approved! 🎉',
                             text: `Dear ${application.fullName},
 
@@ -113,7 +113,7 @@ Congratulations! Your application as a coach at Indian Chess Academy has been AP
 
 🔑 Your Login Credentials:
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-• Email: ${coachEmail}
+• Email: ${trimmedEmail}
 • Temporary Password: ${password}
 • Login URL: ${window.location.origin}/login
 

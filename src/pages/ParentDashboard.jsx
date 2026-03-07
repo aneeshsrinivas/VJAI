@@ -18,7 +18,7 @@ import VideoIcon from '../components/icons/VideoIcon';
 import GreetingIcon from '../components/icons/GreetingIcon';
 import ChessBishopIcon from '../components/icons/ChessBishopIcon';
 import ClockIcon from '../components/icons/ClockIcon';
-import { Bell, Megaphone } from 'lucide-react';
+import { Bell, Megaphone, AlertTriangle } from 'lucide-react';
 import './ParentDashboard.css';
 
 const ParentDashboard = () => {
@@ -525,6 +525,50 @@ const ParentDashboard = () => {
 
             {/* Main Content Grid */}
             <div className="dashboard-content">
+                {student?.status === 'PAYMENT_PENDING' && (
+                    <div className="payment-pending-banner" style={{
+                        background: 'linear-gradient(135deg, #ef4444 0%, #b91c1c 100%)',
+                        color: 'white',
+                        padding: '20px 24px',
+                        borderRadius: '12px',
+                        marginBottom: '24px',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'space-between',
+                        boxShadow: '0 4px 6px -1px rgba(239, 68, 68, 0.2), 0 2px 4px -1px rgba(239, 68, 68, 0.1)'
+                    }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+                            <div style={{ background: 'rgba(255,255,255,0.2)', padding: '12px', borderRadius: '50%' }}>
+                                <AlertTriangle size={28} color="white" />
+                            </div>
+                            <div>
+                                <h3 style={{ margin: '0 0 4px 0', fontSize: '18px', fontWeight: '600', color: 'white' }}>Action Required: Complete Your Enrollment</h3>
+                                <p style={{ margin: 0, color: 'rgba(255,255,255,0.9)', fontSize: '14px' }}>
+                                    Your account is currently pending payment. Please select a plan to activate your account and start scheduling classes.
+                                </p>
+                            </div>
+                        </div>
+                        <Button 
+                            onClick={() => navigate('/pricing', { 
+                                state: { 
+                                    recommendedLevel: student?.level || student?.learningLevel || 'beginner', 
+                                    recommendedType: student?.studentType || 'group' 
+                                } 
+                            })} 
+                            style={{ 
+                                background: 'white', 
+                                color: '#b91c1c', 
+                                fontWeight: 'bold',
+                                whiteSpace: 'nowrap',
+                                padding: '12px 24px',
+                                borderRadius: '8px',
+                                border: 'none'
+                            }}
+                        >
+                            Select Plan & Pay
+                        </Button>
+                    </div>
+                )}
                 <div className="content-grid">
                     {/* Left Column */}
                     <div className="main-column">

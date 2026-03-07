@@ -275,6 +275,8 @@ const StudentDatabase = () => {
                     >
                         <option value="All">All Statuses</option>
                         <option value="ACTIVE">Active</option>
+                        <option value="PENDING_COACH">Pending Coach</option>
+                        <option value="PAYMENT_PENDING">Payment Pending</option>
                         <option value="PAUSED">Paused</option>
                         <option value="CANCELLED">Cancelled</option>
                     </select>
@@ -369,11 +371,11 @@ const StudentDatabase = () => {
                                                         <span className="primary-text" style={{ fontSize: '14px', fontWeight: '600' }}>{student.rating}</span>
                                                     </div>
                                                     <span style={{
-                                                        backgroundColor: student.status === 'ACTIVE' ? '#E8F5E9' : student.status === 'PAUSED' ? '#FFF3E0' : '#FFEBEE',
-                                                        color: student.status === 'ACTIVE' ? '#2E7D32' : student.status === 'PAUSED' ? '#EF6C00' : '#C62828',
+                                                        backgroundColor: student.status === 'ACTIVE' ? '#E8F5E9' : student.status === 'PAUSED' ? '#FFF3E0' : (student.status === 'PENDING_COACH' || student.status === 'PAYMENT_PENDING') ? '#FFF9C4' : '#FFEBEE',
+                                                        color: student.status === 'ACTIVE' ? '#2E7D32' : student.status === 'PAUSED' ? '#EF6C00' : (student.status === 'PENDING_COACH' || student.status === 'PAYMENT_PENDING') ? '#F57F17' : '#C62828',
                                                         padding: '3px 8px', borderRadius: '4px', fontSize: '12px', fontWeight: '600', whiteSpace: 'nowrap'
                                                     }}>
-                                                        {student.status}
+                                                        {student.status.replace('_', ' ')}
                                                     </span>
                                                     <Button
                                                         variant="ghost"
@@ -499,6 +501,8 @@ const StudentDatabase = () => {
                                         style={{ width: '100%', padding: '12px', border: '1px solid #ddd', borderRadius: '8px', fontSize: '14px' }}
                                     >
                                         <option value="ACTIVE">Active</option>
+                                        <option value="PENDING_COACH">Pending Coach</option>
+                                        <option value="PAYMENT_PENDING">Payment Pending</option>
                                         <option value="PAUSED">Paused</option>
                                         <option value="CANCELLED">Cancelled</option>
                                     </select>

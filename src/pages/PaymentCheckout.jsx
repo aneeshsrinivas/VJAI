@@ -259,8 +259,35 @@ const PaymentCheckout = () => {
                     studentAge: formData.studentAge,
                     learningLevel: plan.level || 'Beginner',
                     studentType: plan.type || (plan.classType === 'one-on-one' ? '1-on-1' : 'Group'),
+                    status: 'PENDING_COACH',
                     updatedAt: serverTimestamp()
                 });
+
+                // Also update the student record status
+                const q = query(collection(db, 'students'), where('accountId', '==', parentId));
+                const studentDocs = await getDocs(q);
+                const updatePromises = studentDocs.docs.map(docSnap => 
+                    updateDoc(doc(db, 'students', docSnap.id), {
+                        status: 'PENDING_COACH',
+                        updatedAt: serverTimestamp()
+                    })
+                );
+                await Promise.all(updatePromises);
+                
+                // Notify Admin
+                try {
+                    await addDoc(collection(db, 'admin_notifications'), {
+                        type: 'PAYMENT_RECEIVED',
+                        title: 'New Payment Received',
+                        message: `${formData.parentName} has completed payment for ${formData.studentName}. Please assign a coach to activate the account.`,
+                        parentId,
+                        amount: amountINR,
+                        status: 'unread',
+                        createdAt: serverTimestamp()
+                    });
+                } catch (notiError) {
+                    console.error('Failed to create admin notification:', notiError);
+                }
             }
 
             if (demoId) {
@@ -351,8 +378,33 @@ const PaymentCheckout = () => {
                     studentAge: formData.studentAge,
                     learningLevel: plan.level || 'Beginner',
                     studentType: plan.type || (plan.classType === 'one-on-one' ? '1-on-1' : 'Group'),
+                    status: formData.paymentMethod === 'upi' ? 'PAYMENT_PENDING' : 'PENDING_COACH',
                     updatedAt: serverTimestamp()
                 });
+
+                if (formData.paymentMethod !== 'upi') {
+                    // Update student record for completed card payments
+                    const q = query(collection(db, 'students'), where('accountId', '==', parentId));
+                    const studentDocs = await getDocs(q);
+                    const updatePromises = studentDocs.docs.map(docSnap => 
+                        updateDoc(doc(db, 'students', docSnap.id), {
+                            status: 'PENDING_COACH',
+                            updatedAt: serverTimestamp()
+                        })
+                    );
+                    await Promise.all(updatePromises);
+
+                    // Notify Admin
+                    await addDoc(collection(db, 'admin_notifications'), {
+                        type: 'PAYMENT_RECEIVED',
+                        title: 'New Payment Received',
+                        message: `${formData.parentName} has completed payment for ${formData.studentName}. Please assign a coach to activate the account.`,
+                        parentId,
+                        amount: pricing.total,
+                        status: 'unread',
+                        createdAt: serverTimestamp()
+                    });
+                }
             }
 
             if (formData.paymentMethod === 'upi') {
