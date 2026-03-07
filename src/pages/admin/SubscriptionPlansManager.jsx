@@ -349,27 +349,6 @@ const SubscriptionPlansManager = () => {
                             opacity: plan.isActive ? 1 : 0.6,
                             position: 'relative'
                         }}>
-                            {/* Featured Badge */}
-                            {plan.isFeatured && (
-                                <div style={{
-                                    position: 'absolute',
-                                    top: '12px',
-                                    left: '12px',
-                                    background: 'linear-gradient(135deg, #FFD700 0%, #FFA500 100%)',
-                                    color: '#000',
-                                    padding: '4px 10px',
-                                    borderRadius: '20px',
-                                    fontSize: '11px',
-                                    fontWeight: '700',
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    gap: '4px',
-                                    zIndex: 10
-                                }}>
-                                    <Star size={12} fill="#000" /> FEATURED
-                                </div>
-                            )}
-
                             {/* Delete Plan Button */}
                             <button
                                 onClick={(e) => { e.stopPropagation(); handleDelete(plan); }}
@@ -395,7 +374,7 @@ const SubscriptionPlansManager = () => {
                                 onMouseEnter={(e) => e.currentTarget.style.transform = 'scale(1.1)'}
                                 onMouseLeave={(e) => e.currentTarget.style.transform = 'scale(1)'}
                             >
-                                <Trash2 size={16} />
+                                <span style={{ fontSize: '20px', fontWeight: 'bold', lineHeight: 1 }}>&times;</span>
                             </button>
 
                             {/* Plan Header */}

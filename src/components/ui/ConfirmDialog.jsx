@@ -6,8 +6,8 @@ const ConfirmDialog = ({ title, message, confirmLabel = 'Confirm', cancelLabel =
     const { isDark } = useTheme();
 
     return (
-        <div className="cd-overlay" onClick={onCancel}>
-            <div className={`cd-box ${isDark ? 'dark-mode' : ''}`} onClick={(e) => e.stopPropagation()}>
+        <div className={`cd-overlay ${isDark ? 'dark-mode' : ''}`} onClick={onCancel}>
+            <div className="cd-box" onClick={(e) => e.stopPropagation()}>
                 <div className={`cd-icon-wrap cd-icon-${variant}`}>
                     {variant === 'danger' ? (
                         <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
