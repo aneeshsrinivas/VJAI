@@ -238,6 +238,16 @@ const CoachRoster = () => {
                                         </div>
                                     </div>
 
+                                    {/* Assigned Group */}
+                                    {coach.assignedGroup && (
+                                        <div style={{ marginBottom: '16px', paddingBottom: '12px', borderBottom: '1px solid #f0f0f0' }}>
+                                            <div style={{ fontSize: '12px', color: '#666', fontWeight: '500', marginBottom: '4px' }}>Assigned Group</div>
+                                            <div style={{ fontSize: '14px', fontWeight: '600', color: '#1E3A8A' }}>
+                                                {coach.assignedGroup}
+                                            </div>
+                                        </div>
+                                    )}
+
                                     {/* Assigned Batches Badge */}
                                     <CoachBatchesBadges coachId={coach.id} />
 
