@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { collection, query, where, onSnapshot } from 'firebase/firestore';
+import { collection, query, where, onSnapshot, getDocs } from 'firebase/firestore';
 import { db } from '../lib/firebase';
 import { useAuth } from '../context/AuthContext';
 import { COLLECTIONS, DEMO_STATUS } from '../config/firestoreCollections';
@@ -25,16 +25,35 @@ const CoachPage = () => {
     const [students, setStudents] = useState([]);
     const [todayClasses, setTodayClasses] = useState([]);
     const [selectedDemo, setSelectedDemo] = useState(null); // Modal state
+    const [coachDocId, setCoachDocId] = useState(null);
+
+    // Resolve coachDocId
+    useEffect(() => {
+        if (!currentUser?.uid) return;
+        const resolve = async () => {
+            try {
+                const coachQuery = query(
+                    collection(db, 'coaches'),
+                    where('accountId', '==', currentUser.uid)
+                );
+                const snap = await getDocs(coachQuery);
+                setCoachDocId(!snap.empty ? snap.docs[0].id : currentUser.uid);
+            } catch (err) {
+                console.error('Could not resolve coachDocId, falling back to uid:', err);
+                setCoachDocId(currentUser.uid);
+            }
+        };
+        resolve();
+    }, [currentUser]);
 
     useEffect(() => {
-        if (!currentUser?.uid) {
+        if (!coachDocId) {
             setLoading(false);
             return;
         }
 
         setLoading(true);
 
-        // Try-catch to handle Firebase errors gracefully
         try {
             // Check if db is available
             if (!db) {
@@ -49,7 +68,7 @@ const CoachPage = () => {
             // Listen to Demos
             const qDemos = query(
                 collection(db, COLLECTIONS.DEMOS),
-                where('assignedCoachId', '==', currentUser.uid),
+                where('assignedCoachId', '==', coachDocId),
                 where('status', 'in', [DEMO_STATUS.SCHEDULED, DEMO_STATUS.PENDING])
             );
 
@@ -83,7 +102,7 @@ const CoachPage = () => {
             // Listen to Students
             const qStudents = query(
                 collection(db, 'users'),
-                where('assignedCoachId', '==', currentUser.uid),
+                where('assignedCoachId', '==', coachDocId),
                 where('role', 'in', ['student', 'customer'])
             );
 
@@ -106,11 +125,11 @@ const CoachPage = () => {
             setTimeout(() => setCardsVisible(true), 100);
             return () => { };
         }
-    }, [currentUser]);
+    }, [coachDocId]);
 
     // Fetch Schedule (Classes)
     useEffect(() => {
-        if (!currentUser?.uid) return;
+        if (!coachDocId) return;
 
         try {
             if (!db) {
@@ -120,7 +139,7 @@ const CoachPage = () => {
 
             const qSchedule = query(
                 collection(db, COLLECTIONS.SCHEDULE),
-                where('coachId', '==', currentUser.uid)
+                where('coachId', '==', coachDocId)
             );
 
             const unsubSchedule = onSnapshot(qSchedule, (snapshot) => {
@@ -419,6 +438,20 @@ const CoachPage = () => {
                                 description: 'View student progress',
                                 path: '/coach/students',
                                 gradient: 'linear-gradient(135deg, #fa709a 0%, #fee140 100%)'
+                            },
+                            {
+                                icon: Target,
+                                label: 'Attendance',
+                                description: 'Track batch attendance',
+                                path: '/coach/attendance',
+                                gradient: 'linear-gradient(135deg, #43e97b 0%, #38f9d7 100%)'
+                            },
+                            {
+                                icon: Link2,
+                                label: 'Lichess',
+                                description: 'Manage Puzzles',
+                                path: '/coach/lichess',
+                                gradient: 'linear-gradient(135deg, #f6d365 0%, #fda085 100%)'
                             }
                         ].map((action, index) => {
                             const IconComponent = action.icon;

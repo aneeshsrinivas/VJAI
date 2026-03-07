@@ -23,14 +23,33 @@ const CoachStudents = () => {
     const [filterBatch, setFilterBatch] = useState('all');
     const [selectedSkillStudent, setSelectedSkillStudent] = useState(null);
     const [selectedDetailStudent, setSelectedDetailStudent] = useState(null);
+    const [coachDocId, setCoachDocId] = useState(null);
 
     useEffect(() => {
         if (!currentUser?.uid) return;
+        const resolve = async () => {
+            try {
+                const coachQuery = query(
+                    collection(db, 'coaches'),
+                    where('accountId', '==', currentUser.uid)
+                );
+                const snap = await getDocs(coachQuery);
+                setCoachDocId(!snap.empty ? snap.docs[0].id : currentUser.uid);
+            } catch (err) {
+                console.error('Could not resolve coachDocId, falling back to uid:', err);
+                setCoachDocId(currentUser.uid);
+            }
+        };
+        resolve();
+    }, [currentUser]);
+
+    useEffect(() => {
+        if (!coachDocId) return;
 
         setLoading(true);
         const q = query(
             collection(db, 'users'),
-            where('assignedCoachId', '==', currentUser.uid),
+            where('assignedCoachId', '==', coachDocId),
             where('role', 'in', ['student', 'customer'])
         );
 
@@ -47,7 +66,7 @@ const CoachStudents = () => {
         });
 
         return () => unsubscribe();
-    }, [currentUser]);
+    }, [coachDocId]);
 
     const filteredStudents = students.filter(student => {
         const matchesSearch = (student.studentName || '').toLowerCase().includes(searchQuery.toLowerCase());
