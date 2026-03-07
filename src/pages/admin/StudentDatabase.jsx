@@ -270,68 +270,40 @@ const StudentDatabase = () => {
                         <thead>
                             <tr style={{ borderBottom: `2px solid ${COLORS.deepBlue}`, textAlign: 'left', color: COLORS.deepBlue, fontSize: '12px', textTransform: 'uppercase' }}>
                                 <th style={{ padding: '12px' }}>Student Info</th>
-                                <th style={{ padding: '12px' }}>Parent Contact</th>
-                                <th style={{ padding: '12px' }}>Type & Level</th>
-                                <th style={{ padding: '12px' }}>Batch / Coach</th>
-                                <th style={{ padding: '12px' }}>Location</th>
-                                <th style={{ padding: '12px' }}>Rating</th>
-                                <th style={{ padding: '12px' }}>Status</th>
-                                <th style={{ padding: '12px' }}>Actions</th>
                             </tr>
                         </thead>
                         <tbody>
                             {loading ? (
-                                <tr><td colSpan="8" style={{ padding: '40px', textAlign: 'center', color: '#666' }}>Loading Students...</td></tr>
+                                <tr><td colSpan="1" style={{ padding: '40px', textAlign: 'center', color: '#666' }}>Loading Students...</td></tr>
                             ) : filteredStudents.length === 0 ? (
-                                <tr><td colSpan="8" style={{ padding: '40px', textAlign: 'center', color: '#666' }}>No students found.</td></tr>
+                                <tr><td colSpan="1" style={{ padding: '40px', textAlign: 'center', color: '#666' }}>No students found.</td></tr>
                             ) : (
                                 filteredStudents.map(student => (
                                     <tr key={student.id} className="student-row" style={{ borderBottom: '1px solid #f5f5f5' }}>
                                         <td style={{ padding: '16px 12px' }}>
                                             <div className="primary-text" style={{ fontWeight: '600' }}>{student.student_name}</div>
-                                            <div className="secondary-text sub-text" style={{ fontSize: '12px' }}>{student.student_id} | Age: {student.student_age}</div>
-                                        </td>
-                                        <td style={{ padding: '16px 12px' }}>
-                                            <div className="primary-text" style={{ fontSize: '14px' }}>{student.parent_name}</div>
-                                            <div className="secondary-text sub-text" style={{ fontSize: '12px' }}>{student.parent_email}</div>
-                                        </td>
-                                        <td style={{ padding: '16px 12px' }}>
-                                            <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
-                                                <span className="type-badge" style={{ backgroundColor: '#F5F5F5', padding: '2px 6px', borderRadius: '4px', fontSize: '11px', fontWeight: 'bold' }}>{student.student_type}</span>
-                                                <span className="primary-text" style={{ fontSize: '14px' }}>{student.level}</span>
-                                            </div>
-                                        </td>
-                                        <td style={{ padding: '16px 12px' }}>
-                                            <div className="primary-text" style={{ fontSize: '14px', fontWeight: '600' }}>{student.assigned_batch_name}</div>
-                                            <div className="secondary-text sub-text" style={{ fontSize: '12px' }}>{student.assigned_coach_id}</div>
-                                        </td>
-                                        <td style={{ padding: '16px 12px' }}>
-                                            <div className="primary-text" style={{ fontSize: '14px' }}>{student.country}</div>
-                                            <div className="secondary-text sub-text" style={{ fontSize: '12px' }}>{student.timezone}</div>
-                                        </td>
-                                        <td style={{ padding: '16px 12px', fontSize: '14px' }}>
-                                            {student.rating}
-                                        </td>
-                                        <td style={{ padding: '16px 12px' }}>
-                                            <span style={{
-                                                backgroundColor: student.status === 'ACTIVE' ? '#E8F5E9' : student.status === 'PAUSED' ? '#FFF3E0' : '#FFEBEE',
-                                                color: student.status === 'ACTIVE' ? '#2E7D32' : student.status === 'PAUSED' ? '#EF6C00' : '#C62828',
-                                                padding: '4px 8px', borderRadius: '4px', fontSize: '12px', fontWeight: '600'
-                                            }}>
-                                                {student.status}
-                                            </span>
-                                        </td>
-                                        <td style={{ padding: '16px 12px' }}>
-                                            <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                                            <div className="secondary-text sub-text" style={{ fontSize: '12px', marginBottom: '8px' }}>{student.student_id} | Age: {student.student_age}</div>
+                                            <div className="secondary-text sub-text" style={{ fontSize: '12px', marginBottom: '4px' }}>📧 {student.parent_name} / {student.parent_email}</div>
+                                            <div className="secondary-text sub-text" style={{ fontSize: '12px', marginBottom: '4px' }}>📚 {student.student_type} • {student.level}</div>
+                                            <div className="secondary-text sub-text" style={{ fontSize: '12px', marginBottom: '4px' }}>👥 Batch: {student.assigned_batch_name} | Coach: {student.assigned_coach_id}</div>
+                                            <div className="secondary-text sub-text" style={{ fontSize: '12px', marginBottom: '4px' }}>📍 {student.country} ({student.timezone})</div>
+                                            <div style={{ display: 'flex', gap: '8px', alignItems: 'center', marginTop: '8px' }}>
+                                                <span className="secondary-text sub-text" style={{ fontSize: '12px' }}>⭐ {student.rating}</span>
+                                                <span style={{
+                                                    backgroundColor: student.status === 'ACTIVE' ? '#E8F5E9' : student.status === 'PAUSED' ? '#FFF3E0' : '#FFEBEE',
+                                                    color: student.status === 'ACTIVE' ? '#2E7D32' : student.status === 'PAUSED' ? '#EF6C00' : '#C62828',
+                                                    padding: '2px 6px', borderRadius: '4px', fontSize: '11px', fontWeight: '600'
+                                                }}>
+                                                    {student.status}
+                                                </span>
                                                 <Button
                                                     variant="ghost"
                                                     size="sm"
                                                     onClick={() => setEditingStudent({ ...student })}
-                                                    style={{ padding: '6px 10px', fontSize: '12px', display: 'flex', alignItems: 'center', gap: '4px' }}
+                                                    style={{ padding: '4px 8px', fontSize: '11px', marginLeft: 'auto' }}
                                                 >
-                                                    <Edit2 size={14} /> Edit
+                                                    <Edit2 size={12} /> Edit
                                                 </Button>
-                                                <SkillHeatmap studentName={student.student_name} />
                                             </div>
                                         </td>
                                     </tr>
