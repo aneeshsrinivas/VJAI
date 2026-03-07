@@ -121,6 +121,7 @@ export const conversionService = {
                 studentName: demoData.studentName || '',
                 studentAge: demoData.studentAge || null,
                 assignedCoachId: demoData.assignedCoachId || null,
+                assignedBatchId: demoData.assignedBatchId || null,
                 learningLevel: demoData.recommendedLevel || demoData.level || 'beginner',
                 level: demoData.recommendedLevel || demoData.level || 'beginner',
                 studentType: demoData.recommendedStudentType || 'group',
@@ -144,7 +145,7 @@ export const conversionService = {
                 timezone: demoData.timezone,
                 level: demoData.level || 'beginner',
                 assignedCoachId: demoData.assignedCoachId || null,
-                assignedBatchId: null,
+                assignedBatchId: demoData.assignedBatchId || null,
                 status: 'ACTIVE',
                 createdAt: serverTimestamp(),
                 updatedAt: serverTimestamp()

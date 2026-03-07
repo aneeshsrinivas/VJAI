@@ -6,10 +6,11 @@ import Card from '../../components/ui/Card';
 import Button from '../../components/ui/Button';
 import AssignCoachModal from '../../components/features/AssignCoachModal';
 import DemoOutcomeModal from '../../components/features/DemoOutcomeModal';
+import ConvertAndAssignCoachModal from '../../components/features/ConvertAndAssignCoachModal';
 import ConfirmDialog from '../../components/ui/ConfirmDialog';
 import { toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
-import { Trash2, Edit, Link, CheckCircle } from 'lucide-react';
+import { Trash2, Edit, CheckCircle } from 'lucide-react';
 import './DemosPage.css';
 
 const DemosPage = () => {
@@ -18,6 +19,7 @@ const DemosPage = () => {
     const [searchTerm, setSearchTerm] = useState('');
     const [assignModalOpen, setAssignModalOpen] = useState(false);
     const [outcomeModalOpen, setOutcomeModalOpen] = useState(false);
+    const [convertModalOpen, setConvertModalOpen] = useState(false);
     const [selectedDemo, setSelectedDemo] = useState(null);
     const [demos, setDemos] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -268,20 +270,6 @@ const DemosPage = () => {
                                                 </Button>
                                             )}
 
-                                            {/* Action: Copy Payment Link (for online payment) */}
-                                            {(demo.status === 'INTERESTED' || demo.status === 'ATTENDED') && (
-                                                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '12px', color: '#666' }}>
-                                                    <Button
-                                                        size="sm"
-                                                        variant="secondary"
-                                                        onClick={() => copyPaymentLink(demo.id)}
-                                                        title="Copy payment link to send to parent"
-                                                    >
-                                                        <Link size={14} style={{ marginRight: '4px' }} /> Copy Payment Link
-                                                    </Button>
-                                                </div>
-                                            )}
-
                                             {/* Action: Approve Payment */}
                                             {demo.status === 'PAYMENT_PENDING' && (
                                                 <Button
@@ -299,8 +287,11 @@ const DemosPage = () => {
                                                 <Button
                                                     size="sm"
                                                     style={{ backgroundColor: '#DC2626' }}
-                                                    onClick={() => handleApprovePayment(demo)}
-                                                    title="Convert to Student Account"
+                                                    onClick={() => {
+                                                        setSelectedDemo(demo);
+                                                        setConvertModalOpen(true);
+                                                    }}
+                                                    title="Convert to Student Account & Assign Coach"
                                                 >
                                                     <CheckCircle size={14} style={{ marginRight: '4px' }} />
                                                     Convert
@@ -357,6 +348,17 @@ const DemosPage = () => {
                         fetchDemos();
                         setOutcomeModalOpen(false);
                         toast.success('Demo outcome submitted!');
+                    }}
+                />
+            )}
+
+            {convertModalOpen && selectedDemo && (
+                <ConvertAndAssignCoachModal
+                    demo={selectedDemo}
+                    onClose={() => setConvertModalOpen(false)}
+                    onSuccess={() => {
+                        fetchDemos();
+                        setConvertModalOpen(false);
                     }}
                 />
             )}
