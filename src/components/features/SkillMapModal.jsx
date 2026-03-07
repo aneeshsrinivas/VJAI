@@ -84,7 +84,7 @@ const SkillMapModal = ({ isOpen, onClose, student, onUpgrade }) => {
         };
 
         fetchSkillsAndProgress();
-    }, [student.id, studentLevel]);
+    }, [student?.id, studentLevel]);
 
     const toggleSkill = async (skillId, currentStatus) => {
         const newStatus = !currentStatus;
