@@ -36,6 +36,8 @@ const SkillMapModal = ({ isOpen, onClose, student, onUpgrade }) => {
     };
 
     useEffect(() => {
+        if (!student) return;
+
         const fetchSkillsAndProgress = async () => {
             setLoading(true);
             try {
