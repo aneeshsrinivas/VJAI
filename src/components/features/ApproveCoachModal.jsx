@@ -157,8 +157,8 @@ Indian Chess Academy Team
     };
 
     return (
-        <div className="modal-overlay" data-lenis-prevent="true" onWheel={(e) => e.stopPropagation()}>
-            <div className={`modal-content demo-outcome-modal ${isDark ? 'dark-mode' : ''}`}>
+        <div className="modal-overlay">
+            <div className={`modal-content demo-outcome-modal ${isDark ? 'dark-mode' : ''}`} style={{ display: 'flex', flexDirection: 'column', maxHeight: '85vh' }} data-lenis-prevent="true" onWheel={(e) => e.stopPropagation()}>
                 <button className="modal-close" onClick={onClose}>&times;</button>
                 <h2>Approve Coach Application</h2>
                 <div className="demo-info">
@@ -169,8 +169,8 @@ Indian Chess Academy Team
 
                 {error && <div className="error-message">{error}</div>}
 
-                <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', flex: 1 }}>
-                    <div style={{ flex: 1, overflowY: 'auto', paddingRight: '8px', marginBottom: '12px' }}>
+                <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', flex: 1, minHeight: 0 }}>
+                    <div style={{ flex: 1, overflowY: 'auto', paddingRight: '8px', marginBottom: '12px', minHeight: 0 }} data-lenis-prevent="true" onWheel={(e) => e.stopPropagation()}>
                         <div className="form-group">
                             <label>Confirm/Edit Coach Email *</label>
                             <Input

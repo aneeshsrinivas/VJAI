@@ -25,6 +25,7 @@ const StudentDatabase = () => {
     const [editingStudent, setEditingStudent] = useState(null);
     const [students, setStudents] = useState([]);
     const [coaches, setCoaches] = useState([]);
+    const [coachNames, setCoachNames] = useState({}); // Cache for coach names
     const [loading, setLoading] = useState(true);
     const [searchQuery, setSearchQuery] = useState('');
     const [statusFilter, setStatusFilter] = useState('All');
@@ -90,6 +91,7 @@ const StudentDatabase = () => {
                     name: d.data().fullName || d.data().email?.split('@')[0] || d.id
                 }));
                 setCoaches(coachList);
+                console.log('Loaded coaches:', coachList);
             } catch (err) {
                 console.error('Error loading coaches:', err);
             }
@@ -199,12 +201,41 @@ const StudentDatabase = () => {
         return matchesSearch && matchesStatus && matchesType;
     });
 
-    // Helper function to get coach name from coach ID
+    // Helper function to get coach name from coach ID (synchronous)
     const getCoachName = (coachId) => {
         if (!coachId || coachId === '-') return '-';
-        const coach = coaches.find(c => c.id === coachId);
-        return coach ? coach.name : coachId;
+        return coachNames[coachId] || coachId;
     };
+
+    // Load coach names for all assigned coaches
+    useEffect(() => {
+        const loadCoachNames = async () => {
+            const uniqueCoachIds = [...new Set(students.map(s => s.assigned_coach_id).filter(id => id && id !== '-'))];
+            console.log('Unique coach IDs in students:', uniqueCoachIds);
+
+            const newCoachNames = { ...coachNames };
+            for (const coachId of uniqueCoachIds) {
+                if (!coachNames[coachId]) {
+                    try {
+                        const coachDoc = await getDoc(doc(db, 'coaches', coachId));
+                        if (coachDoc.exists()) {
+                            const coachName = coachDoc.data().fullName || coachDoc.data().email?.split('@')[0] || coachId;
+                            newCoachNames[coachId] = coachName;
+                            console.log(`Loaded coach name for ${coachId}:`, coachName);
+                        }
+                    } catch (err) {
+                        console.error(`Error fetching coach ${coachId}:`, err);
+                        newCoachNames[coachId] = coachId;
+                    }
+                }
+            }
+            setCoachNames(newCoachNames);
+        };
+
+        if (students.length > 0) {
+            loadCoachNames();
+        }
+    }, [students]);
 
     return (
         <div className="students-page-container dashboard-container" style={{ minHeight: '100vh' }}>
