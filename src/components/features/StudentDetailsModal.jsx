@@ -79,7 +79,7 @@ const StudentDetailsModal = ({ isOpen, onClose, student }) => {
                 }} onMouseLeave={(e) => {
                     e.target.style.background = isDark ? 'rgba(255,255,255,0.2)' : '#e5e7eb';
                 }}>
-                    <X size={20} />
+                    <X size={20} color="white" />
                 </button>
 
                 <div style={{ textAlign: 'center', marginBottom: '24px' }}>

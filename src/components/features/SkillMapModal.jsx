@@ -258,7 +258,7 @@ const SkillMapModal = ({ isOpen, onClose, student, onUpgrade }) => {
                             cursor: 'pointer',
                             color: 'white'
                         }}>
-                            <X size={18} />
+                            <X size={18} color="white" />
                         </button>
                     </div>
                 </div>
