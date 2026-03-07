@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import { useTheme } from '../context/ThemeContext';
 import { collection, query, where, onSnapshot, doc, getDoc, getDocs, orderBy, limit } from 'firebase/firestore';
 import { db } from '../lib/firebase';
 import { COLLECTIONS } from '../config/firestoreCollections';
@@ -24,6 +25,7 @@ import './ParentDashboard.css';
 const ParentDashboard = () => {
     const navigate = useNavigate();
     const { currentUser, userData } = useAuth();
+    const { isDark } = useTheme();
     const [isReviewModalOpen, setReviewModalOpen] = useState(false);
 
     // Real-time Data
@@ -244,6 +246,9 @@ const ParentDashboard = () => {
                     if (data.start?.toDate) dateObj = data.start.toDate();
                     else if (data.date?.toDate) dateObj = data.date.toDate();
                     else if (data.start) dateObj = new Date(data.start);
+                    else if (data.date && typeof data.date === 'string') {
+                        dateObj = new Date(`${data.date}T${data.time || '00:00'}`);
+                    }
 
                     const isToday = new Date().toDateString() === dateObj.toDateString();
 
@@ -841,39 +846,6 @@ const ParentDashboard = () => {
                                 </div>
                             )}
 
-                            {/* Attendance Widget */}
-                            {attendanceStats.total > 0 && (
-                                <div className={`content-card ${cardsVisible ? 'visible' : ''}`}>
-                                    <div className="card-header-row">
-                                        <h3>Attendance</h3>
-                                    </div>
-                                    <div style={{ display: 'flex', alignItems: 'center', gap: '20px', padding: '8px 0' }}>
-                                        <div style={{
-                                            width: '72px', height: '72px', borderRadius: '50%',
-                                            background: `conic-gradient(${attendanceStats.total > 0 && (attendanceStats.present / attendanceStats.total) >= 0.75 ? '#16a34a' : '#f59e0b'} ${(attendanceStats.present / attendanceStats.total) * 360}deg, #f1f5f9 0deg)`,
-                                            display: 'flex', alignItems: 'center', justifyContent: 'center'
-                                        }}>
-                                            <div style={{
-                                                width: '56px', height: '56px', borderRadius: '50%',
-                                                background: 'white', display: 'flex', alignItems: 'center',
-                                                justifyContent: 'center', fontWeight: '800', fontSize: '18px',
-                                                color: attendanceStats.total > 0 && (attendanceStats.present / attendanceStats.total) >= 0.75 ? '#16a34a' : '#f59e0b'
-                                            }}>
-                                                {attendanceStats.total > 0 ? Math.round((attendanceStats.present / attendanceStats.total) * 100) : 0}%
-                                            </div>
-                                        </div>
-                                        <div>
-                                            <div style={{ fontSize: '14px', color: '#334155', fontWeight: '600' }}>
-                                                {attendanceStats.present} / {attendanceStats.total} classes
-                                            </div>
-                                            <div style={{ fontSize: '13px', color: '#64748b', marginTop: '4px' }}>
-                                                {attendanceStats.total > 0 && (attendanceStats.present / attendanceStats.total) >= 0.85 ? 'Excellent!' : 'Good progress'}
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            )}
-
                             {/* Next Class Card */}
                             {scheduleItems.some(i => i.status === 'SCHEDULED' || i.status === 'upcoming') && (
                                 <div className={`content-card next-class-card ${cardsVisible ? 'visible' : ''}`}>
@@ -922,22 +894,35 @@ const ParentDashboard = () => {
                     width: '60px',
                     height: '60px',
                     borderRadius: '50%',
-                    background: '#FC8A24',
+                    background: isDark ? 'rgba(252, 138, 36, 0.2)' : '#FC8A24',
                     color: 'white',
-                    border: 'none',
-                    boxShadow: '0 4px 15px rgba(252, 138, 36, 0.4)',
+                    border: isDark ? '2px solid rgba(252, 138, 36, 0.5)' : 'none',
+                    boxShadow: isDark ? '0 4px 15px rgba(252, 138, 36, 0.2)' : '0 4px 15px rgba(252, 138, 36, 0.4)',
                     cursor: 'pointer',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
                     zIndex: 1000,
-                    transition: 'transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275)'
+                    transition: 'all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275)'
                 }}
-                onMouseEnter={(e) => e.currentTarget.style.transform = 'scale(1.1)'}
-                onMouseLeave={(e) => e.currentTarget.style.transform = 'scale(1)'}
+                onMouseEnter={(e) => {
+                    e.currentTarget.style.transform = 'scale(1.1)';
+                    if (isDark) {
+                        e.currentTarget.style.background = 'rgba(252, 138, 36, 0.35)';
+                        e.currentTarget.style.boxShadow = '0 4px 15px rgba(252, 138, 36, 0.35)';
+                    } else {
+                        e.currentTarget.style.background = '#e07c1a';
+                        e.currentTarget.style.boxShadow = '0 4px 20px rgba(252, 138, 36, 0.5)';
+                    }
+                }}
+                onMouseLeave={(e) => {
+                    e.currentTarget.style.transform = 'scale(1)';
+                    e.currentTarget.style.background = isDark ? 'rgba(252, 138, 36, 0.2)' : '#FC8A24';
+                    e.currentTarget.style.boxShadow = isDark ? '0 4px 15px rgba(252, 138, 36, 0.2)' : '0 4px 15px rgba(252, 138, 36, 0.4)';
+                }}
                 title="Contact Admin Support"
             >
-                <ChatIcon size={28} color="white" />
+                <ChatIcon size={28} color={isDark ? '#FC8A24' : 'white'} />
             </button>
 
             <ReviewRequestModal
