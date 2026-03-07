@@ -7,10 +7,9 @@ import { db } from '../../lib/firebase';
 import { useTheme } from '../../context/ThemeContext';
 
 const SkillMapModal = ({ isOpen, onClose, student, onUpgrade }) => {
+    // Declare all hooks BEFORE any early returns
     const { isDark } = useTheme();
     const [confirmDialog, setConfirmDialog] = useState(null);
-    if (!isOpen || !student) return null;
-
     const [skills, setSkills] = useState([]);
     const [curriculum, setCurriculum] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -18,6 +17,9 @@ const SkillMapModal = ({ isOpen, onClose, student, onUpgrade }) => {
     const [syncing, setSyncing] = useState(false);
     const [hasOutdatedSkills, setHasOutdatedSkills] = useState(false);
     const [downgrading, setDowngrading] = useState(false);
+
+    // Now the early return can happen safely after all hooks are declared
+    if (!isOpen || !student) return null;
 
     const studentLevel = student?.level?.toLowerCase() || 'beginner';
 

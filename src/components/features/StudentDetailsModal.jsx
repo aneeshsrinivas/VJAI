@@ -66,9 +66,18 @@ const StudentDetailsModal = ({ isOpen, onClose, student }) => {
 
                 <button onClick={onClose} style={{
                     position: 'absolute', top: '24px', right: '24px',
-                    background: isDark ? 'rgba(255,255,255,0.1)' : '#f1f5f9', border: 'none', borderRadius: '50%',
-                    width: '36px', height: '36px', display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    cursor: 'pointer', color: isDark ? '#cbd5e1' : '#64748b'
+                    background: isDark ? 'rgba(255,255,255,0.2)' : '#e5e7eb',
+                    border: 'none', borderRadius: '50%',
+                    width: '36px', height: '36px',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    cursor: 'pointer',
+                    color: 'white',
+                    transition: 'all 0.2s',
+                    hover: { background: isDark ? 'rgba(255,255,255,0.3)' : '#d1d5db' }
+                }} onMouseEnter={(e) => {
+                    e.target.style.background = isDark ? 'rgba(255,255,255,0.3)' : '#d1d5db';
+                }} onMouseLeave={(e) => {
+                    e.target.style.background = isDark ? 'rgba(255,255,255,0.2)' : '#e5e7eb';
                 }}>
                     <X size={20} />
                 </button>
