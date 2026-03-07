@@ -65,21 +65,25 @@ const StudentDetailsModal = ({ isOpen, onClose, student }) => {
             }} onClick={e => e.stopPropagation()}>
 
                 <button onClick={onClose} style={{
-                    position: 'absolute', top: '24px', right: '24px',
-                    background: isDark ? 'rgba(255,255,255,0.2)' : '#e5e7eb',
+                    position: 'absolute', top: '20px', right: '20px',
+                    background: isDark ? 'rgba(255,255,255,0.25)' : 'rgba(0,0,0,0.1)',
                     border: 'none', borderRadius: '50%',
-                    width: '36px', height: '36px',
+                    width: '40px', height: '40px',
                     display: 'flex', alignItems: 'center', justifyContent: 'center',
                     cursor: 'pointer',
-                    color: 'white',
-                    transition: 'all 0.2s',
-                    hover: { background: isDark ? 'rgba(255,255,255,0.3)' : '#d1d5db' }
-                }} onMouseEnter={(e) => {
-                    e.target.style.background = isDark ? 'rgba(255,255,255,0.3)' : '#d1d5db';
-                }} onMouseLeave={(e) => {
-                    e.target.style.background = isDark ? 'rgba(255,255,255,0.2)' : '#e5e7eb';
+                    color: isDark ? 'white' : '#1e293b',
+                    transition: 'all 0.2s ease',
+                    flexShrink: 0
+                }}
+                onMouseEnter={(e) => {
+                    e.currentTarget.style.background = isDark ? 'rgba(255,255,255,0.35)' : 'rgba(0,0,0,0.15)';
+                    e.currentTarget.style.transform = 'scale(1.1)';
+                }}
+                onMouseLeave={(e) => {
+                    e.currentTarget.style.background = isDark ? 'rgba(255,255,255,0.25)' : 'rgba(0,0,0,0.1)';
+                    e.currentTarget.style.transform = 'scale(1)';
                 }}>
-                    <X size={20} color="white" />
+                    <X size={20} color={isDark ? 'white' : '#1e293b'} />
                 </button>
 
                 <div style={{ textAlign: 'center', marginBottom: '24px' }}>

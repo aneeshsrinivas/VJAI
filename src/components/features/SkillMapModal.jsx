@@ -246,18 +246,28 @@ const SkillMapModal = ({ isOpen, onClose, student, onUpgrade }) => {
                             </span>
                         </div>
                         <button onClick={onClose} style={{
-                            background: 'rgba(255,255,255,0.2)',
+                            background: 'rgba(255,255,255,0.25)',
                             border: 'none',
                             borderRadius: '50%',
-                            width: '32px',
-                            height: '32px',
+                            width: '40px',
+                            height: '40px',
                             display: 'flex',
                             alignItems: 'center',
                             justifyContent: 'center',
                             cursor: 'pointer',
-                            color: 'white'
+                            color: 'white',
+                            transition: 'all 0.2s ease',
+                            flexShrink: 0
+                        }}
+                        onMouseEnter={(e) => {
+                            e.currentTarget.style.background = 'rgba(255,255,255,0.35)';
+                            e.currentTarget.style.transform = 'scale(1.1)';
+                        }}
+                        onMouseLeave={(e) => {
+                            e.currentTarget.style.background = 'rgba(255,255,255,0.25)';
+                            e.currentTarget.style.transform = 'scale(1)';
                         }}>
-                            <X size={18} color="white" />
+                            <X size={20} color="white" />
                         </button>
                     </div>
                 </div>

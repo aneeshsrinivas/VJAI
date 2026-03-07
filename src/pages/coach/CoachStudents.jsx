@@ -170,9 +170,6 @@ const CoachStudents = () => {
                                     <div className="student-avatar">
                                         {(student.studentName || 'S').charAt(0).toUpperCase()}
                                     </div>
-                                    <button className="btn-more">
-                                        <MoreVertical size={18} />
-                                    </button>
                                 </div>
                                 <div className="card-body">
                                     <div className="student-name-row">
