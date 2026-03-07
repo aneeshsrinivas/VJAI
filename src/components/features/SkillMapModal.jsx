@@ -18,9 +18,6 @@ const SkillMapModal = ({ isOpen, onClose, student, onUpgrade }) => {
     const [hasOutdatedSkills, setHasOutdatedSkills] = useState(false);
     const [downgrading, setDowngrading] = useState(false);
 
-    // Now the early return can happen safely after all hooks are declared
-    if (!isOpen || !student) return null;
-
     const studentLevel = student?.level?.toLowerCase() || 'beginner';
 
     const getNextLevel = (currentLevel) => {
@@ -210,7 +207,7 @@ const SkillMapModal = ({ isOpen, onClose, student, onUpgrade }) => {
         });
     };
 
-    return (
+    return !isOpen || !student ? null : (
         <div style={{
             position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.6)',
             display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1100,
