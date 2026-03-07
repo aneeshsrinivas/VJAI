@@ -10,8 +10,8 @@ import { createParentAuthAccount } from './adminAuthService';
 
 export const conversionService = {
     /**
-     * Step 1: User submits payment proof (after selecting UPI)
-     * Updates demo status to PAYMENT_PENDING
+     * Step 1: User submits payment proof / payment is verified
+     * Updates demo status to PAYMENT_COMPLETED (payment verified, waiting for admin to convert)
      */
     submitPaymentProof: async (demoId, planDetails, paymentDetails) => {
         try {
@@ -23,7 +23,7 @@ export const conversionService = {
             }
 
             await updateDoc(demoRef, {
-                status: 'PAYMENT_PENDING',
+                status: 'PAYMENT_COMPLETED',
                 selectedPlan: planDetails,
                 paymentDetails: {
                     ...paymentDetails,
@@ -54,7 +54,7 @@ export const conversionService = {
 
             const demoData = demoSnap.data();
 
-            if (demoData.status !== 'PAYMENT_PENDING') {
+            if (demoData.status !== 'PAYMENT_COMPLETED' && demoData.status !== 'PAYMENT_PENDING') {
                 throw new Error('Demo is not pending payment approval');
             }
 

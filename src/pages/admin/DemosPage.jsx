@@ -55,6 +55,7 @@ const DemosPage = () => {
             NO_SHOW: { bg: '#FEE2E2', color: '#991B1B' },
             INTERESTED: { bg: '#E0E7FF', color: '#3730A3' },
             PAYMENT_PENDING: { bg: '#FEF3C7', color: '#B45309' },
+            PAYMENT_COMPLETED: { bg: '#FCA5A5', color: '#7F1D1D' },
             CONVERTED: { bg: '#DCFCE7', color: '#166534' },
             REJECTED: { bg: '#F3F4F6', color: '#6B7280' },
         };
@@ -182,7 +183,7 @@ const DemosPage = () => {
 
             {/* Filter Tabs */}
             <div style={{ display: 'flex', gap: '8px', marginBottom: '24px', flexWrap: 'wrap' }}>
-                {['ALL', 'PENDING', 'SCHEDULED', 'ATTENDED', 'INTERESTED', 'PAYMENT_PENDING', 'CONVERTED'].map(f => (
+                {['ALL', 'PENDING', 'SCHEDULED', 'ATTENDED', 'INTERESTED', 'PAYMENT_PENDING', 'PAYMENT_COMPLETED', 'CONVERTED'].map(f => (
                     <button
                         key={f}
                         className={`filter-btn ${filter === f ? 'active' : ''}`}
@@ -298,6 +299,19 @@ const DemosPage = () => {
                                                 >
                                                     <CheckCircle size={14} style={{ marginRight: '4px' }} />
                                                     Approve
+                                                </Button>
+                                            )}
+
+                                            {/* Action: Convert (for Payment Completed) */}
+                                            {demo.status === 'PAYMENT_COMPLETED' && (
+                                                <Button
+                                                    size="sm"
+                                                    style={{ backgroundColor: '#DC2626' }}
+                                                    onClick={() => handleApprovePayment(demo)}
+                                                    title="Convert to Student Account"
+                                                >
+                                                    <CheckCircle size={14} style={{ marginRight: '4px' }} />
+                                                    Convert
                                                 </Button>
                                             )}
 

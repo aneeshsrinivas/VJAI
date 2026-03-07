@@ -35,6 +35,23 @@ const PaymentCheckout = () => {
     const [familyMembers, setFamilyMembers] = useState(1);
     const [availableStudents, setAvailableStudents] = useState([]);
     const [isNewStudent, setIsNewStudent] = useState(false);
+    const [showPaymentConfirmation, setShowPaymentConfirmation] = useState(false);
+
+    // Helper function to handle payment success and redirect
+    const handlePaymentSuccess = (paymentDetails) => {
+        setShowPaymentConfirmation(true);
+
+        // Auto-redirect after 3 seconds or when user clicks confirmation
+        setTimeout(() => {
+            if (demoId && user?.uid) {
+                // Redirect to parent dashboard if came from a demo
+                navigate('/parent/dashboard', { state: { paymentSuccess: true } });
+            } else {
+                // Fallback to payment success page
+                navigate('/payment/success', { state: paymentDetails });
+            }
+        }, 3500);
+    };
 
     // Mock UPI details
     const UPI_ID = 'indianchessacademy@upi';
@@ -343,15 +360,13 @@ const PaymentCheckout = () => {
             }
 
             toast.success('🎉 Payment successful!');
-            navigate('/payment/success', {
-                state: {
-                    plan,
-                    pricing: { ...pricing, amountINR },
-                    manualApproval: false,
-                    paymentId: paymentRef.id,
-                    razorpayPaymentId: razorpayResponse.razorpay_payment_id,
-                    paymentMethod: 'razorpay',
-                }
+            handlePaymentSuccess({
+                plan,
+                pricing: { ...pricing, amountINR },
+                manualApproval: false,
+                paymentId: paymentRef.id,
+                razorpayPaymentId: razorpayResponse.razorpay_payment_id,
+                paymentMethod: 'razorpay',
             });
         } catch (error) {
             if (error.message === 'PAYMENT_CANCELLED') {
@@ -460,14 +475,14 @@ const PaymentCheckout = () => {
                     });
                     toast.success('Payment submitted! Waiting for admin approval.');
                 }
-                navigate('/payment/success', { state: { plan, pricing, manualApproval: true } });
+                handlePaymentSuccess({ plan, pricing, manualApproval: true });
             } else {
                 await updateDoc(doc(db, 'payments', paymentRef.id), {
                     status: 'COMPLETED',
                     completedAt: serverTimestamp()
                 });
                 toast.success('Payment successful!');
-                navigate('/payment/success', { state: { plan, pricing, manualApproval: false, paymentId: paymentRef.id } });
+                handlePaymentSuccess({ plan, pricing, manualApproval: false, paymentId: paymentRef.id });
             }
         } catch (error) {
             console.error('Payment error:', error);
@@ -547,22 +562,21 @@ const PaymentCheckout = () => {
 
             if (demoId) {
                 try {
-                    await updateDoc(doc(db, 'demos', demoId), {
-                        status: 'PAYMENT_PENDING',
-                        updatedAt: serverTimestamp()
+                    await conversionService.submitPaymentProof(demoId, plan, {
+                        method: 'simulated',
+                        ...formData,
+                        amount: amountINR,
                     });
                 } catch (e) { /* demo may not exist */ }
             }
 
             toast.success('✅ Payment simulated! Redirecting...');
-            navigate('/payment/success', {
-                state: {
-                    plan,
-                    pricing: { ...pricing, amountINR },
-                    manualApproval: false,
-                    paymentId: paymentRef.id,
-                    paymentMethod: 'simulated',
-                }
+            handlePaymentSuccess({
+                plan,
+                pricing: { ...pricing, amountINR },
+                manualApproval: false,
+                paymentId: paymentRef.id,
+                paymentMethod: 'simulated',
             });
         } catch (error) {
             console.error('Simulate payment error:', error);
@@ -956,6 +970,76 @@ const PaymentCheckout = () => {
                         </div>
                     </div>
                 </div>
+
+                {/* Payment Confirmation Modal */}
+                {showPaymentConfirmation && (
+                    <div style={{
+                        position: 'fixed',
+                        inset: 0,
+                        background: 'rgba(0, 0, 0, 0.5)',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        zIndex: 9999,
+                    }}>
+                        <div style={{
+                            background: 'white',
+                            borderRadius: '16px',
+                            padding: '40px',
+                            maxWidth: '400px',
+                            textAlign: 'center',
+                            boxShadow: '0 20px 60px rgba(0, 0, 0, 0.2)',
+                            animation: 'slideUp 0.3s ease-out',
+                        }}>
+                            <div style={{ fontSize: '60px', marginBottom: '16px' }}>✅</div>
+                            <h2 style={{ margin: '0 0 12px 0', fontSize: '24px', fontWeight: '700', color: '#1e293b' }}>
+                                Payment Received!
+                            </h2>
+                            <p style={{ margin: '0 0 24px 0', color: '#64748b', fontSize: '15px', lineHeight: '1.6' }}>
+                                Thank you for your enrollment. Our admin team will review your payment and assign a coach to your account shortly.
+                            </p>
+                            <p style={{ margin: '0 0 24px 0', color: '#94a3b8', fontSize: '13px' }}>
+                                Redirecting to your dashboard...
+                            </p>
+                            <button
+                                onClick={() => {
+                                    if (demoId && user?.uid) {
+                                        navigate('/parent/dashboard', { state: { paymentSuccess: true } });
+                                    } else {
+                                        navigate('/payment/success');
+                                    }
+                                }}
+                                style={{
+                                    background: '#10b981',
+                                    color: 'white',
+                                    border: 'none',
+                                    padding: '12px 24px',
+                                    borderRadius: '8px',
+                                    fontSize: '15px',
+                                    fontWeight: '600',
+                                    cursor: 'pointer',
+                                    transition: 'background 0.2s'
+                                }}
+                                onMouseEnter={(e) => e.currentTarget.style.background = '#059669'}
+                                onMouseLeave={(e) => e.currentTarget.style.background = '#10b981'}
+                            >
+                                Continue to Dashboard
+                            </button>
+                            <style>{`
+                                @keyframes slideUp {
+                                    from {
+                                        opacity: 0;
+                                        transform: translateY(20px);
+                                    }
+                                    to {
+                                        opacity: 1;
+                                        transform: translateY(0);
+                                    }
+                                }
+                            `}</style>
+                        </div>
+                    </div>
+                )}
             </div>
         </div>
     );
