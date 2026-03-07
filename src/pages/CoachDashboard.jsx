@@ -30,7 +30,7 @@ const CoachDashboard = () => {
     const [students, setStudents] = useState([]);
     const [demos, setDemos] = useState([]);
     const [batches, setBatches] = useState([]);
-    const [loading, setLoading] = useState(true);
+    const [loading, setLoading] = useState(false);
     const [cardsVisible, setCardsVisible] = useState(false);
     const [uploadingFile, setUploadingFile] = useState(false);
     const [selectedBatchForUpload, setSelectedBatchForUpload] = useState(null);

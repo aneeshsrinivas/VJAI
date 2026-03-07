@@ -33,7 +33,7 @@ const ParentDashboard = () => {
     const [subscription, setSubscription] = useState(null);
     const [chessAssignments, setChessAssignments] = useState([]);
     const [selectedAssignment, setSelectedAssignment] = useState(null);
-    const [loading, setLoading] = useState(true);
+    const [loading, setLoading] = useState(false);
     const [attendanceStats, setAttendanceStats] = useState({ present: 0, total: 0 });
 
     // UI State
@@ -43,7 +43,10 @@ const ParentDashboard = () => {
 
     // 1. Listen to Student Data (for realtime Level & Coach assignment)
     useEffect(() => {
-        if (!currentUser?.uid) return;
+        if (!currentUser?.uid) {
+            setLoading(false);
+            return;
+        }
 
         setLoading(true);
 

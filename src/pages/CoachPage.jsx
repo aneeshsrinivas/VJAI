@@ -16,7 +16,7 @@ import './CoachPage.css';
 const CoachPage = () => {
     const navigate = useNavigate();
     const { currentUser, userData } = useAuth();
-    const [loading, setLoading] = useState(true);
+    const [loading, setLoading] = useState(false);
     const [cardsVisible, setCardsVisible] = useState(false);
 
     // Real-time State
@@ -27,7 +27,10 @@ const CoachPage = () => {
     const [selectedDemo, setSelectedDemo] = useState(null); // Modal state
 
     useEffect(() => {
-        if (!currentUser?.uid) return;
+        if (!currentUser?.uid) {
+            setLoading(false);
+            return;
+        }
 
         setLoading(true);
 
