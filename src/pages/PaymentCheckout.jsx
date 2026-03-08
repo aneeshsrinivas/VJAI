@@ -42,7 +42,7 @@ const PaymentCheckout = () => {
         setShowPaymentConfirmation(true);
         // Always return to parent dashboard – they came from there
         setTimeout(() => {
-            navigate('/parent/dashboard', { state: { paymentSuccess: true } });
+            navigate('/parent', { state: { paymentSuccess: true } });
         }, 2000);
     };
 
@@ -435,7 +435,7 @@ const PaymentCheckout = () => {
                     studentAge: formData.studentAge,
                     learningLevel: plan.level || 'Beginner',
                     studentType: plan.type || (plan.classType === 'one-on-one' ? '1-on-1' : 'Group'),
-                    status: formData.paymentMethod === 'upi' ? 'PAYMENT_PENDING' : 'PENDING_COACH',
+                    status: 'PAYMENT_SUCCESSFUL',
                     updatedAt: serverTimestamp()
                 });
 
@@ -445,7 +445,7 @@ const PaymentCheckout = () => {
                     const studentDocs = await getDocs(q);
                     const updatePromises = studentDocs.docs.map(docSnap => 
                         updateDoc(doc(db, 'students', docSnap.id), {
-                            status: 'PENDING_COACH',
+                            status: 'PAYMENT_SUCCESSFUL',
                             updatedAt: serverTimestamp()
                         })
                     );
@@ -543,7 +543,7 @@ const PaymentCheckout = () => {
                     studentAge: formData.studentAge,
                     learningLevel: plan.level || 'Beginner',
                     studentType: plan.type || (plan.classType === 'one-on-one' ? '1-on-1' : 'Group'),
-                    status: 'PENDING_COACH',
+                    status: 'PAYMENT_SUCCESSFUL',
                     updatedAt: serverTimestamp()
                 });
 
@@ -552,7 +552,7 @@ const PaymentCheckout = () => {
                 const studentDocs = await getDocs(q);
                 const updatePromises = studentDocs.docs.map(docSnap => 
                     updateDoc(doc(db, 'students', docSnap.id), {
-                        status: 'PENDING_COACH',
+                        status: 'PAYMENT_SUCCESSFUL',
                         updatedAt: serverTimestamp()
                     })
                 );
@@ -1017,7 +1017,7 @@ const PaymentCheckout = () => {
                                 Redirecting to your dashboard...
                             </p>
                             <button
-                                onClick={() => navigate('/parent/dashboard', { state: { paymentSuccess: true } })}
+                                onClick={() => navigate('/parent', { state: { paymentSuccess: true } })}
                                 style={{
                                     background: '#10b981',
                                     color: 'white',
