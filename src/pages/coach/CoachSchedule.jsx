@@ -373,17 +373,24 @@ const CoachSchedule = () => {
                     backgroundColor: 'rgba(0,0,0,0.5)', display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: 1000
                 }}>
                     <div style={{
-                        background: 'white', borderRadius: '16px', padding: '40px',
-                        textAlign: 'center', boxShadow: '0 20px 60px rgba(0,0,0,0.2)', width: '400px'
+                        background: isDark ? '#1a1d27' : 'white',
+                        borderRadius: '16px',
+                        padding: '40px',
+                        textAlign: 'center',
+                        boxShadow: isDark ? '0 20px 60px rgba(0,0,0,0.4)' : '0 20px 60px rgba(0,0,0,0.2)',
+                        width: '400px',
+                        color: isDark ? '#f0f0f0' : '#1e293b'
                     }}>
                         <div style={{
-                            width: '80px', height: '80px', background: '#ecfdf5', borderRadius: '50%',
+                            width: '80px', height: '80px',
+                            background: isDark ? 'rgba(16, 185, 129, 0.15)' : '#ecfdf5',
+                            borderRadius: '50%',
                             display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 20px'
                         }}>
                             <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#10b981" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
                         </div>
-                        <h2 style={{ margin: '0 0 8px', color: '#065f46' }}>Class Scheduled!</h2>
-                        <p style={{ color: '#6b7280' }}>Your session has been created successfully.</p>
+                        <h2 style={{ margin: '0 0 8px', color: isDark ? '#4ade80' : '#065f46' }}>Class Scheduled!</h2>
+                        <p style={{ color: isDark ? '#cbd5e1' : '#6b7280' }}>Your session has been created successfully.</p>
                     </div>
                 </div>
             )}

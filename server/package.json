@@ -14,6 +14,7 @@
     "dotenv": "^16.3.1",
     "express": "^4.18.2",
     "nodemailer": "^7.0.11",
+    "razorpay": "^2.9.6",
     "stockfish": "16.0.0",
     "ws": "^8.13.0"
   },

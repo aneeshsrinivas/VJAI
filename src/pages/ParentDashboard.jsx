@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { collection, query, where, onSnapshot, doc, getDoc, getDocs, orderBy, limit } from 'firebase/firestore';
+import { useTheme } from '../context/ThemeContext';
+import { collection, query, where, onSnapshot, doc, getDoc, getDocs, orderBy, limit, updateDoc } from 'firebase/firestore';
 import { db } from '../lib/firebase';
+import { toast } from 'react-toastify';
 import { COLLECTIONS } from '../config/firestoreCollections';
 import Button from '../components/ui/Button';
 import ReviewRequestModal from '../components/features/ReviewRequestModal';
@@ -18,31 +20,36 @@ import VideoIcon from '../components/icons/VideoIcon';
 import GreetingIcon from '../components/icons/GreetingIcon';
 import ChessBishopIcon from '../components/icons/ChessBishopIcon';
 import ClockIcon from '../components/icons/ClockIcon';
-import { Bell, Megaphone } from 'lucide-react';
+import { Bell, Megaphone, AlertTriangle, ShieldAlert, Mail } from 'lucide-react';
 import './ParentDashboard.css';
 
 const ParentDashboard = () => {
     const navigate = useNavigate();
-    const { currentUser, userData } = useAuth();
+    const { currentUser, userData, logout } = useAuth();
+    const { isDark } = useTheme();
     const [isReviewModalOpen, setReviewModalOpen] = useState(false);
 
     // Real-time Data
     const [student, setStudent] = useState(null);
     const [coach, setCoach] = useState(null);
     const [broadcasts, setBroadcasts] = useState([]);
-    const [scheduleItems, setScheduleItems] = useState([]);
+    const [subscription, setSubscription] = useState(null);
     const [chessAssignments, setChessAssignments] = useState([]);
     const [selectedAssignment, setSelectedAssignment] = useState(null);
-    const [loading, setLoading] = useState(true);
+    const [loading, setLoading] = useState(false);
     const [attendanceStats, setAttendanceStats] = useState({ present: 0, total: 0 });
 
     // UI State
     const [cardsVisible, setCardsVisible] = useState(false);
     const [progress, setProgress] = useState(0);
+    const [scheduleItems, setScheduleItems] = useState([]);
 
     // 1. Listen to Student Data (for realtime Level & Coach assignment)
     useEffect(() => {
-        if (!currentUser?.uid) return;
+        if (!currentUser?.uid) {
+            setLoading(false);
+            return;
+        }
 
         setLoading(true);
 
@@ -71,7 +78,7 @@ const ParentDashboard = () => {
             // Admin updates 'users' collection, NOT 'students'
             const userDocRef = doc(db, 'users', currentUser.uid);
 
-            const unsubscribeStudent = onSnapshot(userDocRef, async (snapshot) => {
+            const unsubStudent = onSnapshot(userDocRef, async (snapshot) => {
                 if (snapshot.exists()) {
                     const studentData = { id: snapshot.id, ...snapshot.data() };
                     setStudent(studentData);
@@ -147,7 +154,8 @@ const ParentDashboard = () => {
                     topic: 'Demo Class',
                     link: data.meetLink, // Assuming meetLink is stored
                     assignedCoachId: data.assignedCoachId, // Needed for fallback coach display
-                    type: 'demo'
+                    type: 'demo',
+                    startTime: date.getTime()
                 };
             });
             setScheduleItems(items);
@@ -198,7 +206,7 @@ const ParentDashboard = () => {
             });
 
             return () => {
-                unsubscribeStudent();
+                unsubStudent();
                 unsubscribeDemos();
                 unsubscribeBroadcasts();
             };
@@ -240,6 +248,9 @@ const ParentDashboard = () => {
                     if (data.start?.toDate) dateObj = data.start.toDate();
                     else if (data.date?.toDate) dateObj = data.date.toDate();
                     else if (data.start) dateObj = new Date(data.start);
+                    else if (data.date && typeof data.date === 'string') {
+                        dateObj = new Date(`${data.date}T${data.time || '00:00'}`);
+                    }
 
                     const isToday = new Date().toDateString() === dateObj.toDateString();
 
@@ -252,7 +263,8 @@ const ParentDashboard = () => {
                         topic: data.title || 'Regular Class',
                         link: data.meetLink,
                         type: 'class',
-                        coachId: data.coachId
+                        coachId: data.coachId,
+                        startTime: dateObj.getTime()
                     };
                 });
 
@@ -459,6 +471,8 @@ const ParentDashboard = () => {
         return null;
     }
 
+    const now = new Date().getTime();
+
     return (
         <div className="parent-dashboard">
             {/* Hero Welcome Section */}
@@ -519,293 +533,515 @@ const ParentDashboard = () => {
                                 <span>Batch: <strong style={{ color: '#fbbf24' }}>{student?.assignedBatchName || student?.batchName || 'No Batch'}</strong></span>
                             </div>
                         </div>
-                    </div>
-                </div>
-            </section>
-
-            {/* Main Content Grid */}
-            <div className="dashboard-content">
-                <div className="content-grid">
-                    {/* Left Column */}
-                    <div className="main-column">
-
-                        {/* Announcements Section (Dynamic) */}
-                        {broadcasts.length > 0 && (
-                            <div className={`content-card announcement-card ${cardsVisible ? 'visible' : ''}`}>
-                                <div className="card-header-row">
-                                    <div className="card-title-group">
-                                        <Megaphone size={22} color="#f59e0b" />
-                                        <h3>Announcements</h3>
-                                    </div>
-                                </div>
-                                <div className="announcement-list">
-                                    {broadcasts.map(broadcast => (
-                                        <div key={broadcast.id} className="announcement-item">
-                                            <div className="ann-icon">
-                                                <Bell size={16} />
-                                            </div>
-                                            <div className="ann-content">
-                                                <div className="ann-header">
-                                                    <span className="ann-subject">{broadcast.subject}</span>
-                                                    <span className="ann-date">{formatDate(broadcast.createdAt)}</span>
-                                                </div>
-                                                <p className="ann-message">{broadcast.message}</p>
-                                            </div>
-                                        </div>
-                                    ))}
-                                </div>
-                            </div>
-                        )}
-
-
-
-                        {/* Chess Assignments Section */}
-                        {chessAssignments.length > 0 && (
-                            <div className={`content-card ${cardsVisible ? 'visible' : ''}`}>
-                                <div className="card-header-row">
-                                    <div className="card-title-group">
-                                        <ChessBishopIcon size={22} color="#181818" />
-                                        <h3>Chess Assignments</h3>
-                                    </div>
-                                </div>
-                                <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                                    {chessAssignments.map((assignment) => (
-                                        <div
-                                            key={assignment.id}
-                                            onClick={() => setSelectedAssignment(assignment)}
-                                            style={{
-                                                padding: '16px',
-                                                background: '#f8fafc',
-                                                borderRadius: '8px',
-                                                border: '1px solid #e2e8f0',
-                                                cursor: 'pointer',
-                                                transition: 'all 0.2s',
-                                            }}
-                                            onMouseEnter={(e) => {
-                                                e.currentTarget.style.background = '#eff6ff';
-                                                e.currentTarget.style.borderColor = '#3b82f6';
-                                            }}
-                                            onMouseLeave={(e) => {
-                                                e.currentTarget.style.background = '#f8fafc';
-                                                e.currentTarget.style.borderColor = '#e2e8f0';
-                                            }}
-                                        >
-                                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start', marginBottom: '8px' }}>
-                                                <div>
-                                                    <h4 style={{ margin: 0, color: '#1e293b', fontSize: '16px', fontWeight: '600' }}>
-                                                        {assignment.title}
-                                                    </h4>
-                                                    <div style={{ fontSize: '13px', color: '#64748b', marginTop: '4px' }}>
-                                                        {assignment.type} • {assignment.batchName}
-                                                    </div>
-                                                </div>
-                                                <span style={{
-                                                    padding: '4px 12px',
-                                                    background: assignment.isSubmitted ? '#dcfce7' : '#dbeafe',
-                                                    color: assignment.isSubmitted ? '#166534' : '#1e40af',
-                                                    borderRadius: '12px',
-                                                    fontSize: '12px',
-                                                    fontWeight: '600'
-                                                }}>
-                                                    {assignment.isSubmitted ? 'Submitted' : 'View'}
-                                                </span>
-                                            </div>
-                                            <p style={{ margin: 0, fontSize: '14px', color: '#475569', lineHeight: '1.5' }}>
-                                                {assignment.description?.substring(0, 80)}{assignment.description?.length > 80 ? '...' : ''}
-                                            </p>
-                                        </div>
-                                    ))}
-                                </div>
-                            </div>
-                        )}
-
-                        {/* Quick Actions Grid */}
-                        <div className={`quick-actions-grid ${cardsVisible ? 'visible' : ''}`}>
-                            {quickActions.map((action, index) => {
-                                const IconComponent = action.icon;
-                                return (
-                                    <button
-                                        key={index}
-                                        className="quick-action-card"
-                                        onClick={() => navigate(action.path)}
-                                        style={{ '--card-gradient': action.gradient }}
-                                    >
-                                        <div className="action-icon-circle">
-                                            <IconComponent size={24} color="white" />
-                                        </div>
-                                        <div className="action-text">
-                                            <span className="action-title">{action.label}</span>
-                                            <span className="action-desc">{action.description}</span>
-                                        </div>
-                                        <span className="action-arrow">→</span>
-                                    </button>
-                                );
-                            })}
-                        </div>
-                    </div>
-
-                    {/* Right Sidebar */}
-                    <div className="sidebar-column">
-                        {/* Coach Card - Dynamic */}
-                        <div className={`content-card coach-card ${cardsVisible ? 'visible' : ''}`}>
-                            <div className="card-header-row">
-                                <h3>Your Coach</h3>
-                            </div>
-                            <div className="coach-profile">
-                                <div className="coach-avatar-large" style={{ overflow: 'hidden' }}>
-                                    {coach?.photoURL ? (
-                                        <img src={coach.photoURL} alt="Coach" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                                    ) : (
-                                        <ChessBishopIcon size={40} color="#181818" />
-                                    )}
-                                </div>
-                                <div className="coach-info">
-                                    <h4 className="coach-name">{coach ? (coach.fullName || coach.studentName || 'Abhiram Bhat') : 'Abhiram Bhat'}</h4>
-                                    <div className="coach-badges">
-                                        <span className="badge fide">{coach?.title || 'Coach'}</span>
-                                        <span className="badge rating">
-                                            <StarIcon size={12} color="#D4AF37" filled />
-                                            {coach?.rating || '5.0'}
-                                        </span>
-                                    </div>
-                                    {student?.assignedBatchName && (
-                                        <p className="assigned-batch" style={{ margin: '8px 0 0 0', fontSize: '14px', color: '#666' }}>
-                                            <strong>Batch:</strong> {student.assignedBatchName}
-                                        </p>
-                                    )}
-                                </div>
-                            </div>
-                            <div className="coach-stats-row">
-                                <div className="coach-stat">
-                                    <span className="stat-value">{coach?.sessions || '0'}</span>
-                                    <span className="stat-label">Sessions</span>
-                                </div>
-                                <div className="coach-stat">
-                                    <span className="stat-value">{coach?.experience || '5+'}</span>
-                                    <span className="stat-label">Years Exp</span>
-                                </div>
-                                <div className="coach-stat">
-                                    <span className="stat-value">{coach?.studentCount || '50+'}</span>
-                                    <span className="stat-label">Students</span>
-                                </div>
-                            </div>
-                            <div className="privacy-notice">
-                                <LockIcon size={14} color="#999" />
-                                <span>Contact info kept private for safety</span>
-                            </div>
-                        </div>
-
-                        {/* Attendance Widget */}
+                        {/* Attendance Card */}
                         {attendanceStats.total > 0 && (
-                            <div className={`content-card ${cardsVisible ? 'visible' : ''}`}>
-                                <div className="card-header-row">
-                                    <h3>Attendance</h3>
+                            <div className="progress-card-floating" style={{ marginTop: '16px' }}>
+                                <div className="progress-header">
+                                    <div className="progress-info">
+                                        <span className="progress-label">Attendance</span>
+                                        <span className="milestone-name">{attendanceStats.present} / {attendanceStats.total}</span>
+                                    </div>
                                 </div>
-                                <div style={{ display: 'flex', alignItems: 'center', gap: '20px', padding: '8px 0' }}>
+                                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '16px', padding: '12px 0' }}>
                                     <div style={{
-                                        width: '72px', height: '72px', borderRadius: '50%',
-                                        background: `conic-gradient(${attendanceStats.total > 0 && (attendanceStats.present / attendanceStats.total) >= 0.75 ? '#16a34a' : '#f59e0b'} ${(attendanceStats.present / attendanceStats.total) * 360}deg, #f1f5f9 0deg)`,
-                                        display: 'flex', alignItems: 'center', justifyContent: 'center'
+                                        width: '80px',
+                                        height: '80px',
+                                        borderRadius: '50%',
+                                        background: `conic-gradient(${(attendanceStats.present / attendanceStats.total) >= 0.75 ? '#10b981' : '#f59e0b'} ${(attendanceStats.present / attendanceStats.total) * 360}deg, rgba(0,0,0,0.05) 0deg)`,
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        justifyContent: 'center',
+                                        boxShadow: `0 0 0 3px ${(attendanceStats.present / attendanceStats.total) >= 0.75 ? '#d1fae5' : '#fef3c7'}`
                                     }}>
                                         <div style={{
-                                            width: '56px', height: '56px', borderRadius: '50%',
-                                            background: 'white', display: 'flex', alignItems: 'center',
-                                            justifyContent: 'center', fontWeight: '800', fontSize: '18px',
-                                            color: attendanceStats.total > 0 && (attendanceStats.present / attendanceStats.total) >= 0.75 ? '#16a34a' : '#f59e0b'
+                                            fontSize: '24px',
+                                            fontWeight: '800',
+                                            color: (attendanceStats.present / attendanceStats.total) >= 0.75 ? '#059669' : '#d97706'
                                         }}>
-                                            {attendanceStats.total > 0 ? Math.round((attendanceStats.present / attendanceStats.total) * 100) : 0}%
+                                            {Math.round((attendanceStats.present / attendanceStats.total) * 100)}%
                                         </div>
                                     </div>
                                     <div>
-                                        <div style={{ fontSize: '14px', color: '#334155', fontWeight: '600' }}>
-                                            {attendanceStats.present} / {attendanceStats.total} classes
+                                        <div style={{ fontSize: '13px', color: '#666', fontWeight: '600' }}>
+                                            Classes Attended
                                         </div>
-                                        <div style={{ fontSize: '13px', color: '#64748b', marginTop: '4px' }}>
-                                            {attendanceStats.total > 0 && (attendanceStats.present / attendanceStats.total) >= 0.85
-                                                ? 'Excellent attendance!'
-                                                : attendanceStats.total > 0 && (attendanceStats.present / attendanceStats.total) >= 0.7
-                                                    ? 'Good attendance'
-                                                    : 'Needs improvement'}
+                                        <div style={{ fontSize: '12px', color: '#94a3b8', marginTop: '4px' }}>
+                                            {(attendanceStats.present / attendanceStats.total) >= 0.85 ? '✓ Excellent!' : (attendanceStats.present / attendanceStats.total) >= 0.75 ? '✓ Good!' : '⚠ Keep improving'}
                                         </div>
                                     </div>
                                 </div>
                             </div>
                         )}
-
-                        {/* Next Class Card */}
-                        {scheduleItems.filter(i => i.status === 'SCHEDULED' || i.status === 'upcoming').length > 0 && (
-                            <div className={`content-card next-class-card ${cardsVisible ? 'visible' : ''}`}>
-                                <div className="live-badge">
-                                    <span className="live-dot"></span>
-                                    UPCOMING
-                                </div>
-                                <div className="next-class-content">
-                                    <div className="class-time-big">
-                                        <span className="time-prefix">Next Class</span>
-                                        <span className="time-main">
-                                            {scheduleItems.find(i => i.status === 'SCHEDULED' || i.status === 'upcoming').time}
-                                        </span>
-                                    </div>
-                                    <div className="countdown-pill">
-                                        <ClockIcon size={14} color="#6B8E23" />
-                                        {scheduleItems.find(i => i.status === 'SCHEDULED' || i.status === 'upcoming').day}
-                                    </div>
-                                    <div className="class-topic-box">
-                                        <span className="topic-pre">Topic:</span>
-                                        <span className="topic-main">Demo/Intro</span>
-                                    </div>
-                                    <button
-                                        className="join-now-btn"
-                                        onClick={() => window.open(scheduleItems[0].link || 'https://meet.google.com', '_blank')}
-                                    >
-                                        <VideoIcon size={20} color="white" />
-                                        Join Class Now
-                                    </button>
-                                </div>
-                            </div>
-                        )}
-
-                        {/* Motivational Card */}
-                        <div className={`content-card motivation-card ${cardsVisible ? 'visible' : ''}`}>
-                            <img
-                                src="https://images.unsplash.com/photo-1560174038-da43ac74f01b?w=400&q=80"
-                                alt="Chess"
-                                className="motivation-img"
-                            />
-                            <div className="motivation-overlay">
-                                <p className="motivation-quote">"Every chess master was once a beginner."</p>
-                                <span className="motivation-author">— Irving Chernev</span>
-                            </div>
-                        </div>
                     </div>
                 </div>
+            </section>
+            
+            {/* 🛑 ACCESS RESTRICTED SCREEN for BLOCKED Users */}
+            {student?.status === 'BLOCKED' && (
+                <div style={{
+                    position: 'fixed',
+                    top: 0,
+                    left: 0,
+                    right: 0,
+                    bottom: 0,
+                    background: isDark ? '#0f1117' : '#f8fafc',
+                    zIndex: 9999,
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    padding: '24px'
+                }}>
+                    <div style={{
+                        maxWidth: '500px',
+                        width: '100%',
+                        background: isDark ? '#1e2330' : 'white',
+                        padding: '48px 32px',
+                        borderRadius: '24px',
+                        textAlign: 'center',
+                        boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)',
+                        border: isDark ? '1px solid rgba(239, 68, 68, 0.2)' : '1px solid #fee2e2'
+                    }}>
+                        <div style={{
+                            width: '80px',
+                            height: '80px',
+                            background: '#fef2f2',
+                            borderRadius: '50%',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            margin: '0 auto 24px',
+                            boxShadow: '0 0 0 8px #fff5f5'
+                        }}>
+                            <ShieldAlert size={40} color="#ef4444" />
+                        </div>
+                        
+                        <h2 style={{ 
+                            fontSize: '28px', 
+                            fontWeight: '800', 
+                            color: isDark ? '#f8fafc' : '#0f172a',
+                            marginBottom: '16px',
+                            letterSpacing: '-0.025em'
+                        }}>
+                            Access Restricted
+                        </h2>
+                        
+                        <p style={{ 
+                            fontSize: '16px', 
+                            color: isDark ? '#94a3b8' : '#64748b',
+                            lineHeight: '1.6',
+                            marginBottom: '32px'
+                        }}>
+                            Your account has been restricted by the administration. This may be due to pending documentation, payment verification issues, or policy violations.
+                        </p>
+                        
+                        <div style={{
+                            background: isDark ? '#0f1117' : '#f8fafc',
+                            padding: '20px',
+                            borderRadius: '16px',
+                            marginBottom: '32px',
+                            textAlign: 'left'
+                        }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '12px' }}>
+                                <Mail size={18} color="# FC8A24" />
+                                <span style={{ fontWeight: '600', color: isDark ? '#e2e8f0' : '#334155' }}>Contact Support</span>
+                            </div>
+                            <p style={{ fontSize: '14px', margin: 0, color: isDark ? '#94a3b8' : '#64748b' }}>
+                                Please reach out to <a href="mailto:support@indianchessacademy.com" style={{ color: '#FC8A24', fontWeight: '600', textDecoration: 'none' }}>support@indianchessacademy.com</a> to resolve this and restore access.
+                            </p>
+                        </div>
+                        
+                        <Button 
+                            onClick={async () => {
+                                await logout();
+                                window.location.href = '/';
+                            }}
+                            style={{ 
+                                width: '100%', 
+                                padding: '14px', 
+                                background: 'linear-gradient(135deg, #1e293b 0%, #0f172a 100%)',
+                                border: 'none',
+                                color: 'white',
+                                fontWeight: '700'
+                            }}
+                        >
+                            Logout & Exit
+                        </Button>
+                    </div>
+                </div>
+            )}
+
+            {/* Main Content Grid */}
+            <div className="dashboard-content">
+                {(student?.status === 'PAYMENT_PENDING' || !student?.status) && (
+                    <div className="payment-pending-banner" style={{
+                        background: 'linear-gradient(135deg, #ef4444 0%, #b91c1c 100%)',
+                        color: 'white',
+                        padding: '20px 24px',
+                        borderRadius: '12px',
+                        marginBottom: '24px',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'space-between',
+                        boxShadow: '0 4px 6px -1px rgba(239, 68, 68, 0.2), 0 2px 4px -1px rgba(239, 68, 68, 0.1)'
+                    }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+                            <div style={{ background: 'rgba(255,255,255,0.2)', padding: '12px', borderRadius: '50%' }}>
+                                <AlertTriangle size={28} color="white" />
+                            </div>
+                            <div>
+                                <h3 style={{ margin: '0 0 4px 0', fontSize: '18px', fontWeight: '600', color: 'white' }}>Action Required: Complete Your Enrollment</h3>
+                                <p style={{ margin: 0, color: 'rgba(255,255,255,0.9)', fontSize: '14px' }}>
+                                    Your account is currently pending payment. Please select a plan to activate your account and start scheduling classes.
+                                </p>
+                            </div>
+                        </div>
+                        <div style={{ display: 'flex', gap: '12px' }}>
+                            <Button
+                                onClick={async () => {
+                                    try {
+                                        if (currentUser?.uid) {
+                                            const userRef = doc(db, 'users', currentUser.uid);
+                                            await updateDoc(userRef, { status: 'PAYMENT_SUCCESSFUL', updatedAt: serverTimestamp() });
+                                            
+                                            // Update associated student document
+                                            const sQuery = query(collection(db, 'students'), where('accountId', '==', currentUser.uid));
+                                            const sSnap = await getDocs(sQuery);
+                                            if (!sSnap.empty) {
+                                                const sRef = doc(db, 'students', sSnap.docs[0].id);
+                                                await updateDoc(sRef, { status: 'PAYMENT_SUCCESSFUL', updatedAt: serverTimestamp() });
+                                            }
+
+                                            // Update associated demo document so DemosPage pipeline shows correct status
+                                            if (student?.demoId) {
+                                                try {
+                                                    await updateDoc(doc(db, 'demos', student.demoId), {
+                                                        status: 'PAYMENT_SUCCESSFUL',
+                                                        updatedAt: serverTimestamp()
+                                                    });
+                                                } catch (e) {
+                                                    console.warn('Demo doc update skipped:', e.message);
+                                                }
+                                            }
+                                            
+                                            toast.success("Test Payment Successful! Waiting for Admin Approval.");
+                                            setStudent(prev => prev ? { ...prev, status: 'PAYMENT_SUCCESSFUL' } : null);
+                                        }
+                                    } catch (err) {
+                                        console.error("Test payment error:", err);
+                                        toast.error("Failed to complete test payment.");
+                                    }
+                                }}
+                                style={{
+                                    background: 'rgba(255, 255, 255, 0.2)',
+                                    color: 'white',
+                                    fontWeight: 'bold',
+                                    whiteSpace: 'nowrap',
+                                    padding: '12px 24px',
+                                    borderRadius: '8px',
+                                    border: '1px solid rgba(255,255,255,0.4)',
+                                    cursor: 'pointer'
+                                }}
+                            >
+                                Test Complete Payment
+                            </Button>
+                            <Button
+                                onClick={() => navigate('/pricing', {
+                                    state: {
+                                        demoId: student?.demoId,
+                                        recommendedLevel: student?.level || student?.learningLevel || 'beginner',
+                                        recommendedType: student?.studentType || 'group',
+                                        prefillData: {
+                                            parentName: student?.parentName || student?.fullName || student?.name || '',
+                                            parentEmail: student?.email || student?.parentEmail || '',
+                                            parentPhone: student?.phone || student?.parentPhone || student?.phoneNumber || '',
+                                            studentName: student?.name || student?.studentName || '',
+                                            studentAge: student?.age || student?.studentAge || '',
+                                        }
+                                    }
+                                })}
+                                style={{
+                                    background: 'white',
+                                    color: '#b91c1c',
+                                    fontWeight: 'bold',
+                                    whiteSpace: 'nowrap',
+                                    padding: '12px 24px',
+                                    borderRadius: '8px',
+                                    border: 'none',
+                                    cursor: 'pointer'
+                                }}
+                            >
+                                Select Plan & Pay
+                            </Button>
+                        </div>
+                    </div>
+                )}
+
+                {/* Coach assignment pending banner */}
+                {student?.status === 'PENDING_COACH' && (
+                    <div style={{
+                        background: 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)',
+                        color: 'white',
+                        padding: '20px 24px',
+                        borderRadius: '12px',
+                        marginBottom: '24px',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '16px',
+                        boxShadow: '0 4px 6px -1px rgba(245, 158, 11, 0.2)'
+                    }}>
+                        <div style={{ background: 'rgba(255,255,255,0.2)', padding: '12px', borderRadius: '50%', flexShrink: 0 }}>
+                            <Bell size={28} color="white" />
+                        </div>
+                        <div>
+                            <h3 style={{ margin: '0 0 4px 0', fontSize: '18px', fontWeight: '600', color: 'white' }}>Payment Received — Coach Being Assigned</h3>
+                            <p style={{ margin: 0, color: 'rgba(255,255,255,0.9)', fontSize: '14px' }}>
+                                Thank you for your payment! Our admin team will assign a coach to your account shortly. You will receive an email notification once this is done.
+                            </p>
+                        </div>
+                    </div>
+                )}
+
+
+                {/* Blue pending-approval banner (shown after payment, before admin activates) */}
+                {student?.status === 'PAYMENT_SUCCESSFUL' && (
+                    <div style={{
+                        background: 'linear-gradient(135deg, #0ea5e9 0%, #0369a1 100%)',
+                        color: 'white',
+                        padding: '20px 24px',
+                        borderRadius: '12px',
+                        marginBottom: '24px',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '16px',
+                        boxShadow: '0 4px 6px -1px rgba(14, 165, 233, 0.25)'
+                    }}>
+                        <div style={{ background: 'rgba(255,255,255,0.2)', padding: '12px', borderRadius: '50%', flexShrink: 0 }}>
+                            <Bell size={28} color="white" />
+                        </div>
+                        <div>
+                            <h3 style={{ margin: '0 0 4px 0', fontSize: '18px', fontWeight: '600', color: 'white' }}>
+                                ✅ Payment Received — Awaiting Admin Approval
+                            </h3>
+                            <p style={{ margin: 0, color: 'rgba(255,255,255,0.9)', fontSize: '14px' }}>
+                                Your payment has been confirmed. Our admin team will review and activate your account shortly. You'll receive an email once it's ready!
+                            </p>
+                        </div>
+                    </div>
+                )}
+
+
+                {student?.status !== 'PAYMENT_PENDING' && !(!student?.status) && student?.status !== 'PAYMENT_SUCCESSFUL' && (
+                    <div className="content-grid">
+                        {/* Left Column */}
+                        <div className="main-column">
+                            {/* Announcements Section */}
+                            {broadcasts.length > 0 && (
+                                <div className={`content-card announcement-card ${cardsVisible ? 'visible' : ''}`}>
+                                    <div className="card-header-row">
+                                        <div className="card-title-group">
+                                            <Megaphone size={22} color="#f59e0b" />
+                                            <h3>Announcements</h3>
+                                        </div>
+                                    </div>
+                                    <div className="announcement-list">
+                                        {broadcasts.map(broadcast => (
+                                            <div key={broadcast.id} className="announcement-item">
+                                                <div className="ann-icon">
+                                                    <Bell size={16} />
+                                                </div>
+                                                <div className="ann-content">
+                                                    <div className="ann-header">
+                                                        <span className="ann-subject">{broadcast.subject}</span>
+                                                        <span className="ann-date">{formatDate(broadcast.createdAt)}</span>
+                                                    </div>
+                                                    <p className="ann-message">{broadcast.message}</p>
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+                            )}
+
+                            {/* Chess Assignments Section */}
+                            {chessAssignments.length > 0 && (
+                                <div className={`content-card ${cardsVisible ? 'visible' : ''}`}>
+                                    <div className="card-header-row">
+                                        <div className="card-title-group">
+                                            <ChessBishopIcon size={22} color="#181818" />
+                                            <h3>Chess Assignments</h3>
+                                        </div>
+                                    </div>
+                                    <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                                        {chessAssignments.map((assignment) => (
+                                            <div
+                                                key={assignment.id}
+                                                onClick={() => setSelectedAssignment(assignment)}
+                                                style={{
+                                                    padding: '16px',
+                                                    background: '#f8fafc',
+                                                    borderRadius: '8px',
+                                                    border: '1px solid #e2e8f0',
+                                                    cursor: 'pointer',
+                                                    transition: 'all 0.2s',
+                                                }}
+                                                onMouseEnter={(e) => {
+                                                    e.currentTarget.style.background = '#eff6ff';
+                                                    e.currentTarget.style.borderColor = '#3b82f6';
+                                                }}
+                                                onMouseLeave={(e) => {
+                                                    e.currentTarget.style.background = '#f8fafc';
+                                                    e.currentTarget.style.borderColor = '#e2e8f0';
+                                                }}
+                                            >
+                                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start', marginBottom: '8px' }}>
+                                                    <div>
+                                                        <h4 style={{ margin: 0, color: '#1e293b', fontSize: '16px', fontWeight: '600' }}>
+                                                            {assignment.title}
+                                                        </h4>
+                                                        <div style={{ fontSize: '13px', color: '#64748b', marginTop: '4px' }}>
+                                                            {assignment.type} • {assignment.batchName}
+                                                        </div>
+                                                    </div>
+                                                    <span style={{
+                                                        padding: '4px 12px',
+                                                        background: assignment.isSubmitted ? '#dcfce7' : '#dbeafe',
+                                                        color: assignment.isSubmitted ? '#166534' : '#1e40af',
+                                                        borderRadius: '12px',
+                                                        fontSize: '12px',
+                                                        fontWeight: '600'
+                                                    }}>
+                                                        {assignment.isSubmitted ? 'Submitted' : 'View'}
+                                                    </span>
+                                                </div>
+                                                <p style={{ margin: 0, fontSize: '14px', color: '#475569', lineHeight: '1.5' }}>
+                                                    {assignment.description?.substring(0, 80)}{assignment.description?.length > 80 ? '...' : ''}
+                                                </p>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+                            )}
+
+                            {/* Quick Actions Grid */}
+                            <div className={`quick-actions-grid ${cardsVisible ? 'visible' : ''}`}>
+                                {quickActions.map((action, index) => {
+                                    const IconComponent = action.icon;
+                                    return (
+                                        <button
+                                            key={index}
+                                            className="quick-action-card"
+                                            onClick={() => navigate(action.path)}
+                                            style={{ '--card-gradient': action.gradient }}
+                                        >
+                                            <div className="action-icon-circle">
+                                                <IconComponent size={24} color="white" />
+                                            </div>
+                                            <div className="action-text">
+                                                <span className="action-title">{action.label}</span>
+                                                <span className="action-desc">{action.description}</span>
+                                            </div>
+                                            <span className="action-arrow">→</span>
+                                        </button>
+                                    );
+                                })}
+                            </div>
+                        </div>
+
+                        {/* Right Sidebar */}
+                        <div className="sidebar-column">
+                            {/* Coach Card */}
+                            <div className={`content-card coach-card ${cardsVisible ? 'visible' : ''}`}>
+                                <div className="card-header-row">
+                                    <h3>Your Coach</h3>
+                                </div>
+                                <div className="coach-profile">
+                                    <div className="coach-avatar-large" style={{ overflow: 'hidden' }}>
+                                        {coach?.photoURL ? (
+                                            <img src={coach.photoURL} alt="Coach" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                                        ) : (
+                                            <ChessBishopIcon size={40} color="#181818" />
+                                        )}
+                                    </div>
+                                    <div className="coach-info">
+                                        <h4 className="coach-name">{coach ? (coach.fullName || coach.studentName || 'Coach Assigned') : 'Assigning Coach...'}</h4>
+                                        <div className="coach-badges">
+                                            <span className="badge fide">{coach?.title || 'Instructor'}</span>
+                                            <span className="badge rating">
+                                                <StarIcon size={12} color="#D4AF37" filled />
+                                                {coach?.rating || '5.0'}
+                                            </span>
+                                        </div>
+                                        {student?.assignedBatchName && (
+                                            <p className="assigned-batch" style={{ margin: '8px 0 0 0', fontSize: '14px', color: '#666' }}>
+                                                <strong>Batch:</strong> {student.assignedBatchName}
+                                            </p>
+                                        )}
+                                    </div>
+                                </div>
+                                <div className="coach-stats-row">
+                                    <div className="coach-stat">
+                                        <span className="stat-value">{coach?.sessions || '0'}</span>
+                                        <span className="stat-label">Sessions</span>
+                                    </div>
+                                    <div className="coach-stat">
+                                        <span className="stat-value">{coach?.experience || '5+'}</span>
+                                        <span className="stat-label">Years Exp</span>
+                                    </div>
+                                    <div className="coach-stat">
+                                        <span className="stat-value">{coach?.studentCount || '50+'}</span>
+                                        <span className="stat-label">Students</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* Subscription Card */}
+                            {subscription && (
+                                <div className={`content-card ${cardsVisible ? 'visible' : ''}`} style={{ borderLeft: '4px solid #FC8A24' }}>
+                                    <div className="card-header-row">
+                                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                            <StarIcon size={18} color="#FC8A24" filled />
+                                            <h4 style={{ margin: 0, fontSize: '15px', fontWeight: '700' }}>Active Plan</h4>
+                                        </div>
+                                        <span style={{ fontSize: '11px', padding: '2px 8px', borderRadius: '10px', background: '#fef3c7', color: '#92400e', fontWeight: 'bold' }}>
+                                            {subscription.status}
+                                        </span>
+                                    </div>
+                                    <div style={{ marginTop: '12px' }}>
+                                        <div style={{ fontSize: '18px', fontWeight: '800', color: '#1e293b' }}>
+                                            {subscription.planName || 'Chess Pro Plan'}
+                                        </div>
+                                        <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '12px', fontSize: '13px', color: '#64748b' }}>
+                                            <span>Next Billing:</span>
+                                            <span style={{ fontWeight: '600', color: '#1e293b' }}>
+                                                {subscription.nextDueAt?.toDate ? subscription.nextDueAt.toDate().toLocaleDateString() : 'N/A'}
+                                            </span>
+                                        </div>
+                                    </div>
+                                    <button
+                                        onClick={() => navigate('/parent/payments')}
+                                        style={{ width: '100%', marginTop: '16px', padding: '8px', borderRadius: '8px', border: '1px solid #e2e8f0', background: 'white', color: '#64748b', fontSize: '12px', fontWeight: '600', cursor: 'pointer' }}
+                                    >
+                                        Manage Subscription
+                                    </button>
+                                </div>
+                            )}
+
+                        </div>
+                    </div>
+                )}
             </div>
 
             <ReviewRequestModal
                 isOpen={isReviewModalOpen}
                 onClose={() => setReviewModalOpen(false)}
+                studentName={student?.studentName || student?.fullName || 'Student'}
             />
 
             <StudentChessAssignmentModal
                 isOpen={!!selectedAssignment}
-                onClose={async () => {
-                    // Check if the assignment was just submitted to update the UI immediately
-                    if (selectedAssignment) {
-                        try {
-                            const subRef = doc(db, 'chessAssignment', selectedAssignment.id, 'submissions', currentUser.uid);
-                            const subSnap = await getDoc(subRef);
-                            if (subSnap.exists()) {
-                                setChessAssignments(prev => prev.map(a =>
-                                    a.id === selectedAssignment.id ? { ...a, isSubmitted: true } : a
-                                ));
-                            }
-                        } catch (e) {
-                            console.error("Error refreshing submission status:", e);
-                        }
-                    }
-                    setSelectedAssignment(null);
-                }}
+                onClose={() => setSelectedAssignment(null)}
                 assignment={selectedAssignment}
+                studentId={currentUser?.uid}
             />
         </div>
     );

@@ -5,12 +5,67 @@ const WebSocket = require('ws');
 const nodemailer = require('nodemailer');
 const { spawn } = require('child_process');
 const path = require('path');
+const Razorpay = require('razorpay');
+const crypto = require('crypto');
 const STOCKFISH_PATH = require.resolve('stockfish/src/stockfish-nnue-16-no-simd.js');
 require('dotenv').config();
 
 const app = express();
 app.use(cors());
 app.use(express.json());
+
+// ==========================================
+// RAZORPAY INTEGRATION
+// ==========================================
+
+const razorpayInstance = new Razorpay({
+	key_id: process.env.RAZORPAY_KEY_ID || 'rzp_test_YourTestKeyHere',
+	key_secret: process.env.RAZORPAY_KEY_SECRET || 'YourTestSecretHere'
+});
+
+app.post('/api/razorpay/create-order', async (req, res) => {
+	try {
+		const { amountINR, receipt, notes } = req.body;
+
+		const options = {
+			amount: amountINR * 100, // paise
+			currency: 'INR',
+			receipt: receipt || crypto.randomBytes(10).toString('hex'),
+			notes: notes || {}
+		};
+
+		const order = await razorpayInstance.orders.create(options);
+		res.json({ success: true, order });
+	} catch (error) {
+		console.error('Razorpay Create Order Error:', error);
+		res.status(500).json({ success: false, error: error.message || 'Failed to create order' });
+	}
+});
+
+app.post('/api/razorpay/verify-payment', (req, res) => {
+	try {
+		const { razorpay_order_id, razorpay_payment_id, razorpay_signature } = req.body;
+
+		if (!razorpay_order_id || !razorpay_payment_id || !razorpay_signature) {
+			return res.status(400).json({ success: false, message: "Missing Razorpay payment parameters" });
+		}
+
+		const sign = razorpay_order_id + "|" + razorpay_payment_id;
+		const expectedSign = crypto
+			.createHmac("sha256", process.env.RAZORPAY_KEY_SECRET || 'YourTestSecretHere')
+			.update(sign.toString())
+			.digest("hex");
+
+		if (razorpay_signature === expectedSign) {
+			return res.json({ success: true, message: "Payment verified successfully" });
+		} else {
+			return res.status(400).json({ success: false, message: "Invalid signature sent!" });
+		}
+	} catch (error) {
+		console.error('Razorpay Verify Error:', error);
+		res.status(500).json({ success: false, error: error.message });
+	}
+});
 
 // ==========================================
 // STOCKFISH ENGINE HELPERS (spawn no-Worker build)

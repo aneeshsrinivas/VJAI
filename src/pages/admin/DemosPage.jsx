@@ -5,12 +5,13 @@ import { useAuth } from '../../context/AuthContext';
 import Card from '../../components/ui/Card';
 import Button from '../../components/ui/Button';
 import AssignCoachModal from '../../components/features/AssignCoachModal';
+import ApprovePaymentModal from '../../components/features/ApprovePaymentModal';
 import DemoOutcomeModal from '../../components/features/DemoOutcomeModal';
-import ConvertStudentModal from '../../components/features/ConvertStudentModal';
+import ConvertAndAssignCoachModal from '../../components/features/ConvertAndAssignCoachModal';
 import ConfirmDialog from '../../components/ui/ConfirmDialog';
 import { toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
-import { Trash2, Edit, Link, CheckCircle } from 'lucide-react';
+import { Trash2, Edit, CheckCircle } from 'lucide-react';
 import './DemosPage.css';
 
 const DemosPage = () => {
@@ -21,6 +22,7 @@ const DemosPage = () => {
     const [outcomeModalOpen, setOutcomeModalOpen] = useState(false);
     const [convertModalOpen, setConvertModalOpen] = useState(false);
     const [selectedDemo, setSelectedDemo] = useState(null);
+    const [approveDemo, setApproveDemo] = useState(null);
     const [demos, setDemos] = useState([]);
     const [loading, setLoading] = useState(true);
     const [confirmDialog, setConfirmDialog] = useState(null);
@@ -55,6 +57,8 @@ const DemosPage = () => {
             NO_SHOW: { bg: '#FEE2E2', color: '#991B1B' },
             INTERESTED: { bg: '#E0E7FF', color: '#3730A3' },
             PAYMENT_PENDING: { bg: '#FEF3C7', color: '#B45309' },
+            PAYMENT_COMPLETED: { bg: '#FCA5A5', color: '#7F1D1D' },
+            PAYMENT_SUCCESSFUL: { bg: '#E0F2FE', color: '#0369A1' },
             CONVERTED: { bg: '#DCFCE7', color: '#166534' },
             REJECTED: { bg: '#F3F4F6', color: '#6B7280' },
         };
@@ -105,25 +109,9 @@ const DemosPage = () => {
     };
 
     const handleApprovePayment = (demo) => {
-        setConfirmDialog({
-            title: 'Confirm Payment',
-            message: `Confirm payment for ${demo.studentName}? This will create a student account.`,
-            confirmLabel: 'Confirm',
-            variant: 'warning',
-            onConfirm: async () => {
-                setLoading(true);
-                try {
-                    await conversionService.approvePayment(demo.id);
-                    toast.success('Payment Approved! Student Account Created.');
-                    fetchDemos();
-                } catch (error) {
-                    console.error(error);
-                    toast.error('Approval Failed: ' + error.message);
-                }
-                setLoading(false);
-            }
-        });
+        setApproveDemo(demo);
     };
+
 
     const copyPaymentLink = (demoId) => {
         const link = `${window.location.origin}/pricing?demoId=${demoId}`;
@@ -160,7 +148,7 @@ const DemosPage = () => {
 
             {/* Filter Tabs */}
             <div style={{ display: 'flex', gap: '8px', marginBottom: '24px', flexWrap: 'wrap' }}>
-                {['ALL', 'PENDING', 'SCHEDULED', 'ATTENDED', 'INTERESTED', 'PAYMENT_PENDING', 'CONVERTED'].map(f => (
+                {['ALL', 'PENDING', 'SCHEDULED', 'ATTENDED', 'INTERESTED', 'PAYMENT_PENDING', 'PAYMENT_SUCCESSFUL', 'PAYMENT_COMPLETED', 'CONVERTED'].map(f => (
                     <button
                         key={f}
                         className={`filter-btn ${filter === f ? 'active' : ''}`}
@@ -247,28 +235,8 @@ const DemosPage = () => {
                                                 </Button>
                                             )}
 
-                                            {/* Action: Convert */}
-                                            {(demo.status === 'INTERESTED' || demo.status === 'ATTENDED') && (
-                                                <>
-                                                    <Button size="sm" style={{ backgroundColor: 'var(--color-warm-orange)' }} onClick={() => {
-                                                        setSelectedDemo(demo);
-                                                        setConvertModalOpen(true);
-                                                    }}>
-                                                        Convert
-                                                    </Button>
-                                                    <Button
-                                                        size="sm"
-                                                        variant="secondary"
-                                                        onClick={() => copyPaymentLink(demo.id)}
-                                                        title="Copy payment link"
-                                                    >
-                                                        <Link size={14} />
-                                                    </Button>
-                                                </>
-                                            )}
-
                                             {/* Action: Approve Payment */}
-                                            {demo.status === 'PAYMENT_PENDING' && (
+                                            {(demo.status === 'PAYMENT_PENDING' || demo.status === 'PAYMENT_SUCCESSFUL') && (
                                                 <Button
                                                     size="sm"
                                                     style={{ backgroundColor: '#166534' }}
@@ -276,6 +244,22 @@ const DemosPage = () => {
                                                 >
                                                     <CheckCircle size={14} style={{ marginRight: '4px' }} />
                                                     Approve
+                                                </Button>
+                                            )}
+
+                                            {/* Action: Convert (for Payment Completed) */}
+                                            {demo.status === 'PAYMENT_COMPLETED' && (
+                                                <Button
+                                                    size="sm"
+                                                    style={{ backgroundColor: '#DC2626' }}
+                                                    onClick={() => {
+                                                        setSelectedDemo(demo);
+                                                        setConvertModalOpen(true);
+                                                    }}
+                                                    title="Convert to Student Account & Assign Coach"
+                                                >
+                                                    <CheckCircle size={14} style={{ marginRight: '4px' }} />
+                                                    Convert
                                                 </Button>
                                             )}
 
@@ -334,16 +318,28 @@ const DemosPage = () => {
             )}
 
             {convertModalOpen && selectedDemo && (
-                <ConvertStudentModal
+                <ConvertAndAssignCoachModal
                     demo={selectedDemo}
                     onClose={() => setConvertModalOpen(false)}
                     onSuccess={() => {
                         fetchDemos();
                         setConvertModalOpen(false);
-                        toast.success('Student account created successfully!');
                     }}
                 />
             )}
+
+            {approveDemo && (
+                <ApprovePaymentModal
+                    demo={approveDemo}
+                    onClose={() => setApproveDemo(null)}
+                    onSuccess={() => {
+                        setApproveDemo(null);
+                        fetchDemos();
+                        toast.success('Payment Approved & Student Activated!');
+                    }}
+                />
+            )}
+
             {confirmDialog && (
                 <ConfirmDialog
                     title={confirmDialog.title}

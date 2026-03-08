@@ -6,10 +6,12 @@ import ConfirmDialog from '../../ui/ConfirmDialog';
 import { toast } from 'react-toastify';
 import { Trash2, Plus, Calendar, Clock, BarChart } from 'lucide-react';
 import { useTheme } from '../../../context/ThemeContext';
+import { useAuth } from '../../../context/AuthContext';
 
 const ManageBatchesModal = ({ isOpen, onClose, coach }) => {
     // ✅ All hooks FIRST (before any conditional returns)
     const { isDark } = useTheme();
+    const { currentUser } = useAuth();
     const [confirmDialog, setConfirmDialog] = useState(null);
     const [batches, setBatches] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -43,7 +45,7 @@ const ManageBatchesModal = ({ isOpen, onClose, coach }) => {
         try {
             const coachDocId = coach.id;
             // Add to coach's subcollection
-            await addDoc(collection(db, 'coaches', coachDocId, 'batches'), {
+            const batchRef = await addDoc(collection(db, 'coaches', coachDocId, 'batches'), {
                 name: newBatch.name,
                 schedule: newBatch.schedule,
                 level: newBatch.level.toLowerCase(),
@@ -56,8 +58,22 @@ const ManageBatchesModal = ({ isOpen, onClose, coach }) => {
                 reports: [],
                 createdAt: serverTimestamp()
             });
+
+            // Create a corresponding group chat for this batch
+            await addDoc(collection(db, 'chats'), {
+                chatType: 'BATCH_GROUP',
+                batchId: batchRef.id,
+                name: `Batch: ${newBatch.name}`,
+                participants: [coach.accountId, currentUser?.uid].filter(Boolean), // Coach and Admin
+                coachId: coach.accountId,
+                coachName: coach.fullName || 'Coach',
+                lastMessage: `Group chat for ${newBatch.name} created.`,
+                lastMessageAt: serverTimestamp(),
+                createdAt: serverTimestamp()
+            });
+
             setNewBatch({ name: '', schedule: '', level: 'Beginner' });
-            toast.success(`Batch "${newBatch.name}" assigned successfully!`);
+            toast.success(`Batch "${newBatch.name}" and group chat created!`);
         } catch (e) {
             console.error("Error adding batch:", e);
             toast.error("Failed to add batch");
@@ -90,7 +106,11 @@ const ManageBatchesModal = ({ isOpen, onClose, coach }) => {
                 </div>
 
                 {/* List */}
-                <div style={{ marginBottom: '24px', maxHeight: '300px', overflowY: 'auto' }}>
+                <div 
+                    data-lenis-prevent="true"
+                    onWheel={(e) => e.stopPropagation()}
+                    style={{ marginBottom: '24px', maxHeight: '300px', overflowY: 'auto' }}
+                >
                     {loading ? (
                         <div style={{ color: isDark ? '#aaa' : '#666', fontStyle: 'italic' }}>Loading batches...</div>
                     ) : batches.length === 0 ? (

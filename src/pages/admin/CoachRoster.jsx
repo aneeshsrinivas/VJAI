@@ -10,6 +10,7 @@ import { User, Mail, Phone, Star, Trash2, BookOpen } from 'lucide-react';
 import { toast, ToastContainer } from 'react-toastify';
 import { useTheme } from '../../context/ThemeContext';
 import { createCoachAccount } from '../../services/adminAuthService';
+import { deleteCoach } from '../../services/firestoreService';
 import '../../pages/Dashboard.css';
 
 import AdminCoachApplications from './AdminCoachApplications';
@@ -127,10 +128,12 @@ const CoachRoster = () => {
             confirmLabel: 'Delete',
             onConfirm: async () => {
                 try {
-                    await deleteDoc(doc(db, 'users', coach.id));
-                    try { await deleteDoc(doc(db, 'coaches', coach.id)); } catch (e) {}
-                    toast.success('Coach removed from roster');
-                    // No need to call fetchCoaches() anymore - real-time listener will update automatically
+                    const result = await deleteCoach(coach.id, coach.accountId);
+                    if (result.success) {
+                        toast.success('Coach removed from roster');
+                    } else {
+                        toast.error('Failed to delete coach: ' + result.error);
+                    }
                 } catch (error) {
                     console.error('Error deleting coach:', error);
                     toast.error('Failed to delete coach');
@@ -237,6 +240,16 @@ const CoachRoster = () => {
                                             {coach.email || 'N/A'}
                                         </div>
                                     </div>
+
+                                    {/* Assigned Group */}
+                                    {coach.assignedGroup && (
+                                        <div style={{ marginBottom: '16px', paddingBottom: '12px', borderBottom: '1px solid #f0f0f0' }}>
+                                            <div style={{ fontSize: '12px', color: '#666', fontWeight: '500', marginBottom: '4px' }}>Assigned Group</div>
+                                            <div style={{ fontSize: '14px', fontWeight: '600', color: '#1E3A8A' }}>
+                                                {coach.assignedGroup}
+                                            </div>
+                                        </div>
+                                    )}
 
                                     {/* Assigned Batches Badge */}
                                     <CoachBatchesBadges coachId={coach.id} />
@@ -373,11 +386,15 @@ const CoachRoster = () => {
                         </div>
 
                         {/* Modal Content */}
-                        <div style={{
-                            padding: '24px',
-                            overflowY: 'auto',
-                            flex: 1
-                        }}>
+                        <div 
+                            data-lenis-prevent="true"
+                            onWheel={(e) => e.stopPropagation()}
+                            style={{
+                                padding: '24px',
+                                overflowY: 'auto',
+                                flex: 1
+                            }}
+                        >
                             {/* Name Input */}
                             <div style={{ marginBottom: '16px' }}>
                                 <label style={{ display: 'block', fontWeight: '600', marginBottom: '6px', color: '#333', fontSize: '14px' }}>

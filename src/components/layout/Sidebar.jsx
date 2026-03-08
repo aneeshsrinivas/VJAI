@@ -36,6 +36,7 @@ const Sidebar = ({ role = 'admin', activePath = '/dashboard' }) => {
         { label: 'Batches', icon: <Layers size={20} />, path: '/coach/batches' },
         { label: 'Attendance', icon: <ClipboardCheck size={20} />, path: '/coach/attendance' },
         { label: 'Schedule', icon: <Calendar size={20} />, path: '/coach/schedule' },
+        { label: 'Lichess', icon: <Target size={20} />, path: '/coach/lichess' },
         { label: 'Messages', icon: <MessageSquare size={20} />, path: '/coach/chat' },
     ];
 
@@ -59,7 +60,7 @@ const Sidebar = ({ role = 'admin', activePath = '/dashboard' }) => {
                 <span className="sidebar-title">{role === 'admin' ? 'ICA Admin' : 'Coach Portal'}</span>
             </div>
 
-            <nav className="sidebar-nav" data-lenis-prevent>
+            <nav className="sidebar-nav" data-lenis-prevent="true" onWheel={(e) => e.stopPropagation()}>
                 {links.map((link) => (
                     <div
                         key={link.path}

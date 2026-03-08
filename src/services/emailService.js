@@ -84,6 +84,39 @@ Indian Chess Academy Team`;
         }
     },
 
+    sendPrePaymentDashboardEmail: async ({ parentEmail, parentName, studentName, loginEmail, password }) => {
+        try {
+            const loginLink = `https://vjai.onrender.com/login`;
+            const text = `Dear ${parentName},
+
+Thank you for your strong interest in Indian Chess Academy! We are thrilled to welcome ${studentName} aboard.
+
+To streamline your experience, we have created a dedicated Parent Dashboard for you. Please log in to your dashboard to complete your enrollment, select a plan, and make your payment securely.
+
+🔐 Your Login Credentials:
+• Login Email: ${loginEmail}
+• Temporary Password: ${password}
+
+👉 Login Here: ${loginLink}
+
+Once logged in, simply click on the "Upgrade" or "Select Plan" button on your dashboard to activate ${studentName}'s account. 
+
+Best regards,
+Indian Chess Academy Team`;
+
+            await sendEmail({
+                to: parentEmail,
+                subject: `🔐 Your Dashboard Login Details - Indian Chess Academy`,
+                text
+            });
+            console.log('✅ Pre-payment dashboard email sent to:', parentEmail);
+            return { success: true };
+        } catch (error) {
+            console.error('Failed to send pre-payment dashboard email:', error);
+            return { success: false, error: error.message };
+        }
+    },
+
     sendWelcomeEmail: async ({ parentEmail, parentName, studentName, planName }) => {
         try {
             const loginLink = `https://vjai.onrender.com/login`;

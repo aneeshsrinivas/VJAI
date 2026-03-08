@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { collection, getDocs, query, where, orderBy, doc, getDoc } from 'firebase/firestore';
+import { collection, getDocs, doc, getDoc } from 'firebase/firestore';
 import { db } from '../../lib/firebase';
 import { useAuth } from '../../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
@@ -44,17 +44,17 @@ const ParentPayments = () => {
     };
 
     useEffect(() => {
-        console.log("user payment page with email: ", currentUser);
         const fetchData = async () => {
-            if (!currentUser?.email) {
+            if (!currentUser?.uid) {
                 setLoading(false);
                 return;
             }
 
             try {
-                console.log('Fetching data for user email:', currentUser.email);
+                const uid = currentUser.uid;
+                const email = currentUser.email?.toLowerCase();
 
-                // Step 1: Fetch ALL subscriptions and filter by parentEmail matching user's email
+                // Fetch all subscriptions and find by uid OR email
                 const allSubsSnapshot = await getDocs(collection(db, 'subscriptions'));
                 const allSubs = allSubsSnapshot.docs.map(doc => ({
                     id: doc.id,
@@ -62,43 +62,31 @@ const ParentPayments = () => {
                     nextDueAt: doc.data().nextDueAt?.toDate?.() || null
                 }));
 
-                console.log('All subscriptions:', allSubs);
-
-                // Find subscription matching user's email
-                const userSubscription = allSubs.find(sub =>
-                    sub.parentEmail?.toLowerCase() === currentUser.email?.toLowerCase()
-                );
-
-                console.log('Found user subscription:', userSubscription);
+                // Match by parentId (uid) first, then fall back to parentEmail match
+                const userSubscription =
+                    allSubs.find(sub => sub.parentId === uid) ||
+                    allSubs.find(sub => sub.parentEmail?.toLowerCase() === email);
 
                 if (userSubscription) {
                     setSubscription(userSubscription);
 
-                    // Step 2: Fetch the plan details using planId
                     if (userSubscription.planId) {
                         const planDoc = await getDoc(doc(db, 'subscriptionPlans', userSubscription.planId));
                         if (planDoc.exists()) {
-                            setCurrentPlan({
-                                id: planDoc.id,
-                                ...planDoc.data()
-                            });
-                            console.log('Found plan:', planDoc.data());
+                            setCurrentPlan({ id: planDoc.id, ...planDoc.data() });
                         } else {
                             const plansSnapshot = await getDocs(collection(db, 'subscriptionPlans'));
                             const matchingPlan = plansSnapshot.docs.find(d =>
                                 d.data().planId === userSubscription.planId || d.id === userSubscription.planId
                             );
                             if (matchingPlan) {
-                                setCurrentPlan({
-                                    id: matchingPlan.id,
-                                    ...matchingPlan.data()
-                                });
+                                setCurrentPlan({ id: matchingPlan.id, ...matchingPlan.data() });
                             }
                         }
                     }
                 }
 
-                // Step 3: Fetch ALL payments and filter by parentEmail
+                // Fetch all payments and find by parentId OR parentEmail
                 const allPaymentsSnapshot = await getDocs(collection(db, 'payments'));
                 const allPayments = allPaymentsSnapshot.docs.map(doc => ({
                     id: doc.id,
@@ -107,10 +95,10 @@ const ParentPayments = () => {
                 }));
 
                 const userPayments = allPayments.filter(payment =>
-                    payment.parentEmail?.toLowerCase() === currentUser.email?.toLowerCase()
+                    payment.parentId === uid ||
+                    payment.parentEmail?.toLowerCase() === email
                 );
 
-                console.log('User payments:', userPayments);
                 setTransactions(userPayments);
 
             } catch (error) {
@@ -218,10 +206,10 @@ const ParentPayments = () => {
                             <div style={{ display: 'flex', alignItems: 'baseline', gap: '4px', marginBottom: '24px' }}>
                                 <span style={{ fontSize: '32px', fontWeight: 'bold' }}>
                                     {currentPlan?.price
-                                        ? `$${currentPlan.price.toLocaleString()}`
+                                        ? `₹${currentPlan.price.toLocaleString()}`
                                         : subscription?.amount
-                                        ? `$${subscription.amount.toLocaleString()}`
-                                        : '—'}
+                                            ? `₹${subscription.amount.toLocaleString()}`
+                                            : '—'}
                                 </span>
                                 <span style={{ color: 'rgba(255,255,255,0.6)' }}>
                                     /{currentPlan?.billingCycle?.toLowerCase() || subscription?.billingCycle?.toLowerCase() || 'month'}
@@ -246,15 +234,18 @@ const ParentPayments = () => {
                                 </div>
                             )}
 
-                            <Button style={{
-                                width: '100%',
-                                background: 'white',
-                                color: '#181818',
-                                fontWeight: '700',
-                                border: 'none',
-                                padding: '12px'
-                            }}>
-                                {subscription ? 'Make Payment Now' : 'Browse Plans'}
+                            <Button
+                                style={{
+                                    width: '100%',
+                                    background: 'white',
+                                    color: '#181818',
+                                    fontWeight: '700',
+                                    border: 'none',
+                                    padding: '12px'
+                                }}
+                                onClick={() => navigate(subscription ? '/pricing' : '/pricing')}
+                            >
+                                {subscription ? 'Upgrade / Change Plan' : 'Browse Plans'}
                             </Button>
                         </div>
                     </Card>
@@ -277,11 +268,13 @@ const ParentPayments = () => {
                             <div>
                                 <h3 style={{ fontSize: '18px', fontWeight: '700', color: c.statHeading, margin: 0, transition: 'color 0.2s ease' }}>Payment Method</h3>
                                 <p style={{ color: c.statText, fontSize: '14px', margin: '4px 0 0', transition: 'color 0.2s ease' }}>
-                                    {subscription?.paymentMethod === 'card'
-                                        ? `Card ending in ${subscription?.cardLast4 || '****'}`
-                                        : subscription?.paymentMethod === 'upi'
-                                        ? 'UPI Payment'
-                                        : 'No payment method saved'}
+                                    {subscription?.paymentMethod === 'razorpay'
+                                        ? '🔒 Razorpay (UPI/Card/Net Banking)'
+                                        : subscription?.paymentMethod === 'card'
+                                            ? `Card ending in ${subscription?.cardLast4 || '****'}`
+                                            : subscription?.paymentMethod === 'upi'
+                                                ? 'Manual UPI Payment'
+                                                : 'No payment method saved'}
                                 </p>
                             </div>
                             <Button variant="ghost" size="sm" style={{ marginLeft: 'auto', color: c.editBtnColor }}>Edit</Button>
@@ -344,8 +337,15 @@ const ParentPayments = () => {
                                             onMouseEnter={(e) => e.currentTarget.style.background = c.tableRowHover}
                                             onMouseLeave={(e) => e.currentTarget.style.background = c.tableRowBase}>
                                             <td style={{ padding: '16px 24px', color: c.tableText, fontWeight: '500' }}>{formatDate(tx.date)}</td>
-                                            <td style={{ padding: '16px 24px', color: c.tableText }}>{tx.description || tx.planName || 'Subscription Payment'}</td>
-                                            <td style={{ padding: '16px 24px', fontWeight: '700', color: c.tableAmountText }}>${tx.amount?.toLocaleString() || '0'}</td>
+                                            <td style={{ padding: '16px 24px', color: c.tableText }}>
+                                                {tx.description || tx.planName || 'Subscription Payment'}
+                                                {tx.razorpayPaymentId && (
+                                                    <div style={{ fontSize: '11px', color: '#4facfe', marginTop: '3px', fontFamily: 'monospace' }}>
+                                                        🔒 {tx.razorpayPaymentId}
+                                                    </div>
+                                                )}
+                                            </td>
+                                            <td style={{ padding: '16px 24px', fontWeight: '700', color: c.tableAmountText }}>₹{tx.amount?.toLocaleString() || '0'}</td>
                                             <td style={{ padding: '16px 24px' }}>
                                                 <span style={{
                                                     display: 'inline-flex',

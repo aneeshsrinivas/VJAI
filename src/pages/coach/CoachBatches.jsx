@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import Card from '../../components/ui/Card';
 import Button from '../../components/ui/Button';
 import { Users, Clock, Calendar, Upload, FileText, BookOpen } from 'lucide-react';
-import { collection, query, where, onSnapshot } from 'firebase/firestore';
+import { collection, query, where, onSnapshot, getDocs } from 'firebase/firestore';
 import { db } from '../../lib/firebase';
 import { useAuth } from '../../context/AuthContext';
 import { useTheme } from '../../context/ThemeContext';
@@ -19,10 +19,30 @@ const CoachBatches = () => {
     const [createPuzzleBatch, setCreatePuzzleBatch] = useState(null);
     const [selectedAssignment, setSelectedAssignment] = useState(null);
     const [batches, setBatches] = useState([]);
-    const [loading, setLoading] = useState(true);
+    const [loading, setLoading] = useState(false);
     const [assignments, setAssignments] = useState([]);
     const [uploadLog, setUploadLog] = useState([]);
     const { currentUser } = useAuth();
+    const [coachDocId, setCoachDocId] = useState(null);
+
+    // Resolve coachDocId from coaches collection
+    useEffect(() => {
+        if (!currentUser?.uid) return;
+        const resolve = async () => {
+            try {
+                const coachQuery = query(
+                    collection(db, 'coaches'),
+                    where('accountId', '==', currentUser.uid)
+                );
+                const snap = await getDocs(coachQuery);
+                setCoachDocId(!snap.empty ? snap.docs[0].id : currentUser.uid);
+            } catch (err) {
+                console.error('Could not resolve coachDocId, falling back to uid:', err);
+                setCoachDocId(currentUser.uid);
+            }
+        };
+        resolve();
+    }, [currentUser]);
 
     const getColorForLevel = (level) => {
         const colors = {
@@ -48,14 +68,13 @@ const CoachBatches = () => {
         return `${shortDays} • ${time}`;
     };
 
-    // Fetch batches from coach's subcollection
+    // Fetch batches from coach's subcollection using resolved coachDocId
     useEffect(() => {
-        if (!currentUser?.uid) {
-            setLoading(false);
+        if (!coachDocId) {
             return;
         }
 
-        const batchesRef = collection(db, 'coaches', currentUser.uid, 'batches');
+        const batchesRef = collection(db, 'coaches', coachDocId, 'batches');
 
         const unsubscribe = onSnapshot(batchesRef, (snapshot) => {
             const batchList = snapshot.docs.map(d => ({
@@ -73,7 +92,7 @@ const CoachBatches = () => {
         });
 
         return () => unsubscribe();
-    }, [currentUser]);
+    }, [coachDocId]);
 
     // Fetch Upload Log (Assignments uploaded by this coach)
     useEffect(() => {

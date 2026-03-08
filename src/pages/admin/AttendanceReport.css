@@ -176,3 +176,83 @@
         min-width: 100%;
     }
 }
+
+/* Dark Mode Overrides */
+.staff-dark .attendance-report-page {
+    background-color: transparent;
+}
+
+.staff-dark .report-header h1 {
+    color: #f0f0f0 !important;
+}
+
+.staff-dark .report-header p {
+    color: #94a3b8 !important;
+}
+
+.staff-dark .stat-card {
+    background: #1e2330;
+    border-color: rgba(255, 255, 255, 0.05);
+}
+
+.staff-dark .stat-number {
+    color: #f0f0f0 !important;
+}
+
+.staff-dark .stat-desc {
+    color: #94a3b8 !important;
+}
+
+.staff-dark .filter-item label {
+    color: #f0f0f0 !important;
+}
+
+.staff-dark .filter-item input,
+.staff-dark .filter-item select {
+    background: #0f1117;
+    border-color: rgba(255, 255, 255, 0.15);
+    color: #f0f0f0;
+}
+
+.staff-dark .filter-item input::placeholder {
+    color: #64748b;
+}
+
+.staff-dark .report-table th {
+    color: #f0f0f0 !important;
+    background: #0f1117;
+    border-bottom-color: rgba(255, 255, 255, 0.1) !important;
+}
+
+.staff-dark .report-table thead tr {
+    border-bottom-color: rgba(255, 255, 255, 0.1) !important;
+}
+
+.staff-dark .report-table td {
+    color: #cbd5e1;
+    border-bottom-color: rgba(255, 255, 255, 0.05) !important;
+}
+
+.staff-dark .report-table tbody tr:hover {
+    background: rgba(255, 255, 255, 0.03);
+}
+
+.staff-dark .status-badge.present {
+    background: rgba(16, 185, 129, 0.1);
+    color: #34d399;
+}
+
+.staff-dark .status-badge.absent {
+    background: rgba(239, 68, 68, 0.1);
+    color: #f87171;
+}
+
+.staff-dark .badge-rate.good {
+    background: rgba(16, 185, 129, 0.1);
+    color: #34d399;
+}
+
+.staff-dark .badge-rate.low {
+    background: rgba(245, 158, 11, 0.1);
+    color: #fbbf24;
+}

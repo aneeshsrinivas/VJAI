@@ -1,5 +1,43 @@
 /* src/pages/admin/StudentDatabase.css */
 
+/* Content Card Animation - Make visible */
+.content-card.visible {
+    transform: translateY(0);
+    opacity: 1;
+}
+
+/* Students Table - Basic Styling */
+.students-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.students-table th {
+    text-align: left;
+    vertical-align: middle;
+    font-weight: 600;
+    padding: 16px 12px;
+}
+
+.students-table td {
+    vertical-align: top;
+}
+
+.student-row {
+    transition: background-color 0.2s ease;
+}
+
+.student-row:hover {
+    background-color: #f9f9f9;
+}
+
+/* Responsive adjustments for smaller screens */
+@media (max-width: 1400px) {
+    .students-table {
+        font-size: 13px;
+    }
+}
+
 /* Light Mode / Base Classes */
 .students-table .primary-text {
     color: #181818;
@@ -69,8 +107,12 @@
     color: #94a3b8 !important;
 }
 
-.staff-dark .students-table .student-row {
+.staff-dark .student-row {
     border-bottom-color: rgba(255, 255, 255, 0.05) !important;
+}
+
+.staff-dark .student-row:hover {
+    background-color: rgba(255, 255, 255, 0.04) !important;
 }
 
 .staff-dark .students-table .primary-text {

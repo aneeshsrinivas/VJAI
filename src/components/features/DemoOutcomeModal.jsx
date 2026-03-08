@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { submitDemoOutcome } from '../../services/firestoreService';
+import { submitDemoOutcome, convertDemoToPendingStudent } from '../../services/firestoreService';
+import { createParentAuthAccount } from '../../services/adminAuthService';
 import { DEMO_STATUS } from '../../config/firestoreCollections';
 import { emailService } from '../../services/emailService';
 import { useTheme } from '../../context/ThemeContext';
+import { useAuth } from '../../context/AuthContext';
 import Button from '../ui/Button';
 import { AlertTriangle, CheckCircle, XCircle, Clock, Star } from 'lucide-react';
 import './DemoOutcomeModal.css';
@@ -14,6 +16,7 @@ import './DemoOutcomeModal.css';
  */
 const DemoOutcomeModal = ({ demo, onClose, onSuccess, mandatory = false }) => {
     const { isDark } = useTheme();
+    const { currentUser } = useAuth();
 
     // Guard against undefined demo
     if (!demo) {
@@ -25,7 +28,9 @@ const DemoOutcomeModal = ({ demo, onClose, onSuccess, mandatory = false }) => {
         recommendedLevel: '',
         recommendedStudentType: '',
         parentInterest: '',
-        adminNotes: ''
+        adminNotes: '',
+        loginEmail: demo ? demo.parentEmail : '',
+        temporaryPassword: ''
     });
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
@@ -67,6 +72,12 @@ const DemoOutcomeModal = ({ demo, onClose, onSuccess, mandatory = false }) => {
 
         if (!formData.parentInterest && formData.demoOutcome !== 'NO_SHOW') {
             return false;
+        }
+
+        if (formData.parentInterest === 'INTERESTED' || formData.demoOutcome === 'INTERESTED') {
+            if (!formData.loginEmail || !formData.temporaryPassword) {
+                return false;
+            }
         }
 
         return true;
@@ -123,19 +134,43 @@ const DemoOutcomeModal = ({ demo, onClose, onSuccess, mandatory = false }) => {
         });
 
         if (result.success) {
-            // Send Payment Link Email automatically if Interested
+            // Trigger pre-payment dashboard automation if Interested
             if (formData.parentInterest === 'INTERESTED' || formData.demoOutcome === 'INTERESTED') {
                 try {
-                    await emailService.sendPaymentLinkEmail({
+                    // 1. Create firebase auth account
+                    const authResult = await createParentAuthAccount(formData.loginEmail, formData.temporaryPassword);
+                    if (!authResult.success) {
+                        setError('Failed to create parent auth account: ' + authResult.error);
+                        setLoading(false);
+                        return; // Halt if auth fails
+                    }
+                    
+                    // 2. Convert demo to pending student
+                    const convertResult = await convertDemoToPendingStudent(demo.id, authResult.uid, {
+                        ...formData,
+                        loginEmail: formData.loginEmail,
+                        adminId: currentUser?.uid || 'SYSTEM'
+                    });
+                    
+                    if (!convertResult.success) {
+                        setError('Failed to convert demo to pending student: ' + convertResult.error);
+                        setLoading(false);
+                        return; // Halt if conversion fails
+                    }
+
+                    // 3. Send email with login credentials
+                    await emailService.sendPrePaymentDashboardEmail({
                         parentEmail: demo.parentEmail,
                         parentName: demo.parentName,
                         studentName: demo.studentName,
-                        demoId: demo.id,
-                        meetingLink: demo.meetingLink // Pass the Zoom meeting link if available
+                        loginEmail: formData.loginEmail,
+                        password: formData.temporaryPassword
                     });
-                } catch (emailError) {
-                    console.error('Failed to send payment email:', emailError);
-                    // Non-blocking error
+                } catch (flowError) {
+                    console.error('Failed in conversion flow:', flowError);
+                    setError('An error occurred during account creation.');
+                    setLoading(false);
+                    return;
                 }
             }
 
@@ -154,7 +189,7 @@ const DemoOutcomeModal = ({ demo, onClose, onSuccess, mandatory = false }) => {
     const completionPct = getCompletionPercentage();
 
     return (
-        <div className={`modal-overlay ${mandatory ? 'mandatory' : ''}`} onClick={(e) => e.target === e.currentTarget && handleClose()}>
+        <div className={`modal-overlay ${mandatory ? 'mandatory' : ''}`}>
             {showConfetti && (
                 <div className="confetti-container">
                     {[...Array(50)].map((_, i) => (
@@ -183,7 +218,11 @@ const DemoOutcomeModal = ({ demo, onClose, onSuccess, mandatory = false }) => {
                     </div>
                 )}
 
-                <div style={{ overflowY: 'auto', flex: 1, display: 'flex', flexDirection: 'column', minHeight: 0 }}>
+                <div 
+                    style={{ overflowY: 'auto', flex: 1, display: 'flex', flexDirection: 'column', minHeight: 0 }}
+                    data-lenis-prevent="true"
+                    onWheel={(e) => e.stopPropagation()}
+                >
                     <h2>
                         <Star size={20} color="#FC8A24" />
                         Demo Outcome - {demo.studentName || 'Unknown'}
@@ -301,11 +340,42 @@ const DemoOutcomeModal = ({ demo, onClose, onSuccess, mandatory = false }) => {
                                     required
                                 >
                                     <option value="">-- Select Interest --</option>
-                                    <option value="INTERESTED">Interested - Send Payment Link</option>
+                                    <option value="INTERESTED">Interested - Generate Dashboard Credentials</option>
                                     <option value="FOLLOW_UP">Follow-up Required</option>
                                     <option value="NOT_INTERESTED">Not Interested</option>
                                 </select>
                             </div>
+
+                            {(formData.parentInterest === 'INTERESTED' || formData.demoOutcome === 'INTERESTED') && (
+                                <div style={{ background: 'var(--bg-subtle)', padding: '16px', borderRadius: '8px', border: '1px solid var(--border-color)', marginBottom: '16px' }}>
+                                    <h4 style={{ margin: '0 0 12px 0', fontSize: '14px', color: 'var(--text-primary)' }}>Dashboard Credentials Setup</h4>
+                                    <div className="form-group required" style={{ marginBottom: '12px' }}>
+                                        <label>Login Email *</label>
+                                        <input
+                                            type="email"
+                                            name="loginEmail"
+                                            value={formData.loginEmail}
+                                            onChange={handleChange}
+                                            placeholder="e.g. parent@email.com"
+                                            required
+                                        />
+                                    </div>
+                                    <div className="form-group required" style={{ marginBottom: '0' }}>
+                                        <label>Temporary Password *</label>
+                                        <input
+                                            type="text"
+                                            name="temporaryPassword"
+                                            value={formData.temporaryPassword}
+                                            onChange={handleChange}
+                                            placeholder="e.g. Chess123!"
+                                            required
+                                        />
+                                        <p style={{ fontSize: '12px', color: 'var(--text-secondary)', marginTop: '4px', marginBottom: 0 }}>
+                                            These credentials will be emailed to the parent to complete payment.
+                                        </p>
+                                    </div>
+                                </div>
+                            )}
                         </>
                     )}
 

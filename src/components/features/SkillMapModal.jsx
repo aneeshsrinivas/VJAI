@@ -4,11 +4,12 @@ import { toast } from 'react-toastify';
 import ConfirmDialog from '../ui/ConfirmDialog';
 import { doc, getDoc, updateDoc, arrayUnion, arrayRemove } from 'firebase/firestore';
 import { db } from '../../lib/firebase';
+import { useTheme } from '../../context/ThemeContext';
 
 const SkillMapModal = ({ isOpen, onClose, student, onUpgrade }) => {
+    // Declare all hooks BEFORE any early returns
+    const { isDark } = useTheme();
     const [confirmDialog, setConfirmDialog] = useState(null);
-    if (!isOpen || !student) return null;
-
     const [skills, setSkills] = useState([]);
     const [curriculum, setCurriculum] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -35,6 +36,8 @@ const SkillMapModal = ({ isOpen, onClose, student, onUpgrade }) => {
     };
 
     useEffect(() => {
+        if (!student) return;
+
         const fetchSkillsAndProgress = async () => {
             setLoading(true);
             try {
@@ -81,7 +84,7 @@ const SkillMapModal = ({ isOpen, onClose, student, onUpgrade }) => {
         };
 
         fetchSkillsAndProgress();
-    }, [student.id, studentLevel]);
+    }, [student?.id, studentLevel]);
 
     const toggleSkill = async (skillId, currentStatus) => {
         const newStatus = !currentStatus;
@@ -206,18 +209,19 @@ const SkillMapModal = ({ isOpen, onClose, student, onUpgrade }) => {
         });
     };
 
-    return (
+    return !isOpen || !student ? null : (
         <div style={{
             position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.6)',
             display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1100,
             backdropFilter: 'blur(4px)'
         }} onClick={onClose}>
             <div style={{
-                background: 'white', borderRadius: '24px', padding: '0',
+                background: isDark ? '#1a1d27' : 'white', borderRadius: '24px', padding: '0',
                 width: '100%', maxWidth: '500px',
-                boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)',
+                boxShadow: isDark ? '0 25px 50px -12px rgba(0, 0, 0, 0.6)' : '0 25px 50px -12px rgba(0, 0, 0, 0.25)',
                 overflow: 'hidden',
-                animation: 'slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1)'
+                animation: 'slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1)',
+                color: isDark ? '#f0f0f0' : 'inherit'
             }} onClick={e => e.stopPropagation()}>
 
                 {/* Header */}
@@ -241,19 +245,37 @@ const SkillMapModal = ({ isOpen, onClose, student, onUpgrade }) => {
                                 {getLevelLabel(studentLevel)}
                             </span>
                         </div>
-                        <button onClick={onClose} style={{
-                            background: 'rgba(255,255,255,0.2)',
-                            border: 'none',
-                            borderRadius: '50%',
-                            width: '32px',
-                            height: '32px',
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            cursor: 'pointer',
-                            color: 'white'
-                        }}>
-                            <X size={18} />
+                        <button 
+                            onClick={(e) => {
+                                e.stopPropagation();
+                                onClose();
+                            }} 
+                            style={{
+                                background: 'rgba(0, 0, 0, 0.2)',
+                                border: '1px solid rgba(255, 255, 255, 0.2)',
+                                borderRadius: '12px',
+                                width: '40px',
+                                height: '40px',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                cursor: 'pointer',
+                                color: 'white',
+                                transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
+                                flexShrink: 0,
+                                zIndex: 10
+                            }}
+                            onMouseEnter={(e) => {
+                                e.currentTarget.style.background = 'rgba(0, 0, 0, 0.4)';
+                                e.currentTarget.style.transform = 'rotate(90deg)';
+                            }}
+                            onMouseLeave={(e) => {
+                                e.currentTarget.style.background = 'rgba(0, 0, 0, 0.2)';
+                                e.currentTarget.style.transform = 'rotate(0deg)';
+                            }}
+                            title="Close"
+                        >
+                            <X size={20} />
                         </button>
                     </div>
                 </div>
@@ -261,27 +283,27 @@ const SkillMapModal = ({ isOpen, onClose, student, onUpgrade }) => {
                 {/* Content */}
                 <div style={{ padding: '24px', maxHeight: '60vh', overflowY: 'auto' }}>
                     {loading ? (
-                        <div style={{ textAlign: 'center', padding: '40px', color: '#64748b' }}>Loading skills...</div>
+                        <div style={{ textAlign: 'center', padding: '40px', color: isDark ? '#94a3b8' : '#64748b' }}>Loading skills...</div>
                     ) : curriculum.length === 0 ? (
-                        <div style={{ textAlign: 'center', padding: '40px', color: '#64748b' }}>
+                        <div style={{ textAlign: 'center', padding: '40px', color: isDark ? '#94a3b8' : '#64748b' }}>
                             No skills defined for this level. Contact admin to set up curriculum.
                         </div>
                     ) : (
                         <>
                             <div style={{ display: 'flex', gap: '12px', marginBottom: '24px' }}>
-                                <div style={{ flex: 1, background: '#f8fafc', padding: '16px', borderRadius: '16px', textAlign: 'center' }}>
+                                <div style={{ flex: 1, background: isDark ? 'rgba(255,255,255,0.05)' : '#f8fafc', padding: '16px', borderRadius: '16px', textAlign: 'center' }}>
                                     <TrendingUp size={20} color="#3b82f6" style={{ marginBottom: '8px' }} />
-                                    <div style={{ fontSize: '24px', fontWeight: 'bold', color: '#1e293b' }}>
+                                    <div style={{ fontSize: '24px', fontWeight: 'bold', color: isDark ? '#f0f0f0' : '#1e293b' }}>
                                         {completedCount} / {totalSkills}
                                     </div>
-                                    <div style={{ fontSize: '13px', color: '#64748b' }}>Skills Mastered</div>
+                                    <div style={{ fontSize: '13px', color: isDark ? '#cbd5e1' : '#64748b' }}>Skills Mastered</div>
                                 </div>
-                                <div style={{ flex: 1, background: isFullyCompleted ? '#dcfce7' : '#f8fafc', padding: '16px', borderRadius: '16px', textAlign: 'center' }}>
+                                <div style={{ flex: 1, background: isFullyCompleted ? (isDark ? 'rgba(34,197,94,0.1)' : '#dcfce7') : (isDark ? 'rgba(255,255,255,0.05)' : '#f8fafc'), padding: '16px', borderRadius: '16px', textAlign: 'center' }}>
                                     <Award size={20} color={isFullyCompleted ? '#22c55e' : '#f59e0b'} style={{ marginBottom: '8px' }} />
-                                    <div style={{ fontSize: '24px', fontWeight: 'bold', color: isFullyCompleted ? '#15803d' : '#1e293b' }}>
+                                    <div style={{ fontSize: '24px', fontWeight: 'bold', color: isFullyCompleted ? (isDark ? '#4ade80' : '#15803d') : (isDark ? '#f0f0f0' : '#1e293b') }}>
                                         {completionPercent}%
                                     </div>
-                                    <div style={{ fontSize: '13px', color: '#64748b' }}>Completion</div>
+                                    <div style={{ fontSize: '13px', color: isDark ? '#cbd5e1' : '#64748b' }}>Completion</div>
                                 </div>
                             </div>
 
@@ -294,9 +316,9 @@ const SkillMapModal = ({ isOpen, onClose, student, onUpgrade }) => {
                                         width: '100%',
                                         padding: '12px 16px',
                                         marginBottom: '16px',
-                                        background: '#fef3c7',
-                                        color: '#92400e',
-                                        border: '1px solid #f59e0b',
+                                        background: isDark ? 'rgba(245,158,11,0.1)' : '#fef3c7',
+                                        color: isDark ? '#fbbf24' : '#92400e',
+                                        border: `1px solid ${isDark ? '#d97706' : '#f59e0b'}`,
                                         borderRadius: '12px',
                                         fontSize: '14px',
                                         fontWeight: '600',
@@ -375,9 +397,9 @@ const SkillMapModal = ({ isOpen, onClose, student, onUpgrade }) => {
                                         width: '100%',
                                         padding: '12px 16px',
                                         marginBottom: '16px',
-                                        background: '#fee2e2',
-                                        color: '#991b1b',
-                                        border: '1px solid #fca5a5',
+                                        background: isDark ? 'rgba(239,68,68,0.1)' : '#fee2e2',
+                                        color: isDark ? '#f87171' : '#991b1b',
+                                        border: `1px solid ${isDark ? '#dc2626' : '#fca5a5'}`,
                                         borderRadius: '12px',
                                         fontSize: '14px',
                                         fontWeight: '600',
@@ -393,7 +415,7 @@ const SkillMapModal = ({ isOpen, onClose, student, onUpgrade }) => {
                                 </button>
                             )}
 
-                            <h3 style={{ fontSize: '16px', fontWeight: '700', color: '#1e293b', marginBottom: '16px' }}>
+                            <h3 style={{ fontSize: '16px', fontWeight: '700', color: isDark ? '#f0f0f0' : '#1e293b', marginBottom: '16px' }}>
                                 Curriculum Checklist ({getLevelLabel(studentLevel)})
                             </h3>
 
@@ -406,16 +428,17 @@ const SkillMapModal = ({ isOpen, onClose, student, onUpgrade }) => {
                                             display: 'flex', alignItems: 'center', gap: '16px',
                                             padding: '12px', borderRadius: '12px',
                                             border: '1px solid',
-                                            borderColor: skill.completed ? '#dcfce7' : '#e2e8f0',
-                                            background: skill.completed ? '#f0fdf4' : 'white',
+                                            borderColor: skill.completed ? (isDark ? '#22c55e' : '#dcfce7') : (isDark ? 'rgba(255,255,255,0.1)' : '#e2e8f0'),
+                                            background: skill.completed ? (isDark ? 'rgba(34,197,94,0.1)' : '#f0fdf4') : (isDark ? 'rgba(255,255,255,0.03)' : 'white'),
                                             cursor: 'pointer',
-                                            transition: 'all 0.2s'
+                                            transition: 'all 0.2s',
+                                            color: isDark ? '#f0f0f0' : 'inherit'
                                         }}
                                     >
                                         <div style={{
                                             width: '24px', height: '24px', borderRadius: '6px',
-                                            border: skill.completed ? 'none' : '2px solid #cbd5e1',
-                                            background: skill.completed ? '#22c55e' : 'white',
+                                            border: skill.completed ? 'none' : `2px solid ${isDark ? 'rgba(255,255,255,0.2)' : '#cbd5e1'}`,
+                                            background: skill.completed ? '#22c55e' : (isDark ? 'rgba(255,255,255,0.05)' : 'white'),
                                             display: 'flex', alignItems: 'center', justifyContent: 'center',
                                             flexShrink: 0
                                         }}>
@@ -424,10 +447,10 @@ const SkillMapModal = ({ isOpen, onClose, student, onUpgrade }) => {
 
                                         <div style={{ flex: 1 }}>
                                             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                                                <span style={{ fontWeight: '600', color: skill.completed ? '#15803d' : '#334155' }}>
+                                                <span style={{ fontWeight: '600', color: skill.completed ? (isDark ? '#4ade80' : '#15803d') : (isDark ? '#f0f0f0' : '#334155') }}>
                                                     {skill.name}
                                                 </span>
-                                                <span style={{ fontSize: '11px', padding: '2px 8px', borderRadius: '10px', background: '#f1f5f9', color: '#64748b' }}>
+                                                <span style={{ fontSize: '11px', padding: '2px 8px', borderRadius: '10px', background: isDark ? 'rgba(255,255,255,0.1)' : '#f1f5f9', color: isDark ? '#cbd5e1' : '#64748b' }}>
                                                     {skill.category}
                                                 </span>
                                             </div>

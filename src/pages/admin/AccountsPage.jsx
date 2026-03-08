@@ -1,15 +1,21 @@
 import React, { useState, useEffect } from 'react';
-import { collection, getDocs } from 'firebase/firestore';
+import { collection, getDocs, doc, deleteDoc } from 'firebase/firestore';
 import { db } from '../../lib/firebase';
 import Card from '../../components/ui/Card';
 import Input from '../../components/ui/Input';
 import Button from '../../components/ui/Button';
+import ConfirmDialog from '../../components/ui/ConfirmDialog';
+import { toast, ToastContainer } from 'react-toastify';
+import { Trash2 } from 'lucide-react';
+import { useTheme } from '../../context/ThemeContext';
 
 const AccountsPage = () => {
+    const { isDark } = useTheme();
     const [accounts, setAccounts] = useState([]);
     const [loading, setLoading] = useState(true);
     const [filterRole, setFilterRole] = useState('');
     const [searchTerm, setSearchTerm] = useState('');
+    const [confirmDialog, setConfirmDialog] = useState(null);
 
     const fetchAccounts = async () => {
         setLoading(true);
@@ -44,7 +50,29 @@ const AccountsPage = () => {
         return matchesRole && matchesSearch;
     });
 
+    const handleDeleteAccount = (account) => {
+        setConfirmDialog({
+            title: 'Delete Account',
+            message: `Are you sure you want to delete the account for ${account.email}? This will remove their authentication record from the database.`,
+            confirmLabel: 'Delete',
+            onConfirm: async () => {
+                try {
+                    await deleteDoc(doc(db, 'users', account.id));
+                    // Optional: Delete from legacy accounts collection if it exists
+                    await deleteDoc(doc(db, 'accounts', account.id)).catch(() => {});
+                    toast.success('Account deleted successfully');
+                    fetchAccounts(); // Refresh list
+                } catch (error) {
+                    console.error('Error deleting account:', error);
+                    toast.error('Failed to delete account');
+                }
+                setConfirmDialog(null);
+            }
+        });
+    };
+
     return (
+
         <div className="dashboard-container">
             <div className="dashboard-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <div>
@@ -56,6 +84,7 @@ const AccountsPage = () => {
             <div className="dashboard-grid">
                 <div className="col-12">
                     <Card>
+                        <ToastContainer position="top-right" autoClose={3000} />
                         <div style={{ marginBottom: '24px', display: 'flex', gap: '16px' }}>
                             <Input
                                 placeholder="Search emails..."
@@ -64,7 +93,7 @@ const AccountsPage = () => {
                                 onChange={(e) => setSearchTerm(e.target.value)}
                             />
                             <select
-                                style={{ padding: '12px', borderRadius: '8px', border: '1px solid #BDBDBD' }}
+                                style={{ padding: '12px', borderRadius: '8px', border: `1px solid ${isDark ? 'rgba(255,255,255,0.1)' : '#BDBDBD'}`, background: isDark ? '#1a1d27' : 'white', color: isDark ? '#f0f0f0' : 'inherit' }}
                                 value={filterRole}
                                 onChange={(e) => setFilterRole(e.target.value)}
                             >
@@ -84,17 +113,18 @@ const AccountsPage = () => {
                         ) : (
                             <table style={{ width: '100%', borderCollapse: 'collapse' }}>
                                 <thead>
-                                    <tr style={{ borderBottom: '2px solid #eee', textAlign: 'left', color: '#999', fontSize: '12px', textTransform: 'uppercase' }}>
+                                    <tr style={{ borderBottom: `2px solid ${isDark ? 'rgba(255,255,255,0.1)' : '#eee'}`, textAlign: 'left', color: '#999', fontSize: '12px', textTransform: 'uppercase' }}>
                                         <th style={{ padding: '12px' }}>Account ID</th>
                                         <th style={{ padding: '12px' }}>Email (Login)</th>
                                         <th style={{ padding: '12px' }}>Role</th>
                                         <th style={{ padding: '12px' }}>Created At</th>
                                         <th style={{ padding: '12px' }}>Last Login</th>
+                                        <th style={{ padding: '12px' }}>Action</th>
                                     </tr>
                                 </thead>
                                 <tbody>
                                     {filteredAccounts.map(acc => (
-                                        <tr key={acc.id} style={{ borderBottom: '1px solid #f5f5f5' }}>
+                                        <tr key={acc.id} style={{ borderBottom: `1px solid ${isDark ? 'rgba(255,255,255,0.05)' : '#f5f5f5'}` }}>
                                             <td style={{ padding: '16px 12px', fontFamily: 'monospace', color: '#666' }}>
                                                 {acc.id.substring(0, 12)}...
                                             </td>
@@ -117,7 +147,15 @@ const AccountsPage = () => {
                                             <td style={{ padding: '16px 12px', color: '#666' }}>
                                                 {acc.lastLoginAt?.toDate?.().toLocaleString() || '-'}
                                             </td>
+                                            <td style={{ padding: '16px 12px' }}>
+                                                {acc.role?.toUpperCase() !== 'ADMIN' && (
+                                                    <Button size="sm" variant="ghost" onClick={() => handleDeleteAccount(acc)} style={{ color: '#DC2626' }}>
+                                                        <Trash2 size={16} />
+                                                    </Button>
+                                                )}
+                                            </td>
                                         </tr>
+
                                     ))}
                                 </tbody>
                             </table>
@@ -125,8 +163,21 @@ const AccountsPage = () => {
                     </Card>
                 </div>
             </div>
+
+            {/* Confirmation Dialog */}
+            {confirmDialog && (
+                <ConfirmDialog
+                    isOpen={!!confirmDialog}
+                    title={confirmDialog.title}
+                    message={confirmDialog.message}
+                    confirmLabel={confirmDialog.confirmLabel}
+                    onConfirm={confirmDialog.onConfirm}
+                    onCancel={() => setConfirmDialog(null)}
+                />
+            )}
         </div>
     );
 };
+
 
 export default AccountsPage;

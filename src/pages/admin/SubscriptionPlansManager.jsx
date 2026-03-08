@@ -7,81 +7,53 @@ import { useTheme } from '../../context/ThemeContext';
 import Input from '../../components/ui/Input';
 import ConfirmDialog from '../../components/ui/ConfirmDialog';
 import { toast, ToastContainer } from 'react-toastify';
-import { Plus, X, Edit2, Trash2, CreditCard, Package, CheckCircle, Shield, Star, RefreshCw } from 'lucide-react';
+import { Plus, X, Edit2, Trash2, CreditCard, Package, CheckCircle, Shield, Star, RefreshCw, User, Users } from 'lucide-react';
 
-// Default plans — 2 tiers × 3 durations = 6 plans
+// Default plans — 4 group categories matching pricing page
 const defaultPlans = [
     {
-        id: 'beginner-1m',
-        name: 'Group Beginner Training — 1 Month',
-        description: 'Group coaching for beginners and advanced beginners',
+        id: 'group-beginner',
+        name: 'Group Beginner',
+        description: 'Perfect for those starting their chess journey or building strong foundational skills.',
         price: 60,
         billingCycle: 'MONTHLY',
         level: 'beginner',
-        duration: '1',
         classType: 'GROUP',
-        features: ['Dedicated coach assignment', 'Group lesson plans', '4 sessions/month', 'Progress tracking'],
-        isActive: true, isFeatured: true, sortOrder: 0
+        features: ['1 Month: $60', '3 Months: $180', '4 Months: $240', 'Dedicated coach assignment', 'Group lesson plans', '4 sessions/month', 'Progress tracking'],
+        isActive: true, isFeatured: false, sortOrder: 0
     },
     {
-        id: 'beginner-3m',
-        name: 'Group Beginner Training — 3 Months',
-        description: 'Group coaching for beginners and advanced beginners (3 months)',
-        price: 180,
-        billingCycle: 'QUARTERLY',
-        level: 'beginner',
-        duration: '3',
+        id: 'group-advanced-beginner',
+        name: 'Group Advanced Beginner',
+        description: 'For students who know the basics and are ready to develop stronger foundations and tactics.',
+        price: 60,
+        billingCycle: 'MONTHLY',
+        level: 'advanced-beginner',
         classType: 'GROUP',
-        features: ['Dedicated coach assignment', 'Group lesson plans', '12 sessions total', 'Progress tracking'],
+        features: ['1 Month: $60', '3 Months: $180', '4 Months: $240', 'Dedicated coach assignment', 'Group lesson plans', '4 sessions/month', 'Progress tracking'],
         isActive: true, isFeatured: false, sortOrder: 1
     },
     {
-        id: 'beginner-4m',
-        name: 'Group Beginner Training — 4 Months',
-        description: 'Group coaching for beginners and advanced beginners (4 months)',
-        price: 240,
-        billingCycle: 'QUARTERLY',
-        level: 'beginner',
-        duration: '4',
-        classType: 'GROUP',
-        features: ['Dedicated coach assignment', 'Group lesson plans', '16 sessions total', 'Progress tracking'],
-        isActive: true, isFeatured: false, sortOrder: 2
-    },
-    {
-        id: 'intermediate-1m',
-        name: 'Group Intermediate Training — 1 Month',
-        description: 'Group coaching for Intermediate-I and Intermediate-II players',
+        id: 'group-intermediate-I',
+        name: 'Group Intermediate-I',
+        description: 'For players advancing their tactical understanding and competitive readiness.',
         price: 70,
         billingCycle: 'MONTHLY',
-        level: 'intermediate',
-        duration: '1',
+        level: 'intermediate-I',
         classType: 'GROUP',
-        features: ['Expert coach assignment', 'Advanced tactics', '4 sessions/month', 'Tournament prep'],
+        features: ['1 Month: $70', '3 Months: $210', '4 Months: $280', 'Expert coach assignment', 'Advanced tactics & strategy', '4 sessions/month', 'Tournament preparation'],
+        isActive: true, isFeatured: true, sortOrder: 2
+    },
+    {
+        id: 'group-intermediate-II',
+        name: 'Group Intermediate-II',
+        description: 'For experienced players refining advanced techniques and preparing for competitive play.',
+        price: 70,
+        billingCycle: 'MONTHLY',
+        level: 'intermediate-II',
+        classType: 'GROUP',
+        features: ['1 Month: $70', '3 Months: $210', '4 Months: $280', 'Expert coach assignment', 'Advanced tactics & strategy', '4 sessions/month', 'Tournament preparation'],
         isActive: true, isFeatured: true, sortOrder: 3
-    },
-    {
-        id: 'intermediate-3m',
-        name: 'Group Intermediate Training — 3 Months',
-        description: 'Group coaching for Intermediate-I and Intermediate-II players (3 months)',
-        price: 210,
-        billingCycle: 'QUARTERLY',
-        level: 'intermediate',
-        duration: '3',
-        classType: 'GROUP',
-        features: ['Expert coach assignment', 'Advanced tactics', '12 sessions total', 'Tournament prep'],
-        isActive: true, isFeatured: false, sortOrder: 4
-    },
-    {
-        id: 'intermediate-4m',
-        name: 'Group Intermediate Training — 4 Months',
-        description: 'Group coaching for Intermediate-I and Intermediate-II players (4 months)',
-        price: 280,
-        billingCycle: 'QUARTERLY',
-        level: 'intermediate',
-        duration: '4',
-        classType: 'GROUP',
-        features: ['Expert coach assignment', 'Advanced tactics', '16 sessions total', 'Tournament prep'],
-        isActive: true, isFeatured: false, sortOrder: 5
     }
 ];
 
@@ -255,7 +227,7 @@ const SubscriptionPlansManager = () => {
     const handleSeedDefaultPlans = () => {
         setConfirmDialog({
             title: 'Seed Default Plans',
-            message: 'This will add the 2 default 1-on-1 plans from the pricing page. Existing plans with the same ID will be skipped. Continue?',
+            message: 'This will add the 4 default group plans (Beginner, Advanced Beginner, Intermediate-I, Intermediate-II). Existing plans with the same ID will be skipped. Continue?',
             confirmLabel: 'Seed Plans',
             variant: 'warning',
             onConfirm: async () => {
@@ -307,7 +279,7 @@ const SubscriptionPlansManager = () => {
     };
 
     const getClassTypeIcon = (type) => {
-        return type === 'one-on-one' ? '👤' : '👥';
+        return type === 'one-on-one' ? <User size={20} /> : <Users size={20} />;
     };
 
     return (
@@ -368,7 +340,7 @@ const SubscriptionPlansManager = () => {
                     </div>
                 </Card>
             ) : (
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: '24px' }}>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(380px, 1fr))', gap: '24px' }}>
                     {plans.map(plan => (
                         <Card key={plan.id} style={{
                             padding: '0',
@@ -377,25 +349,33 @@ const SubscriptionPlansManager = () => {
                             opacity: plan.isActive ? 1 : 0.6,
                             position: 'relative'
                         }}>
-                            {/* Featured Badge */}
-                            {plan.isFeatured && (
-                                <div style={{
+                            {/* Delete Plan Button */}
+                            <button
+                                onClick={(e) => { e.stopPropagation(); handleDelete(plan); }}
+                                style={{
                                     position: 'absolute',
                                     top: '12px',
                                     right: '12px',
-                                    background: 'linear-gradient(135deg, #FFD700 0%, #FFA500 100%)',
-                                    color: '#000',
-                                    padding: '4px 10px',
-                                    borderRadius: '20px',
-                                    fontSize: '11px',
-                                    fontWeight: '700',
+                                    background: 'rgba(220, 38, 38, 0.9)',
+                                    color: 'white',
+                                    border: 'none',
+                                    borderRadius: '8px',
+                                    width: '32px',
+                                    height: '32px',
                                     display: 'flex',
                                     alignItems: 'center',
-                                    gap: '4px'
-                                }}>
-                                    <Star size={12} fill="#000" /> FEATURED
-                                </div>
-                            )}
+                                    justifyContent: 'center',
+                                    cursor: 'pointer',
+                                    zIndex: 10,
+                                    boxShadow: '0 2px 4px rgba(0,0,0,0.2)',
+                                    transition: 'all 0.2s ease'
+                                }}
+                                title="Delete Plan"
+                                onMouseEnter={(e) => e.currentTarget.style.transform = 'scale(1.1)'}
+                                onMouseLeave={(e) => e.currentTarget.style.transform = 'scale(1)'}
+                            >
+                                <span style={{ fontSize: '20px', fontWeight: 'bold', lineHeight: 1 }}>&times;</span>
+                            </button>
 
                             {/* Plan Header */}
                             <div style={{
@@ -481,14 +461,6 @@ const SubscriptionPlansManager = () => {
                                 >
                                     {plan.isActive ? 'Deactivate' : 'Activate'}
                                 </Button>
-                                <Button
-                                    size="sm"
-                                    variant="secondary"
-                                    onClick={() => handleDelete(plan)}
-                                    style={{ color: '#DC2626' }}
-                                >
-                                    <Trash2 size={14} />
-                                </Button>
                             </div>
                         </Card>
                     ))}
@@ -536,7 +508,7 @@ const SubscriptionPlansManager = () => {
                         </div>
 
                         {/* Modal Body - Scrollable */}
-                        <form onSubmit={handleSubmit} style={{ flex: 1, overflowY: 'auto', padding: '24px' }}>
+                        <form onSubmit={handleSubmit} style={{ flex: 1, overflowY: 'auto', padding: '24px' }} data-lenis-prevent="true" onWheel={(e) => e.stopPropagation()}>
                             {/* Plan Name */}
                             <div style={{ marginBottom: '20px' }}>
                                 <label style={{ display: 'block', marginBottom: '6px', fontWeight: '600', fontSize: '14px' }}>

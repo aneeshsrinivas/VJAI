@@ -18,10 +18,10 @@ const ConvertStudentModal = ({ demo, onClose, onSuccess }) => {
     const studentEmail = `${studentEmailPrefix}@student.com`;
 
     const PLAN_PRICES = {
-        'beginner-1m': '60', 'beginner-3m': '160', 'beginner-4m': '200',
-        'advanced-beginner-1m': '60', 'advanced-beginner-3m': '160', 'advanced-beginner-4m': '200',
-        'intermediate-I-1m': '70', 'intermediate-I-3m': '187', 'intermediate-I-4m': '233',
-        'intermediate-II-1m': '70', 'intermediate-II-3m': '187', 'intermediate-II-4m': '233',
+        'beginner-1m': '60',  'beginner-3m': '180',  'beginner-4m': '240',
+        'adv-beginner-1m': '60', 'adv-beginner-3m': '180', 'adv-beginner-4m': '240',
+        'intermediate-I-1m': '70', 'intermediate-I-3m': '210', 'intermediate-I-4m': '280',
+        'intermediate-II-1m': '70', 'intermediate-II-3m': '210', 'intermediate-II-4m': '280',
     };
 
     const [formData, setFormData] = useState({
@@ -57,8 +57,15 @@ const ConvertStudentModal = ({ demo, onClose, onSuccess }) => {
 
             const realUid = authResult.uid;
 
-            // 2. Create Account Doc in Firestore with real UID
-            await createParentAccount(realUid, formData.email, currentUser?.uid, formData.password);
+            // 2. Create Account Doc in Firestore with real UID (sets status: PAYMENT_PENDING)
+            await createParentAccount(realUid, formData.email, currentUser?.uid, {
+                studentName: demo.studentName || '',
+                studentAge: demo.studentAge || '',
+                parentName: demo.parentName || '',
+                learningLevel: demo.recommendedLevel || demo.chessExperience || '',
+                meetingLink: demo.meetingLink || '',
+                demoId: demo.id
+            });
 
             // 3. Convert Demo & Create Student/Subscription
             const paymentData = {
@@ -216,25 +223,25 @@ Indian Chess Academy Team
                             }}
                             style={{ padding: '10px', width: '100%', borderRadius: '6px', border: '1px solid #ddd' }}
                         >
-                            <optgroup label="Beginner ($60/mo)">
+                            <optgroup label="Group — Beginner ($60/mo)">
                                 <option value="beginner-1m">Beginner — 1 Month ($60)</option>
-                                <option value="beginner-3m">Beginner — 3 Months ($160)</option>
-                                <option value="beginner-4m">Beginner — 4 Months ($200)</option>
+                                <option value="beginner-3m">Beginner — 3 Months ($180)</option>
+                                <option value="beginner-4m">Beginner — 4 Months ($240)</option>
                             </optgroup>
-                            <optgroup label="Advanced Beginner ($60/mo)">
-                                <option value="advanced-beginner-1m">Advanced Beginner — 1 Month ($60)</option>
-                                <option value="advanced-beginner-3m">Advanced Beginner — 3 Months ($160)</option>
-                                <option value="advanced-beginner-4m">Advanced Beginner — 4 Months ($200)</option>
+                            <optgroup label="Group — Advanced Beginner ($60/mo)">
+                                <option value="adv-beginner-1m">Advanced Beginner — 1 Month ($60)</option>
+                                <option value="adv-beginner-3m">Advanced Beginner — 3 Months ($180)</option>
+                                <option value="adv-beginner-4m">Advanced Beginner — 4 Months ($240)</option>
                             </optgroup>
-                            <optgroup label="Intermediate-I ($70/mo)">
+                            <optgroup label="Group — Intermediate-I ($70/mo)">
                                 <option value="intermediate-I-1m">Intermediate-I — 1 Month ($70)</option>
-                                <option value="intermediate-I-3m">Intermediate-I — 3 Months ($187)</option>
-                                <option value="intermediate-I-4m">Intermediate-I — 4 Months ($233)</option>
+                                <option value="intermediate-I-3m">Intermediate-I — 3 Months ($210)</option>
+                                <option value="intermediate-I-4m">Intermediate-I — 4 Months ($280)</option>
                             </optgroup>
-                            <optgroup label="Intermediate-II ($70/mo)">
+                            <optgroup label="Group — Intermediate-II ($70/mo)">
                                 <option value="intermediate-II-1m">Intermediate-II — 1 Month ($70)</option>
-                                <option value="intermediate-II-3m">Intermediate-II — 3 Months ($187)</option>
-                                <option value="intermediate-II-4m">Intermediate-II — 4 Months ($233)</option>
+                                <option value="intermediate-II-3m">Intermediate-II — 3 Months ($210)</option>
+                                <option value="intermediate-II-4m">Intermediate-II — 4 Months ($280)</option>
                             </optgroup>
                         </select>
                     </div>

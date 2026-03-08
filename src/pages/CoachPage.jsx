@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { collection, query, where, onSnapshot } from 'firebase/firestore';
+import { collection, query, where, onSnapshot, getDocs } from 'firebase/firestore';
 import { db } from '../lib/firebase';
 import { useAuth } from '../context/AuthContext';
+import { useTheme } from '../context/ThemeContext';
 import { COLLECTIONS, DEMO_STATUS } from '../config/firestoreCollections';
 import Button from '../components/ui/Button';
 import LichessPendingRequests from '../components/features/LichessPendingRequests';
@@ -16,7 +17,8 @@ import './CoachPage.css';
 const CoachPage = () => {
     const navigate = useNavigate();
     const { currentUser, userData } = useAuth();
-    const [loading, setLoading] = useState(true);
+    const { isDark } = useTheme();
+    const [loading, setLoading] = useState(false);
     const [cardsVisible, setCardsVisible] = useState(false);
 
     // Real-time State
@@ -25,13 +27,35 @@ const CoachPage = () => {
     const [students, setStudents] = useState([]);
     const [todayClasses, setTodayClasses] = useState([]);
     const [selectedDemo, setSelectedDemo] = useState(null); // Modal state
+    const [coachDocId, setCoachDocId] = useState(null);
 
+    // Resolve coachDocId
     useEffect(() => {
         if (!currentUser?.uid) return;
+        const resolve = async () => {
+            try {
+                const coachQuery = query(
+                    collection(db, 'coaches'),
+                    where('accountId', '==', currentUser.uid)
+                );
+                const snap = await getDocs(coachQuery);
+                setCoachDocId(!snap.empty ? snap.docs[0].id : currentUser.uid);
+            } catch (err) {
+                console.error('Could not resolve coachDocId, falling back to uid:', err);
+                setCoachDocId(currentUser.uid);
+            }
+        };
+        resolve();
+    }, [currentUser]);
+
+    useEffect(() => {
+        if (!coachDocId) {
+            setLoading(false);
+            return;
+        }
 
         setLoading(true);
 
-        // Try-catch to handle Firebase errors gracefully
         try {
             // Check if db is available
             if (!db) {
@@ -44,9 +68,10 @@ const CoachPage = () => {
             }
 
             // Listen to Demos
+            const coachIds = [...new Set([coachDocId, currentUser.uid])];
             const qDemos = query(
                 collection(db, COLLECTIONS.DEMOS),
-                where('assignedCoachId', '==', currentUser.uid),
+                where('assignedCoachId', 'in', coachIds),
                 where('status', 'in', [DEMO_STATUS.SCHEDULED, DEMO_STATUS.PENDING])
             );
 
@@ -80,8 +105,8 @@ const CoachPage = () => {
             // Listen to Students
             const qStudents = query(
                 collection(db, 'users'),
-                where('assignedCoachId', '==', currentUser.uid),
-                where('role', '==', 'customer')
+                where('assignedCoachId', 'in', coachIds),
+                where('role', 'in', ['student', 'customer'])
             );
 
             const unsubStudents = onSnapshot(qStudents, (snapshot) => {
@@ -103,11 +128,11 @@ const CoachPage = () => {
             setTimeout(() => setCardsVisible(true), 100);
             return () => { };
         }
-    }, [currentUser]);
+    }, [coachDocId]);
 
     // Fetch Schedule (Classes)
     useEffect(() => {
-        if (!currentUser?.uid) return;
+        if (!coachDocId) return;
 
         try {
             if (!db) {
@@ -115,9 +140,10 @@ const CoachPage = () => {
                 return () => { };
             }
 
+            const coachIds = [...new Set([coachDocId, currentUser.uid])];
             const qSchedule = query(
                 collection(db, COLLECTIONS.SCHEDULE),
-                where('coachId', '==', currentUser.uid)
+                where('coachId', 'in', coachIds)
             );
 
             const unsubSchedule = onSnapshot(qSchedule, (snapshot) => {
@@ -416,6 +442,20 @@ const CoachPage = () => {
                                 description: 'View student progress',
                                 path: '/coach/students',
                                 gradient: 'linear-gradient(135deg, #fa709a 0%, #fee140 100%)'
+                            },
+                            {
+                                icon: Target,
+                                label: 'Attendance',
+                                description: 'Track batch attendance',
+                                path: '/coach/attendance',
+                                gradient: 'linear-gradient(135deg, #43e97b 0%, #38f9d7 100%)'
+                            },
+                            {
+                                icon: Link2,
+                                label: 'Lichess',
+                                description: 'Manage Puzzles',
+                                path: '/coach/lichess',
+                                gradient: 'linear-gradient(135deg, #f6d365 0%, #fda085 100%)'
                             }
                         ].map((action, index) => {
                             const IconComponent = action.icon;
@@ -481,7 +521,7 @@ const CoachPage = () => {
                                         <h4>{demo.studentName}</h4>
                                         <p>{demo.studentAge} yrs • {demo.chessExperience || 'Beginner'}</p>
                                     </div>
-                                    <ChevronRight size={16} color="#cbd5e1" />
+                                    <ChevronRight size={16} color={isDark ? "rgba(255,255,255,0.3)" : "#cbd5e1"} />
                                 </div>
                             ))}
                             {demos.length === 0 && (
@@ -509,16 +549,16 @@ const CoachPage = () => {
                     backdropFilter: 'blur(4px)'
                 }} onClick={() => setSelectedDemo(null)}>
                     <div style={{
-                        background: 'white', padding: '24px', borderRadius: '20px',
+                        background: isDark ? '#1e2330' : 'white', padding: '24px', borderRadius: '20px',
                         width: '100%', maxWidth: '400px', boxShadow: '0 20px 40px rgba(0,0,0,0.2)',
-                        animation: 'slideUp 0.3s ease-out'
+                        animation: 'slideUp 0.3s ease-out', border: isDark ? '1px solid rgba(255,255,255,0.1)' : 'none'
                     }} onClick={e => e.stopPropagation()}>
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
                             <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                                 <Zap size={20} color="#F59E0B" fill="#F59E0B" />
-                                <h3 style={{ margin: 0, fontSize: '18px', fontWeight: 'bold', color: '#1e293b' }}>Demo Details</h3>
+                                <h3 style={{ margin: 0, fontSize: '18px', fontWeight: 'bold', color: isDark ? '#f0f0f0' : '#1e293b' }}>Demo Details</h3>
                             </div>
-                            <button onClick={() => setSelectedDemo(null)} style={{ border: 'none', background: 'none', cursor: 'pointer', color: '#64748b' }}>
+                            <button onClick={() => setSelectedDemo(null)} style={{ border: 'none', background: 'none', cursor: 'pointer', color: isDark ? 'rgba(255,255,255,0.5)' : '#64748b' }}>
                                 <ChevronRight size={24} style={{ transform: 'rotate(90deg)' }} />
                             </button>
                         </div>
@@ -527,55 +567,66 @@ const CoachPage = () => {
                             <div style={{ display: 'flex', alignItems: 'center', gap: '16px', marginBottom: '20px' }}>
                                 <div style={{
                                     width: '48px', height: '48px',
-                                    background: 'linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%)',
+                                    background: isDark ? 'rgba(59, 130, 246, 0.15)' : 'linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%)',
                                     borderRadius: '14px', display: 'flex', alignItems: 'center', justifyContent: 'center',
-                                    color: '#3b82f6', fontWeight: 'bold', fontSize: '20px',
-                                    border: '1px solid #bfdbfe'
+                                    color: isDark ? '#60a5fa' : '#3b82f6', fontWeight: 'bold', fontSize: '20px',
+                                    border: isDark ? '1px solid rgba(59, 130, 246, 0.3)' : '1px solid #bfdbfe'
                                 }}>
                                     {selectedDemo.studentName?.charAt(0)}
                                 </div>
                                 <div>
-                                    <h4 style={{ margin: 0, fontSize: '18px', color: '#1e293b' }}>{selectedDemo.studentName}</h4>
-                                    <p style={{ margin: 0, color: '#64748b', fontSize: '14px', marginTop: '2px' }}>
+                                    <h4 style={{ margin: 0, fontSize: '18px', color: isDark ? '#f0f0f0' : '#1e293b' }}>{selectedDemo.studentName}</h4>
+                                    <p style={{ margin: 0, color: isDark ? 'rgba(255,255,255,0.65)' : '#64748b', fontSize: '14px', marginTop: '2px' }}>
                                         {selectedDemo.studentAge} years • {selectedDemo.chessExperience}
                                     </p>
                                 </div>
                             </div>
 
-                            <div style={{ background: '#f8fafc', padding: '20px', borderRadius: '16px', display: 'flex', flexDirection: 'column', gap: '16px', border: '1px solid #f1f5f9' }}>
+                            <div style={{ background: isDark ? '#252b3b' : '#f8fafc', padding: '20px', borderRadius: '16px', display: 'flex', flexDirection: 'column', gap: '16px', border: isDark ? '1px solid rgba(255,255,255,0.08)' : '1px solid #f1f5f9' }}>
                                 <div style={{ display: 'flex', gap: '12px' }}>
-                                    <Calendar size={20} color="#64748b" />
+                                    <Calendar size={20} color={isDark ? "rgba(255,255,255,0.5)" : "#64748b"} />
                                     <div>
-                                        <span style={{ display: 'block', fontSize: '12px', color: '#64748b', marginBottom: '2px' }}>Date & Time</span>
-                                        <span style={{ fontWeight: '600', color: '#1e293b', fontSize: '15px' }}>
+                                        <span style={{ display: 'block', fontSize: '12px', color: isDark ? 'rgba(255,255,255,0.65)' : '#64748b', marginBottom: '2px' }}>Date & Time</span>
+                                        <span style={{ fontWeight: '600', color: isDark ? '#f0f0f0' : '#1e293b', fontSize: '15px' }}>
                                             {formatDate(selectedDemo.scheduledAt)} at {formatTime(selectedDemo.scheduledAt)}
                                         </span>
                                     </div>
                                 </div>
                                 <div style={{ display: 'flex', gap: '12px' }}>
-                                    <Target size={20} color="#64748b" />
+                                    <Target size={20} color={isDark ? "rgba(255,255,255,0.5)" : "#64748b"} />
                                     <div>
-                                        <span style={{ display: 'block', fontSize: '12px', color: '#64748b', marginBottom: '2px' }}>Focus Goal</span>
-                                        <span style={{ fontWeight: '600', color: '#1e293b', fontSize: '15px' }}>{selectedDemo.goal || 'General Improvement'}</span>
+                                        <span style={{ display: 'block', fontSize: '12px', color: isDark ? 'rgba(255,255,255,0.65)' : '#64748b', marginBottom: '2px' }}>Focus Goal</span>
+                                        <span style={{ fontWeight: '600', color: isDark ? '#f0f0f0' : '#1e293b', fontSize: '15px' }}>{selectedDemo.goal || 'General Improvement'}</span>
                                     </div>
                                 </div>
 
-                                <div style={{ paddingTop: '16px', borderTop: '1px dashed #e2e8f0', marginTop: '4px' }}>
-                                    {selectedDemo.meetingLink ? (
-                                        <a
-                                            href={selectedDemo.meetingLink}
-                                            target="_blank"
-                                            rel="noreferrer"
-                                            className="btn-join"
-                                            style={{
-                                                justifyContent: 'center', width: '100%', textDecoration: 'none',
-                                                padding: '12px', fontSize: '15px'
-                                            }}
-                                        >
-                                            <Video size={18} /> Join Class Room
-                                        </a>
-                                    ) : (
-                                        <div style={{ textAlign: 'center', color: '#ef4444', fontSize: '14px', background: '#fef2f2', padding: '10px', borderRadius: '8px' }}>
+                                <div style={{ paddingTop: '16px', borderTop: isDark ? '1px dashed rgba(255,255,255,0.1)' : '1px dashed #e2e8f0', marginTop: '4px' }}>
+                                    {selectedDemo.meetingLink ? (() => {
+                                        const now = new Date().getTime();
+                                        const demoTime = selectedDemo.scheduledAt?.toDate
+                                            ? selectedDemo.scheduledAt.toDate().getTime()
+                                            : new Date(selectedDemo.scheduledAt || 0).getTime();
+                                        const isJoinable = demoTime - now <= 10 * 60 * 1000;
+                                        return (
+                                            <button
+                                                disabled={!isJoinable}
+                                                style={{
+                                                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                                    gap: '8px', width: '100%', padding: '12px', fontSize: '15px',
+                                                    fontWeight: '600', borderRadius: '10px', border: 'none',
+                                                    backgroundColor: isJoinable ? '#FC8A24' : '#94a3b8',
+                                                    color: 'white',
+                                                    cursor: isJoinable ? 'pointer' : 'not-allowed',
+                                                    opacity: isJoinable ? 1 : 0.8,
+                                                    transition: 'all 0.3s ease'
+                                                }}
+                                                onClick={() => isJoinable && window.open(selectedDemo.meetingLink, '_blank')}
+                                            >
+                                                <Video size={18} /> {isJoinable ? 'Join Class Room' : 'Starts Soon'}
+                                            </button>
+                                        );
+                                    })() : (
+                                        <div style={{ textAlign: 'center', color: isDark ? '#f87171' : '#ef4444', fontSize: '14px', background: isDark ? 'rgba(239, 68, 68, 0.1)' : '#fef2f2', padding: '10px', borderRadius: '8px' }}>
                                             Checking for meeting link...
                                         </div>
                                     )}
@@ -584,13 +635,13 @@ const CoachPage = () => {
                         </div>
 
                         {selectedDemo.parentName && (
-                            <div style={{ borderTop: '1px solid #f1f5f9', paddingTop: '16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                            <div style={{ borderTop: isDark ? '1px solid rgba(255,255,255,0.08)' : '1px solid #f1f5f9', paddingTop: '16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                                 <div>
-                                    <p style={{ margin: '0 0 2px', fontSize: '12px', color: '#94a3b8' }}>Parent Contact</p>
-                                    <p style={{ margin: 0, fontWeight: '600', fontSize: '14px', color: '#334155' }}>{selectedDemo.parentName}</p>
+                                    <p style={{ margin: '0 0 2px', fontSize: '12px', color: isDark ? 'rgba(255,255,255,0.65)' : '#94a3b8' }}>Parent Contact</p>
+                                    <p style={{ margin: 0, fontWeight: '600', fontSize: '14px', color: isDark ? '#f0f0f0' : '#334155' }}>{selectedDemo.parentName}</p>
                                 </div>
                                 <div style={{ textAlign: 'right' }}>
-                                    <p style={{ margin: 0, fontSize: '13px', color: '#3b82f6', fontWeight: '500' }}>{selectedDemo.parentEmail}</p>
+                                    <p style={{ margin: 0, fontSize: '13px', color: isDark ? '#60a5fa' : '#3b82f6', fontWeight: '500' }}>{selectedDemo.parentEmail}</p>
                                 </div>
                             </div>
                         )}

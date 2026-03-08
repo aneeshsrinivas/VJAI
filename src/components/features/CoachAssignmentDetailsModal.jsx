@@ -6,8 +6,10 @@ import { db } from '../../lib/firebase';
 import { collection, query, onSnapshot, orderBy, doc, deleteDoc } from 'firebase/firestore';
 import { X, ChevronLeft, PlayCircle, Trash2 } from 'lucide-react';
 import ChessReplay from '../chess/ChessReplay';
+import { useTheme } from '../../context/ThemeContext';
 
 const CoachAssignmentDetailsModal = ({ isOpen, onClose, assignment }) => {
+    const { isDark } = useTheme();
     const [confirmDialog, setConfirmDialog] = useState(null);
     if (!isOpen || !assignment) return null;
 
@@ -63,24 +65,25 @@ const CoachAssignmentDetailsModal = ({ isOpen, onClose, assignment }) => {
             zIndex: 1000, fontFamily: "'Figtree', sans-serif"
         }}>
             <div style={{
-                background: 'white', borderRadius: '16px', padding: '24px',
+                background: isDark ? '#1a1d27' : 'white', borderRadius: '16px', padding: '24px',
                 width: '100%', maxWidth: '800px',
                 height: '80vh',
                 display: 'flex', flexDirection: 'column',
-                boxShadow: '0 10px 40px rgba(0,0,0,0.2)'
+                boxShadow: isDark ? '0 10px 40px rgba(0,0,0,0.5)' : '0 10px 40px rgba(0,0,0,0.2)',
+                color: isDark ? '#f0f0f0' : 'inherit'
             }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '20px', borderBottom: '1px solid #e2e8f0', paddingBottom: '16px' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '20px', borderBottom: `1px solid ${isDark ? 'rgba(255,255,255,0.1)' : '#e2e8f0'}`, paddingBottom: '16px' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
                         {selectedSubmission && (
                             <button onClick={() => setSelectedSubmission(null)} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}>
-                                <ChevronLeft size={24} color="#334155" />
+                                <ChevronLeft size={24} color={isDark ? '#cbd5e1' : '#334155'} />
                             </button>
                         )}
                         <div>
-                            <h2 style={{ margin: 0, fontSize: '20px', color: '#1e293b' }}>
+                            <h2 style={{ margin: 0, fontSize: '20px', color: isDark ? '#f0f0f0' : '#1e293b' }}>
                                 {selectedSubmission ? `Submission: ${selectedSubmission.studentName}` : assignment.title}
                             </h2>
-                            <p style={{ margin: '4px 0 0', color: '#64748b', fontSize: '14px' }}>
+                            <p style={{ margin: '4px 0 0', color: isDark ? '#94a3b8' : '#64748b', fontSize: '14px' }}>
                                 {selectedSubmission ? `Submitted: ${selectedSubmission.submittedAt?.toDate().toLocaleString()}` : 'Student Submissions'}
                             </p>
                         </div>
@@ -91,7 +94,7 @@ const CoachAssignmentDetailsModal = ({ isOpen, onClose, assignment }) => {
                                 onClick={handleDelete}
                                 disabled={deleting}
                                 style={{
-                                    background: '#fee2e2',
+                                    background: isDark ? 'rgba(239,68,68,0.2)' : '#fee2e2',
                                     border: 'none',
                                     cursor: 'pointer',
                                     padding: '8px',
@@ -122,27 +125,27 @@ const CoachAssignmentDetailsModal = ({ isOpen, onClose, assignment }) => {
                         </div>
                     ) : (
                         loading ? (
-                            <div style={{ textAlign: 'center', padding: '40px', color: '#64748b' }}>Loading submissions...</div>
+                            <div style={{ textAlign: 'center', padding: '40px', color: isDark ? '#94a3b8' : '#64748b' }}>Loading submissions...</div>
                         ) : submissions.length === 0 ? (
-                            <div style={{ textAlign: 'center', padding: '40px', color: '#94a3b8' }}>
+                            <div style={{ textAlign: 'center', padding: '40px', color: isDark ? '#64748b' : '#94a3b8' }}>
                                 <div style={{ fontSize: '40px', marginBottom: '16px' }}>📭</div>
                                 <p>No students have submitted solutions yet.</p>
                             </div>
                         ) : (
                             <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-                                <thead style={{ background: '#f8fafc', borderBottom: '1px solid #e2e8f0' }}>
+                                <thead style={{ background: isDark ? 'rgba(255,255,255,0.05)' : '#f8fafc', borderBottom: `1px solid ${isDark ? 'rgba(255,255,255,0.1)' : '#e2e8f0'}` }}>
                                     <tr>
-                                        <th style={{ padding: '12px 16px', textAlign: 'left', fontSize: '13px', color: '#64748b' }}>Student</th>
-                                        <th style={{ padding: '12px 16px', textAlign: 'left', fontSize: '13px', color: '#64748b' }}>Date</th>
-                                        <th style={{ padding: '12px 16px', textAlign: 'left', fontSize: '13px', color: '#64748b' }}>Status</th>
-                                        <th style={{ padding: '12px 16px', textAlign: 'right', fontSize: '13px', color: '#64748b' }}>Action</th>
+                                        <th style={{ padding: '12px 16px', textAlign: 'left', fontSize: '13px', color: isDark ? '#94a3b8' : '#64748b' }}>Student</th>
+                                        <th style={{ padding: '12px 16px', textAlign: 'left', fontSize: '13px', color: isDark ? '#94a3b8' : '#64748b' }}>Date</th>
+                                        <th style={{ padding: '12px 16px', textAlign: 'left', fontSize: '13px', color: isDark ? '#94a3b8' : '#64748b' }}>Status</th>
+                                        <th style={{ padding: '12px 16px', textAlign: 'right', fontSize: '13px', color: isDark ? '#94a3b8' : '#64748b' }}>Action</th>
                                     </tr>
                                 </thead>
                                 <tbody>
                                     {submissions.map((sub) => (
-                                        <tr key={sub.id} style={{ borderBottom: '1px solid #f1f5f9' }}>
-                                            <td style={{ padding: '12px 16px', fontWeight: '500', color: '#334155' }}>{sub.studentName}</td>
-                                            <td style={{ padding: '12px 16px', color: '#64748b', fontSize: '14px' }}>
+                                        <tr key={sub.id} style={{ borderBottom: `1px solid ${isDark ? 'rgba(255,255,255,0.05)' : '#f1f5f9'}` }}>
+                                            <td style={{ padding: '12px 16px', fontWeight: '500', color: isDark ? '#f0f0f0' : '#334155' }}>{sub.studentName}</td>
+                                            <td style={{ padding: '12px 16px', color: isDark ? '#94a3b8' : '#64748b', fontSize: '14px' }}>
                                                 {sub.submittedAt?.toDate ? sub.submittedAt.toDate().toLocaleDateString() : 'Unknown'}
                                             </td>
                                             <td style={{ padding: '12px 16px' }}>

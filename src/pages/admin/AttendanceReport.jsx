@@ -1,12 +1,14 @@
 import React, { useState, useEffect } from 'react';
-import { collection, query, where, getDocs, onSnapshot } from 'firebase/firestore';
+import { collection, query, where, getDocs, onSnapshot, doc, deleteDoc } from 'firebase/firestore';
 import { db } from '../../lib/firebase';
 import Card from '../../components/ui/Card';
 import Button from '../../components/ui/Button';
+import ConfirmDialog from '../../components/ui/ConfirmDialog';
 import { toast } from 'react-toastify';
-import { ClipboardCheck, Download, Search, Filter, Users, Calendar, BarChart3 } from 'lucide-react';
+import { ClipboardCheck, Download, Search, Filter, Users, Calendar, BarChart3, Trash2 } from 'lucide-react';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
+import { useTheme } from '../../context/ThemeContext';
 import './AttendanceReport.css';
 
 const COLORS = {
@@ -16,6 +18,7 @@ const COLORS = {
 };
 
 const AttendanceReport = () => {
+    const { isDark } = useTheme();
     const [records, setRecords] = useState([]);
     const [loading, setLoading] = useState(true);
     const [coaches, setCoaches] = useState([]);
@@ -27,6 +30,7 @@ const AttendanceReport = () => {
     const [filterDateFrom, setFilterDateFrom] = useState('');
     const [filterDateTo, setFilterDateTo] = useState('');
     const [searchQuery, setSearchQuery] = useState('');
+    const [confirmDialog, setConfirmDialog] = useState(null);
 
     // Load all attendance records
     useEffect(() => {
@@ -95,6 +99,125 @@ const AttendanceReport = () => {
         if (r.status === 'present') studentStats[r.studentId].present++;
         else studentStats[r.studentId].absent++;
     });
+
+    const handleDeleteRecord = (record) => {
+        setConfirmDialog({
+            title: 'Delete Attendance Record',
+            message: `Are you sure you want to delete the attendance record for ${record.studentName} on ${record.date}?`,
+            confirmLabel: 'Delete',
+            onConfirm: async () => {
+                try {
+                    await deleteDoc(doc(db, 'attendance', record.id));
+                    toast.success('Record deleted');
+                } catch (err) {
+                    console.error('Error deleting record:', err);
+                    toast.error('Failed to delete record');
+                }
+                setConfirmDialog(null);
+            }
+        });
+    };
+
+    const handleDeleteAllForStudent = (studentId, studentName) => {
+        setConfirmDialog({
+            title: 'Delete All Records',
+            message: `Are you sure you want to delete ALL attendance records for ${studentName}? This cannot be undone.`,
+            confirmLabel: 'Delete All',
+            onConfirm: async () => {
+                try {
+                    const studentRecords = filteredRecords.filter(r => r.studentId === studentId);
+                    for (const record of studentRecords) {
+                        await deleteDoc(doc(db, 'attendance', record.id));
+                    }
+                    toast.success(`Deleted all records for ${studentName}`);
+                } catch (err) {
+                    console.error('Error deleting records:', err);
+                    toast.error('Failed to delete some records');
+                }
+                setConfirmDialog(null);
+            }
+        });
+    };
+
+    // Generate individual student attendance report
+    const generateStudentReport = (studentId, studentName) => {
+        const studentRecords = filteredRecords.filter(r => r.studentId === studentId);
+        if (studentRecords.length === 0) {
+            toast.error('No attendance records found for this student');
+            return;
+        }
+
+        const pdf = new jsPDF();
+        const dateStr = new Date().toLocaleDateString('en-IN');
+        const stats = studentStats[studentId];
+
+        // Header
+        pdf.setFillColor(3, 51, 102);
+        pdf.rect(0, 0, 210, 40, 'F');
+        pdf.setTextColor(255, 255, 255);
+        pdf.setFontSize(22);
+        pdf.text('Student Attendance Report', 14, 22);
+        pdf.setFontSize(9);
+        pdf.text(`Generated: ${dateStr}`, 14, 30);
+
+        // Student Info
+        pdf.setTextColor(0, 0, 0);
+        pdf.setFontSize(11);
+        let y = 52;
+        pdf.text(`Student Name: ${studentName}`, 14, y);
+        y += 8;
+        pdf.text(`Batch: ${stats?.batch || 'N/A'}`, 14, y);
+        y += 8;
+
+        // Summary Stats
+        pdf.setFontSize(12);
+        pdf.setFillColor(240, 249, 255);
+        pdf.rect(14, y, 182, 25, 'F');
+        pdf.setTextColor(0, 51, 102);
+        pdf.text(`Total Classes: ${stats?.total || 0}`, 20, y + 8);
+        pdf.text(`Present: ${stats?.present || 0}`, 80, y + 8);
+        pdf.text(`Absent: ${stats?.absent || 0}`, 140, y + 8);
+        const attendancePercent = stats?.total ? Math.round((stats.present / stats.total) * 100) : 0;
+        pdf.setFontSize(14);
+        pdf.setFont(undefined, 'bold');
+        pdf.text(`Attendance: ${attendancePercent}%`, 20, y + 18);
+        pdf.setFont(undefined, 'normal');
+
+        y += 35;
+
+        // Detailed Records Table
+        pdf.setFontSize(12);
+        pdf.text('Attendance Details', 14, y);
+        y += 6;
+
+        const detailRows = studentRecords.map(r => [
+            r.date,
+            r.batchName || '-',
+            r.status === 'present' ? '✓ Present' : '✗ Absent'
+        ]);
+
+        autoTable(pdf, {
+            startY: y,
+            head: [['Date', 'Batch', 'Status']],
+            body: detailRows,
+            theme: 'striped',
+            headStyles: { fillColor: [3, 51, 102], textColor: [255, 255, 255], fontStyle: 'bold' },
+            bodyStyles: { fontSize: 10 },
+            alternateRowStyles: { fillColor: [245, 245, 245] },
+            margin: { left: 14, right: 14 }
+        });
+
+        // Footer
+        y = pdf.lastAutoTable.finalY + 15;
+        pdf.setFontSize(9);
+        pdf.setTextColor(100);
+        pdf.text('Indian Chess Academy | Generated Attendance Report', 14, y);
+        pdf.text(`Page 1 of 1 | ${dateStr}`, 14, y + 6);
+
+        const fileName = `Attendance-${studentName}-${dateStr}.pdf`;
+        pdf.save(fileName);
+        toast.success(`Report downloaded for ${studentName}!`);
+    };
 
     const exportPDF = () => {
         const pdf = new jsPDF();
@@ -193,10 +316,10 @@ const AttendanceReport = () => {
         <div className="attendance-report-page">
             <div className="report-header">
                 <div>
-                    <h1 style={{ margin: 0, color: COLORS.deepBlue, display: 'flex', alignItems: 'center', gap: '10px' }}>
+                    <h1 style={{ margin: 0, color: isDark ? '#f0f0f0' : COLORS.deepBlue, display: 'flex', alignItems: 'center', gap: '10px' }}>
                         <ClipboardCheck size={28} /> Attendance Report
                     </h1>
-                    <p style={{ color: '#666', margin: '8px 0 0' }}>View and export student attendance records</p>
+                    <p style={{ color: isDark ? '#94a3b8' : '#666', margin: '8px 0 0' }}>View and export student attendance records</p>
                 </div>
                 <Button onClick={exportPDF} disabled={filteredRecords.length === 0} style={{ backgroundColor: COLORS.oliveGreen, border: 'none', display: 'flex', alignItems: 'center', gap: '6px' }}>
                     <Download size={16} /> Export PDF
@@ -275,8 +398,8 @@ const AttendanceReport = () => {
             {/* Per-student summary */}
             {Object.keys(studentStats).length > 0 && (
                 <Card style={{ padding: '0', marginBottom: '24px', overflow: 'hidden' }}>
-                    <div style={{ padding: '16px 24px', borderBottom: '2px solid #003366', background: '#f8fafc' }}>
-                        <h3 style={{ margin: 0, color: COLORS.deepBlue, fontSize: '16px' }}>Student Summary</h3>
+                    <div style={{ padding: '16px 24px', borderBottom: `2px solid ${isDark ? 'rgba(255,255,255,0.1)' : '#003366'}`, background: isDark ? '#0f1117' : '#f8fafc' }}>
+                        <h3 style={{ margin: 0, color: isDark ? '#f0f0f0' : COLORS.deepBlue, fontSize: '16px' }}>Student Summary</h3>
                     </div>
                     <div style={{ overflowX: 'auto' }}>
                         <table className="report-table">
@@ -288,6 +411,7 @@ const AttendanceReport = () => {
                                     <th>Absent</th>
                                     <th>Total</th>
                                     <th>Rate</th>
+                                    <th>Action</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -303,7 +427,49 @@ const AttendanceReport = () => {
                                                 {Math.round((s.present / s.total) * 100)}%
                                             </span>
                                         </td>
+                                        <td>
+                                            <div style={{ display: 'flex', gap: '8px' }}>
+                                                <button
+                                                    onClick={() => generateStudentReport(id, s.name)}
+                                                    style={{
+                                                        background: COLORS.orange,
+                                                        color: 'white',
+                                                        border: 'none',
+                                                        padding: '8px 16px',
+                                                        borderRadius: '6px',
+                                                        cursor: 'pointer',
+                                                        fontSize: '13px',
+                                                        fontWeight: '500',
+                                                        display: 'flex',
+                                                        alignItems: 'center',
+                                                        gap: '6px',
+                                                        whiteSpace: 'nowrap',
+                                                        transition: 'all 0.2s'
+                                                    }}
+                                                >
+                                                    <Download size={14} /> Report
+                                                </button>
+                                                <button
+                                                    onClick={() => handleDeleteAllForStudent(id, s.name)}
+                                                    style={{
+                                                        background: 'transparent',
+                                                        color: '#DC2626',
+                                                        border: '1px solid #DC2626',
+                                                        padding: '8px 12px',
+                                                        borderRadius: '6px',
+                                                        cursor: 'pointer',
+                                                        display: 'flex',
+                                                        alignItems: 'center',
+                                                        gap: '6px',
+                                                        transition: 'all 0.2s'
+                                                    }}
+                                                >
+                                                    <Trash2 size={14} /> Clear All
+                                                </button>
+                                            </div>
+                                        </td>
                                     </tr>
+
                                 ))}
                             </tbody>
                         </table>
@@ -313,8 +479,8 @@ const AttendanceReport = () => {
 
             {/* Detailed Records */}
             <Card style={{ padding: '0', overflow: 'hidden' }}>
-                <div style={{ padding: '16px 24px', borderBottom: '2px solid #003366', background: '#f8fafc' }}>
-                    <h3 style={{ margin: 0, color: COLORS.deepBlue, fontSize: '16px' }}>
+                <div style={{ padding: '16px 24px', borderBottom: `2px solid ${isDark ? 'rgba(255,255,255,0.1)' : '#003366'}`, background: isDark ? '#0f1117' : '#f8fafc' }}>
+                    <h3 style={{ margin: 0, color: isDark ? '#f0f0f0' : COLORS.deepBlue, fontSize: '16px' }}>
                         Detailed Records ({filteredRecords.length})
                     </h3>
                 </div>
@@ -326,6 +492,7 @@ const AttendanceReport = () => {
                                 <th>Student</th>
                                 <th>Batch</th>
                                 <th>Status</th>
+                                <th>Action</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -344,15 +511,37 @@ const AttendanceReport = () => {
                                                 {r.status === 'present' ? 'Present' : 'Absent'}
                                             </span>
                                         </td>
+                                        <td>
+                                            <button
+                                                onClick={() => handleDeleteRecord(r)}
+                                                style={{ background: 'transparent', border: 'none', color: '#DC2626', cursor: 'pointer', padding: '4px' }}
+                                            >
+                                                <Trash2 size={16} />
+                                            </button>
+                                        </td>
                                     </tr>
+
                                 ))
                             )}
                         </tbody>
                     </table>
                 </div>
             </Card>
+
+            {/* Confirmation Dialog */}
+            {confirmDialog && (
+                <ConfirmDialog
+                    isOpen={!!confirmDialog}
+                    title={confirmDialog.title}
+                    message={confirmDialog.message}
+                    confirmLabel={confirmDialog.confirmLabel}
+                    onConfirm={confirmDialog.onConfirm}
+                    onCancel={() => setConfirmDialog(null)}
+                />
+            )}
         </div>
     );
 };
+
 
 export default AttendanceReport;

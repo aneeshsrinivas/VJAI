@@ -3,31 +3,39 @@ import Card from '../components/ui/Card';
 import Button from '../components/ui/Button';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { collection, query, where, onSnapshot, doc, getDoc, orderBy, limit } from 'firebase/firestore';
+import { collection, query, where, onSnapshot, doc, getDoc, limit } from 'firebase/firestore';
 import { db } from '../lib/firebase';
 import { COLLECTIONS } from '../config/firestoreCollections';
 import {
-    Calendar, Users, MessageSquare, BookOpen, Clock, Video,
-    Upload, FileText, Star, Target, Award, TrendingUp,
-    ChevronRight, Zap, GraduationCap, Sparkles, Trophy,
-    Play, ArrowRight, Flame, Brain, CheckCircle2
+    Clock, Users, Calendar, TrendingUp, BookOpen, ChevronRight,
+    MessageSquare, GraduationCap, Video, CheckCircle2,
+    Sparkles, Brain, Star, Play, PlayCircle, Plus, Upload, Trash2,
+    FileText
 } from 'lucide-react';
+import { useTheme } from '../context/ThemeContext';
+import CreateChessPuzzleModal from '../components/features/CreateChessPuzzleModal';
+import UploadMaterialModal from '../components/features/UploadMaterialModal';
+import CreateAssignmentModal from '../components/features/CreateAssignmentModal';
 import './CoachDashboard.css';
 
 const CoachDashboard = () => {
     const navigate = useNavigate();
     const { currentUser, userData } = useAuth();
+    const { isDark } = useTheme();
     const fileInputRef = useRef(null);
 
     // State for dynamic data
     const [coachProfile, setCoachProfile] = useState(null);
+    const [coachDocId, setCoachDocId] = useState(null); // Firestore doc ID (not auth UID)
     const [students, setStudents] = useState([]);
     const [demos, setDemos] = useState([]);
     const [batches, setBatches] = useState([]);
-    const [loading, setLoading] = useState(true);
+    const [loading, setLoading] = useState(false);
     const [cardsVisible, setCardsVisible] = useState(false);
     const [uploadingFile, setUploadingFile] = useState(false);
-    const [selectedBatchForUpload, setSelectedBatchForUpload] = useState('');
+    const [selectedBatchForUpload, setSelectedBatchForUpload] = useState(null);
+    const [createAssignmentBatch, setCreateAssignmentBatch] = useState(null);
+    const [createPuzzleBatch, setCreatePuzzleBatch] = useState(null);
     const [activeTab, setActiveTab] = useState('overview');
     const [schedule, setSchedule] = useState([]);
 
@@ -91,7 +99,9 @@ const CoachDashboard = () => {
 
             const unsubCoach = onSnapshot(coachQuery, async (snapshot) => {
                 if (!snapshot.empty) {
-                    setCoachProfile({ id: snapshot.docs[0].id, ...snapshot.docs[0].data() });
+                    const docId = snapshot.docs[0].id;
+                    setCoachProfile({ id: docId, ...snapshot.docs[0].data() });
+                    setCoachDocId(docId);
                 } else {
                     const userDoc = await getDoc(doc(db, 'users', currentUser.uid));
                     if (userDoc.exists()) {
@@ -108,20 +118,6 @@ const CoachDashboard = () => {
 
             return unsubCoach;
         };
-
-        // Students
-        const studentsQuery = query(
-            collection(db, COLLECTIONS.STUDENTS),
-            where('assignedCoachId', '==', currentUser.uid)
-        );
-
-        const unsubStudents = onSnapshot(studentsQuery, (snapshot) => {
-            const list = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
-            setStudents(list);
-        }, (error) => {
-            console.error('Students query error:', error);
-            setStudents([]);
-        });
 
         // Demos - simplified query to avoid index requirement
         const demosQuery = query(
@@ -145,19 +141,64 @@ const CoachDashboard = () => {
             setDemos([]);
         });
 
-        // Mock batches for now
-        setBatches([
-            { id: 'batch-1', name: 'Beginner Stars ⭐', studentCount: 4, level: 'beginner', nextClass: 'Tomorrow 5PM' },
-            { id: 'batch-2', name: 'Rising Knights ♞', studentCount: 6, level: 'intermediate', nextClass: 'Today 7PM' }
-        ]);
-
         fetchCoachProfile();
 
         return () => {
-            unsubStudents();
             unsubDemos();
         };
     }, [currentUser]);
+
+    // Fetch students and batches
+    // Students are in the 'users' collection; admin may assign by coachDocId OR auth UID
+    useEffect(() => {
+        if (!currentUser?.uid) return;
+
+        const idsToQuery = [currentUser.uid];
+        if (coachDocId && coachDocId !== currentUser.uid) {
+            idsToQuery.push(coachDocId);
+        }
+
+        // Query students assigned to this coach (by auth UID or coach doc ID)
+        const studentsQuery = query(
+            collection(db, 'users'),
+            where('assignedCoachId', 'in', idsToQuery),
+            where('role', 'in', ['student', 'customer'])
+        );
+
+        const unsubStudents = onSnapshot(studentsQuery, (snapshot) => {
+            setStudents(snapshot.docs.map(d => ({ id: d.id, ...d.data() })));
+        }, (error) => {
+            console.error('Students query error:', error);
+            setStudents([]);
+        });
+
+        // Batches: try coachDocId first, fallback to auth UID
+        const batchPath = coachDocId || currentUser.uid;
+        const unsubBatches = onSnapshot(
+            collection(db, COLLECTIONS.COACHES, batchPath, 'batches'),
+            (snapshot) => {
+                setBatches(snapshot.docs.map(d => ({ id: d.id, ...d.data() })));
+            },
+            (error) => {
+                console.error('Batches query error:', error);
+                // If coachDocId path failed, try auth UID as fallback
+                if (batchPath !== currentUser.uid) {
+                    const unsubFallback = onSnapshot(
+                        collection(db, COLLECTIONS.COACHES, currentUser.uid, 'batches'),
+                        (snap) => setBatches(snap.docs.map(d => ({ id: d.id, ...d.data() }))),
+                        () => setBatches([])
+                    );
+                    return () => unsubFallback();
+                }
+                setBatches([]);
+            }
+        );
+
+        return () => {
+            unsubStudents();
+            unsubBatches();
+        };
+    }, [coachDocId, currentUser]);
 
     const getGreeting = () => {
         const hour = new Date().getHours();
@@ -250,7 +291,7 @@ const CoachDashboard = () => {
                                 <Calendar size={16} />
                                 <span>Schedule</span>
                             </button>
-                            <button className="btn-glass" onClick={() => navigate('/chat')}>
+                            <button className="btn-glass" onClick={() => navigate('/coach/chat')}>
                                 <MessageSquare size={16} />
                                 <span>Chat</span>
                             </button>
@@ -316,12 +357,12 @@ const CoachDashboard = () => {
                             <Star size={28} />
                         </div>
                         <div className="card-data">
-                            <span className="card-number">4.9<span className="star">⭐</span></span>
-                            <span className="card-label">Coach Rating</span>
+                            <span className="card-number" style={{ fontSize: '16px' }}>Pending</span>
+                            <span className="card-label">Lichess Rating</span>
                         </div>
                     </div>
-                    <div className="card-trend positive">
-                        <Award size={14} /> Excellent
+                    <div className="card-trend neutral">
+                        <Clock size={14} /> Integration pending
                     </div>
                 </div>
             </div>
@@ -350,37 +391,61 @@ const CoachDashboard = () => {
                             </div>
                         ) : (
                             <div className="demos-list">
-                                {upcomingEvents.map((event, index) => (
-                                    <div key={event.id} className={`demo-card ${event.type === 'demo' ? 'demo-event' : 'class-event'}`} style={{ animationDelay: `${index * 0.1}s`, borderLeft: event.type === 'demo' ? '4px solid #10B981' : '4px solid #3B82F6' }}>
-                                        <div className="demo-time">
-                                            <span className="time-badge">
-                                                {event.scheduledStart
-                                                    ? new Date(event.scheduledStart).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-                                                    : 'TBD'}
-                                            </span>
-                                            <span className="date-text">
-                                                {event.scheduledStart
-                                                    ? new Date(event.scheduledStart).toLocaleDateString([], { weekday: 'short', month: 'short', day: 'numeric' })
-                                                    : ''}
-                                            </span>
+                                {upcomingEvents.map((event, index) => {
+                                    const now = new Date().getTime();
+                                    const eventTime = new Date(event.scheduledStart).getTime();
+                                    const isJoinable = eventTime - now <= 10 * 60 * 1000;
+                                    
+                                    return (
+                                        <div key={event.id} className={`demo-card ${event.type === 'demo' ? 'demo-event' : 'class-event'}`} style={{ animationDelay: `${index * 0.1}s`, borderLeft: event.type === 'demo' ? '4px solid #10B981' : '4px solid #3B82F6' }}>
+                                            <div className="demo-time">
+                                                <span className="time-badge">
+                                                    {event.scheduledStart
+                                                        ? new Date(event.scheduledStart).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+                                                        : 'TBD'}
+                                                </span>
+                                                <span className="date-text">
+                                                    {event.scheduledStart
+                                                        ? new Date(event.scheduledStart).toLocaleDateString([], { weekday: 'short', month: 'short', day: 'numeric' })
+                                                        : ''}
+                                                </span>
+                                            </div>
+                                            <div className="demo-info">
+                                                <h4>
+                                                    {event.type === 'demo' ? '🎯' : '📚'} {event.studentName}
+                                                </h4>
+                                                <p>
+                                                    {event.type === 'demo'
+                                                        ? `${event.chessExperience || 'Beginner'} • Demo`
+                                                        : `${event.title} • Class`}
+                                                </p>
+                                            </div>
+                                            {event.meetingLink && (
+                                                <button 
+                                                    className="btn-join" 
+                                                    disabled={!isJoinable}
+                                                    style={{
+                                                        backgroundColor: isJoinable ? '#FC8A24' : '#94a3b8',
+                                                        cursor: isJoinable ? 'pointer' : 'not-allowed',
+                                                        opacity: isJoinable ? 1 : 0.8,
+                                                        color: 'white',
+                                                        border: 'none',
+                                                        padding: '8px 16px',
+                                                        borderRadius: '8px',
+                                                        display: 'flex',
+                                                        alignItems: 'center',
+                                                        gap: '8px',
+                                                        fontWeight: '600',
+                                                        transition: 'all 0.3s ease'
+                                                    }}
+                                                    onClick={() => isJoinable && window.open(event.meetingLink, '_blank')}
+                                                >
+                                                    <Play size={16} /> {isJoinable ? 'Join' : 'Starts Soon'}
+                                                </button>
+                                            )}
                                         </div>
-                                        <div className="demo-info">
-                                            <h4>
-                                                {event.type === 'demo' ? '🎯' : '📚'} {event.studentName}
-                                            </h4>
-                                            <p>
-                                                {event.type === 'demo'
-                                                    ? `${event.chessExperience || 'Beginner'} • Demo`
-                                                    : `${event.title} • Class`}
-                                            </p>
-                                        </div>
-                                        {event.meetingLink && (
-                                            <button className="btn-join" onClick={() => window.open(event.meetingLink, '_blank')}>
-                                                <Play size={16} /> Join
-                                            </button>
-                                        )}
-                                    </div>
-                                ))}
+                                    );
+                                })}
                             </div>
                         )}
                     </div>
@@ -537,14 +602,30 @@ const CoachDashboard = () => {
 
                         <div className="batches-list">
                             {batches.map(batch => (
-                                <div key={batch.id} className="batch-card">
-                                    <div className="batch-header">
-                                        <span className="batch-name">{batch.name}</span>
-                                        <span className={`batch-level ${batch.level}`}>{batch.level}</span>
+                                <div key={batch.id} className="batch-card" style={{ padding: '20px', borderRadius: '16px', background: isDark ? 'rgba(255,255,255,0.03)' : '#f8fafc', border: isDark ? '1px solid rgba(255,255,255,0.08)' : '1px solid #e2e8f0' }}>
+                                    <div className="batch-header" style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '12px' }}>
+                                        <span className="batch-name" style={{ fontWeight: '700', fontSize: '16px' }}>{batch.name}</span>
+                                        <span className={`batch-level ${batch.level}`} style={{ fontSize: '11px', padding: '2px 8px', borderRadius: '10px', background: batch.level === 'beginner' ? '#dcfce7' : '#dbeafe', color: batch.level === 'beginner' ? '#166534' : '#1e40af' }}>{batch.level}</span>
                                     </div>
-                                    <div className="batch-meta">
-                                        <span>👥 {batch.studentCount} students</span>
-                                        <span>📅 {batch.nextClass}</span>
+                                    <div className="batch-meta" style={{ display: 'flex', gap: '12px', fontSize: '13px', color: '#64748b', marginBottom: '20px' }}>
+                                        <span>👥 {batch.studentsId?.length ?? 0} students</span>
+                                        <span>📅 {batch.schedule || 'Flexible'}</span>
+                                    </div>
+                                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+                                        <button 
+                                            className="btn-batch-action" 
+                                            onClick={() => setCreatePuzzleBatch(batch)}
+                                            style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', padding: '8px', fontSize: '12px', borderRadius: '8px', border: '1px solid #10b981', background: '#ecfdf5', color: '#047857', fontWeight: '600' }}
+                                        >
+                                            <PlayCircle size={14} /> Puzzle
+                                        </button>
+                                        <button 
+                                            className="btn-batch-action" 
+                                            onClick={() => setSelectedBatchForUpload(batch)}
+                                            style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', padding: '8px', fontSize: '12px', borderRadius: '8px', border: '1px solid #3b82f6', background: '#eff6ff', color: '#1d4ed8', fontWeight: '600' }}
+                                        >
+                                            <Upload size={14} /> Material
+                                        </button>
                                     </div>
                                 </div>
                             ))}
@@ -563,7 +644,7 @@ const CoachDashboard = () => {
                                 <Users size={20} />
                                 <span>Batches</span>
                             </button>
-                            <button onClick={() => navigate('/chat')} className="quick-btn">
+                            <button onClick={() => navigate('/coach/chat')} className="quick-btn">
                                 <MessageSquare size={20} />
                                 <span>Chat</span>
                             </button>
@@ -575,6 +656,31 @@ const CoachDashboard = () => {
                     </div>
                 </div>
             </div>
+
+            {/* Modals */}
+            <CreateChessPuzzleModal 
+                isOpen={!!createPuzzleBatch} 
+                onClose={() => setCreatePuzzleBatch(null)} 
+                batchId={createPuzzleBatch?.id}
+                batchName={createPuzzleBatch?.name}
+                onSuccess={() => {}}
+            />
+
+            <UploadMaterialModal
+                isOpen={!!selectedBatchForUpload}
+                onClose={() => setSelectedBatchForUpload(null)}
+                batchId={selectedBatchForUpload?.id}
+                batchName={selectedBatchForUpload?.name}
+                onSuccess={() => {}}
+            />
+
+            <CreateAssignmentModal
+                isOpen={!!createAssignmentBatch}
+                onClose={() => setCreateAssignmentBatch(null)}
+                batchId={createAssignmentBatch?.id}
+                batchName={createAssignmentBatch?.name}
+                onSuccess={() => {}}
+            />
         </div>
     );
 };

@@ -17,21 +17,41 @@ const CoachStudents = () => {
     const navigate = useNavigate();
     const { currentUser } = useAuth();
     const [students, setStudents] = useState([]);
-    const [loading, setLoading] = useState(true);
+    const [loading, setLoading] = useState(false);
     const [searchQuery, setSearchQuery] = useState('');
     const [filterLevel, setFilterLevel] = useState('all');
     const [filterBatch, setFilterBatch] = useState('all');
     const [selectedSkillStudent, setSelectedSkillStudent] = useState(null);
     const [selectedDetailStudent, setSelectedDetailStudent] = useState(null);
+    const [coachDocId, setCoachDocId] = useState(null);
 
     useEffect(() => {
         if (!currentUser?.uid) return;
+        const resolve = async () => {
+            try {
+                const coachQuery = query(
+                    collection(db, 'coaches'),
+                    where('accountId', '==', currentUser.uid)
+                );
+                const snap = await getDocs(coachQuery);
+                setCoachDocId(!snap.empty ? snap.docs[0].id : currentUser.uid);
+            } catch (err) {
+                console.error('Could not resolve coachDocId, falling back to uid:', err);
+                setCoachDocId(currentUser.uid);
+            }
+        };
+        resolve();
+    }, [currentUser]);
+
+    useEffect(() => {
+        if (!coachDocId) return;
 
         setLoading(true);
+        const coachIds = [...new Set([coachDocId, currentUser.uid])];
         const q = query(
             collection(db, 'users'),
-            where('assignedCoachId', '==', currentUser.uid),
-            where('role', '==', 'customer') // Ensure we only get students
+            where('assignedCoachId', 'in', coachIds),
+            where('role', 'in', ['student', 'customer'])
         );
 
         const unsubscribe = onSnapshot(q, (snapshot) => {
@@ -47,7 +67,7 @@ const CoachStudents = () => {
         });
 
         return () => unsubscribe();
-    }, [currentUser]);
+    }, [coachDocId]);
 
     const filteredStudents = students.filter(student => {
         const matchesSearch = (student.studentName || '').toLowerCase().includes(searchQuery.toLowerCase());
@@ -151,9 +171,6 @@ const CoachStudents = () => {
                                     <div className="student-avatar">
                                         {(student.studentName || 'S').charAt(0).toUpperCase()}
                                     </div>
-                                    <button className="btn-more">
-                                        <MoreVertical size={18} />
-                                    </button>
                                 </div>
                                 <div className="card-body">
                                     <div className="student-name-row">

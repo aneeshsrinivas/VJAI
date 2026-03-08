@@ -59,10 +59,11 @@ export const createDemoRequest = async (demoData) => {
 };
 
 /**
- * Get All Demos (Admin Only)
+ * Get All Demos (Admin Only) — also includes PAYMENT_PENDING users from the users collection
  */
 export const getAllDemos = async () => {
     try {
+        // Fetch all demo documents ordered by latest first
         const q = query(collection(db, COLLECTIONS.DEMOS), orderBy('createdAt', 'desc'));
         const snapshot = await getDocs(q);
         const demos = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
@@ -72,6 +73,7 @@ export const getAllDemos = async () => {
         return { success: false, error: error.message };
     }
 };
+
 
 /**
  * Get Demos by Status (Admin Dashboard Filtering)
@@ -213,7 +215,7 @@ export const convertDemoToStudent = async (demoId, accountId, paymentData) => {
             learningLevel: demoData.recommendedLevel || 'beginner',
             level: demoData.recommendedLevel || 'beginner',
             phone: demoData.parentPhone || demoData.phone || '',
-            status: 'ACTIVE',
+            status: 'PAYMENT_PENDING',
             assignedCoachId: demoData.assignedCoachId || null,
             source: 'DEMO_CONVERSION',
             demoId: demoId,
@@ -237,7 +239,7 @@ export const convertDemoToStudent = async (demoId, accountId, paymentData) => {
             rating: null,
             assignedCoachId: demoData.assignedCoachId,
             assignedBatchId: paymentData.batchId || null,
-            status: 'ACTIVE',
+            status: 'PAYMENT_PENDING',
             createdAt: serverTimestamp(),
             updatedAt: serverTimestamp()
         });
@@ -278,16 +280,100 @@ export const convertDemoToStudent = async (demoId, accountId, paymentData) => {
     }
 };
 
+/**
+ * Convert Demo to Pending Student (Pre-payment LMS Access)
+ */
+export const convertDemoToPendingStudent = async (demoId, accountId, paymentData) => {
+    try {
+        const demoDoc = await getDoc(doc(db, COLLECTIONS.DEMOS, demoId));
+        if (!demoDoc.exists()) {
+            return { success: false, error: 'Demo not found' };
+        }
+        const demoData = demoDoc.data();
+
+        // 1. Create users document so student can login with AuthContext
+        await setDoc(doc(db, 'users', accountId), {
+            email: paymentData.loginEmail || demoData.parentEmail,
+            fullName: demoData.parentName,
+            role: 'customer',
+            studentName: demoData.studentName,
+            studentAge: demoData.studentAge || null,
+            timezone: demoData.timezone || '',
+            studentType: demoData.recommendedStudentType || 'group',
+            learningLevel: demoData.recommendedLevel || 'beginner',
+            level: demoData.recommendedLevel || 'beginner',
+            phone: demoData.parentPhone || demoData.phone || '',
+            status: 'PAYMENT_PENDING',
+            assignedCoachId: demoData.assignedCoachId || null,
+            source: 'DEMO_CONVERSION',
+            demoId: demoId,
+            createdAt: serverTimestamp(),
+            lastLoginAt: serverTimestamp(),
+            createdByAdminId: paymentData.adminId,
+        });
+
+        // 2. Create student record
+        const studentRef = await addDoc(collection(db, COLLECTIONS.STUDENTS), {
+            accountId: accountId,
+            studentName: demoData.studentName,
+            studentAge: demoData.studentAge || null,
+            parentName: demoData.parentName,
+            parentEmail: paymentData.loginEmail || demoData.parentEmail,
+            parentPhone: demoData.parentPhone || '',
+            timezone: demoData.timezone,
+            studentType: demoData.recommendedStudentType || 'group',
+            level: demoData.recommendedLevel || 'beginner',
+            rating: null,
+            assignedCoachId: demoData.assignedCoachId,
+            status: 'PAYMENT_PENDING',
+            createdAt: serverTimestamp(),
+            updatedAt: serverTimestamp()
+        });
+
+        // NO SUBSCRIPTION RECORD CREATED YET. THIS HAPPENS AT CHECKOUT.
+        // NO MESSAGING CHAT CREATED YET.
+
+        // 3. Update demo status to PAYMENT_PENDING (NOT CONVERTED — conversion happens after payment)
+        const demoRef = doc(db, COLLECTIONS.DEMOS, demoId);
+        await updateDoc(demoRef, {
+            status: 'PAYMENT_PENDING',
+            updatedAt: serverTimestamp()
+        });
+
+        return { success: true, studentId: studentRef.id };
+    } catch (error) {
+        console.error('Error converting demo to pending student:', error);
+        return { success: false, error: error.message };
+    }
+};
+
 // ==========================================
 // ACCOUNT OPERATIONS
 // ==========================================
 
-export const createParentAccount = async (uid, email, adminId) => {
+export const createParentAccount = async (uid, email, adminId, extraData = {}) => {
     try {
+        // Write to 'accounts' collection (legacy access tracking)
         await setDoc(doc(db, COLLECTIONS.ACCOUNTS, uid), {
             email: email,
             role: 'CUSTOMER',
             createdByAdminId: adminId,
+            createdAt: serverTimestamp(),
+            updatedAt: serverTimestamp()
+        });
+
+        // Write to 'users' collection (source of truth for ParentDashboard status gating)
+        await setDoc(doc(db, 'users', uid), {
+            email: email,
+            role: 'customer',
+            status: 'PAYMENT_PENDING',   // ← gated: dashboard will show payment banner
+            createdByAdminId: adminId,
+            studentName: extraData.studentName || '',
+            studentAge: extraData.studentAge || '',
+            parentName: extraData.parentName || '',
+            learningLevel: extraData.learningLevel || '',
+            meetingLink: extraData.meetingLink || '', // Store the demo meeting link as default
+            demoId: extraData.demoId || null,
             createdAt: serverTimestamp(),
             updatedAt: serverTimestamp()
         });
@@ -298,6 +384,7 @@ export const createParentAccount = async (uid, email, adminId) => {
         return { success: false, error: error.message };
     }
 };
+
 
 // ==========================================
 // STUDENT OPERATIONS
@@ -366,6 +453,25 @@ export const updateStudent = async (studentId, updateData) => {
     }
 };
 
+export const deleteStudent = async (studentId) => {
+    try {
+        // 1. Delete the user document (this is the primary document for students)
+        await deleteDoc(doc(db, 'users', studentId));
+        
+        // 2. Also try to delete from the legacy 'students' collection if it exists
+        try {
+            await deleteDoc(doc(db, COLLECTIONS.STUDENTS, studentId));
+        } catch (e) {
+            // Ignore if it doesn't exist
+        }
+        
+        return { success: true };
+    } catch (error) {
+        console.error('Error deleting student:', error);
+        return { success: false, error: error.message };
+    }
+};
+
 // ==========================================
 // COACH OPERATIONS
 // ==========================================
@@ -397,7 +503,7 @@ export const getCoachApplications = async () => {
     }
 };
 
-export const approveCoachApplication = async (applicationId, uid, password, adminId, coachEmail, coachFullName) => {
+export const approveCoachApplication = async (applicationId, uid, password, adminId, coachEmail, coachFullName, assignedGroup, assignedBatch) => {
     try {
         // 1. Create users/{uid} doc so the coach can log in via AuthContext
         await setDoc(doc(db, 'users', uid), {
@@ -419,14 +525,29 @@ export const approveCoachApplication = async (applicationId, uid, password, admi
             updatedAt: serverTimestamp()
         });
 
-        // 3. Update Coach Doc to ACTIVE
+        // 3. Update Coach Doc to ACTIVE with group/batch assignment
         const coachRef = doc(db, COLLECTIONS.COACHES, applicationId);
         await updateDoc(coachRef, {
             status: 'ACTIVE',
             accountId: uid,
             approvedBy: adminId,
+            assignedGroup: assignedGroup || null,
+            assignedBatch: assignedBatch || null,
             updatedAt: serverTimestamp()
         });
+
+        // 4. ALSO create a document in the 'batches' subcollection 
+        // because ManageBatchesModal.jsx reads from there!
+        if (assignedBatch) {
+            await addDoc(collection(db, COLLECTIONS.COACHES, applicationId, 'batches'), {
+                name: assignedBatch,
+                level: (assignedGroup || 'Beginner').toLowerCase(),
+                schedule: 'Flexible',
+                studentsId: [],
+                createdAt: serverTimestamp(),
+                updatedAt: serverTimestamp()
+            });
+        }
 
         return { success: true };
     } catch (error) {
@@ -643,6 +764,30 @@ export const createClass = async (classData) => {
         return { success: true };
     } catch (error) {
         console.error('Error creating class:', error);
+        return { success: false, error: error.message };
+    }
+};
+export const deleteCoach = async (coachId, accountId) => {
+    try {
+        // 1. Delete from coaches collection
+        await deleteDoc(doc(db, COLLECTIONS.COACHES, coachId));
+        
+        // 2. Delete from users collection (where login data is stored)
+        if (accountId) {
+            await deleteDoc(doc(db, 'users', accountId));
+        } else {
+            // If they are the same (legacy)
+            await deleteDoc(doc(db, 'users', coachId));
+        }
+        
+        // 3. Delete from accounts collection (legacy)
+        if (accountId) {
+            try { await deleteDoc(doc(db, COLLECTIONS.ACCOUNTS, accountId)); } catch (e) {}
+        }
+        
+        return { success: true };
+    } catch (error) {
+        console.error('Error deleting coach:', error);
         return { success: false, error: error.message };
     }
 };
