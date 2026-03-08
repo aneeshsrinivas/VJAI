@@ -791,14 +791,11 @@ const ParentDashboard = () => {
                     </div>
                 )}
 
-                {/* Render main content only if fully active or PAYMENT_SUCCESSFUL (so they can see something while waiting? No, hide content until ACTIVE, or wait, 'student?.status === ACTIVE'?) 
-                    The user previously said "so the admin approves the account". It's better to hide the main content if it's not ACTIVE.
-                    But right now we hide it if PAYMENT_PENDING.
-                    Let's hide main content if it's PAYMENT_SUCCESSFUL too but show a pending approval banner.
-                */}
+
+                {/* Blue pending-approval banner (shown after payment, before admin activates) */}
                 {student?.status === 'PAYMENT_SUCCESSFUL' && (
                     <div style={{
-                        background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
+                        background: 'linear-gradient(135deg, #0ea5e9 0%, #0369a1 100%)',
                         color: 'white',
                         padding: '20px 24px',
                         borderRadius: '12px',
@@ -806,19 +803,22 @@ const ParentDashboard = () => {
                         display: 'flex',
                         alignItems: 'center',
                         gap: '16px',
-                        boxShadow: '0 4px 6px -1px rgba(16, 185, 129, 0.2)'
+                        boxShadow: '0 4px 6px -1px rgba(14, 165, 233, 0.25)'
                     }}>
                         <div style={{ background: 'rgba(255,255,255,0.2)', padding: '12px', borderRadius: '50%', flexShrink: 0 }}>
-                            <StarIcon size={28} color="white" />
+                            <Bell size={28} color="white" />
                         </div>
                         <div>
-                            <h3 style={{ margin: '0 0 4px 0', fontSize: '18px', fontWeight: '600', color: 'white' }}>Payment Successful! Pending Admin Approval</h3>
+                            <h3 style={{ margin: '0 0 4px 0', fontSize: '18px', fontWeight: '600', color: 'white' }}>
+                                ✅ Payment Received — Awaiting Admin Approval
+                            </h3>
                             <p style={{ margin: 0, color: 'rgba(255,255,255,0.9)', fontSize: '14px' }}>
-                                Your payment has been processed. The admin team is currently reviewing your account and will activate it shortly.
+                                Your payment has been confirmed. Our admin team will review and activate your account shortly. You'll receive an email once it's ready!
                             </p>
                         </div>
                     </div>
                 )}
+
 
                 {student?.status !== 'PAYMENT_PENDING' && !(!student?.status) && student?.status !== 'PAYMENT_SUCCESSFUL' && (
                     <div className="content-grid">

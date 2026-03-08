@@ -14,8 +14,8 @@ import { openRazorpayCheckout, loadRazorpayScript, createRazorpayOrder, verifyRa
 const PaymentCheckout = () => {
     const location = useLocation();
     const navigate = useNavigate();
-    const { user } = useAuth();
     const { plan, demoId, prefillData } = location.state || {};
+    const { currentUser } = useAuth();
 
     const [formData, setFormData] = useState({
         studentName: '',
@@ -69,12 +69,12 @@ const PaymentCheckout = () => {
                 };
 
                 // Layer 2: logged-in user doc (fills gaps in prefillData)
-                if (user?.uid) {
-                    const userDoc = await getDoc(doc(db, 'users', user.uid));
+                if (currentUser?.uid) {
+                    const userDoc = await getDoc(doc(db, 'users', currentUser.uid));
                     if (userDoc.exists()) {
                         const u = userDoc.data();
                         merged.parentName = merged.parentName || u.fullName || u.parentName || u.name || '';
-                        merged.parentEmail = merged.parentEmail || u.email || user.email || '';
+                        merged.parentEmail = merged.parentEmail || u.email || currentUser.email || '';
                         merged.parentPhone = merged.parentPhone || u.phone || u.parentPhone || u.phoneNumber || '';
                         merged.studentName = merged.studentName || u.studentName || '';
                         merged.studentAge  = merged.studentAge  || u.studentAge  || '';
@@ -93,7 +93,7 @@ const PaymentCheckout = () => {
                             }
                         }
                     } else {
-                        merged.parentEmail = merged.parentEmail || user.email || '';
+                        merged.parentEmail = merged.parentEmail || currentUser.email || '';
                     }
                 }
 
@@ -115,14 +115,14 @@ const PaymentCheckout = () => {
             } catch (err) {
                 console.error('Prefill error:', err);
                 // Still fill what we have
-                if (user?.email) {
-                    setFormData(prev => ({ ...prev, parentEmail: prev.parentEmail || user.email }));
+                if (currentUser?.email) {
+                    setFormData(prev => ({ ...prev, parentEmail: prev.parentEmail || currentUser.email }));
                 }
             }
         };
         fillForm();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [user]);  // Re-run only when auth user changes
+    }, [currentUser]);  // Re-run only when auth user changes
 
     // Fetch students based on parent email
     useEffect(() => {
@@ -390,7 +390,7 @@ const PaymentCheckout = () => {
 
         setIsProcessing(true);
         try {
-            const parentId = user?.uid || null;
+            const parentId = currentUser?.uid || null;
             const paymentData = {
                 parentId,
                 parentEmail: formData.parentEmail,
@@ -498,7 +498,7 @@ const PaymentCheckout = () => {
         }
         setIsProcessing(true);
         try {
-            const parentId = user?.uid || null;
+            const parentId = currentUser?.uid || null;
             const paymentData = {
                 parentId,
                 parentEmail: formData.parentEmail,
