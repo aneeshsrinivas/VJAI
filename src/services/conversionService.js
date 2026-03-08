@@ -69,9 +69,12 @@ export const conversionService = {
 
     /**
      * Step 2: Admin approves payment → Creates or Updates Student & Subscription
+     * Now accepts optional assignmentData to set coach/batch during approval
      */
-    approvePayment: async (demoId) => {
+    approvePayment: async (demoId, assignmentData = {}) => {
         try {
+            console.log(`🚀 Starting approval for demo: ${demoId}`, assignmentData);
+            
             // 1. Fetch Demo Data
             const demoRef = doc(db, 'demos', demoId);
             const demoSnap = await getDoc(demoRef);
@@ -81,9 +84,14 @@ export const conversionService = {
             }
 
             const demoData = demoSnap.data();
+            const currentStatus = (demoData.status || '').toUpperCase();
+            
+            console.log(`🔍 Current demo status in DB: "${currentStatus}"`);
 
-            if (demoData.status !== 'PAYMENT_COMPLETED' && demoData.status !== 'PAYMENT_PENDING' && demoData.status !== 'PAYMENT_SUCCESSFUL') {
-                throw new Error('Demo is not pending payment approval');
+            const validStatuses = ['PAYMENT_COMPLETED', 'PAYMENT_PENDING', 'PAYMENT_SUCCESSFUL'];
+            if (!validStatuses.includes(currentStatus)) {
+                console.error(`❌ Approval rejected. Status "${currentStatus}" not in:`, validStatuses);
+                throw new Error(`Demo is not pending payment approval (Current status: ${demoData.status})`);
             }
 
             // 2. Check if parent user already exists with this email
@@ -100,7 +108,9 @@ export const conversionService = {
                 // Parent already has a user account - update it instead of creating new
                 realUid = existingUserSnap.docs[0].id;
                 existingUserFound = true;
+                console.log(`👤 Found existing user account: ${realUid}`);
             } else {
+                console.log('👤 No existing account. Creating new auth account...');
                 // Create a REAL Firebase Auth account with temporary password
                 const tempPassword = `Temp${Date.now().toString().slice(-6)}!`;
                 const authResult = await createParentAuthAccount(demoData.parentEmail, tempPassword);
@@ -110,18 +120,19 @@ export const conversionService = {
                 }
 
                 realUid = authResult.uid;
+                console.log(`✅ Created auth account: ${realUid}`);
             }
 
             // 3. Create or update users document
             //    Include ALL student fields so coach queries, assignments, etc. work
-            await setDoc(doc(db, 'users', realUid), {
+            const userData = {
                 email: demoData.parentEmail,
                 fullName: demoData.parentName,
                 role: 'customer',
                 studentName: demoData.studentName || '',
                 studentAge: demoData.studentAge || null,
-                assignedCoachId: demoData.assignedCoachId || null,
-                assignedBatchId: demoData.assignedBatchId || null,
+                assignedCoachId: assignmentData.coachId || demoData.assignedCoachId || null,
+                assignedBatchId: assignmentData.batchId || demoData.assignedBatchId || null,
                 learningLevel: demoData.recommendedLevel || demoData.level || 'beginner',
                 level: demoData.recommendedLevel || demoData.level || 'beginner',
                 studentType: demoData.recommendedStudentType || 'group',
@@ -131,31 +142,53 @@ export const conversionService = {
                 status: 'ACTIVE',
                 source: 'DEMO_CONVERSION',
                 demoId: demoId,
-                createdAt: existingUserFound ? serverTimestamp() : undefined,  // Preserve original createdAt if updating
-                lastLoginAt: serverTimestamp()
-            }, { merge: existingUserFound }); // Merge if updating existing user
+                lastLoginAt: serverTimestamp(),
+                updatedAt: serverTimestamp()
+            };
+
+            if (!existingUserFound) {
+                userData.createdAt = serverTimestamp();
+            }
+
+            await setDoc(doc(db, 'users', realUid), userData, { merge: true });
+            console.log('✅ Updated users document');
 
             // 4. Create Student Record in 'students' collection
-            const studentRef = await addDoc(collection(db, 'students'), {
+            const studentData = {
                 accountId: realUid,
                 studentName: demoData.studentName,
                 parentName: demoData.parentName,
                 parentEmail: demoData.parentEmail,
                 phone: demoData.phone || '',
-                timezone: demoData.timezone,
+                timezone: demoData.timezone || 'IST',
                 level: demoData.level || 'beginner',
-                assignedCoachId: demoData.assignedCoachId || null,
-                assignedBatchId: demoData.assignedBatchId || null,
+                assignedCoachId: assignmentData.coachId || demoData.assignedCoachId || null,
+                assignedBatchId: assignmentData.batchId || demoData.assignedBatchId || null,
                 status: 'ACTIVE',
-                createdAt: serverTimestamp(),
                 updatedAt: serverTimestamp()
-            });
+            };
+
+            // Check if student doc already exists for this account
+            const studentQuery = query(collection(db, 'students'), where('accountId', '==', realUid));
+            const studentSnap = await getDocs(studentQuery);
+            
+            let studentRefId;
+            if (!studentSnap.empty) {
+                studentRefId = studentSnap.docs[0].id;
+                await updateDoc(doc(db, 'students', studentRefId), studentData);
+                console.log(`✅ Updated existing student record: ${studentRefId}`);
+            } else {
+                studentData.createdAt = serverTimestamp();
+                const studentRef = await addDoc(collection(db, 'students'), studentData);
+                studentRefId = studentRef.id;
+                console.log(`✅ Created new student record: ${studentRefId}`);
+            }
 
             // 5. Create Subscription Record
             const plan = demoData.selectedPlan || {};
             await addDoc(collection(db, 'subscriptions'), {
                 accountId: realUid,
-                studentId: studentRef.id,
+                studentId: studentRefId,
                 planId: plan.id || 'default',
                 planName: plan.name || 'Standard Plan',
                 amount: plan.price || 0,
@@ -169,7 +202,7 @@ export const conversionService = {
             // 6. Update Demo Status to CONVERTED
             await updateDoc(demoRef, {
                 status: 'CONVERTED',
-                convertedStudentId: studentRef.id,
+                convertedStudentId: studentRefId,
                 paymentApprovedAt: serverTimestamp(),
                 updatedAt: serverTimestamp()
             });
@@ -216,7 +249,7 @@ Indian Chess Academy Team
                 }
             }
 
-            return { success: true, studentId: studentRef.id };
+            return { success: true, studentId: studentRefId };
         } catch (error) {
             console.error('Error approving payment:', error);
             throw error;

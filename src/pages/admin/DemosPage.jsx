@@ -5,6 +5,7 @@ import { useAuth } from '../../context/AuthContext';
 import Card from '../../components/ui/Card';
 import Button from '../../components/ui/Button';
 import AssignCoachModal from '../../components/features/AssignCoachModal';
+import ApprovePaymentModal from '../../components/features/ApprovePaymentModal';
 import DemoOutcomeModal from '../../components/features/DemoOutcomeModal';
 import ConvertAndAssignCoachModal from '../../components/features/ConvertAndAssignCoachModal';
 import ConfirmDialog from '../../components/ui/ConfirmDialog';
@@ -21,6 +22,7 @@ const DemosPage = () => {
     const [outcomeModalOpen, setOutcomeModalOpen] = useState(false);
     const [convertModalOpen, setConvertModalOpen] = useState(false);
     const [selectedDemo, setSelectedDemo] = useState(null);
+    const [approveDemo, setApproveDemo] = useState(null);
     const [demos, setDemos] = useState([]);
     const [loading, setLoading] = useState(true);
     const [confirmDialog, setConfirmDialog] = useState(null);
@@ -107,45 +109,7 @@ const DemosPage = () => {
     };
 
     const handleApprovePayment = (demo) => {
-        setConfirmDialog({
-            title: 'Confirm Payment & Assign Coach',
-            message: `Approve account for ${demo.studentName}? You will need to assign a coach to fully activate their account.`,
-            confirmLabel: 'Approve',
-            variant: 'warning',
-            onConfirm: async () => {
-                setLoading(true);
-                try {
-                    if (demo._fromUsersCollection && demo._userId) {
-                        // User-sourced entry: update user status directly
-                        const { updateDoc, doc, addDoc, collection, serverTimestamp } = await import('firebase/firestore');
-                        const { db } = await import('../../lib/firebase');
-                        await updateDoc(doc(db, 'users', demo._userId), {
-                            status: 'ACTIVE',
-                            updatedAt: serverTimestamp()
-                        });
-                        // Optionally create a demo record for proper tracking
-                        await addDoc(collection(db, 'demos'), {
-                            studentName: demo.studentName,
-                            parentName: demo.parentName,
-                            parentEmail: demo.parentEmail,
-                            status: 'CONVERTED',
-                            _autoCreatedFromUser: true,
-                            userId: demo._userId,
-                            createdAt: serverTimestamp(),
-                            updatedAt: serverTimestamp()
-                        });
-                    } else {
-                        await conversionService.approvePayment(demo.id);
-                    }
-                    toast.success('Payment Approved! Student account is now active.');
-                    fetchDemos();
-                } catch (error) {
-                    console.error(error);
-                    toast.error('Approval Failed: ' + error.message);
-                }
-                setLoading(false);
-            }
-        });
+        setApproveDemo(demo);
     };
 
 
@@ -360,6 +324,18 @@ const DemosPage = () => {
                     onSuccess={() => {
                         fetchDemos();
                         setConvertModalOpen(false);
+                    }}
+                />
+            )}
+
+            {approveDemo && (
+                <ApprovePaymentModal
+                    demo={approveDemo}
+                    onClose={() => setApproveDemo(null)}
+                    onSuccess={() => {
+                        setApproveDemo(null);
+                        fetchDemos();
+                        toast.success('Payment Approved & Student Activated!');
                     }}
                 />
             )}
