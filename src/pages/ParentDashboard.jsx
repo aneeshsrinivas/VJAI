@@ -703,14 +703,26 @@ const ParentDashboard = () => {
                                     try {
                                         if (currentUser?.uid) {
                                             const userRef = doc(db, 'users', currentUser.uid);
-                                            await updateDoc(userRef, { status: 'PAYMENT_SUCCESSFUL' });
+                                            await updateDoc(userRef, { status: 'PAYMENT_SUCCESSFUL', updatedAt: serverTimestamp() });
                                             
-                                            // Optional: Update associated student document if it exists by accountId
+                                            // Update associated student document
                                             const sQuery = query(collection(db, 'students'), where('accountId', '==', currentUser.uid));
                                             const sSnap = await getDocs(sQuery);
                                             if (!sSnap.empty) {
                                                 const sRef = doc(db, 'students', sSnap.docs[0].id);
-                                                await updateDoc(sRef, { status: 'PAYMENT_SUCCESSFUL' });
+                                                await updateDoc(sRef, { status: 'PAYMENT_SUCCESSFUL', updatedAt: serverTimestamp() });
+                                            }
+
+                                            // Update associated demo document so DemosPage pipeline shows correct status
+                                            if (student?.demoId) {
+                                                try {
+                                                    await updateDoc(doc(db, 'demos', student.demoId), {
+                                                        status: 'PAYMENT_SUCCESSFUL',
+                                                        updatedAt: serverTimestamp()
+                                                    });
+                                                } catch (e) {
+                                                    console.warn('Demo doc update skipped:', e.message);
+                                                }
                                             }
                                             
                                             toast.success("Test Payment Successful! Waiting for Admin Approval.");
