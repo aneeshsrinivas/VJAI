@@ -2,8 +2,9 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
-import { collection, query, where, onSnapshot, doc, getDoc, getDocs, orderBy, limit } from 'firebase/firestore';
+import { collection, query, where, onSnapshot, doc, getDoc, getDocs, orderBy, limit, updateDoc } from 'firebase/firestore';
 import { db } from '../lib/firebase';
+import { toast } from 'react-toastify';
 import { COLLECTIONS } from '../config/firestoreCollections';
 import Button from '../components/ui/Button';
 import ReviewRequestModal from '../components/features/ReviewRequestModal';
@@ -673,7 +674,7 @@ const ParentDashboard = () => {
 
             {/* Main Content Grid */}
             <div className="dashboard-content">
-                {student?.status === 'PAYMENT_PENDING' && (
+                {(student?.status === 'PAYMENT_PENDING' || !student?.status) && (
                     <div className="payment-pending-banner" style={{
                         background: 'linear-gradient(135deg, #ef4444 0%, #b91c1c 100%)',
                         color: 'white',
@@ -696,32 +697,72 @@ const ParentDashboard = () => {
                                 </p>
                             </div>
                         </div>
-                        <Button
-                            onClick={() => navigate('/pricing', {
-                                state: {
-                                    recommendedLevel: student?.level || student?.learningLevel || 'beginner',
-                                    recommendedType: student?.studentType || 'group',
-                                    prefillData: {
-                                        parentName: student?.parentName || '',
-                                        parentEmail: student?.email || student?.parentEmail || '',
-                                        parentPhone: student?.phone || '',
-                                        studentName: student?.name || student?.studentName || '',
-                                        studentAge: student?.age || student?.studentAge || '',
+                        <div style={{ display: 'flex', gap: '12px' }}>
+                            <Button
+                                onClick={async () => {
+                                    try {
+                                        if (currentUser?.uid) {
+                                            const userRef = doc(db, 'users', currentUser.uid);
+                                            await updateDoc(userRef, { status: 'PAYMENT_SUCCESSFUL' });
+                                            
+                                            // Optional: Update associated student document if it exists by accountId
+                                            const sQuery = query(collection(db, 'students'), where('accountId', '==', currentUser.uid));
+                                            const sSnap = await getDocs(sQuery);
+                                            if (!sSnap.empty) {
+                                                const sRef = doc(db, 'students', sSnap.docs[0].id);
+                                                await updateDoc(sRef, { status: 'PAYMENT_SUCCESSFUL' });
+                                            }
+                                            
+                                            toast.success("Test Payment Successful! Waiting for Admin Approval.");
+                                            setStudent(prev => prev ? { ...prev, status: 'PAYMENT_SUCCESSFUL' } : null);
+                                        }
+                                    } catch (err) {
+                                        console.error("Test payment error:", err);
+                                        toast.error("Failed to complete test payment.");
                                     }
-                                }
-                            })}
-                            style={{
-                                background: 'white',
-                                color: '#b91c1c',
-                                fontWeight: 'bold',
-                                whiteSpace: 'nowrap',
-                                padding: '12px 24px',
-                                borderRadius: '8px',
-                                border: 'none'
-                            }}
-                        >
-                            Select Plan & Pay
-                        </Button>
+                                }}
+                                style={{
+                                    background: 'rgba(255, 255, 255, 0.2)',
+                                    color: 'white',
+                                    fontWeight: 'bold',
+                                    whiteSpace: 'nowrap',
+                                    padding: '12px 24px',
+                                    borderRadius: '8px',
+                                    border: '1px solid rgba(255,255,255,0.4)',
+                                    cursor: 'pointer'
+                                }}
+                            >
+                                Test Complete Payment
+                            </Button>
+                            <Button
+                                onClick={() => navigate('/pricing', {
+                                    state: {
+                                        demoId: student?.demoId,
+                                        recommendedLevel: student?.level || student?.learningLevel || 'beginner',
+                                        recommendedType: student?.studentType || 'group',
+                                        prefillData: {
+                                            parentName: student?.parentName || student?.fullName || student?.name || '',
+                                            parentEmail: student?.email || student?.parentEmail || '',
+                                            parentPhone: student?.phone || student?.parentPhone || student?.phoneNumber || '',
+                                            studentName: student?.name || student?.studentName || '',
+                                            studentAge: student?.age || student?.studentAge || '',
+                                        }
+                                    }
+                                })}
+                                style={{
+                                    background: 'white',
+                                    color: '#b91c1c',
+                                    fontWeight: 'bold',
+                                    whiteSpace: 'nowrap',
+                                    padding: '12px 24px',
+                                    borderRadius: '8px',
+                                    border: 'none',
+                                    cursor: 'pointer'
+                                }}
+                            >
+                                Select Plan & Pay
+                            </Button>
+                        </div>
                     </div>
                 )}
 
@@ -750,8 +791,36 @@ const ParentDashboard = () => {
                     </div>
                 )}
 
-                {/* Render main content only if fully active */}
-                {student?.status !== 'PAYMENT_PENDING' && (
+                {/* Render main content only if fully active or PAYMENT_SUCCESSFUL (so they can see something while waiting? No, hide content until ACTIVE, or wait, 'student?.status === ACTIVE'?) 
+                    The user previously said "so the admin approves the account". It's better to hide the main content if it's not ACTIVE.
+                    But right now we hide it if PAYMENT_PENDING.
+                    Let's hide main content if it's PAYMENT_SUCCESSFUL too but show a pending approval banner.
+                */}
+                {student?.status === 'PAYMENT_SUCCESSFUL' && (
+                    <div style={{
+                        background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
+                        color: 'white',
+                        padding: '20px 24px',
+                        borderRadius: '12px',
+                        marginBottom: '24px',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '16px',
+                        boxShadow: '0 4px 6px -1px rgba(16, 185, 129, 0.2)'
+                    }}>
+                        <div style={{ background: 'rgba(255,255,255,0.2)', padding: '12px', borderRadius: '50%', flexShrink: 0 }}>
+                            <StarIcon size={28} color="white" />
+                        </div>
+                        <div>
+                            <h3 style={{ margin: '0 0 4px 0', fontSize: '18px', fontWeight: '600', color: 'white' }}>Payment Successful! Pending Admin Approval</h3>
+                            <p style={{ margin: 0, color: 'rgba(255,255,255,0.9)', fontSize: '14px' }}>
+                                Your payment has been processed. The admin team is currently reviewing your account and will activate it shortly.
+                            </p>
+                        </div>
+                    </div>
+                )}
+
+                {student?.status !== 'PAYMENT_PENDING' && !(!student?.status) && student?.status !== 'PAYMENT_SUCCESSFUL' && (
                     <div className="content-grid">
                         {/* Left Column */}
                         <div className="main-column">
@@ -991,48 +1060,6 @@ const ParentDashboard = () => {
                     </div>
                 )}
             </div>
-
-            {/* Floating Contact Admin Button */}
-            <button
-                className="floating-contact-admin"
-                onClick={() => navigate('/parent/chat')}
-                style={{
-                    position: 'fixed',
-                    bottom: '30px',
-                    right: '30px',
-                    width: '60px',
-                    height: '60px',
-                    borderRadius: '50%',
-                    background: isDark ? 'rgba(252, 138, 36, 0.2)' : '#FC8A24',
-                    color: 'white',
-                    border: isDark ? '2px solid rgba(252, 138, 36, 0.5)' : 'none',
-                    boxShadow: isDark ? '0 4px 15px rgba(252, 138, 36, 0.2)' : '0 4px 15px rgba(252, 138, 36, 0.4)',
-                    cursor: 'pointer',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    zIndex: 1000,
-                    transition: 'all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275)'
-                }}
-                onMouseEnter={(e) => {
-                    e.currentTarget.style.transform = 'scale(1.1)';
-                    if (isDark) {
-                        e.currentTarget.style.background = 'rgba(252, 138, 36, 0.35)';
-                        e.currentTarget.style.boxShadow = '0 4px 15px rgba(252, 138, 36, 0.35)';
-                    } else {
-                        e.currentTarget.style.background = '#e07c1a';
-                        e.currentTarget.style.boxShadow = '0 4px 20px rgba(252, 138, 36, 0.5)';
-                    }
-                }}
-                onMouseLeave={(e) => {
-                    e.currentTarget.style.transform = 'scale(1)';
-                    e.currentTarget.style.background = isDark ? 'rgba(252, 138, 36, 0.2)' : '#FC8A24';
-                    e.currentTarget.style.boxShadow = isDark ? '0 4px 15px rgba(252, 138, 36, 0.2)' : '0 4px 15px rgba(252, 138, 36, 0.4)';
-                }}
-                title="Contact Admin Support"
-            >
-                <ChatIcon size={28} color={isDark ? '#FC8A24' : 'white'} />
-            </button>
 
             <ReviewRequestModal
                 isOpen={isReviewModalOpen}

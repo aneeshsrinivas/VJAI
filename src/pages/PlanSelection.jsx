@@ -81,8 +81,8 @@ const PlanSelection = () => {
     const navigate = useNavigate();
     const [searchParams] = useSearchParams();
     const location = useLocation();
-    const demoId = searchParams.get('demoId');
-    const { recommendedLevel, recommendedType } = location.state || {};
+    const { recommendedLevel, recommendedType, demoId: stateDemoId } = location.state || {};
+    const demoId = searchParams.get('demoId') || stateDemoId;
 
     const [plans, setPlans] = useState(mockPlans);
     const [loading, setLoading] = useState(false);

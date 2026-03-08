@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { collection, query, where, getDocs, onSnapshot } from 'firebase/firestore';
+import { collection, query, where, getDocs, onSnapshot, doc, deleteDoc } from 'firebase/firestore';
 import { db } from '../../lib/firebase';
 import Card from '../../components/ui/Card';
 import Button from '../../components/ui/Button';
+import ConfirmDialog from '../../components/ui/ConfirmDialog';
 import { toast } from 'react-toastify';
-import { ClipboardCheck, Download, Search, Filter, Users, Calendar, BarChart3 } from 'lucide-react';
+import { ClipboardCheck, Download, Search, Filter, Users, Calendar, BarChart3, Trash2 } from 'lucide-react';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import { useTheme } from '../../context/ThemeContext';
@@ -29,6 +30,7 @@ const AttendanceReport = () => {
     const [filterDateFrom, setFilterDateFrom] = useState('');
     const [filterDateTo, setFilterDateTo] = useState('');
     const [searchQuery, setSearchQuery] = useState('');
+    const [confirmDialog, setConfirmDialog] = useState(null);
 
     // Load all attendance records
     useEffect(() => {
@@ -97,6 +99,45 @@ const AttendanceReport = () => {
         if (r.status === 'present') studentStats[r.studentId].present++;
         else studentStats[r.studentId].absent++;
     });
+
+    const handleDeleteRecord = (record) => {
+        setConfirmDialog({
+            title: 'Delete Attendance Record',
+            message: `Are you sure you want to delete the attendance record for ${record.studentName} on ${record.date}?`,
+            confirmLabel: 'Delete',
+            onConfirm: async () => {
+                try {
+                    await deleteDoc(doc(db, 'attendance', record.id));
+                    toast.success('Record deleted');
+                } catch (err) {
+                    console.error('Error deleting record:', err);
+                    toast.error('Failed to delete record');
+                }
+                setConfirmDialog(null);
+            }
+        });
+    };
+
+    const handleDeleteAllForStudent = (studentId, studentName) => {
+        setConfirmDialog({
+            title: 'Delete All Records',
+            message: `Are you sure you want to delete ALL attendance records for ${studentName}? This cannot be undone.`,
+            confirmLabel: 'Delete All',
+            onConfirm: async () => {
+                try {
+                    const studentRecords = filteredRecords.filter(r => r.studentId === studentId);
+                    for (const record of studentRecords) {
+                        await deleteDoc(doc(db, 'attendance', record.id));
+                    }
+                    toast.success(`Deleted all records for ${studentName}`);
+                } catch (err) {
+                    console.error('Error deleting records:', err);
+                    toast.error('Failed to delete some records');
+                }
+                setConfirmDialog(null);
+            }
+        });
+    };
 
     // Generate individual student attendance report
     const generateStudentReport = (studentId, studentName) => {
@@ -387,37 +428,48 @@ const AttendanceReport = () => {
                                             </span>
                                         </td>
                                         <td>
-                                            <button
-                                                onClick={() => generateStudentReport(id, s.name)}
-                                                style={{
-                                                    background: COLORS.orange,
-                                                    color: 'white',
-                                                    border: 'none',
-                                                    padding: '8px 16px',
-                                                    borderRadius: '6px',
-                                                    cursor: 'pointer',
-                                                    fontSize: '13px',
-                                                    fontWeight: '500',
-                                                    display: 'flex',
-                                                    alignItems: 'center',
-                                                    gap: '6px',
-                                                    whiteSpace: 'nowrap',
-                                                    transition: 'all 0.2s'
-                                                }}
-                                                onMouseEnter={(e) => {
-                                                    e.currentTarget.style.background = '#e67e22';
-                                                    e.currentTarget.style.transform = 'scale(1.05)';
-                                                }}
-                                                onMouseLeave={(e) => {
-                                                    e.currentTarget.style.background = COLORS.orange;
-                                                    e.currentTarget.style.transform = 'scale(1)';
-                                                }}
-                                            >
-                                                <Download size={14} />
-                                                Report
-                                            </button>
+                                            <div style={{ display: 'flex', gap: '8px' }}>
+                                                <button
+                                                    onClick={() => generateStudentReport(id, s.name)}
+                                                    style={{
+                                                        background: COLORS.orange,
+                                                        color: 'white',
+                                                        border: 'none',
+                                                        padding: '8px 16px',
+                                                        borderRadius: '6px',
+                                                        cursor: 'pointer',
+                                                        fontSize: '13px',
+                                                        fontWeight: '500',
+                                                        display: 'flex',
+                                                        alignItems: 'center',
+                                                        gap: '6px',
+                                                        whiteSpace: 'nowrap',
+                                                        transition: 'all 0.2s'
+                                                    }}
+                                                >
+                                                    <Download size={14} /> Report
+                                                </button>
+                                                <button
+                                                    onClick={() => handleDeleteAllForStudent(id, s.name)}
+                                                    style={{
+                                                        background: 'transparent',
+                                                        color: '#DC2626',
+                                                        border: '1px solid #DC2626',
+                                                        padding: '8px 12px',
+                                                        borderRadius: '6px',
+                                                        cursor: 'pointer',
+                                                        display: 'flex',
+                                                        alignItems: 'center',
+                                                        gap: '6px',
+                                                        transition: 'all 0.2s'
+                                                    }}
+                                                >
+                                                    <Trash2 size={14} /> Clear All
+                                                </button>
+                                            </div>
                                         </td>
                                     </tr>
+
                                 ))}
                             </tbody>
                         </table>
@@ -440,6 +492,7 @@ const AttendanceReport = () => {
                                 <th>Student</th>
                                 <th>Batch</th>
                                 <th>Status</th>
+                                <th>Action</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -458,15 +511,37 @@ const AttendanceReport = () => {
                                                 {r.status === 'present' ? 'Present' : 'Absent'}
                                             </span>
                                         </td>
+                                        <td>
+                                            <button
+                                                onClick={() => handleDeleteRecord(r)}
+                                                style={{ background: 'transparent', border: 'none', color: '#DC2626', cursor: 'pointer', padding: '4px' }}
+                                            >
+                                                <Trash2 size={16} />
+                                            </button>
+                                        </td>
                                     </tr>
+
                                 ))
                             )}
                         </tbody>
                     </table>
                 </div>
             </Card>
+
+            {/* Confirmation Dialog */}
+            {confirmDialog && (
+                <ConfirmDialog
+                    isOpen={!!confirmDialog}
+                    title={confirmDialog.title}
+                    message={confirmDialog.message}
+                    confirmLabel={confirmDialog.confirmLabel}
+                    onConfirm={confirmDialog.onConfirm}
+                    onCancel={() => setConfirmDialog(null)}
+                />
+            )}
         </div>
     );
 };
+
 
 export default AttendanceReport;

@@ -47,9 +47,10 @@ const CoachStudents = () => {
         if (!coachDocId) return;
 
         setLoading(true);
+        const coachIds = [...new Set([coachDocId, currentUser.uid])];
         const q = query(
             collection(db, 'users'),
-            where('assignedCoachId', '==', coachDocId),
+            where('assignedCoachId', 'in', coachIds),
             where('role', 'in', ['student', 'customer'])
         );
 

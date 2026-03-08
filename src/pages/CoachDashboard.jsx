@@ -681,34 +681,6 @@ const CoachDashboard = () => {
                 batchName={createAssignmentBatch?.name}
                 onSuccess={() => {}}
             />
-            {/* Floating Contact Admin Button */}
-            <button
-                className="floating-contact-admin"
-                onClick={() => navigate('/coach/chat')}
-                style={{
-                    position: 'fixed',
-                    bottom: '30px',
-                    right: '30px',
-                    width: '60px',
-                    height: '60px',
-                    borderRadius: '50%',
-                    background: '#FC8A24',
-                    color: 'white',
-                    border: 'none',
-                    boxShadow: '0 4px 15px rgba(252, 138, 36, 0.4)',
-                    cursor: 'pointer',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    zIndex: 1000,
-                    transition: 'transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275)'
-                }}
-                onMouseEnter={(e) => e.currentTarget.style.transform = 'scale(1.1)'}
-                onMouseLeave={(e) => e.currentTarget.style.transform = 'scale(1)'}
-                title="Contact Admin Support"
-            >
-                <MessageSquare size={28} color="white" />
-            </button>
         </div>
     );
 };

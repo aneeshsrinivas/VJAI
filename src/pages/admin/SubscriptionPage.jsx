@@ -1,11 +1,13 @@
 import React, { useState, useEffect } from 'react';
-import { collection, getDocs, doc, updateDoc, addDoc, onSnapshot, query, orderBy, serverTimestamp } from 'firebase/firestore';
+import { collection, getDocs, doc, updateDoc, addDoc, deleteDoc, onSnapshot, query, orderBy, serverTimestamp } from 'firebase/firestore';
 import { db } from '../../lib/firebase';
 import Card from '../../components/ui/Card';
 import Button from '../../components/ui/Button';
 import Input from '../../components/ui/Input';
+import ConfirmDialog from '../../components/ui/ConfirmDialog';
 import { toast, ToastContainer } from 'react-toastify';
-import { Plus, X, Users, CreditCard } from 'lucide-react';
+import { Plus, X, Users, CreditCard, Trash2 } from 'lucide-react';
+
 
 const SubscriptionPage = () => {
     const [subscriptions, setSubscriptions] = useState([]);
@@ -20,6 +22,8 @@ const SubscriptionPage = () => {
         billingCycle: 'MONTHLY',
         status: 'ACTIVE'
     });
+    const [confirmDialog, setConfirmDialog] = useState(null);
+
 
     // Real-time listener for subscriptions
     useEffect(() => {
@@ -66,7 +70,26 @@ const SubscriptionPage = () => {
         }
     };
 
+    const handleDeleteSubscription = (subscription) => {
+        setConfirmDialog({
+            title: 'Delete Subscription',
+            message: `Are you sure you want to delete the subscription for ${subscription.studentName}? This will reset associated analytics.`,
+            confirmLabel: 'Delete',
+            onConfirm: async () => {
+                try {
+                    await deleteDoc(doc(db, 'subscriptions', subscription.id));
+                    toast.success('Subscription deleted successfully');
+                } catch (error) {
+                    console.error('Error deleting subscription:', error);
+                    toast.error('Failed to delete subscription');
+                }
+                setConfirmDialog(null);
+            }
+        });
+    };
+
     const handleAddSubscription = async (e) => {
+
         e.preventDefault();
 
         if (!formData.studentName || !formData.parentEmail) {
@@ -210,9 +233,15 @@ const SubscriptionPage = () => {
                                             {sub.status !== 'CANCELLED' && (
                                                 <Button size="sm" variant="secondary" onClick={() => handleStatusChange(sub.id, 'CANCELLED')}>Cancel</Button>
                                             )}
+                                            {sub.status === 'CANCELLED' && (
+                                                <Button size="sm" variant="ghost" onClick={() => handleDeleteSubscription(sub)} style={{ color: '#DC2626' }}>
+                                                    <Trash2 size={16} />
+                                                </Button>
+                                            )}
                                         </div>
                                     </td>
                                 </tr>
+
                             ))}
                         </tbody>
                     </table>
@@ -295,6 +324,17 @@ const SubscriptionPage = () => {
                         </form>
                     </div>
                 </div>
+            )}
+            {/* Confirmation Dialog */}
+            {confirmDialog && (
+                <ConfirmDialog
+                    isOpen={!!confirmDialog}
+                    title={confirmDialog.title}
+                    message={confirmDialog.message}
+                    confirmLabel={confirmDialog.confirmLabel}
+                    onConfirm={confirmDialog.onConfirm}
+                    onCancel={() => setConfirmDialog(null)}
+                />
             )}
         </div>
     );

@@ -81,7 +81,7 @@ const AddStudentModal = ({ isOpen, onClose, onSuccess }) => {
                 country: formData.country,
                 learningLevel: formData.level,
                 createdBy: 'ADMIN',
-                status: 'ACTIVE'
+                status: 'PAYMENT_PENDING'
             });
 
             // 3. Success

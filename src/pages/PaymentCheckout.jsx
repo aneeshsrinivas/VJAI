@@ -61,76 +61,75 @@ const PaymentCheckout = () => {
         loadRazorpayScript();
     }, []);
 
-    // Apply prefillData passed from the dashboard → pricing → checkout navigation chain
+    // ── Single consolidated prefill effect ─────────────────────────────────
+    // Priority: 1) Demo booking doc (most accurate), 2) routing state prefillData, 3) user DB doc
     useEffect(() => {
-        if (prefillData) {
-            setFormData(prev => ({
-                ...prev,
-                parentName: prefillData.parentName || prev.parentName,
-                parentEmail: prefillData.parentEmail || prev.parentEmail,
-                parentPhone: prefillData.parentPhone || prev.parentPhone,
-                studentName: prefillData.studentName || prev.studentName,
-                studentAge: prefillData.studentAge || prev.studentAge,
-            }));
-        }
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, []);  // run once on mount, prefillData is from static location.state
+        const fillForm = async () => {
+            try {
+                // Start with whatever routing state gave us
+                let merged = {
+                    parentName: prefillData?.parentName || '',
+                    parentEmail: prefillData?.parentEmail || '',
+                    parentPhone: prefillData?.parentPhone || '',
+                    studentName: prefillData?.studentName || '',
+                    studentAge: prefillData?.studentAge || '',
+                };
 
-
-    // Pre-fill form with user data if logged in, including demo booking data
-    useEffect(() => {
-        const fetchUserData = async () => {
-            if (user?.uid) {
-                try {
+                // Layer 2: logged-in user doc (fills gaps in prefillData)
+                if (user?.uid) {
                     const userDoc = await getDoc(doc(db, 'users', user.uid));
                     if (userDoc.exists()) {
-                        const userData = userDoc.data();
-                        setFormData(prev => ({
-                            ...prev,
-                            parentName: userData.fullName || userData.parentName || userData.name || '',
-                            parentEmail: userData.email || user.email || '',
-                            parentPhone: userData.phone || userData.phoneNumber || '',
-                            // Also prefill student info if available on user doc
-                            studentName: prev.studentName || userData.studentName || '',
-                            studentAge: prev.studentAge || userData.studentAge || '',
-                        }));
-                    } else {
-                        setFormData(prev => ({
-                            ...prev,
-                            parentEmail: user.email || ''
-                        }));
-                    }
-                } catch (error) {
-                    console.error('Error fetching user data:', error);
-                }
-            }
-        };
-        fetchUserData();
-    }, [user]);
+                        const u = userDoc.data();
+                        merged.parentName = merged.parentName || u.fullName || u.parentName || u.name || '';
+                        merged.parentEmail = merged.parentEmail || u.email || user.email || '';
+                        merged.parentPhone = merged.parentPhone || u.phone || u.parentPhone || u.phoneNumber || '';
+                        merged.studentName = merged.studentName || u.studentName || '';
+                        merged.studentAge  = merged.studentAge  || u.studentAge  || '';
 
-    // If launched from dashboard with a demoId, prefill from demo document
-    useEffect(() => {
-        if (!demoId) return;
-        const fetchDemoData = async () => {
-            try {
-                const demoDoc = await getDoc(doc(db, 'demos', demoId));
-                if (demoDoc.exists()) {
-                    const d = demoDoc.data();
-                    setFormData(prev => ({
-                        ...prev,
-                        parentName: prev.parentName || d.parentName || '',
-                        parentEmail: prev.parentEmail || d.parentEmail || d.email || '',
-                        parentPhone: prev.parentPhone || d.parentPhone || '',
-                        studentName: prev.studentName || d.studentName || '',
-                        studentAge: prev.studentAge || d.studentAge || '',
-                    }));
+                        // Resolve effective demoId: from routing state OR user doc
+                        if (!demoId && u.demoId) {
+                            // fetch demo doc using user-stored demoId
+                            const demoDoc = await getDoc(doc(db, 'demos', u.demoId));
+                            if (demoDoc.exists()) {
+                                const d = demoDoc.data();
+                                merged.parentName  = d.parentName  || merged.parentName;
+                                merged.parentEmail = d.parentEmail || d.email || merged.parentEmail;
+                                merged.parentPhone = d.parentPhone || merged.parentPhone;
+                                merged.studentName = d.studentName || merged.studentName;
+                                merged.studentAge  = d.studentAge  || merged.studentAge;
+                            }
+                        }
+                    } else {
+                        merged.parentEmail = merged.parentEmail || user.email || '';
+                    }
                 }
+
+                // Layer 1 (highest priority): explicitly passed demoId from routing state
+                if (demoId) {
+                    const demoDoc = await getDoc(doc(db, 'demos', demoId));
+                    if (demoDoc.exists()) {
+                        const d = demoDoc.data();
+                        // Demo data always wins over DB user fields
+                        merged.parentName  = d.parentName  || merged.parentName;
+                        merged.parentEmail = d.parentEmail || d.email || merged.parentEmail;
+                        merged.parentPhone = d.parentPhone || merged.parentPhone;
+                        merged.studentName = d.studentName || merged.studentName;
+                        merged.studentAge  = d.studentAge  || merged.studentAge;
+                    }
+                }
+
+                setFormData(prev => ({ ...prev, ...merged }));
             } catch (err) {
-                console.error('Error fetching demo data for prefill:', err);
+                console.error('Prefill error:', err);
+                // Still fill what we have
+                if (user?.email) {
+                    setFormData(prev => ({ ...prev, parentEmail: prev.parentEmail || user.email }));
+                }
             }
         };
-        fetchDemoData();
-    }, [demoId]);
+        fillForm();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [user]);  // Re-run only when auth user changes
 
     // Fetch students based on parent email
     useEffect(() => {

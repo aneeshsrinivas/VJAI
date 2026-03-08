@@ -321,6 +321,7 @@ const StudentDatabase = () => {
                         <option value="ACTIVE">Active</option>
                         <option value="PENDING_COACH">Pending Coach</option>
                         <option value="PAYMENT_PENDING">Payment Pending</option>
+                        <option value="PAYMENT_SUCCESSFUL">Payment Successful (Pending Approval)</option>
                         <option value="PAUSED">Paused</option>
                         <option value="CANCELLED">Cancelled</option>
                     </select>
@@ -417,12 +418,14 @@ const StudentDatabase = () => {
                                                     <span style={{
                                                         backgroundColor: 
                                                             student.status === 'ACTIVE' ? '#E8F5E9' : 
+                                                            student.status === 'PAYMENT_SUCCESSFUL' ? '#E0F2FE' : 
                                                             student.status === 'PAUSED' ? '#FFF3E0' : 
                                                             (student.status === 'PENDING_COACH' || student.status === 'PAYMENT_PENDING') ? '#FFF9C4' : 
                                                             student.status === 'BLOCKED' ? '#FFEBEE' : 
                                                             student.status === 'REJECTED' ? '#F5F5F5' : '#FFEBEE',
                                                         color: 
                                                             student.status === 'ACTIVE' ? '#2E7D32' : 
+                                                            student.status === 'PAYMENT_SUCCESSFUL' ? '#0369A1' : 
                                                             student.status === 'PAUSED' ? '#EF6C00' : 
                                                             (student.status === 'PENDING_COACH' || student.status === 'PAYMENT_PENDING') ? '#F57F17' : 
                                                             student.status === 'BLOCKED' ? '#C62828' : 
@@ -563,8 +566,9 @@ const StudentDatabase = () => {
                                         style={{ width: '100%', padding: '12px', border: '1px solid #ddd', borderRadius: '8px', fontSize: '14px' }}
                                     >
                                         <option value="ACTIVE">Active</option>
-                                        <option value="PENDING_COACH">Pending Coach</option>
                                         <option value="PAYMENT_PENDING">Payment Pending</option>
+                                        <option value="PAYMENT_SUCCESSFUL">Payment Successful (Pending Approval)</option>
+                                        <option value="PENDING_COACH">Pending Coach Assignment</option>
                                         <option value="PAUSED">Paused</option>
                                         <option value="BLOCKED">Blocked</option>
                                         <option value="REJECTED">Rejected</option>
