@@ -4,7 +4,7 @@ import { conversionService } from '../../services/conversionService';
 import { useAuth } from '../../context/AuthContext';
 import { auth, db } from '../../lib/firebase';
 import { useTheme } from '../../context/ThemeContext';
-import { collection, query, getDocs } from 'firebase/firestore';
+import { collection, query, getDocs, where } from 'firebase/firestore';
 import Button from '../ui/Button';
 import { X, CheckCircle, User, BookOpen } from 'lucide-react';
 
@@ -31,17 +31,44 @@ const ApprovePaymentModal = ({ demo, onClose, onSuccess }) => {
             if (coachResult.success) {
                 setCoaches(coachResult.coaches);
             }
-            
-            const batchSnap = await getDocs(collection(db, 'batches'));
-            const batchList = batchSnap.docs.map(doc => ({
-                id: doc.id,
-                ...doc.data()
-            }));
-            setBatches(batchList);
         } catch (err) {
             console.error('Error fetching data:', err);
         }
     };
+
+    // Fetch batches for selected coach
+    useEffect(() => {
+        const fetchBatches = async () => {
+            if (!selectedCoachId) {
+                setBatches([]);
+                return;
+            }
+            try {
+                // Find the coach document that matches the selectedCoachId
+                const coachQuery = query(collection(db, 'coaches'), where('accountId', '==', selectedCoachId));
+                const coachSnap = await getDocs(coachQuery);
+
+                if (!coachSnap.empty) {
+                    const coachDocId = coachSnap.docs[0].id;
+                    // Fetch batches from this coach's subcollection
+                    const batchQuery = query(collection(db, 'coaches', coachDocId, 'batches'));
+                    const batchSnap = await getDocs(batchQuery);
+                    const batchList = batchSnap.docs.map(d => ({
+                        id: d.id,
+                        name: d.data().name,
+                        level: d.data().level
+                    }));
+                    setBatches(batchList);
+                    setSelectedBatchId('');
+                } else {
+                    setBatches([]);
+                }
+            } catch (err) {
+                console.error('Error fetching batches:', err);
+            }
+        };
+        fetchBatches();
+    }, [selectedCoachId]);
 
     const handleSubmit = async (e) => {
         e.preventDefault();

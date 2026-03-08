@@ -620,7 +620,6 @@ const PaymentCheckout = () => {
 
     return (
         <div className="checkout-page">
-            <ToastContainer position="top-right" autoClose={4000} hideProgressBar={false} />
             <div className="checkout-container">
                 {/* Progress Indicator */}
                 <div className="checkout-progress">
