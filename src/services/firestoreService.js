@@ -215,7 +215,7 @@ export const convertDemoToStudent = async (demoId, accountId, paymentData) => {
             learningLevel: demoData.recommendedLevel || 'beginner',
             level: demoData.recommendedLevel || 'beginner',
             phone: demoData.parentPhone || demoData.phone || '',
-            status: 'ACTIVE',
+            status: 'PAYMENT_PENDING',
             assignedCoachId: demoData.assignedCoachId || null,
             source: 'DEMO_CONVERSION',
             demoId: demoId,
@@ -239,7 +239,7 @@ export const convertDemoToStudent = async (demoId, accountId, paymentData) => {
             rating: null,
             assignedCoachId: demoData.assignedCoachId,
             assignedBatchId: paymentData.batchId || null,
-            status: 'ACTIVE',
+            status: 'PAYMENT_PENDING',
             createdAt: serverTimestamp(),
             updatedAt: serverTimestamp()
         });
@@ -365,7 +365,7 @@ export const createParentAccount = async (uid, email, adminId, extraData = {}) =
         // Write to 'users' collection (source of truth for ParentDashboard status gating)
         await setDoc(doc(db, 'users', uid), {
             email: email,
-            role: 'student',
+            role: 'customer',
             status: 'PAYMENT_PENDING',   // ← gated: dashboard will show payment banner
             createdByAdminId: adminId,
             studentName: extraData.studentName || '',
@@ -373,6 +373,7 @@ export const createParentAccount = async (uid, email, adminId, extraData = {}) =
             parentName: extraData.parentName || '',
             learningLevel: extraData.learningLevel || '',
             meetingLink: extraData.meetingLink || '', // Store the demo meeting link as default
+            demoId: extraData.demoId || null,
             createdAt: serverTimestamp(),
             updatedAt: serverTimestamp()
         });

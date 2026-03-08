@@ -82,7 +82,7 @@ export const conversionService = {
 
             const demoData = demoSnap.data();
 
-            if (demoData.status !== 'PAYMENT_COMPLETED' && demoData.status !== 'PAYMENT_PENDING') {
+            if (demoData.status !== 'PAYMENT_COMPLETED' && demoData.status !== 'PAYMENT_PENDING' && demoData.status !== 'PAYMENT_SUCCESSFUL') {
                 throw new Error('Demo is not pending payment approval');
             }
 

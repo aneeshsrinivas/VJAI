@@ -64,6 +64,7 @@ const ConvertStudentModal = ({ demo, onClose, onSuccess }) => {
                 parentName: demo.parentName || '',
                 learningLevel: demo.recommendedLevel || demo.chessExperience || '',
                 meetingLink: demo.meetingLink || '',
+                demoId: demo.id
             });
 
             // 3. Convert Demo & Create Student/Subscription
