@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { X, Calendar, MapPin, Clipboard } from 'lucide-react';
-import { doc, getDoc } from 'firebase/firestore';
+import { doc, getDoc, collection, query, where, getDocs } from 'firebase/firestore';
 import { db } from '../../lib/firebase';
 import { useAuth } from '../../context/AuthContext';
 import { useTheme } from '../../context/ThemeContext';
@@ -13,23 +13,39 @@ const StudentDetailsModal = ({ isOpen, onClose, student }) => {
 
     useEffect(() => {
         const fetchBatchDetails = async () => {
-            if (!student || !currentUser?.uid) return;
+            if (!student) return;
             
             setLoading(true);
             try {
                 // Get the student's assignedBatchId from the user document
-                const assignedBatchId = student.assignedBatchId || student.batchId;
+                const assignedBatchId = student.assignedBatchId || student.batchId || student.assignedBatch;
+                const assignedCoachId = student.assignedCoachId || student.assignedCoach;
                 
-                if (assignedBatchId) {
-                    // Fetch batch from coach's subcollection: coaches/{coachId}/batches/{batchId}
-                    const batchRef = doc(db, 'coaches', currentUser.uid, 'batches', assignedBatchId);
-                    const batchSnap = await getDoc(batchRef);
+                if (assignedBatchId && assignedCoachId) {
+                    // Fetch coach doc using assignedCoachId (which is the coach's accountId)
+                    const coachQuery = query(collection(db, 'coaches'), where('accountId', '==', assignedCoachId));
+                    const coachSnap = await getDocs(coachQuery);
                     
-                    if (batchSnap.exists()) {
-                        setBatchName(batchSnap.data().name || batchSnap.data().batchName);
+                    if (!coachSnap.empty) {
+                        const coachDocId = coachSnap.docs[0].id;
+                        const batchRef = doc(db, 'coaches', coachDocId, 'batches', assignedBatchId);
+                        const batchSnap = await getDoc(batchRef);
+                        
+                        if (batchSnap.exists()) {
+                            setBatchName(batchSnap.data().name || batchSnap.data().batchName);
+                        } else {
+                            setBatchName(student.assignedBatchName || student.batchName || 'Batch not found');
+                        }
                     } else {
-                        // Fallback to student's stored batch name
-                        setBatchName(student.assignedBatchName || student.batchName || 'Batch not found');
+                        // Fallback to directly using assignedCoachId as coach doc ID
+                        const batchRef = doc(db, 'coaches', assignedCoachId, 'batches', assignedBatchId);
+                        const batchSnap = await getDoc(batchRef);
+                        
+                        if (batchSnap.exists()) {
+                            setBatchName(batchSnap.data().name || batchSnap.data().batchName);
+                        } else {
+                            setBatchName(student.assignedBatchName || student.batchName || 'Batch not found');
+                        }
                     }
                 } else {
                     setBatchName(student.assignedBatchName || student.batchName || 'No Batch Assigned');
@@ -73,33 +89,19 @@ const StudentDetailsModal = ({ isOpen, onClose, student }) => {
                         position: 'absolute', 
                         top: '20px', 
                         right: '25px',
-                        background: isDark ? 'rgba(255, 255, 255, 0.05)' : 'rgba(0, 0, 0, 0.05)',
-                        border: isDark ? '1px solid rgba(255, 255, 255, 0.1)' : '1px solid rgba(0, 0, 0, 0.1)',
-                        borderRadius: '12px',
-                        width: '40px', 
-                        height: '40px',
-                        display: 'flex', 
-                        alignItems: 'center', 
-                        justifyContent: 'center',
+                        background: 'transparent',
+                        border: 'none',
                         cursor: 'pointer',
-                        color: isDark ? '#cbd5e1' : '#64748b',
-                        transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
-                        flexShrink: 0,
+                        color: isDark ? '#94a3b8' : '#64748b',
+                        padding: '4px',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
                         zIndex: 10
-                    }}
-                    onMouseEnter={(e) => {
-                        e.currentTarget.style.background = isDark ? 'rgba(239, 68, 68, 0.15)' : 'rgba(239, 68, 68, 0.1)';
-                        e.currentTarget.style.color = '#ef4444';
-                        e.currentTarget.style.transform = 'rotate(90deg)';
-                    }}
-                    onMouseLeave={(e) => {
-                        e.currentTarget.style.background = isDark ? 'rgba(255, 255, 255, 0.05)' : 'rgba(0, 0, 0, 0.05)';
-                        e.currentTarget.style.color = isDark ? '#cbd5e1' : '#64748b';
-                        e.currentTarget.style.transform = 'rotate(0deg)';
                     }}
                     title="Close"
                 >
-                    <X size={20} />
+                    <X size={24} />
                 </button>
 
                 <div style={{ textAlign: 'center', marginBottom: '24px' }}>

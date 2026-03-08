@@ -266,11 +266,29 @@ const ChatPage = ({ userRole: propRole }) => {
             }).catch(err => console.error('Error fetching batches:', err));
         } else if (role === 'COACH' && currentUser?.uid) {
             // Load coach's batches from subcollection
-            getDocs(collection(db, 'coaches', currentUser.uid, 'batches')).then(snap => {
-                const batchList = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-                setBatches(batchList);
-                console.log('Coach batches loaded:', batchList);
-            }).catch(err => console.error('Error fetching coach batches:', err));
+            // Coach's UID is accountId, need to find their doc ID first
+            const findCoachDoc = async () => {
+                try {
+                    const coachQuery = query(collection(db, 'coaches'), where('accountId', '==', currentUser.uid));
+                    const coachSnap = await getDocs(coachQuery);
+                    if (!coachSnap.empty) {
+                        const coachDocId = coachSnap.docs[0].id;
+                        const batchSnap = await getDocs(collection(db, 'coaches', coachDocId, 'batches'));
+                        const batchList = batchSnap.docs.map(d => ({ id: d.id, ...d.data() }));
+                        setBatches(batchList);
+                        console.log('Coach batches loaded:', batchList);
+                    } else {
+                        // Fallback: try using UID directly as doc ID
+                        const batchSnap = await getDocs(collection(db, 'coaches', currentUser.uid, 'batches'));
+                        const batchList = batchSnap.docs.map(d => ({ id: d.id, ...d.data() }));
+                        setBatches(batchList);
+                        console.log('Coach batches loaded (fallback):', batchList);
+                    }
+                } catch (err) {
+                    console.error('Error fetching coach batches:', err);
+                }
+            };
+            findCoachDoc();
         } else if (role === 'CUSTOMER' && currentUser?.uid) {
             // Load student's assigned batches from users collection
             console.log('Fetching student from users collection for UID:', currentUser.uid);
@@ -278,7 +296,7 @@ const ChatPage = ({ userRole: propRole }) => {
             const studentRef = doc(db, 'users', currentUser.uid);
 
             getDoc(studentRef)
-                .then((snap) => {
+                .then(async (snap) => {
                     if (!snap.exists()) {
                         console.log('No student document found in users collection');
                         return;
@@ -287,10 +305,10 @@ const ChatPage = ({ userRole: propRole }) => {
                     const data = snap.data();
 
                     console.log('Student data: in chat', data);
-                    console.log("assignedBatchName field:", data.assignedBatchName);
 
                     let assignedBatchIds = data.assignedBatch || data.assignedBatchId || [];
                     let assignedBatchNames = data.assignedBatchName || [];
+                    const assignedCoachId = data.assignedCoachId || data.assignedCoach || null;
 
                     // Convert single ID string to array
                     if (typeof assignedBatchIds === 'string') {
@@ -317,10 +335,32 @@ const ChatPage = ({ userRole: propRole }) => {
                         return;
                     }
 
+                    // Try to resolve batch names from coach's subcollection
+                    let resolvedNames = [...assignedBatchNames];
+                    if (assignedCoachId) {
+                        try {
+                            // Find the coach doc by accountId
+                            const coachQuery = query(collection(db, 'coaches'), where('accountId', '==', assignedCoachId));
+                            const coachSnap = await getDocs(coachQuery);
+                            if (!coachSnap.empty) {
+                                const coachDocId = coachSnap.docs[0].id;
+                                for (let i = 0; i < assignedBatchIds.length; i++) {
+                                    const batchRef = doc(db, 'coaches', coachDocId, 'batches', assignedBatchIds[i]);
+                                    const batchSnap = await getDoc(batchRef);
+                                    if (batchSnap.exists()) {
+                                        resolvedNames[i] = batchSnap.data().name || batchSnap.data().batchName || resolvedNames[i] || assignedBatchIds[i];
+                                    }
+                                }
+                            }
+                        } catch (err) {
+                            console.warn('Could not resolve batch names from coach subcollection:', err);
+                        }
+                    }
+
                     // Combine IDs and names into batch objects
                     const batchList = assignedBatchIds.map((id, idx) => ({
                         id: id,  // This is the room ID for WebSocket
-                        name: assignedBatchNames[idx] || id  // Display name
+                        name: resolvedNames[idx] || id  // Display name
                     }));
 
                     setBatches(batchList);
@@ -505,9 +545,19 @@ const ChatPage = ({ userRole: propRole }) => {
         }
     };
 
-    const filteredChats = chats.filter(chat =>
-        getChatDisplayName(chat).toLowerCase().includes(searchQuery.toLowerCase())
-    );
+    const filteredChats = chats.filter(chat => {
+        const matchesSearch = getChatDisplayName(chat).toLowerCase().includes(searchQuery.toLowerCase());
+        
+        // Filter out private chats for deleted users
+        if (role === 'ADMIN' && (chat.chatType === 'ADMIN_PARENT' || chat.chatType === 'ADMIN_COACH')) {
+            if (users.length > 0 && chat.userId) {
+                const userExists = users.some(u => u.id === chat.userId);
+                if (!userExists) return false;
+            }
+        }
+        
+        return matchesSearch;
+    });
 
     const formatTime = (timestamp) => {
         if (!timestamp?.toDate) return '';

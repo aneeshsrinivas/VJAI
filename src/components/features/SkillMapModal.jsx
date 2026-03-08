@@ -251,31 +251,19 @@ const SkillMapModal = ({ isOpen, onClose, student, onUpgrade }) => {
                                 onClose();
                             }} 
                             style={{
-                                background: 'rgba(0, 0, 0, 0.2)',
-                                border: '1px solid rgba(255, 255, 255, 0.2)',
-                                borderRadius: '12px',
-                                width: '40px',
-                                height: '40px',
+                                background: 'transparent',
+                                border: 'none',
+                                cursor: 'pointer',
+                                color: 'white',
+                                padding: '4px',
                                 display: 'flex',
                                 alignItems: 'center',
                                 justifyContent: 'center',
-                                cursor: 'pointer',
-                                color: 'white',
-                                transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
-                                flexShrink: 0,
                                 zIndex: 10
-                            }}
-                            onMouseEnter={(e) => {
-                                e.currentTarget.style.background = 'rgba(0, 0, 0, 0.4)';
-                                e.currentTarget.style.transform = 'rotate(90deg)';
-                            }}
-                            onMouseLeave={(e) => {
-                                e.currentTarget.style.background = 'rgba(0, 0, 0, 0.2)';
-                                e.currentTarget.style.transform = 'rotate(0deg)';
                             }}
                             title="Close"
                         >
-                            <X size={20} />
+                            <X size={24} />
                         </button>
                     </div>
                 </div>
