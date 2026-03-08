@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { collection, query, orderBy, onSnapshot, addDoc, serverTimestamp, getDocs, where, updateDoc, doc, setDoc, getDoc } from 'firebase/firestore';
+import { collection, query, orderBy, onSnapshot, addDoc, serverTimestamp, getDocs, where, updateDoc, doc, setDoc, getDoc, deleteDoc } from 'firebase/firestore';
 import { db } from '../../lib/firebase';
 import { useAuth } from '../../context/AuthContext';
 import Button from '../../components/ui/Button';
@@ -531,6 +531,29 @@ const ChatPage = ({ userRole: propRole }) => {
         }
     };
 
+    const handleDeleteChat = async () => {
+        if (!selectedChat || role !== 'ADMIN') return;
+        
+        if (window.confirm("Are you sure you want to delete this chat and all its messages? This cannot be undone.")) {
+            try {
+                // Delete messages first
+                const messagesQuery = query(collection(db, 'messages'), where('chatId', '==', selectedChat.id));
+                const messagesSnap = await getDocs(messagesQuery);
+                const deletePromises = messagesSnap.docs.map(messageDoc => deleteDoc(messageDoc.ref));
+                await Promise.all(deletePromises);
+                
+                // Delete chat document
+                await deleteDoc(doc(db, 'chats', selectedChat.id));
+                
+                toast.success('Chat deleted successfully');
+                setSelectedChat(null);
+            } catch (error) {
+                console.error('Error deleting chat:', error);
+                toast.error('Failed to delete chat: ' + error.message);
+            }
+        }
+    };
+
     const getChatDisplayName = (chat) => {
         if (chat.name) return chat.name;
         if (chat.chatType === 'BATCH_GROUP') return 'Batch Group';
@@ -839,12 +862,45 @@ const ChatPage = ({ userRole: propRole }) => {
                                         </span>
                                     </div>
                                 </div>
-                                {role === 'COACH' && (
-                                    <div className="privacy-badge">
-                                        <Lock size={12} />
-                                        Contact details hidden
-                                    </div>
-                                )}
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                                    {role === 'COACH' && (
+                                        <div className="privacy-badge">
+                                            <Lock size={12} />
+                                            Contact details hidden
+                                        </div>
+                                    )}
+                                    {role === 'ADMIN' && (
+                                        <button
+                                            onClick={handleDeleteChat}
+                                            style={{
+                                                background: 'transparent',
+                                                border: '1px solid #ef4444',
+                                                color: '#ef4444',
+                                                padding: '6px 12px',
+                                                borderRadius: '6px',
+                                                cursor: 'pointer',
+                                                fontSize: '12px',
+                                                fontWeight: '600',
+                                                transition: 'all 0.2s',
+                                                display: 'flex',
+                                                alignItems: 'center',
+                                                gap: '6px'
+                                            }}
+                                            onMouseOver={(e) => {
+                                                e.currentTarget.style.background = '#ef4444';
+                                                e.currentTarget.style.color = 'white';
+                                            }}
+                                            onMouseOut={(e) => {
+                                                e.currentTarget.style.background = 'transparent';
+                                                e.currentTarget.style.color = '#ef4444';
+                                            }}
+                                            title="Delete Chat"
+                                        >
+                                            <X size={14} />
+                                            Delete Chat
+                                        </button>
+                                    )}
+                                </div>
                             </div>
 
                             {/* Messages */}
