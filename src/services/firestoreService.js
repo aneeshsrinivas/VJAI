@@ -63,42 +63,11 @@ export const createDemoRequest = async (demoData) => {
  */
 export const getAllDemos = async () => {
     try {
-        // 1. Fetch all demo documents
+        // Fetch all demo documents ordered by latest first
         const q = query(collection(db, COLLECTIONS.DEMOS), orderBy('createdAt', 'desc'));
         const snapshot = await getDocs(q);
         const demos = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-
-        // 2. Fetch users with payment-related statuses who may not have a demo doc
-        const pendingUsersQ = query(
-            collection(db, 'users'),
-            where('role', '==', 'customer'),
-            where('status', 'in', ['PAYMENT_PENDING', 'PENDING_COACH', 'PAYMENT_SUCCESSFUL'])
-        );
-        const pendingUsersSnap = await getDocs(pendingUsersQ);
-
-        // 3. Build a set of emails already covered by demo docs to avoid duplicates
-        const demoEmails = new Set(demos.map(d => (d.parentEmail || d.email || '').toLowerCase()));
-
-        const pendingUserDemos = pendingUsersSnap.docs
-            .map(doc => {
-                const d = doc.data();
-                return {
-                    id: `user_${doc.id}`,   // prefix so it doesn't collide with demo IDs
-                    _userId: doc.id,
-                    studentName: d.studentName || d.fullName || 'Unknown',
-                    parentName: d.parentName || d.fullName || '',
-                    parentEmail: d.email || '',
-                    parentPhone: d.phone || '',
-                    status: d.status === 'PAYMENT_SUCCESSFUL' ? 'PAYMENT_SUCCESSFUL' : 'PAYMENT_PENDING',
-                    assignedCoachId: d.assignedCoachId || null,
-                    chessExperience: d.learningLevel || 'beginner',
-                    createdAt: d.createdAt || null,
-                    _fromUsersCollection: true,
-                };
-            })
-            .filter(u => !demoEmails.has((u.parentEmail || '').toLowerCase()));
-
-        return { success: true, demos: [...demos, ...pendingUserDemos] };
+        return { success: true, demos };
     } catch (error) {
         console.error('Error fetching demos:', error);
         return { success: false, error: error.message };

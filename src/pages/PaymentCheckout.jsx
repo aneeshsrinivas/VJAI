@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { toast, ToastContainer } from 'react-toastify';
 import { collection, addDoc, serverTimestamp, doc, updateDoc, getDoc, query, where, getDocs } from 'firebase/firestore';
-import { db } from '../lib/firebase';
+import { db, auth } from '../lib/firebase';
 import { useAuth } from '../context/AuthContext';
 import 'react-toastify/dist/ReactToastify.css';
 import './PaymentCheckout.css';
@@ -260,7 +260,13 @@ const PaymentCheckout = () => {
             );
 
             // 4. Payment was successful format – save to Firestore
-            const parentId = currentUser?.uid || null;
+            // Use auth.currentUser directly (bypasses context tab-isolation) with context as fallback
+            const parentId = auth.currentUser?.uid || currentUser?.uid || null;
+            if (!parentId) {
+                toast.error('Session expired. Please refresh and try again.');
+                setIsProcessing(false);
+                return;
+            }
             const paymentData = {
                 parentId,
                 parentEmail: formData.parentEmail,
@@ -390,7 +396,13 @@ const PaymentCheckout = () => {
 
         setIsProcessing(true);
         try {
-            const parentId = currentUser?.uid || null;
+        // Resolve parentId directly from Firebase auth (bypasses context tab-isolation)
+        const parentId = auth.currentUser?.uid || currentUser?.uid || null;
+        if (!parentId) {
+            toast.error('Session expired. Please refresh and try again.');
+            setIsProcessing(false);
+            return;
+        }
             const paymentData = {
                 parentId,
                 parentEmail: formData.parentEmail,
@@ -498,7 +510,13 @@ const PaymentCheckout = () => {
         }
         setIsProcessing(true);
         try {
-            const parentId = currentUser?.uid || null;
+            // Resolve parentId directly from Firebase auth (bypasses context tab-isolation)
+        const parentId = auth.currentUser?.uid || currentUser?.uid || null;
+        if (!parentId) {
+            toast.error('Session expired. Please refresh and try again.');
+            setIsProcessing(false);
+            return;
+        }
             const paymentData = {
                 parentId,
                 parentEmail: formData.parentEmail,
