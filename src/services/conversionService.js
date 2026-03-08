@@ -94,22 +94,37 @@ export const conversionService = {
                 throw new Error(`Demo is not pending payment approval (Current status: ${demoData.status})`);
             }
 
-            // 2. Check if parent user already exists with this email
+            // 2. Check if parent user already exists with this demoId or email
             let realUid;
             let existingUserFound = false;
 
-            const parentQuery = query(
+            // Priority 1: Search by demoId link (most robust for conversions)
+            const demoIdQuery = query(
                 collection(db, 'users'),
-                where('email', '==', demoData.parentEmail)
+                where('demoId', '==', demoId)
             );
-            const existingUserSnap = await getDocs(parentQuery);
+            const demoIdSnap = await getDocs(demoIdQuery);
 
-            if (!existingUserSnap.empty) {
-                // Parent already has a user account - update it instead of creating new
-                realUid = existingUserSnap.docs[0].id;
+            if (!demoIdSnap.empty) {
+                realUid = demoIdSnap.docs[0].id;
                 existingUserFound = true;
-                console.log(`👤 Found existing user account: ${realUid}`);
+                console.log(`👤 Found existing user account via demoId: ${realUid}`);
             } else {
+                // Priority 2: Fallback to searching by parent email
+                const parentEmailQuery = query(
+                    collection(db, 'users'),
+                    where('email', '==', demoData.parentEmail)
+                );
+                const existingUserSnap = await getDocs(parentEmailQuery);
+
+                if (!existingUserSnap.empty) {
+                    realUid = existingUserSnap.docs[0].id;
+                    existingUserFound = true;
+                    console.log(`👤 Found existing user account via email: ${realUid}`);
+                }
+            }
+
+            if (!existingUserFound) {
                 console.log('👤 No existing account. Creating new auth account...');
                 // Create a REAL Firebase Auth account with temporary password
                 const tempPassword = `Temp${Date.now().toString().slice(-6)}!`;
