@@ -20,6 +20,7 @@ const StudentPage = () => {
     const [selectedAssignment, setSelectedAssignment] = useState(null);
     const [scheduleLoading, setScheduleLoading] = useState(false);
     const [batchDetails, setBatchDetails] = useState(null);
+    const [resolvedCoachIds, setResolvedCoachIds] = useState([]);
 
     // Fetch Student Data (Real-time from 'users' collection)
     useEffect(() => {
@@ -41,22 +42,46 @@ const StudentPage = () => {
 
         return () => unsubscribe();
     }, [currentUser]);
-
     // Fetch Coach Data when student changes
     useEffect(() => {
         const fetchCoach = async () => {
             if (student?.assignedCoachId) {
                 try {
-                    const coachRef = doc(db, 'users', student.assignedCoachId);
-                    const coachSnap = await getDoc(coachRef);
-                    if (coachSnap.exists()) {
-                        setCoach(coachSnap.data());
+                    let coachData = null;
+                    let ids = [student.assignedCoachId];
+
+                    // First try to find coach by Auth UID (accountId)
+                    const qCoach = query(collection(db, 'coaches'), where('accountId', '==', student.assignedCoachId));
+                    const coachSnap = await getDocs(qCoach);
+                    
+                    if (!coachSnap.empty) {
+                        coachData = { id: coachSnap.docs[0].id, ...coachSnap.docs[0].data() };
+                        ids.push(coachSnap.docs[0].id);
+                    } else {
+                        // Fallback: try to find coach by Document ID directly
+                        const coachRef = doc(db, 'coaches', student.assignedCoachId);
+                        const directSnap = await getDoc(coachRef);
+                        if (directSnap.exists()) {
+                            coachData = { id: directSnap.id, ...directSnap.data() };
+                            if (coachData.accountId) ids.push(coachData.accountId);
+                        } else {
+                            // Fallback 2: Check users collection
+                            const userRef = doc(db, 'users', student.assignedCoachId);
+                            const userSnap = await getDoc(userRef);
+                            if (userSnap.exists()) {
+                                coachData = { id: userSnap.id, ...userSnap.data() };
+                            }
+                        }
                     }
+
+                    setCoach(coachData);
+                    setResolvedCoachIds([...new Set(ids)]);
                 } catch (err) {
                     console.error("Error fetching coach:", err);
                 }
             } else {
                 setCoach(null);
+                setResolvedCoachIds([]);
             }
         };
 
@@ -67,11 +92,11 @@ const StudentPage = () => {
 
     // Fetch Chess Assignments
     useEffect(() => {
-        if (!student?.assignedCoachId) return;
+        if (resolvedCoachIds.length === 0) return;
 
         const q = query(
             collection(db, 'chessAssignment'),
-            where('coachId', '==', student.assignedCoachId)
+            where('coachId', 'in', resolvedCoachIds)
         );
 
         const unsubscribe = onSnapshot(q, (snapshot) => {
@@ -87,15 +112,15 @@ const StudentPage = () => {
         });
 
         return () => unsubscribe();
-    }, [student?.assignedCoachId, student?.batchName]);
+    }, [resolvedCoachIds, student?.batchName]);
 
     // Fetch Assignments/Resources (Strict Filtering)
     useEffect(() => {
-        if (!student?.assignedCoachId) return;
+        if (resolvedCoachIds.length === 0) return;
 
         const q = query(
             collection(db, COLLECTIONS.ASSIGNMENTS),
-            where('coachId', '==', student.assignedCoachId)
+            where('coachId', 'in', resolvedCoachIds)
         );
 
         const unsubscribe = onSnapshot(q, (snapshot) => {
@@ -113,7 +138,7 @@ const StudentPage = () => {
         });
 
         return () => unsubscribe();
-    }, [student?.assignedCoachId, student?.batchName]); // Run when batchName changes
+    }, [resolvedCoachIds, student?.batchName]); // Run when batchName changes
 
     if (loading) return <div style={{ padding: '40px', textAlign: 'center' }}>Loading your dashboard...</div>;
     if (error) return <div style={{ padding: '40px', textAlign: 'center', color: 'red' }}>{error}</div>;

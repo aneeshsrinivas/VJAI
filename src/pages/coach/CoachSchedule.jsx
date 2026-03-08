@@ -20,6 +20,7 @@ const CoachSchedule = () => {
     const [showSuccessModal, setShowSuccessModal] = useState(false);
     const [scheduleItems, setScheduleItems] = useState([]);
     const [weekOffset, setWeekOffset] = useState(0); // 0 = current week, 1 = next week, etc.
+    const [coachDocId, setCoachDocId] = useState(null);
 
     const weekDays = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
     const timeSlots = ['10:00 AM', '12:00 PM', '2:00 PM', '4:00 PM', '6:00 PM', '8:00 PM'];
@@ -60,17 +61,37 @@ const CoachSchedule = () => {
 
     useEffect(() => {
         if (!currentUser?.uid) return;
+        const resolve = async () => {
+            try {
+                const coachQuery = query(
+                    collection(db, 'coaches'),
+                    where('accountId', '==', currentUser.uid)
+                );
+                const snap = await getDocs(coachQuery);
+                setCoachDocId(!snap.empty ? snap.docs[0].id : currentUser.uid);
+            } catch (err) {
+                console.error('Could not resolve coachDocId, falling back to uid:', err);
+                setCoachDocId(currentUser.uid);
+            }
+        };
+        resolve();
+    }, [currentUser]);
+
+    useEffect(() => {
+        if (!coachDocId) return;
+
+        const coachIds = [...new Set([coachDocId, currentUser.uid])];
 
         // 1. Fetch Regular Scheduled Classes
         const qClasses = query(
             collection(db, COLLECTIONS.SCHEDULE),
-            where('coachId', '==', currentUser.uid) // Assuming coachId is stored
+            where('coachId', 'in', coachIds) // Assuming coachId is stored
         );
 
         // 2. Fetch Assigned Demos
         const qDemos = query(
             collection(db, COLLECTIONS.DEMOS),
-            where('assignedCoachId', '==', currentUser.uid),
+            where('assignedCoachId', 'in', coachIds),
             where('status', '==', 'SCHEDULED')
         );
 
@@ -130,7 +151,7 @@ const CoachSchedule = () => {
             unsubscribeClasses();
             unsubscribeDemos();
         };
-    }, [currentUser]);
+    }, [coachDocId, currentUser.uid]);
 
     const toggleBlock = (day, time) => {
         const id = `${day}-${time}`;

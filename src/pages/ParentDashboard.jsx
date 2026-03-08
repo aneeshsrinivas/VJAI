@@ -84,8 +84,9 @@ const ParentDashboard = () => {
                     setStudent(studentData);
 
                     // If coach is assigned, fetch coach details
-                    // assignedCoachId is the coach's Firebase Auth UID (not the coaches doc ID)
+                    // assignedCoachId might be the Firebase Auth UID OR the coaches doc ID
                     if (studentData.assignedCoachId) {
+                        let ids = [studentData.assignedCoachId];
                         const coachQ = query(
                             collection(db, COLLECTIONS.COACHES),
                             where('accountId', '==', studentData.assignedCoachId)
@@ -93,6 +94,8 @@ const ParentDashboard = () => {
                         getDocs(coachQ).then(coachSnap => {
                             if (!coachSnap.empty) {
                                 setCoach({ id: coachSnap.docs[0].id, ...coachSnap.docs[0].data() });
+                                ids.push(coachSnap.docs[0].id);
+                                setResolvedCoachIds([...new Set(ids)]);
                             } else {
                                 // Fallback 1: coach may only have a users doc (added via AddCoachModal)
                                 getDoc(doc(db, 'users', studentData.assignedCoachId)).then(userDoc => {
@@ -101,15 +104,23 @@ const ParentDashboard = () => {
                                     } else {
                                         // Fallback 2: legacy data — assignedCoachId may be the coaches doc ID directly
                                         getDoc(doc(db, COLLECTIONS.COACHES, studentData.assignedCoachId)).then(legacyDoc => {
-                                            if (legacyDoc.exists()) setCoach({ id: legacyDoc.id, ...legacyDoc.data() });
+                                            if (legacyDoc.exists()) {
+                                                const legacyData = legacyDoc.data();
+                                                setCoach({ id: legacyDoc.id, ...legacyData });
+                                                if (legacyData.accountId) ids.push(legacyData.accountId);
+                                            }
+                                        }).finally(() => {
+                                            setResolvedCoachIds([...new Set(ids)]);
                                         });
                                     }
+                                }).finally(() => {
+                                    setResolvedCoachIds(prev => prev.length ? prev : [...new Set(ids)]);
                                 });
                             }
+                        }).catch(() => {
+                            setResolvedCoachIds([...new Set(ids)]);
                         });
-                    }
-                    // 2. Batch Assignment
-                    else if (studentData.batchId || studentData.assignedBatch || studentData.batchName) {
+                    } else if (studentData.batchId || studentData.assignedBatch || studentData.batchName) {
                         // Logic remains same, but now we have correct data
                     }
                 } else {
