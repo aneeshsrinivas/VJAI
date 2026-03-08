@@ -64,26 +64,42 @@ const StudentDetailsModal = ({ isOpen, onClose, student }) => {
                 color: isDark ? '#f0f0f0' : 'inherit'
             }} onClick={e => e.stopPropagation()}>
 
-                <button onClick={onClose} style={{
-                    position: 'absolute', top: '20px', right: '20px',
-                    background: isDark ? 'rgba(255,255,255,0.25)' : 'rgba(0,0,0,0.1)',
-                    border: 'none', borderRadius: '50%',
-                    width: '40px', height: '40px',
-                    display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    cursor: 'pointer',
-                    color: isDark ? 'white' : '#1e293b',
-                    transition: 'all 0.2s ease',
-                    flexShrink: 0
-                }}
-                onMouseEnter={(e) => {
-                    e.currentTarget.style.background = isDark ? 'rgba(255,255,255,0.35)' : 'rgba(0,0,0,0.15)';
-                    e.currentTarget.style.transform = 'scale(1.1)';
-                }}
-                onMouseLeave={(e) => {
-                    e.currentTarget.style.background = isDark ? 'rgba(255,255,255,0.25)' : 'rgba(0,0,0,0.1)';
-                    e.currentTarget.style.transform = 'scale(1)';
-                }}>
-                    <X size={20} color={isDark ? 'white' : '#1e293b'} />
+                <button 
+                    onClick={(e) => {
+                        e.stopPropagation();
+                        onClose();
+                    }} 
+                    style={{
+                        position: 'absolute', 
+                        top: '20px', 
+                        right: '25px',
+                        background: isDark ? 'rgba(255, 255, 255, 0.05)' : 'rgba(0, 0, 0, 0.05)',
+                        border: isDark ? '1px solid rgba(255, 255, 255, 0.1)' : '1px solid rgba(0, 0, 0, 0.1)',
+                        borderRadius: '12px',
+                        width: '40px', 
+                        height: '40px',
+                        display: 'flex', 
+                        alignItems: 'center', 
+                        justifyContent: 'center',
+                        cursor: 'pointer',
+                        color: isDark ? '#cbd5e1' : '#64748b',
+                        transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
+                        flexShrink: 0,
+                        zIndex: 10
+                    }}
+                    onMouseEnter={(e) => {
+                        e.currentTarget.style.background = isDark ? 'rgba(239, 68, 68, 0.15)' : 'rgba(239, 68, 68, 0.1)';
+                        e.currentTarget.style.color = '#ef4444';
+                        e.currentTarget.style.transform = 'rotate(90deg)';
+                    }}
+                    onMouseLeave={(e) => {
+                        e.currentTarget.style.background = isDark ? 'rgba(255, 255, 255, 0.05)' : 'rgba(0, 0, 0, 0.05)';
+                        e.currentTarget.style.color = isDark ? '#cbd5e1' : '#64748b';
+                        e.currentTarget.style.transform = 'rotate(0deg)';
+                    }}
+                    title="Close"
+                >
+                    <X size={20} />
                 </button>
 
                 <div style={{ textAlign: 'center', marginBottom: '24px' }}>

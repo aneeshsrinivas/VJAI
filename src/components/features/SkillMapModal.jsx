@@ -245,29 +245,37 @@ const SkillMapModal = ({ isOpen, onClose, student, onUpgrade }) => {
                                 {getLevelLabel(studentLevel)}
                             </span>
                         </div>
-                        <button onClick={onClose} style={{
-                            background: 'rgba(255,255,255,0.25)',
-                            border: 'none',
-                            borderRadius: '50%',
-                            width: '40px',
-                            height: '40px',
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            cursor: 'pointer',
-                            color: 'white',
-                            transition: 'all 0.2s ease',
-                            flexShrink: 0
-                        }}
-                        onMouseEnter={(e) => {
-                            e.currentTarget.style.background = 'rgba(255,255,255,0.35)';
-                            e.currentTarget.style.transform = 'scale(1.1)';
-                        }}
-                        onMouseLeave={(e) => {
-                            e.currentTarget.style.background = 'rgba(255,255,255,0.25)';
-                            e.currentTarget.style.transform = 'scale(1)';
-                        }}>
-                            <X size={20} color="white" />
+                        <button 
+                            onClick={(e) => {
+                                e.stopPropagation();
+                                onClose();
+                            }} 
+                            style={{
+                                background: 'rgba(0, 0, 0, 0.2)',
+                                border: '1px solid rgba(255, 255, 255, 0.2)',
+                                borderRadius: '12px',
+                                width: '40px',
+                                height: '40px',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                cursor: 'pointer',
+                                color: 'white',
+                                transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
+                                flexShrink: 0,
+                                zIndex: 10
+                            }}
+                            onMouseEnter={(e) => {
+                                e.currentTarget.style.background = 'rgba(0, 0, 0, 0.4)';
+                                e.currentTarget.style.transform = 'rotate(90deg)';
+                            }}
+                            onMouseLeave={(e) => {
+                                e.currentTarget.style.background = 'rgba(0, 0, 0, 0.2)';
+                                e.currentTarget.style.transform = 'rotate(0deg)';
+                            }}
+                            title="Close"
+                        >
+                            <X size={20} />
                         </button>
                     </div>
                 </div>
