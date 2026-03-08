@@ -56,6 +56,7 @@ const DemosPage = () => {
             INTERESTED: { bg: '#E0E7FF', color: '#3730A3' },
             PAYMENT_PENDING: { bg: '#FEF3C7', color: '#B45309' },
             PAYMENT_COMPLETED: { bg: '#FCA5A5', color: '#7F1D1D' },
+            PAYMENT_SUCCESSFUL: { bg: '#E0F2FE', color: '#0369A1' },
             CONVERTED: { bg: '#DCFCE7', color: '#166534' },
             REJECTED: { bg: '#F3F4F6', color: '#6B7280' },
         };
@@ -183,7 +184,7 @@ const DemosPage = () => {
 
             {/* Filter Tabs */}
             <div style={{ display: 'flex', gap: '8px', marginBottom: '24px', flexWrap: 'wrap' }}>
-                {['ALL', 'PENDING', 'SCHEDULED', 'ATTENDED', 'INTERESTED', 'PAYMENT_PENDING', 'PAYMENT_COMPLETED', 'CONVERTED'].map(f => (
+                {['ALL', 'PENDING', 'SCHEDULED', 'ATTENDED', 'INTERESTED', 'PAYMENT_PENDING', 'PAYMENT_SUCCESSFUL', 'PAYMENT_COMPLETED', 'CONVERTED'].map(f => (
                     <button
                         key={f}
                         className={`filter-btn ${filter === f ? 'active' : ''}`}
@@ -271,7 +272,7 @@ const DemosPage = () => {
                                             )}
 
                                             {/* Action: Approve Payment */}
-                                            {demo.status === 'PAYMENT_PENDING' && (
+                                            {(demo.status === 'PAYMENT_PENDING' || demo.status === 'PAYMENT_SUCCESSFUL') && (
                                                 <Button
                                                     size="sm"
                                                     style={{ backgroundColor: '#166534' }}

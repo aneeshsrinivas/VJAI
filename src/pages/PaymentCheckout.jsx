@@ -260,7 +260,7 @@ const PaymentCheckout = () => {
             );
 
             // 4. Payment was successful format – save to Firestore
-            const parentId = user?.uid || null;
+            const parentId = currentUser?.uid || null;
             const paymentData = {
                 parentId,
                 parentEmail: formData.parentEmail,
@@ -311,7 +311,7 @@ const PaymentCheckout = () => {
                     studentAge: formData.studentAge,
                     learningLevel: plan.level || 'Beginner',
                     studentType: plan.type || (plan.classType === 'one-on-one' ? '1-on-1' : 'Group'),
-                    status: 'PENDING_COACH',
+                    status: 'PAYMENT_SUCCESSFUL',
                     updatedAt: serverTimestamp()
                 });
 
@@ -320,7 +320,7 @@ const PaymentCheckout = () => {
                 const studentDocs = await getDocs(q);
                 const updatePromises = studentDocs.docs.map(docSnap => 
                     updateDoc(doc(db, 'students', docSnap.id), {
-                        status: 'PENDING_COACH',
+                        status: 'PAYMENT_SUCCESSFUL',
                         updatedAt: serverTimestamp()
                     })
                 );
@@ -349,10 +349,10 @@ const PaymentCheckout = () => {
                     ...formData,
                     amount: amountINR,
                 });
-                // Update demo status to CONVERTED now that payment is done
+                // Update demo status to PAYMENT_SUCCESSFUL
                 try {
                     await updateDoc(doc(db, 'demos', demoId), {
-                        status: 'CONVERTED',
+                        status: 'PAYMENT_SUCCESSFUL',
                         updatedAt: serverTimestamp()
                     });
                 } catch (e) { /* demo may not exist */ }
@@ -577,9 +577,9 @@ const PaymentCheckout = () => {
                         ...formData,
                         amount: amountINR,
                     });
-                    // Update demo status to CONVERTED now that payment is done
+                    // Update demo status to PAYMENT_SUCCESSFUL
                     await updateDoc(doc(db, 'demos', demoId), {
-                        status: 'CONVERTED',
+                        status: 'PAYMENT_SUCCESSFUL',
                         updatedAt: serverTimestamp()
                     });
                 } catch (e) { /* demo may not exist */ }

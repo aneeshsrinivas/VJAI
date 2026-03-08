@@ -68,11 +68,11 @@ export const getAllDemos = async () => {
         const snapshot = await getDocs(q);
         const demos = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
 
-        // 2. Fetch users with PAYMENT_PENDING or PENDING_COACH status who may not have a demo doc
+        // 2. Fetch users with payment-related statuses who may not have a demo doc
         const pendingUsersQ = query(
             collection(db, 'users'),
-            where('role', '==', 'student'),
-            where('status', 'in', ['PAYMENT_PENDING', 'PENDING_COACH'])
+            where('role', '==', 'customer'),
+            where('status', 'in', ['PAYMENT_PENDING', 'PENDING_COACH', 'PAYMENT_SUCCESSFUL'])
         );
         const pendingUsersSnap = await getDocs(pendingUsersQ);
 
@@ -89,7 +89,7 @@ export const getAllDemos = async () => {
                     parentName: d.parentName || d.fullName || '',
                     parentEmail: d.email || '',
                     parentPhone: d.phone || '',
-                    status: d.status === 'PENDING_COACH' ? 'PAYMENT_PENDING' : 'PAYMENT_PENDING',
+                    status: d.status === 'PAYMENT_SUCCESSFUL' ? 'PAYMENT_SUCCESSFUL' : 'PAYMENT_PENDING',
                     assignedCoachId: d.assignedCoachId || null,
                     chessExperience: d.learningLevel || 'beginner',
                     createdAt: d.createdAt || null,
