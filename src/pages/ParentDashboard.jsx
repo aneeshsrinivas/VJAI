@@ -471,9 +471,7 @@ const ParentDashboard = () => {
         return null;
     }
 
-    const nextClassItem = scheduleItems.find(i => i.status === 'SCHEDULED' || i.status === 'upcoming');
     const now = new Date().getTime();
-    const isJoinable = nextClassItem && (nextClassItem.startTime - now <= 10 * 60 * 1000);
 
     return (
         <div className="parent-dashboard">
@@ -1028,46 +1026,6 @@ const ParentDashboard = () => {
                                 </div>
                             )}
 
-                            {/* Next Class Card */}
-                            {nextClassItem && (
-                                <div className={`content-card next-class-card ${cardsVisible ? 'visible' : ''}`}>
-                                    <div className="live-badge">
-                                        <span className="live-dot"></span>
-                                        UPCOMING
-                                    </div>
-                                    <div className="next-class-content">
-                                        <div className="class-time-big">
-                                            <span className="time-prefix">Next Class</span>
-                                            <span className="time-main">
-                                                {nextClassItem.time}
-                                            </span>
-                                        </div>
-                                        <div className="countdown-pill">
-                                            <ClockIcon size={14} color="#6B8E23" />
-                                            {nextClassItem.day}
-                                        </div>
-                                        <div className="class-topic-box">
-                                            <span className="topic-pre">Topic:</span>
-                                            <span className="topic-main">Regular Class</span>
-                                        </div>
-                                        <button
-                                            className="join-now-btn"
-                                            disabled={!isJoinable}
-                                            style={{
-                                                backgroundColor: isJoinable ? '#FC8A24' : '#94a3b8',
-                                                cursor: isJoinable ? 'pointer' : 'not-allowed',
-                                                opacity: isJoinable ? 1 : 0.8,
-                                                transform: 'none',
-                                                transition: 'all 0.3s ease'
-                                            }}
-                                            onClick={() => isJoinable && window.open(nextClassItem.link || student?.meetingLink || 'https://us06web.zoom.us/j/2884373632', '_blank')}
-                                        >
-                                            <VideoIcon size={20} color="white" />
-                                            {isJoinable ? 'Join Class Now' : 'Starts Soon'}
-                                        </button>
-                                    </div>
-                                </div>
-                            )}
                         </div>
                     </div>
                 )}
