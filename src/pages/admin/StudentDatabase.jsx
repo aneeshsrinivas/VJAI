@@ -27,7 +27,6 @@ const StudentDatabase = () => {
     const [editingStudent, setEditingStudent] = useState(null);
     const [students, setStudents] = useState([]);
     const [coaches, setCoaches] = useState([]);
-    const [coachNames, setCoachNames] = useState({}); // Cache for coach names
     const [loading, setLoading] = useState(true);
     const [searchQuery, setSearchQuery] = useState('');
     const [statusFilter, setStatusFilter] = useState('All');
@@ -92,6 +91,7 @@ const StudentDatabase = () => {
                 const snap = await getDocs(query(collection(db, 'coaches'), where('status', '==', 'ACTIVE')));
                 const coachList = snap.docs.map(d => ({
                     id: d.id,
+                    accountId: d.data().accountId || null,
                     name: d.data().fullName || d.data().email?.split('@')[0] || d.id
                 }));
                 setCoaches(coachList);
@@ -111,7 +111,12 @@ const StudentDatabase = () => {
                 return;
             }
             try {
-                const bSnap = await getDocs(collection(db, 'coaches', editingStudent.assigned_coach_id, 'batches'));
+                const targetCoach = coaches.find(c => c.id === editingStudent.assigned_coach_id || c.accountId === editingStudent.assigned_coach_id);
+                if (!targetCoach) {
+                    setBatches([]);
+                    return;
+                }
+                const bSnap = await getDocs(collection(db, 'coaches', targetCoach.id, 'batches'));
                 const batchList = bSnap.docs.map(d => ({ id: d.id, name: d.data().name || d.id }));
                 setBatches(batchList);
             } catch (err) {
@@ -122,7 +127,7 @@ const StudentDatabase = () => {
         if (editingStudent) {
             loadBatches();
         }
-    }, [editingStudent?.assigned_coach_id]);
+    }, [editingStudent?.assigned_coach_id, coaches]);
 
     const handleEditSave = async () => {
         if (!editingStudent) return;
@@ -248,38 +253,9 @@ const StudentDatabase = () => {
     // Helper function to get coach name from coach ID (synchronous)
     const getCoachName = (coachId) => {
         if (!coachId || coachId === '-') return '-';
-        return coachNames[coachId] || coachId;
+        const coach = coaches.find(c => c.id === coachId || c.accountId === coachId);
+        return coach ? coach.name : coachId;
     };
-
-    // Load coach names for all assigned coaches
-    useEffect(() => {
-        const loadCoachNames = async () => {
-            const uniqueCoachIds = [...new Set(students.map(s => s.assigned_coach_id).filter(id => id && id !== '-'))];
-            console.log('Unique coach IDs in students:', uniqueCoachIds);
-
-            const newCoachNames = { ...coachNames };
-            for (const coachId of uniqueCoachIds) {
-                if (!coachNames[coachId]) {
-                    try {
-                        const coachDoc = await getDoc(doc(db, 'coaches', coachId));
-                        if (coachDoc.exists()) {
-                            const coachName = coachDoc.data().fullName || coachDoc.data().email?.split('@')[0] || coachId;
-                            newCoachNames[coachId] = coachName;
-                            console.log(`Loaded coach name for ${coachId}:`, coachName);
-                        }
-                    } catch (err) {
-                        console.error(`Error fetching coach ${coachId}:`, err);
-                        newCoachNames[coachId] = coachId;
-                    }
-                }
-            }
-            setCoachNames(newCoachNames);
-        };
-
-        if (students.length > 0) {
-            loadCoachNames();
-        }
-    }, [students]);
 
     return (
         <div className="students-page-container dashboard-container" style={{ minHeight: '100vh' }}>
@@ -588,7 +564,10 @@ const StudentDatabase = () => {
                                         style={{ width: '100%', padding: '12px', border: '1px solid #ddd', borderRadius: '8px', fontSize: '14px' }}
                                     >
                                         <option value="">-- No Coach --</option>
-                                        {coaches.map(c => (<option key={c.id} value={c.id}>{c.name}</option>))}
+                                        {coaches.map(c => {
+                                            const val = c.accountId || c.id;
+                                            return <option key={c.id} value={val}>{c.name}</option>;
+                                        })}
                                     </select>
                                 </div>
                                 <div>
