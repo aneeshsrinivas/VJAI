@@ -48,21 +48,21 @@ const ApprovePaymentModal = ({ demo, onClose, onSuccess }) => {
                 const coachQuery = query(collection(db, 'coaches'), where('accountId', '==', selectedCoachId));
                 const coachSnap = await getDocs(coachQuery);
 
+                let coachDocId = selectedCoachId; // Fallback if it's already a Document ID
                 if (!coachSnap.empty) {
-                    const coachDocId = coachSnap.docs[0].id;
-                    // Fetch batches from this coach's subcollection
-                    const batchQuery = query(collection(db, 'coaches', coachDocId, 'batches'));
-                    const batchSnap = await getDocs(batchQuery);
-                    const batchList = batchSnap.docs.map(d => ({
-                        id: d.id,
-                        name: d.data().name,
-                        level: d.data().level
-                    }));
-                    setBatches(batchList);
-                    setSelectedBatchId('');
-                } else {
-                    setBatches([]);
+                    coachDocId = coachSnap.docs[0].id;
                 }
+                
+                // Fetch batches from this coach's subcollection
+                const batchQuery = query(collection(db, 'coaches', coachDocId, 'batches'));
+                const batchSnap = await getDocs(batchQuery);
+                const batchList = batchSnap.docs.map(d => ({
+                    id: d.id,
+                    name: d.data().name,
+                    level: d.data().level
+                }));
+                setBatches(batchList);
+                setSelectedBatchId('');
             } catch (err) {
                 console.error('Error fetching batches:', err);
             }

@@ -45,9 +45,11 @@ const CoachLichess = () => {
                     coachDocId = coachSnap.docs[0].id;
                 }
 
+                const coachIds = [...new Set([coachDocId, currentUser.uid])];
+
                 // Fetch assigned students for Lichess dashboard
                 const usersRef = collection(db, 'users');
-                const qStudents = query(usersRef, where('role', 'in', ['student', 'customer']), where('assignedCoachId', '==', coachDocId));
+                const qStudents = query(usersRef, where('role', 'in', ['student', 'customer']), where('assignedCoachId', 'in', coachIds));
                 
                 const unsub = onSnapshot(qStudents, (snapshot) => {
                     const studentData = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
