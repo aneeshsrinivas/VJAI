@@ -107,7 +107,7 @@ const PaymentSuccess = () => {
                             <span>Amount Paid</span>
                             <span className="success-amount">
                                 {paymentMethod === 'razorpay'
-                                    ? `₹${pricing?.amountINR?.toLocaleString() || Math.round((pricing?.total || 0) * 83).toLocaleString()}`
+                                    ? `₹${pricing?.amountINR?.toLocaleString() || Math.round((pricing?.total || 0) * 91.94).toLocaleString()}`
                                     : `$${pricing?.total?.toFixed(2)}`
                                 }
                             </span>

@@ -195,8 +195,8 @@ const PaymentCheckout = () => {
 
     const pricing = calculateTotal();
 
-    // Convert USD → INR for Razorpay (1 USD ≈ 83 INR, test mode)
-    const amountINR = Math.round(pricing.total * 83);
+    // Convert USD → INR for Razorpay (1 USD ≈ 91.94 INR, test mode)
+    const amountINR = Math.round(pricing.total * 91.94);
 
     const getNextDueDate = (billingCycle) => {
         const nextDue = new Date();
@@ -276,8 +276,8 @@ const PaymentCheckout = () => {
                 planId: plan.id || plan.planId,
                 planName: plan.name,
                 amount: amountINR,
-                subtotal: Math.round(pricing.subtotal * 83),
-                discount: Math.round(pricing.discount * 83),
+                subtotal: Math.round(pricing.subtotal * 91.94),
+                discount: Math.round(pricing.discount * 91.94),
                 familyMembers,
                 paymentMethod: 'razorpay',
                 currency: 'INR',
@@ -526,8 +526,8 @@ const PaymentCheckout = () => {
                 planId: plan.id || plan.planId,
                 planName: plan.name,
                 amount: amountINR,
-                subtotal: Math.round(pricing.subtotal * 83),
-                discount: Math.round(pricing.discount * 83),
+                subtotal: Math.round(pricing.subtotal * 91.94),
+                discount: Math.round(pricing.discount * 91.94),
                 familyMembers,
                 paymentMethod: 'simulated',
                 currency: 'INR',
@@ -776,7 +776,7 @@ const PaymentCheckout = () => {
                                     </div>
                                     {familyMembers >= 2 && (
                                         <div className="family-discount-message">
-                                            🎉 Family discount applied! Save ₹{Math.round(pricing.discount * 83).toLocaleString()}
+                                            🎉 Family discount applied! Save ₹{Math.round(pricing.discount * 91.94).toLocaleString()}
                                         </div>
                                     )}
                                 </div>

@@ -90,7 +90,7 @@ const FinanceReports = () => {
             style: 'currency',
             currency: 'INR',
             maximumFractionDigits: 0
-        }).format(amount * 83);
+        }).format(amount * 91.94);
         return `${usd} (≈ ${inr})`;
     };
 

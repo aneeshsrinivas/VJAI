@@ -46,21 +46,38 @@ const BatchChat = () => {
         if (!currentUser?.uid) return;
 
         try {
-            const batchesRef = collection(db, 'coaches', currentUser.uid, 'batches');
-            
+            // 1. Resolve Coach Doc ID
+            const coachQuery = window.firebaseQuery(
+                collection(db, 'coaches'), 
+                window.firebaseWhere('accountId', '==', currentUser.uid)
+            );
+            const coachSnap = await getDocs(coachQuery);
+            let coachDocId = currentUser.uid;
+            if (!coachSnap.empty) {
+                coachDocId = coachSnap.docs[0].id;
+            }
+
+            // 2. Load Batches
+            const batchesRef = collection(db, 'coaches', coachDocId, 'batches');
             const batchesSnap = await getDocs(batchesRef);
             const batchList = batchesSnap.docs.map(doc => ({
                 id: doc.id,
                 name: doc.data().name || 'Unnamed Batch'
             }));
-            console.log("batchList: ", batchList)
             setBatches(batchList);
-            console.log('Loaded batches:', batchList);
         } catch (error) {
             console.error('Error loading batches:', error);
             setBatches([]);
         }
     };
+
+    // Need to dynamically import query/where because they aren't imported at top
+    useEffect(() => {
+        import('firebase/firestore').then(mod => {
+            window.firebaseQuery = mod.query;
+            window.firebaseWhere = mod.where;
+        })
+    }, []);
 
     const handleSend = () => {
         if (!newMessage.trim()) return;

@@ -1018,7 +1018,7 @@ const CoachRoster = () => {
                                             reports: [],
                                             createdAt: serverTimestamp()
                                         };
-                                        const ref = await addDoc(collection(db, 'coaches', editingCoach.accountId || editingCoach.id, 'batches'), payload);
+                                        const ref = await addDoc(collection(db, 'coaches', editingCoach.id, 'batches'), payload);
                                         const created = { id: ref.id, ...payload };
                                         setEditingCoach(prev => ({
                                             ...prev,
