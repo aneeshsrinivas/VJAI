@@ -10,6 +10,7 @@ import { User, Mail, Phone, Star, Trash2, BookOpen } from 'lucide-react';
 import { toast, ToastContainer } from 'react-toastify';
 import { useTheme } from '../../context/ThemeContext';
 import { createCoachAccount } from '../../services/adminAuthService';
+import { deleteCoach } from '../../services/firestoreService';
 import '../../pages/Dashboard.css';
 
 import AdminCoachApplications from './AdminCoachApplications';
@@ -127,10 +128,12 @@ const CoachRoster = () => {
             confirmLabel: 'Delete',
             onConfirm: async () => {
                 try {
-                    await deleteDoc(doc(db, 'users', coach.id));
-                    try { await deleteDoc(doc(db, 'coaches', coach.id)); } catch (e) {}
-                    toast.success('Coach removed from roster');
-                    // No need to call fetchCoaches() anymore - real-time listener will update automatically
+                    const result = await deleteCoach(coach.id, coach.accountId);
+                    if (result.success) {
+                        toast.success('Coach removed from roster');
+                    } else {
+                        toast.error('Failed to delete coach: ' + result.error);
+                    }
                 } catch (error) {
                     console.error('Error deleting coach:', error);
                     toast.error('Failed to delete coach');

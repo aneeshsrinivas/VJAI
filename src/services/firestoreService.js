@@ -483,6 +483,25 @@ export const updateStudent = async (studentId, updateData) => {
     }
 };
 
+export const deleteStudent = async (studentId) => {
+    try {
+        // 1. Delete the user document (this is the primary document for students)
+        await deleteDoc(doc(db, 'users', studentId));
+        
+        // 2. Also try to delete from the legacy 'students' collection if it exists
+        try {
+            await deleteDoc(doc(db, COLLECTIONS.STUDENTS, studentId));
+        } catch (e) {
+            // Ignore if it doesn't exist
+        }
+        
+        return { success: true };
+    } catch (error) {
+        console.error('Error deleting student:', error);
+        return { success: false, error: error.message };
+    }
+};
+
 // ==========================================
 // COACH OPERATIONS
 // ==========================================
@@ -775,6 +794,30 @@ export const createClass = async (classData) => {
         return { success: true };
     } catch (error) {
         console.error('Error creating class:', error);
+        return { success: false, error: error.message };
+    }
+};
+export const deleteCoach = async (coachId, accountId) => {
+    try {
+        // 1. Delete from coaches collection
+        await deleteDoc(doc(db, COLLECTIONS.COACHES, coachId));
+        
+        // 2. Delete from users collection (where login data is stored)
+        if (accountId) {
+            await deleteDoc(doc(db, 'users', accountId));
+        } else {
+            // If they are the same (legacy)
+            await deleteDoc(doc(db, 'users', coachId));
+        }
+        
+        // 3. Delete from accounts collection (legacy)
+        if (accountId) {
+            try { await deleteDoc(doc(db, COLLECTIONS.ACCOUNTS, accountId)); } catch (e) {}
+        }
+        
+        return { success: true };
+    } catch (error) {
+        console.error('Error deleting coach:', error);
         return { success: false, error: error.message };
     }
 };

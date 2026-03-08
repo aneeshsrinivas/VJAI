@@ -1,12 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { collection, query, where, getDocs, doc, updateDoc, serverTimestamp, arrayUnion, getDoc, arrayRemove, onSnapshot } from 'firebase/firestore';
 import { db } from '../../lib/firebase';
+import { deleteStudent } from '../../services/firestoreService';
 import Card from '../../components/ui/Card';
 import Button from '../../components/ui/Button';
+import ConfirmDialog from '../../components/ui/ConfirmDialog';
 import SkillHeatmap from '../../components/features/hackathon/SkillHeatmap';
 import AddStudentModal from '../../components/features/admin/AddStudentModal';
 import { toast, ToastContainer } from 'react-toastify';
-import { Edit2, X, Save, Search, Users, Mail, BookOpen, MapPin, Star } from 'lucide-react';
+import { Edit2, X, Save, Search, Users, Mail, BookOpen, MapPin, Star, Trash2 } from 'lucide-react';
 import 'react-toastify/dist/ReactToastify.css';
 import '../../pages/Dashboard.css';
 import '../../components/ui/Modal.css';
@@ -31,6 +33,7 @@ const StudentDatabase = () => {
     const [statusFilter, setStatusFilter] = useState('All');
     const [typeFilter, setTypeFilter] = useState('All');
     const [batches, setBatches] = useState([]);
+    const [confirmDialog, setConfirmDialog] = useState(null);
 
 
     useEffect(() => {
@@ -204,6 +207,28 @@ const StudentDatabase = () => {
             console.error('Error updating student:', error);
             toast.error('Failed to update student');
         }
+    };
+
+    const handleDeleteStudent = (student) => {
+        setConfirmDialog({
+            title: 'Delete Student',
+            message: `Are you sure you want to delete ${student.student_name}? This will remove their record from the website.`,
+            confirmLabel: 'Delete',
+            onConfirm: async () => {
+                try {
+                    const result = await deleteStudent(student.id);
+                    if (result.success) {
+                        toast.success('Student deleted successfully');
+                    } else {
+                        toast.error('Failed to delete student: ' + result.error);
+                    }
+                } catch (err) {
+                    console.error('Error in deletion:', err);
+                    toast.error('An error occurred during deletion');
+                }
+                setConfirmDialog(null);
+            }
+        });
     };
 
     // Filter students
@@ -414,6 +439,14 @@ const StudentDatabase = () => {
                                                     >
                                                         <Edit2 size={12} /> Edit
                                                     </Button>
+                                                    <Button
+                                                        variant="ghost"
+                                                        size="sm"
+                                                        onClick={() => handleDeleteStudent(student)}
+                                                        style={{ padding: '4px 8px', fontSize: '13px', color: '#DC2626' }}
+                                                    >
+                                                        <Trash2 size={12} /> Delete
+                                                    </Button>
                                                 </div>
                                             </div>
                                         </td>
@@ -596,7 +629,18 @@ const StudentDatabase = () => {
                     </div>
                 </div >
             )}
-        </div >
+            {/* Confirmation Dialog */}
+            {confirmDialog && (
+                <ConfirmDialog
+                    isOpen={!!confirmDialog}
+                    title={confirmDialog.title}
+                    message={confirmDialog.message}
+                    confirmLabel={confirmDialog.confirmLabel}
+                    onConfirm={confirmDialog.onConfirm}
+                    onCancel={() => setConfirmDialog(null)}
+                />
+            )}
+        </div>
     );
 };
 
