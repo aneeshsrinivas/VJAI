@@ -40,17 +40,10 @@ const PaymentCheckout = () => {
     // Helper function to handle payment success and redirect
     const handlePaymentSuccess = (paymentDetails) => {
         setShowPaymentConfirmation(true);
-
-        // Auto-redirect after 3 seconds or when user clicks confirmation
+        // Always return to parent dashboard – they came from there
         setTimeout(() => {
-            if (demoId) {
-                // Redirect to parent dashboard if came from a demo
-                navigate('/parent/dashboard', { state: { paymentSuccess: true } });
-            } else {
-                // Fallback to payment success page
-                navigate('/payment/success', { state: paymentDetails });
-            }
-        }, 3500);
+            navigate('/parent/dashboard', { state: { paymentSuccess: true } });
+        }, 2000);
     };
 
     // Mock UPI details
@@ -1024,13 +1017,7 @@ const PaymentCheckout = () => {
                                 Redirecting to your dashboard...
                             </p>
                             <button
-                                onClick={() => {
-                                    if (demoId) {
-                                        navigate('/parent/dashboard', { state: { paymentSuccess: true } });
-                                    } else {
-                                        navigate('/payment/success');
-                                    }
-                                }}
+                                onClick={() => navigate('/parent/dashboard', { state: { paymentSuccess: true } })}
                                 style={{
                                     background: '#10b981',
                                     color: 'white',
