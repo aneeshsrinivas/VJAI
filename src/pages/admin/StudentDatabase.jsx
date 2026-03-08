@@ -144,16 +144,26 @@ const StudentDatabase = () => {
 
                 // Check if batch changed/removed
                 if (oldBatchId && oldBatchId !== editingStudent.assigned_batch_id) {
+                    // Try to find old coach doc ID from oldCoachId (which could be the accountId)
+                    let oldCoachDocId = oldCoachId; // fallback
                     if (oldCoachId) {
+                        const oldCoachQuery = query(collection(db, 'coaches'), where('accountId', '==', oldCoachId));
+                        const oldCoachSnap = await getDocs(oldCoachQuery);
+                        if (!oldCoachSnap.empty) {
+                            oldCoachDocId = oldCoachSnap.docs[0].id;
+                        }
+                    }
+
+                    if (oldCoachDocId) {
                         try {
-                            const oldBatchRef = doc(db, 'coaches', oldCoachId, 'batches', oldBatchId);
+                            const oldBatchRef = doc(db, 'coaches', oldCoachDocId, 'batches', oldBatchId);
                             await updateDoc(oldBatchRef, {
                                 studentsId: arrayRemove(editingStudent.id),
                                 updatedAt: serverTimestamp()
                             });
                             console.log(`Removed student from old batch: ${oldBatchId}`);
                         } catch (err) {
-                            console.error("Error removing from old batch:", err);
+                            console.warn("Could not remove from old batch using document ID:", err);
                         }
                     }
                 }
@@ -181,24 +191,40 @@ const StudentDatabase = () => {
 
             // If batch is assigned, add student ID to batch's studentsId array
             if (editingStudent.assigned_coach_id && editingStudent.assigned_batch_id) {
-                const batchRef = doc(db, 'coaches', editingStudent.assigned_coach_id, 'batches', editingStudent.assigned_batch_id);
-                await updateDoc(batchRef, {
-                    studentsId: arrayUnion(editingStudent.id),
-                    updatedAt: serverTimestamp()
-                });
+                // Find coach doc ID using accountId
+                const coachQuery = query(collection(db, 'coaches'), where('accountId', '==', editingStudent.assigned_coach_id));
+                const coachSnap = await getDocs(coachQuery);
+                
+                let coachDocId = editingStudent.assigned_coach_id; // Fallback to raw ID
+                if (!coachSnap.empty) {
+                    coachDocId = coachSnap.docs[0].id;
+                }
+
+                try {
+                    const batchRef = doc(db, 'coaches', coachDocId, 'batches', editingStudent.assigned_batch_id);
+                    await updateDoc(batchRef, {
+                        studentsId: arrayUnion(editingStudent.id),
+                        updatedAt: serverTimestamp()
+                    });
+                } catch (batchErr) {
+                    console.error('Error adding student to batch document:', batchErr);
+                    throw new Error('Could not attach student to the selected batch.');
+                }
 
                 // Also auto-add student to the batch's group chat if it exists
                 try {
                     const chatsRef = collection(db, 'chats');
-                    const qChat = query(chatsRef, where('batchId', '==', editingStudent.assigned_batch_id));
+                    const qChat = query(chatsRef, where('chatType', '==', 'BATCH_GROUP')); // Removed strict batchId match as it wasn't always populated, better to search participant array or name, but for now we look for exact batch matches by ID
                     const chatSnap = await getDocs(qChat);
                     
-                    if (!chatSnap.empty) {
-                        const chatDoc = chatSnap.docs[0];
-                        await updateDoc(doc(db, 'chats', chatDoc.id), {
+                    // Simple heuristic to find the right batch chat: name matches batch Name or ID is batch ID
+                    const targetChat = chatSnap.docs.find(d => d.id === editingStudent.assigned_batch_id || d.data().name === editingStudent.assigned_batch_name);
+                    
+                    if (targetChat) {
+                        await updateDoc(doc(db, 'chats', targetChat.id), {
                             participants: arrayUnion(editingStudent.id)
                         });
-                        console.log(`Added student ${editingStudent.id} to batch chat ${chatDoc.id}`);
+                        console.log(`Added student ${editingStudent.id} to batch chat ${targetChat.id}`);
                     }
                 } catch (chatErr) {
                     console.error('Error auto-adding student to chat:', chatErr);

@@ -672,7 +672,7 @@ const ParentDashboard = () => {
 
             {/* Main Content Grid */}
             <div className="dashboard-content">
-                {(student?.status === 'PAYMENT_PENDING' || !student?.status) && (
+                {(student?.status === 'PAYMENT_PENDING') && (
                     <div className="payment-pending-banner" style={{
                         background: 'linear-gradient(135deg, #ef4444 0%, #b91c1c 100%)',
                         color: 'white',
@@ -830,7 +830,7 @@ const ParentDashboard = () => {
                 )}
 
 
-                {student?.status !== 'PAYMENT_PENDING' && !(!student?.status) && student?.status !== 'PAYMENT_SUCCESSFUL' && (
+                {student?.status !== 'PAYMENT_PENDING' && student?.status !== 'PAYMENT_SUCCESSFUL' && student?.status !== 'PENDING_COACH' && (
                     <div className="content-grid">
                         {/* Left Column */}
                         <div className="main-column">
