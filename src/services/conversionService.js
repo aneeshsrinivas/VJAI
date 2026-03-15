@@ -167,7 +167,12 @@ export const conversionService = {
             }
 
             await setDoc(doc(db, 'users', realUid), userData, { merge: true });
-            console.log('✅ Updated users document');
+            console.log('✅ Updated users document with:', {
+                assignedCoachId: userData.assignedCoachId,
+                assignedBatchId: userData.assignedBatchId,
+                assignedBatchName: userData.assignedBatchName,
+                level: userData.level
+            });
 
             // 4. Create Student Record in 'students' collection
             const studentData = {

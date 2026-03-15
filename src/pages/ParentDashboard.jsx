@@ -32,6 +32,7 @@ const ParentDashboard = () => {
     // Real-time Data
     const [student, setStudent] = useState(null);
     const [coach, setCoach] = useState(null);
+    const [resolvedCoachIds, setResolvedCoachIds] = useState([]);
     const [broadcasts, setBroadcasts] = useState([]);
     const [subscription, setSubscription] = useState(null);
     const [chessAssignments, setChessAssignments] = useState([]);
@@ -254,14 +255,30 @@ const ParentDashboard = () => {
             student.assignedBatch
         ].filter(Boolean));
 
+        console.log('📚 Schedule listener - Student batch info:', {
+            batchNames: Array.from(batchNames),
+            batchIds: Array.from(batchIds),
+            studentData: {
+                batchName: student.batchName,
+                batchId: student.batchId,
+                assignedBatchName: student.assignedBatchName,
+                assignedBatchId: student.assignedBatchId,
+                assignedBatch: student.assignedBatch
+            }
+        });
+
         const qSchedule = query(collection(db, COLLECTIONS.SCHEDULE));
 
         const unsubscribeSchedule = onSnapshot(qSchedule, (snapshot) => {
+            console.log(`📅 Total schedule documents: ${snapshot.docs.length}`);
             const classes = snapshot.docs
                 .filter(d => {
                     const data = d.data();
-                    // Match by batch name OR batch ID
-                    return batchNames.has(data.batchName) || batchIds.has(data.batchId) || batchIds.has(data.assignedBatchId);
+                    const matches = batchNames.has(data.batchName) || batchIds.has(data.batchId) || batchIds.has(data.assignedBatchId);
+                    if (!matches) {
+                        console.log('❌ No match for class:', { batchName: data.batchName, batchId: data.batchId });
+                    }
+                    return matches;
                 })
                 .map(d => {
                     const data = d.data();

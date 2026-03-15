@@ -299,7 +299,7 @@ const PaymentCheckout = () => {
                 studentName: formData.studentName,
                 planId: plan.id || plan.planId,
                 planName: plan.name,
-                amount: amountINR,
+                amount: pricing.total,  // Store USD amount, not INR
                 billingCycle: plan.billingCycle || 'MONTHLY',
                 status: 'ACTIVE',
                 paymentMethod: 'razorpay',
@@ -546,7 +546,7 @@ const PaymentCheckout = () => {
                 studentName: formData.studentName,
                 planId: plan.id || plan.planId,
                 planName: plan.name,
-                amount: amountINR,
+                amount: pricing.total,  // Store USD amount, not INR
                 billingCycle: plan.billingCycle || 'MONTHLY',
                 status: 'ACTIVE',
                 paymentMethod: 'simulated',
