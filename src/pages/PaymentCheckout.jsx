@@ -20,6 +20,7 @@ const PaymentCheckout = () => {
     const [formData, setFormData] = useState({
         studentName: '',
         studentAge: '',
+        selectedStudentId: '',
         parentName: '',
         parentEmail: '',
         parentPhone: '',
@@ -154,7 +155,7 @@ const PaymentCheckout = () => {
 
                 setAvailableStudents(students);
                 if (students.length === 1 && !formData.studentName) {
-                    setFormData(prev => ({ ...prev, studentName: students[0].name, studentAge: students[0].age }));
+                    setFormData(prev => ({ ...prev, studentName: students[0].name, studentAge: students[0].age, selectedStudentId: students[0].id }));
                     setIsNewStudent(false);
                 } else if (students.length > 0 && !formData.studentName) {
                     setIsNewStudent(false);
@@ -704,17 +705,17 @@ const PaymentCheckout = () => {
                                     <div className="checkout-input-group" style={{ marginBottom: '16px' }}>
                                         <label style={{ display: 'block', marginBottom: '8px', fontSize: '14px', color: '#181818', fontWeight: '500' }}>Select Student</label>
                                         <select
-                                            value={isNewStudent ? 'new' : formData.studentName}
+                                            value={isNewStudent ? 'new' : formData.selectedStudentId || ''}
                                             onChange={(e) => {
                                                 const val = e.target.value;
                                                 if (val === 'new') {
                                                     setIsNewStudent(true);
-                                                    setFormData(prev => ({ ...prev, studentName: '', studentAge: '' }));
+                                                    setFormData(prev => ({ ...prev, studentName: '', studentAge: '', selectedStudentId: '' }));
                                                 } else {
                                                     setIsNewStudent(false);
-                                                    const selected = availableStudents.find(s => s.name === val);
+                                                    const selected = availableStudents.find(s => s.id === val);
                                                     if (selected) {
-                                                        setFormData(prev => ({ ...prev, studentName: selected.name, studentAge: selected.age }));
+                                                        setFormData(prev => ({ ...prev, studentName: selected.name, studentAge: selected.age, selectedStudentId: selected.id }));
                                                     }
                                                 }
                                             }}
@@ -728,7 +729,7 @@ const PaymentCheckout = () => {
                                         >
                                             <option value="" disabled>-- Select a student --</option>
                                             {availableStudents.map(student => (
-                                                <option key={student.id} value={student.name}>{student.name}</option>
+                                                <option key={student.id} value={student.id}>{student.name}</option>
                                             ))}
                                             <option value="new">+ Add New Student</option>
                                         </select>

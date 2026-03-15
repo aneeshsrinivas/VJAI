@@ -148,6 +148,7 @@ export const conversionService = {
                 studentAge: demoData.studentAge || null,
                 assignedCoachId: assignmentData.coachId || demoData.assignedCoachId || null,
                 assignedBatchId: assignmentData.batchId || demoData.assignedBatchId || null,
+                assignedBatchName: assignmentData.batchName || demoData.assignedBatchName || null,
                 learningLevel: demoData.recommendedLevel || demoData.level || 'beginner',
                 level: demoData.recommendedLevel || demoData.level || 'beginner',
                 studentType: demoData.recommendedStudentType || 'group',
@@ -179,6 +180,7 @@ export const conversionService = {
                 level: demoData.level || 'beginner',
                 assignedCoachId: assignmentData.coachId || demoData.assignedCoachId || null,
                 assignedBatchId: assignmentData.batchId || demoData.assignedBatchId || null,
+                assignedBatchName: assignmentData.batchName || demoData.assignedBatchName || null,
                 status: 'ACTIVE',
                 updatedAt: serverTimestamp()
             };

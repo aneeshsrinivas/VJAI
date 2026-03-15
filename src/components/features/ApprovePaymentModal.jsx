@@ -76,9 +76,12 @@ const ApprovePaymentModal = ({ demo, onClose, onSuccess }) => {
         setError('');
 
         try {
+            // Get batch name from selected batch
+            const selectedBatch = batches.find(b => b.id === selectedBatchId);
             const result = await conversionService.approvePayment(demo.id, {
                 coachId: selectedCoachId,
-                batchId: selectedBatchId
+                batchId: selectedBatchId,
+                batchName: selectedBatch?.name || ''
             });
 
             if (result.success) {
