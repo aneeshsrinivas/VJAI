@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { X, Send, MessageCircle } from 'lucide-react';
+import { X, Send } from 'lucide-react';
 import { chatWithGemini } from '../../services/geminiService';
 import './ChatbotWidget.css';
 
@@ -120,7 +120,7 @@ const ChatbotWidget = () => {
                     title="Chat with us"
                     aria-label="Open chat"
                 >
-                    <MessageCircle size={32} color="white" strokeWidth={1.5} />
+                    💬
                 </button>
             )}
 
