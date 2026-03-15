@@ -240,7 +240,7 @@ const ParentDashboard = () => {
     // 2b. Listen to Class Schedule (Regular Batches)
     // Separate useEffect because it depends on student state which is populated asynchronously
     useEffect(() => {
-        if (!student?.batchId && !student?.batchName && !student?.assignedBatchName) return;
+        if (!student?.batchId && !student?.batchName && !student?.assignedBatchName && !student?.assignedBatchId) return;
         if (!db) return;
 
         const batchNames = new Set([
@@ -248,11 +248,21 @@ const ParentDashboard = () => {
             student.assignedBatchName
         ].filter(Boolean));
 
+        const batchIds = new Set([
+            student.batchId,
+            student.assignedBatchId,
+            student.assignedBatch
+        ].filter(Boolean));
+
         const qSchedule = query(collection(db, COLLECTIONS.SCHEDULE));
 
         const unsubscribeSchedule = onSnapshot(qSchedule, (snapshot) => {
             const classes = snapshot.docs
-                .filter(d => batchNames.has(d.data().batchName))
+                .filter(d => {
+                    const data = d.data();
+                    // Match by batch name OR batch ID
+                    return batchNames.has(data.batchName) || batchIds.has(data.batchId) || batchIds.has(data.assignedBatchId);
+                })
                 .map(d => {
                     const data = d.data();
                     let dateObj = new Date();
@@ -302,7 +312,7 @@ const ParentDashboard = () => {
         });
 
         return () => unsubscribeSchedule();
-    }, [student?.batchId, student?.batchName, student?.assignedBatchName]);
+    }, [student?.batchId, student?.batchName, student?.assignedBatchName, student?.assignedBatchId, student?.assignedBatch]);
 
     // Fetch Chess Assignments
     useEffect(() => {
