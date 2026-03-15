@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { submitDemoOutcome, convertDemoToPendingStudent } from '../../services/firestoreService';
+import { submitDemoOutcome, convertDemoToPendingStudent, getAllCoaches } from '../../services/firestoreService';
 import { createParentAuthAccount } from '../../services/adminAuthService';
 import { DEMO_STATUS } from '../../config/firestoreCollections';
 import { emailService } from '../../services/emailService';
@@ -38,6 +38,8 @@ const DemoOutcomeModal = ({ demo, onClose, onSuccess, mandatory = false }) => {
     const [error, setError] = useState('');
     const [showConfetti, setShowConfetti] = useState(false);
     const [attemptedClose, setAttemptedClose] = useState(false);
+    const [coaches, setCoaches] = useState([]);
+    const [selectedCoachId, setSelectedCoachId] = useState(demo?.assignedCoachId || '');
     const [batches, setBatches] = useState([]);
 
     // Calculate form completion percentage
@@ -117,20 +119,37 @@ const DemoOutcomeModal = ({ demo, onClose, onSuccess, mandatory = false }) => {
         return () => document.removeEventListener('keydown', handleEscape);
     }, [mandatory]);
 
-    // Fetch batches for assigned coach
+    // Fetch all coaches on mount
+    useEffect(() => {
+        const fetchCoaches = async () => {
+            try {
+                const result = await getAllCoaches();
+                if (result.success) {
+                    setCoaches(result.coaches || []);
+                }
+            } catch (err) {
+                console.error('Error fetching coaches:', err);
+                setCoaches([]);
+            }
+        };
+
+        fetchCoaches();
+    }, []);
+
+    // Fetch batches for selected coach
     useEffect(() => {
         const fetchBatches = async () => {
-            if (!demo?.assignedCoachId) {
+            if (!selectedCoachId) {
                 setBatches([]);
                 return;
             }
 
             try {
-                // Find the coach document that matches the assignedCoachId
-                const coachQuery = query(collection(db, 'coaches'), where('accountId', '==', demo.assignedCoachId));
+                // Find the coach document that matches the selectedCoachId
+                const coachQuery = query(collection(db, 'coaches'), where('accountId', '==', selectedCoachId));
                 const coachSnap = await getDocs(coachQuery);
 
-                let coachDocId = demo.assignedCoachId; // Fallback if it's already a Document ID
+                let coachDocId = selectedCoachId; // Fallback if it's already a Document ID
                 if (!coachSnap.empty) {
                     coachDocId = coachSnap.docs[0].id;
                 }
@@ -151,7 +170,7 @@ const DemoOutcomeModal = ({ demo, onClose, onSuccess, mandatory = false }) => {
         };
 
         fetchBatches();
-    }, [demo?.assignedCoachId]);
+    }, [selectedCoachId]);
 
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -351,6 +370,22 @@ const DemoOutcomeModal = ({ demo, onClose, onSuccess, mandatory = false }) => {
                                     <option value="advanced-beginner">Advanced Beginner</option>
                                     <option value="intermediate-I">Intermediate-I</option>
                                     <option value="intermediate-II">Intermediate-II</option>
+                                </select>
+                            </div>
+
+                            <div className="form-group required">
+                                <label>Recommended Coach *</label>
+                                <select
+                                    value={selectedCoachId}
+                                    onChange={(e) => setSelectedCoachId(e.target.value)}
+                                    required
+                                >
+                                    <option value="">-- Select Coach --</option>
+                                    {coaches.map(coach => (
+                                        <option key={coach.id} value={coach.id || coach.accountId}>
+                                            {coach.fullName || coach.name}
+                                        </option>
+                                    ))}
                                 </select>
                             </div>
 
