@@ -18,7 +18,16 @@ const SkillMapModal = ({ isOpen, onClose, student, onUpgrade }) => {
     const [hasOutdatedSkills, setHasOutdatedSkills] = useState(false);
     const [downgrading, setDowngrading] = useState(false);
 
-    const studentLevel = student?.level?.toLowerCase() || 'beginner';
+    // Normalize level to match skillsets collection document IDs
+    const normalizeLevel = (level) => {
+        if (!level) return 'beginner';
+        const l = level.toLowerCase().trim();
+        if (l.includes('advanced') && !l.includes('beginner')) return 'advanced';
+        if (l.includes('intermediate')) return 'intermediate';
+        return 'beginner';
+    };
+
+    const studentLevel = normalizeLevel(student?.level);
 
     const getNextLevel = (currentLevel) => {
         const levels = { 'beginner': 'intermediate', 'intermediate': 'advanced', 'advanced': null };
@@ -44,10 +53,13 @@ const SkillMapModal = ({ isOpen, onClose, student, onUpgrade }) => {
                 // Fetch curriculum from skillsets collection based on student level
                 const skillsetRef = doc(db, 'skillsets', studentLevel);
                 const skillsetSnap = await getDoc(skillsetRef);
-                
+
                 let levelSkills = [];
                 if (skillsetSnap.exists()) {
                     levelSkills = skillsetSnap.data().skills || [];
+                    console.log(`✓ Loaded skillset for level "${studentLevel}":`, levelSkills);
+                } else {
+                    console.warn(`✗ No skillset found for level "${studentLevel}". Student level: ${student?.level}`);
                 }
                 setCurriculum(levelSkills);
 
@@ -245,25 +257,29 @@ const SkillMapModal = ({ isOpen, onClose, student, onUpgrade }) => {
                                 {getLevelLabel(studentLevel)}
                             </span>
                         </div>
-                        <button 
-                            onClick={(e) => {
-                                e.stopPropagation();
-                                onClose();
-                            }} 
-                            style={{
-                                background: 'transparent',
-                                border: 'none',
-                                cursor: 'pointer',
-                                color: 'white',
-                                padding: '4px',
-                                display: 'flex',
-                                alignItems: 'center',
-                                justifyContent: 'center',
-                                zIndex: 10
-                            }}
-                            title="Close"
-                        >
-                            <X size={24} />
+                        <button onClick={onClose} style={{
+                            background: 'rgba(255,255,255,0.25)',
+                            border: 'none',
+                            borderRadius: '50%',
+                            width: '40px',
+                            height: '40px',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            cursor: 'pointer',
+                            color: 'white',
+                            transition: 'all 0.2s ease',
+                            flexShrink: 0
+                        }}
+                        onMouseEnter={(e) => {
+                            e.currentTarget.style.background = 'rgba(255,255,255,0.35)';
+                            e.currentTarget.style.transform = 'scale(1.1)';
+                        }}
+                        onMouseLeave={(e) => {
+                            e.currentTarget.style.background = 'rgba(255,255,255,0.25)';
+                            e.currentTarget.style.transform = 'scale(1)';
+                        }}>
+                            <X size={20} color="white" />
                         </button>
                     </div>
                 </div>

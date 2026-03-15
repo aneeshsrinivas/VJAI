@@ -78,7 +78,7 @@ const CoachSchedule = () => {
     }, [currentUser]);
 
     useEffect(() => {
-        if (!coachDocId) return;
+        if (!coachDocId || !currentUser?.uid) return;
 
         const coachIds = [...new Set([coachDocId, currentUser.uid])];
 
@@ -154,7 +154,7 @@ const CoachSchedule = () => {
             unsubscribeClasses();
             unsubscribeDemos();
         };
-    }, [coachDocId, currentUser.uid]);
+    }, [coachDocId, currentUser?.uid]);
 
     const toggleBlock = (day, time) => {
         const id = `${day}-${time}`;
