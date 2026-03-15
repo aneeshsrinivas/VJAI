@@ -1,14 +1,20 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { MessageCircle, X, Send } from 'lucide-react';
+import { X, Send } from 'lucide-react';
 import { chatWithGemini } from '../../services/geminiService';
 import './ChatbotWidget.css';
+
+const ChatIcon = () => (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+    </svg>
+);
 
 const ChatbotWidget = () => {
     const [isOpen, setIsOpen] = useState(false);
     const [messages, setMessages] = useState([
         {
             id: 1,
-            text: "Hi! 👋 I'm here to help answer questions about Indian Chess Academy. What would you like to know?",
+            text: "Hi! I'm here to help answer questions about Indian Chess Academy. What would you like to know?",
             sender: 'bot',
             timestamp: new Date()
         }
@@ -101,7 +107,7 @@ const ChatbotWidget = () => {
         setMessages([
             {
                 id: 1,
-                text: "Hi! 👋 I'm here to help answer questions about Indian Chess Academy. What would you like to know?",
+                text: "Hi! I'm here to help answer questions about Indian Chess Academy. What would you like to know?",
                 sender: 'bot',
                 timestamp: new Date()
             }
@@ -118,8 +124,9 @@ const ChatbotWidget = () => {
                     onClick={() => setIsOpen(true)}
                     className="chatbot-fab"
                     title="Chat with us"
+                    aria-label="Open chat"
                 >
-                    <MessageCircle size={24} />
+                    <ChatIcon />
                 </button>
             )}
 
