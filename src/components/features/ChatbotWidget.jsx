@@ -120,7 +120,7 @@ const ChatbotWidget = () => {
                     title="Chat with us"
                     aria-label="Open chat"
                 >
-                    <MessageCircle size={28} />
+                    <MessageCircle size={32} color="white" strokeWidth={1.5} />
                 </button>
             )}
 
