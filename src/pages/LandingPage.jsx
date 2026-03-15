@@ -9,6 +9,7 @@ import Footer from '../components/layout/Footer';
 import CTASection from '../components/shared/CTASection';
 import PricingSection from '../components/sections/PricingSection';
 import { HeroSection, StatsSection, AboutSection, TestimonialsSection, FAQSection } from '../components/sections';
+import ChatbotWidget from '../components/features/ChatbotWidget';
 import './LandingPage.css';
 import '../components/shared/PremiumModal.css';
 import VideoIcon from '../components/icons/VideoIcon';
@@ -257,6 +258,7 @@ const LandingPage = () => {
                 </AnimatePresence>,
                 document.body
             )}
+            <ChatbotWidget />
         </div>
     );
 };
