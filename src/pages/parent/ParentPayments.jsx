@@ -345,7 +345,7 @@ const ParentPayments = () => {
                                                     </div>
                                                 )}
                                             </td>
-                                            <td style={{ padding: '16px 24px', fontWeight: '700', color: c.tableAmountText }}>₹{tx.amount?.toLocaleString() || '0'}</td>
+                                            <td style={{ padding: '16px 24px', fontWeight: '700', color: c.tableAmountText }}>${tx.amount?.toLocaleString() || '0'}</td>
                                             <td style={{ padding: '16px 24px' }}>
                                                 <span style={{
                                                     display: 'inline-flex',
