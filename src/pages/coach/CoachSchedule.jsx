@@ -137,13 +137,16 @@ const CoachSchedule = () => {
             updateSchedule(demos, 'demos');
         });
 
-        // Helper to merge lists
+        // Helper to merge lists — only keep items from today onwards
         let currentClasses = [];
         let currentDemos = [];
 
         const updateSchedule = (items, source) => {
-            if (source === 'classes') currentClasses = items;
-            if (source === 'demos') currentDemos = items;
+            const startOfToday = new Date();
+            startOfToday.setHours(0, 0, 0, 0);
+            const upcoming = items.filter(item => item.rawDate >= startOfToday);
+            if (source === 'classes') currentClasses = upcoming;
+            if (source === 'demos') currentDemos = upcoming;
             setScheduleItems([...currentClasses, ...currentDemos]);
         };
 
