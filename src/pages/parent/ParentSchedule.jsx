@@ -266,6 +266,12 @@ const ParentSchedule = () => {
                                 const fullDay = dateObj.toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric' });
                                 const timeStr = dateObj.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
 
+                                // Check if class is joinable (within 5 minutes of start time)
+                                const now = new Date();
+                                const fiveMinutesBeforeStart = new Date(dateObj.getTime() - 5 * 60 * 1000);
+                                const classEndTime = new Date(dateObj.getTime() + 2 * 60 * 60 * 1000);
+                                const isJoinable = now >= fiveMinutesBeforeStart && now < classEndTime && slot.meetLink;
+
                                 return (
                                     <div key={slot.id} style={{
                                         display: 'flex',
@@ -330,17 +336,17 @@ const ParentSchedule = () => {
                                         </div>
                                         <Button
                                             size="sm"
-                                            onClick={() => slot.meetLink && window.open(slot.meetLink, '_blank')}
+                                            onClick={() => isJoinable && slot.meetLink && window.open(slot.meetLink, '_blank')}
                                             style={{
-                                                background: 'linear-gradient(135deg, #FC8A24, #ff9d4d)',
+                                                background: isJoinable ? 'linear-gradient(135deg, #FC8A24, #ff9d4d)' : 'linear-gradient(135deg, #999, #bbb)',
                                                 color: 'white',
                                                 border: 'none',
                                                 padding: '10px 20px',
                                                 borderRadius: '10px',
                                                 fontWeight: '600',
-                                                boxShadow: '0 4px 12px rgba(252, 138, 36, 0.3)',
-                                                opacity: slot.meetLink ? 1 : 0.5,
-                                                cursor: slot.meetLink ? 'pointer' : 'not-allowed'
+                                                boxShadow: isJoinable ? '0 4px 12px rgba(252, 138, 36, 0.3)' : 'none',
+                                                opacity: isJoinable ? 1 : 0.6,
+                                                cursor: isJoinable ? 'pointer' : 'not-allowed'
                                             }}
                                         >
                                             <Video size={16} style={{ marginRight: '8px' }} />
