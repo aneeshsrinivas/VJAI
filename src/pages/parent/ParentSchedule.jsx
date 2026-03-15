@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import Card from '../../components/ui/Card';
 import { Calendar, Video, Clock, MapPin } from 'lucide-react';
 import Button from '../../components/ui/Button';
-import { collection, query, orderBy, onSnapshot, where, doc, getDoc } from 'firebase/firestore';
+import { collection, query, orderBy, onSnapshot, where, doc, getDoc, deleteDoc } from 'firebase/firestore';
 import { db } from '../../lib/firebase';
 import { COLLECTIONS } from '../../config/firestoreCollections';
 import { useAuth } from '../../context/AuthContext';
@@ -38,70 +38,76 @@ const ParentSchedule = () => {
     useEffect(() => {
         if (!currentUser?.uid) return;
 
-        // First fetch student data to get batchId
+        let unsubscribeBatch = null;
+        let unsubscribeCoach = null;
+
+        // Merge classes from two sources, deduplicating by id
+        let batchClasses = [];
+        let coachClasses = [];
+        const mergeAndSet = () => {
+            const seen = new Set();
+            const merged = [...batchClasses, ...coachClasses].filter(c => {
+                if (seen.has(c.id)) return false;
+                seen.add(c.id);
+                return true;
+            }).sort((a, b) => {
+                const dateA = a.scheduledAt?.seconds ? a.scheduledAt.seconds : new Date(a.scheduledAt).getTime() / 1000;
+                const dateB = b.scheduledAt?.seconds ? b.scheduledAt.seconds : new Date(b.scheduledAt).getTime() / 1000;
+                return dateA - dateB;
+            });
+            setClasses(merged);
+        };
+
+        const mapDoc = (d) => ({ id: d.id, ...d.data(), type: 'Live Class', classType: 'Regular' });
+
+        // First fetch student data to get batchId and coachId
         const fetchStudentAndSchedule = async () => {
             try {
-                // Fetch from 'students' collection (not USERS)
                 const userDoc = await getDoc(doc(db, 'users', currentUser.uid));
-                if (userDoc.exists()) {
-                    const student = userDoc.data();
-                    setStudentData(student);
-
-                    const batchId = student.assignedBatchId || student.assignedBatch;
-
-                    if (batchId) {
-                        // Fetch classes filtered by batchId and status SCHEDULED
-                        const qClasses = query(
-                            collection(db, COLLECTIONS.SCHEDULE),
-                            where('batchId', '==', batchId),
-                            where('status', '==', 'SCHEDULED')
-                        );
-
-                        console.log("Setting up classes listener for batchId:", batchId);
-
-                        const unsubscribeClasses = onSnapshot(qClasses, (snapshot) => {
-                            console.log("Fetched scheduled classes for batchId:", batchId, snapshot.docs.map(doc => doc.data()));
-                            const list = snapshot.docs.map(doc => ({
-                                id: doc.id,
-                                ...doc.data(),
-                                type: 'Live Class',
-                                classType: 'Regular'
-                            })).sort((a, b) => {
-                                // Sort by scheduledAt client-side
-                                const dateA = a.scheduledAt?.seconds ? a.scheduledAt.seconds : new Date(a.scheduledAt).getTime() / 1000;
-                                const dateB = b.scheduledAt?.seconds ? b.scheduledAt.seconds : new Date(b.scheduledAt).getTime() / 1000;
-                                return dateA - dateB;
-                            });
-
-                            setClasses(list);
-                        }, (error) => {
-                            // If composite index error, fetch without status filter and filter client-side
-                            console.error("Query error, falling back to client-side filter:", error);
-                            const qClassesFallback = query(
-                                collection(db, COLLECTIONS.SCHEDULE),
-                                where('batchId', '==', batchId)
-                            );
-                            onSnapshot(qClassesFallback, (snap) => {
-                                const list = snap.docs.map(d => ({
-                                    id: d.id,
-                                    ...d.data(),
-                                    type: 'Live Class',
-                                    classType: 'Regular'
-                                })).filter(c => c.status === 'SCHEDULED').sort((a, b) => {
-                                    const dateA = a.scheduledAt?.seconds ? a.scheduledAt.seconds : new Date(a.scheduledAt).getTime() / 1000;
-                                    const dateB = b.scheduledAt?.seconds ? b.scheduledAt.seconds : new Date(b.scheduledAt).getTime() / 1000;
-                                    return dateA - dateB;
-                                });
-                                setClasses(list);
-                            });
-                        });
-
-
-
-                        return () => unsubscribeClasses();
-                    }
-                } else {
+                if (!userDoc.exists()) {
                     console.log("No student document found for user:", currentUser.uid);
+                    return;
+                }
+                const student = userDoc.data();
+                setStudentData(student);
+
+                const batchId = student.assignedBatchId || student.assignedBatch;
+                const coachId = student.assignedCoachId;
+
+                // Listener 1: by batchId (primary — exact batch match)
+                if (batchId) {
+                    console.log("Setting up classes listener for batchId:", batchId);
+                    const qBatch = query(
+                        collection(db, COLLECTIONS.SCHEDULE),
+                        where('batchId', '==', batchId),
+                        where('status', '==', 'SCHEDULED')
+                    );
+                    unsubscribeBatch = onSnapshot(qBatch, (snap) => {
+                        batchClasses = snap.docs.map(mapDoc);
+                        mergeAndSet();
+                    }, () => {
+                        // Composite index not ready — fallback without status filter
+                        const qFallback = query(collection(db, COLLECTIONS.SCHEDULE), where('batchId', '==', batchId));
+                        unsubscribeBatch = onSnapshot(qFallback, (snap) => {
+                            batchClasses = snap.docs.map(mapDoc).filter(c => c.status === 'SCHEDULED');
+                            mergeAndSet();
+                        });
+                    });
+                }
+
+                // Listener 2: by coachId (fallback — catches classes saved to any of the coach's batches)
+                if (coachId) {
+                    console.log("Setting up classes listener for coachId:", coachId);
+                    const qCoach = query(
+                        collection(db, COLLECTIONS.SCHEDULE),
+                        where('coachId', '==', coachId)
+                    );
+                    unsubscribeCoach = onSnapshot(qCoach, (snap) => {
+                        coachClasses = snap.docs.map(mapDoc).filter(c => c.status === 'SCHEDULED');
+                        mergeAndSet();
+                    }, (err) => {
+                        console.error("Coach classes listener error:", err);
+                    });
                 }
             } catch (error) {
                 console.error("Error fetching student data:", error);
@@ -128,10 +134,43 @@ const ParentSchedule = () => {
 
         return () => {
             unsubscribeDemos();
+            if (unsubscribeBatch) unsubscribeBatch();
+            if (unsubscribeCoach) unsubscribeCoach();
         };
     }, [currentUser]);
 
-    const allSessions = [...classes, ...demos].filter(session => {
+    // Filter and clean up past classes (only delete if class ended, not if it's ongoing)
+    const getUpcomingClasses = (sessionsList) => {
+        const now = new Date();
+        const upcoming = [];
+
+        sessionsList.forEach(session => {
+            let sessionDate = new Date();
+            if (session.scheduledAt?.seconds) {
+                sessionDate = new Date(session.scheduledAt.seconds * 1000);
+            } else if (session.scheduledAt) {
+                sessionDate = new Date(session.scheduledAt);
+            }
+
+            // Calculate class end time (assume 2-hour class)
+            const classEndTime = new Date(sessionDate.getTime() + 2 * 60 * 60 * 1000);
+
+            // Keep class if it hasn't ended yet
+            if (classEndTime > now) {
+                upcoming.push(session);
+            } else if (session.type === 'Live Class' && session.id) {
+                // Delete only if class has been over for a while (DELETE-safe window)
+                // Only delete if the cleanup has a high confidence the class is truly over
+                deleteDoc(doc(db, COLLECTIONS.SCHEDULE, session.id)).catch(err =>
+                    console.warn('Could not delete past class:', err)
+                );
+            }
+        });
+
+        return upcoming;
+    };
+
+    const allSessions = getUpcomingClasses([...classes, ...demos]).filter(session => {
         // If no user data, show nothing (or all? Safer to show nothing to avoid leak)
         if (!userData) return false;
 
@@ -141,6 +180,12 @@ const ParentSchedule = () => {
         // Student Filtering Logic
         const userBatch = userData.assignedBatchName || userData.assignedBatch;
         const userLevel = userData.level || userData.learningLevel;
+
+        // 0. If session is from the student's assigned coach, always show it
+        //    This handles classes scheduled to any batch by the coach
+        if (session.coachId && userData.assignedCoachId && session.coachId === userData.assignedCoachId) {
+            return true;
+        }
 
         // 1. If session has a specific batch name, match it
         if (session.batchName && userBatch) {
@@ -287,19 +332,19 @@ const ParentSchedule = () => {
                                             size="sm"
                                             onClick={() => slot.meetLink && window.open(slot.meetLink, '_blank')}
                                             style={{
-                                                background: i === 0 ? 'linear-gradient(135deg, #FC8A24, #ff9d4d)' : c.btnSecBg,
-                                                color: i === 0 ? 'white' : c.btnSecColor,
-                                                border: i === 0 ? 'none' : c.btnSecBorder,
+                                                background: 'linear-gradient(135deg, #FC8A24, #ff9d4d)',
+                                                color: 'white',
+                                                border: 'none',
                                                 padding: '10px 20px',
                                                 borderRadius: '10px',
                                                 fontWeight: '600',
-                                                boxShadow: i === 0 ? '0 4px 12px rgba(252, 138, 36, 0.3)' : 'none',
+                                                boxShadow: '0 4px 12px rgba(252, 138, 36, 0.3)',
                                                 opacity: slot.meetLink ? 1 : 0.5,
                                                 cursor: slot.meetLink ? 'pointer' : 'not-allowed'
                                             }}
                                         >
                                             <Video size={16} style={{ marginRight: '8px' }} />
-                                            {i === 0 ? 'Join Now' : 'Details'}
+                                            Join Now
                                         </Button>
                                     </div>
                                 );

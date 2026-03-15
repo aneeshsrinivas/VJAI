@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import Card from '../../components/ui/Card';
 import { Calendar as CalendarIcon, ChevronLeft, ChevronRight, Ban } from 'lucide-react';
 import Button from '../../components/ui/Button';
-import { collection, query, where, onSnapshot } from 'firebase/firestore';
+import { collection, query, where, onSnapshot, doc, deleteDoc, getDocs } from 'firebase/firestore';
 import { db } from '../../lib/firebase';
 import { useAuth } from '../../context/AuthContext';
 import { useTheme } from '../../context/ThemeContext';
@@ -165,6 +165,48 @@ const CoachSchedule = () => {
         }
     };
 
+    // Clean up past classes periodically
+    useEffect(() => {
+        const cleanupPastClasses = async () => {
+            try {
+                const now = new Date();
+                const pastClasses = scheduleItems.filter(item => {
+                    if (item.type !== 'class') return false; // Only delete classes, not demos
+                    if (!item.rawDate) return false;
+                    // Delete if class ended (assume 2-hour class)
+                    const endTime = new Date(item.rawDate.getTime() + 2 * 60 * 60 * 1000);
+                    return endTime < now;
+                });
+
+                // Delete past classes from Firestore
+                for (const pastClass of pastClasses) {
+                    try {
+                        await deleteDoc(doc(db, COLLECTIONS.SCHEDULE, pastClass.id));
+                        console.log('Deleted past class:', pastClass.id);
+                    } catch (err) {
+                        console.warn('Could not delete past class:', err);
+                    }
+                }
+            } catch (error) {
+                console.error('Cleanup error:', error);
+            }
+        };
+
+        // Run cleanup every time scheduleItems changes
+        if (scheduleItems.length > 0) {
+            cleanupPastClasses();
+        }
+    }, [scheduleItems]);
+
+    // Filter out past items for display
+    const upcomingItems = scheduleItems.filter(item => {
+        if (!item.rawDate) return true;
+        const now = new Date();
+        // Show item if it hasn't ended yet (assume 2-hour duration)
+        const endTime = new Date(item.rawDate.getTime() + 2 * 60 * 60 * 1000);
+        return endTime >= now;
+    });
+
     return (
         <div style={{
             minHeight: 'calc(100vh - 70px)',
@@ -280,7 +322,7 @@ const CoachSchedule = () => {
                                     const isBlocked = blockedSlots.includes(id);
 
                                     // Robust Matching: Compare Date string and Hour
-                                    const existingClass = scheduleItems.find(c => {
+                                    const existingClass = upcomingItems.find(c => {
                                         if (!c.rawDate) return false;
 
                                         // 1. Compare Date (Day/Month/Year)

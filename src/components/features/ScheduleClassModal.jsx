@@ -11,6 +11,8 @@ const ScheduleClassModal = ({ isOpen, onClose, batchId, batchName, onSuccess }) 
     const { isDark } = useTheme();
     if (!isOpen) return null;
 
+    const DEFAULT_ZOOM_LINK = 'https://us06web.zoom.us/j/2884373632';
+
     const { currentUser, userData } = useAuth();
     const [loading, setLoading] = useState(false);
     const [batches, setBatches] = useState([]);
@@ -84,6 +86,7 @@ const ScheduleClassModal = ({ isOpen, onClose, batchId, batchName, onSuccess }) 
             coachName: userData?.fullName || currentUser.email?.split('@')[0] || 'Coach',
             batchId: selectedBatch.id,
             batchName: selectedBatch.name,
+            meetLink: DEFAULT_ZOOM_LINK,
             status: 'SCHEDULED',
             scheduledAt: new Date(`${formData.date}T${formData.time}`)
         });

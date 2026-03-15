@@ -82,6 +82,15 @@ const ParentDashboard = () => {
             const unsubStudent = onSnapshot(userDocRef, async (snapshot) => {
                 if (snapshot.exists()) {
                     const studentData = { id: snapshot.id, ...snapshot.data() };
+                    console.log('👤 Student data loaded:', {
+                        id: studentData.id,
+                        assignedCoachId: studentData.assignedCoachId,
+                        assignedBatchId: studentData.assignedBatchId,
+                        assignedBatchName: studentData.assignedBatchName,
+                        batchId: studentData.batchId,
+                        batchName: studentData.batchName,
+                        level: studentData.level
+                    });
                     setStudent(studentData);
 
                     // If coach is assigned, fetch coach details
@@ -238,10 +247,13 @@ const ParentDashboard = () => {
         }
     }, [currentUser]);
 
-    // 2b. Listen to Class Schedule (Regular Batches)
+    // 2b. Listen to Class Schedule (Regular Batches + Coach fallback)
     // Separate useEffect because it depends on student state which is populated asynchronously
     useEffect(() => {
-        if (!student?.batchId && !student?.batchName && !student?.assignedBatchName && !student?.assignedBatchId) return;
+        const hasBatchInfo = student?.batchId || student?.batchName || student?.assignedBatchName || student?.assignedBatchId;
+        const hasCoachInfo = student?.assignedCoachId || resolvedCoachIds.length > 0;
+
+        if (!hasBatchInfo && !hasCoachInfo) return;
         if (!db) return;
 
         const batchNames = new Set([
@@ -255,16 +267,17 @@ const ParentDashboard = () => {
             student.assignedBatch
         ].filter(Boolean));
 
-        console.log('📚 Schedule listener - Student batch info:', {
+        // Build coach IDs for fallback matching
+        const coachIds = new Set([
+            student.assignedCoachId,
+            ...resolvedCoachIds
+        ].filter(Boolean));
+
+        console.log('📚 Schedule listener - Student info:', {
             batchNames: Array.from(batchNames),
             batchIds: Array.from(batchIds),
-            studentData: {
-                batchName: student.batchName,
-                batchId: student.batchId,
-                assignedBatchName: student.assignedBatchName,
-                assignedBatchId: student.assignedBatchId,
-                assignedBatch: student.assignedBatch
-            }
+            coachIds: Array.from(coachIds),
+            hasBatchInfo: !!hasBatchInfo
         });
 
         const qSchedule = query(collection(db, COLLECTIONS.SCHEDULE));
@@ -274,11 +287,17 @@ const ParentDashboard = () => {
             const classes = snapshot.docs
                 .filter(d => {
                     const data = d.data();
-                    const matches = batchNames.has(data.batchName) || batchIds.has(data.batchId) || batchIds.has(data.assignedBatchId);
-                    if (!matches) {
-                        console.log('❌ No match for class:', { batchName: data.batchName, batchId: data.batchId });
+                    // Primary: match by batch name or batch ID
+                    if (batchNames.has(data.batchName) || batchIds.has(data.batchId) || batchIds.has(data.assignedBatchId)) {
+                        return true;
                     }
-                    return matches;
+                    // Secondary fallback: match by coach ID
+                    // Handles cases where student has batch info but IDs don't align
+                    // (e.g. enrolled before batch fix, or admin picked different batch)
+                    if (coachIds.has(data.coachId)) {
+                        return true;
+                    }
+                    return false;
                 })
                 .map(d => {
                     const data = d.data();
@@ -329,7 +348,7 @@ const ParentDashboard = () => {
         });
 
         return () => unsubscribeSchedule();
-    }, [student?.batchId, student?.batchName, student?.assignedBatchName, student?.assignedBatchId, student?.assignedBatch]);
+    }, [student?.batchId, student?.batchName, student?.assignedBatchName, student?.assignedBatchId, student?.assignedBatch, student?.assignedCoachId, resolvedCoachIds]);
 
     // Fetch Chess Assignments
     useEffect(() => {
