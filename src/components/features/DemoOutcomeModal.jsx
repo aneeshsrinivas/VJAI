@@ -5,6 +5,8 @@ import { DEMO_STATUS } from '../../config/firestoreCollections';
 import { emailService } from '../../services/emailService';
 import { useTheme } from '../../context/ThemeContext';
 import { useAuth } from '../../context/AuthContext';
+import { db } from '../../lib/firebase';
+import { collection, query, getDocs, where } from 'firebase/firestore';
 import Button from '../ui/Button';
 import { AlertTriangle, CheckCircle, XCircle, Clock, Star } from 'lucide-react';
 import './DemoOutcomeModal.css';
@@ -36,6 +38,7 @@ const DemoOutcomeModal = ({ demo, onClose, onSuccess, mandatory = false }) => {
     const [error, setError] = useState('');
     const [showConfetti, setShowConfetti] = useState(false);
     const [attemptedClose, setAttemptedClose] = useState(false);
+    const [batches, setBatches] = useState([]);
 
     // Calculate form completion percentage
     const getCompletionPercentage = () => {
@@ -113,6 +116,42 @@ const DemoOutcomeModal = ({ demo, onClose, onSuccess, mandatory = false }) => {
         document.addEventListener('keydown', handleEscape);
         return () => document.removeEventListener('keydown', handleEscape);
     }, [mandatory]);
+
+    // Fetch batches for assigned coach
+    useEffect(() => {
+        const fetchBatches = async () => {
+            if (!demo?.assignedCoachId) {
+                setBatches([]);
+                return;
+            }
+
+            try {
+                // Find the coach document that matches the assignedCoachId
+                const coachQuery = query(collection(db, 'coaches'), where('accountId', '==', demo.assignedCoachId));
+                const coachSnap = await getDocs(coachQuery);
+
+                let coachDocId = demo.assignedCoachId; // Fallback if it's already a Document ID
+                if (!coachSnap.empty) {
+                    coachDocId = coachSnap.docs[0].id;
+                }
+
+                // Fetch batches from this coach's subcollection
+                const batchQuery = query(collection(db, 'coaches', coachDocId, 'batches'));
+                const batchSnap = await getDocs(batchQuery);
+                const batchList = batchSnap.docs.map(d => ({
+                    id: d.id,
+                    name: d.data().name,
+                    level: d.data().level
+                }));
+                setBatches(batchList);
+            } catch (err) {
+                console.error('Error fetching batches:', err);
+                setBatches([]);
+            }
+        };
+
+        fetchBatches();
+    }, [demo?.assignedCoachId]);
 
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -324,10 +363,15 @@ const DemoOutcomeModal = ({ demo, onClose, onSuccess, mandatory = false }) => {
                                     required
                                 >
                                     <option value="">-- Select Batch --</option>
-                                    <option value="beginner">Beginner</option>
-                                    <option value="advanced-beginner">Advanced Beginner</option>
-                                    <option value="intermediate-I">Intermediate-I</option>
-                                    <option value="intermediate-II">Intermediate-II</option>
+                                    {batches.length > 0 ? (
+                                        batches.map(batch => (
+                                            <option key={batch.id} value={batch.id}>
+                                                {batch.name} ({batch.level})
+                                            </option>
+                                        ))
+                                    ) : (
+                                        <option value="" disabled>No batches available</option>
+                                    )}
                                 </select>
                             </div>
 
