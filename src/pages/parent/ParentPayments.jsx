@@ -206,9 +206,9 @@ const ParentPayments = () => {
                             <div style={{ display: 'flex', alignItems: 'baseline', gap: '4px', marginBottom: '24px' }}>
                                 <span style={{ fontSize: '32px', fontWeight: 'bold' }}>
                                     {currentPlan?.price
-                                        ? `₹${currentPlan.price.toLocaleString()}`
+                                        ? `$${currentPlan.price.toLocaleString()}`
                                         : subscription?.amount
-                                            ? `₹${subscription.amount.toLocaleString()}`
+                                            ? `$${subscription.amount.toLocaleString()}`
                                             : '—'}
                                 </span>
                                 <span style={{ color: 'rgba(255,255,255,0.6)' }}>
