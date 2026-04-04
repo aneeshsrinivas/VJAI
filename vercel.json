@@ -5,7 +5,7 @@
             "framework": "vite"
         },
         "backend": {
-            "entrypoint": "backend",
+            "entrypoint": "server",
             "routePrefix": "/_/backend"
         }
     }
