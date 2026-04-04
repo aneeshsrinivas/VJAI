@@ -1,12 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { collection, getDocs, query, where, orderBy, limit, onSnapshot } from 'firebase/firestore';
+import { collection, getDocs, query, where, orderBy, limit, onSnapshot, deleteDoc, doc } from 'firebase/firestore';
 import { db } from '../lib/firebase';
 import { useAuth } from '../context/AuthContext';
 import Card from '../components/ui/Card';
 import Button from '../components/ui/Button';
 import { toast, ToastContainer } from 'react-toastify';
-import { Users, UserCheck, Calendar, DollarSign, TrendingUp, MessageSquare, Bell, Download, Plus } from 'lucide-react';
+import { Users, UserCheck, Calendar, DollarSign, TrendingUp, MessageSquare, Bell, Download, Plus, Trash2 } from 'lucide-react';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import './Dashboard.css';
@@ -41,11 +41,11 @@ const AdminDashboard = () => {
                 // Check if db is available
                 if (!db) {
                     setStats({
-                        totalStudents: 5,
-                        activeCoaches: 3,
-                        pendingDemos: 2,
-                        monthlyRevenue: 5000,
-                        conversionRate: 45
+                        totalStudents: 0,
+                        activeCoaches: 0,
+                        pendingDemos: 0,
+                        monthlyRevenue: 0,
+                        conversionRate: 0
                     });
                     setRecentDemos([]);
                     setTopCoaches([]);
@@ -70,23 +70,29 @@ const AdminDashboard = () => {
 
                 // Fetch revenue from subscriptions — normalize by billing cycle duration
                 const subsSnap = await getDocs(collection(db, 'subscriptions'));
+                console.log('📊 Total subscriptions found:', subsSnap.docs.length);
+                subsSnap.docs.forEach((doc, idx) => {
+                    const data = doc.data();
+                    console.log(`Sub ${idx} (ID: ${doc.id}): Status=${data.status}, Amount=$${data.amount}, StudentId=${data.studentId || 'N/A'}`, data);
+                });
                 let monthlyRevenue = 0;
                 subsSnap.docs.forEach(doc => {
                     const data = doc.data();
                     if (data.status === 'ACTIVE') {
                         const amount = Number(data.amount) || 0;
                         const duration = Number(data.duration) || 0;
-                        const cycle = data.billingCycle || 'MONTHLY';
+                        const cycle = (data.billingCycle || 'MONTHLY').toUpperCase();
                         // Normalize to monthly equivalent
-                        if (duration === 4 || cycle === '4') {
+                        if (duration === 4 || cycle === '4' || cycle.includes('4')) {
                             monthlyRevenue += amount / 4;
-                        } else if (duration === 3 || cycle === 'QUARTERLY' || cycle === '3') {
+                        } else if (duration === 3 || cycle === 'QUARTERLY' || cycle === '3' || cycle.includes('QUARTER')) {
                             monthlyRevenue += amount / 3;
                         } else {
                             monthlyRevenue += amount; // MONTHLY plan — full amount
                         }
                     }
                 });
+                console.log('💰 Calculated monthly revenue:', monthlyRevenue);
                 monthlyRevenue = Math.round(monthlyRevenue);
 
                 // Calculate conversion rate
@@ -103,11 +109,6 @@ const AdminDashboard = () => {
                     conversionRate
                 });
 
-                // Fetch recent demos
-                const recentDemosQuery = query(collection(db, 'demos'), orderBy('createdAt', 'desc'), limit(5));
-                const recentDemosSnap = await getDocs(recentDemosQuery);
-                setRecentDemos(recentDemosSnap.docs.map(d => ({ id: d.id, ...d.data() })));
-
                 // Fetch top coaches (reuse the already-fetched active coaches snap)
                 const coachList = coachesSnap.docs.map(d => ({ id: d.id, ...d.data() }));
                 setTopCoaches(coachList.slice(0, 3));
@@ -120,22 +121,57 @@ const AdminDashboard = () => {
 
         fetchStats();
 
-        // Real-time listener for demos
-        if (db) {
-            const demosUnsubscribe = onSnapshot(
-                query(collection(db, 'demos'), orderBy('createdAt', 'desc'), limit(5)),
-                (snapshot) => {
-                    setRecentDemos(snapshot.docs.map(d => ({ id: d.id, ...d.data() })));
-                },
-                (error) => {
-                    console.error('Error listening to demos:', error);
-                    // Mock data on error
-                    setRecentDemos([]);
-                }
-            );
+        if (!db) return;
 
-            return () => demosUnsubscribe();
-        }
+        // Real-time listeners for revenue and demos
+        const subsUnsubscribe = onSnapshot(
+            collection(db, 'subscriptions'),
+            (snapshot) => {
+                const activeSubs = snapshot.docs.filter(d => d.data().status === 'ACTIVE');
+                let monthlyRevenue = 0;
+
+                activeSubs.forEach(doc => {
+                    const data = doc.data();
+                    const amount = Number(data.amount) || 0;
+                    const duration = Number(data.duration) || 0;
+                    const cycle = (data.billingCycle || 'MONTHLY').toUpperCase();
+
+                    // Normalize to monthly equivalent
+                    if (duration === 4 || cycle === '4' || cycle.includes('4')) {
+                        monthlyRevenue += amount / 4;
+                    } else if (duration === 3 || cycle === 'QUARTERLY' || cycle === '3' || cycle.includes('QUARTER')) {
+                        monthlyRevenue += amount / 3;
+                    } else {
+                        monthlyRevenue += amount; // MONTHLY plan — full amount
+                    }
+                });
+                monthlyRevenue = Math.round(monthlyRevenue);
+
+                setStats(prev => ({
+                    ...prev,
+                    monthlyRevenue
+                }));
+            },
+            (error) => {
+                console.error('Error listening to subscriptions:', error);
+            }
+        );
+
+        const demosUnsubscribe = onSnapshot(
+            query(collection(db, 'demos'), orderBy('createdAt', 'desc'), limit(5)),
+            (snapshot) => {
+                setRecentDemos(snapshot.docs.map(d => ({ id: d.id, ...d.data() })));
+            },
+            (error) => {
+                console.error('Error listening to demos:', error);
+                setRecentDemos([]);
+            }
+        );
+
+        return () => {
+            subsUnsubscribe();
+            demosUnsubscribe();
+        };
     }, []);
 
     const formatCurrency = (amount) => {
@@ -144,6 +180,50 @@ const AdminDashboard = () => {
             currency: 'USD',
             maximumFractionDigits: 0
         }).format(amount || 0);
+    };
+
+    const handleCleanupSubscriptions = async () => {
+        if (!window.confirm('Delete subscriptions for non-existent students? This cannot be undone.')) return;
+
+        try {
+            // Get all active students
+            const usersSnap = await getDocs(collection(db, 'users'));
+            const activeStudentIds = new Set(
+                usersSnap.docs
+                    .filter(d => ['customer', 'CUSTOMER'].includes(d.data().role))
+                    .map(d => d.id)
+            );
+
+            console.log('✅ Active students:', activeStudentIds);
+
+            // Get all subscriptions
+            const subsSnap = await getDocs(collection(db, 'subscriptions'));
+            const orphanedSubs = subsSnap.docs.filter(d => {
+                const studentId = d.data().studentId || d.data().parentId || d.data().userId;
+                const exists = activeStudentIds.has(studentId);
+                if (!exists) {
+                    console.log(`🗑️ Orphaned sub (ID: ${d.id}): Student ${studentId} doesn't exist`);
+                }
+                return !exists;
+            });
+
+            if (orphanedSubs.length === 0) {
+                toast.info('No orphaned subscriptions found - all subscriptions have active students');
+                return;
+            }
+
+            let deleted = 0;
+            for (const sub of orphanedSubs) {
+                await deleteDoc(doc(db, 'subscriptions', sub.id));
+                deleted++;
+            }
+
+            toast.success(`Deleted ${deleted} orphaned subscriptions. Page will refresh...`);
+            setTimeout(() => window.location.reload(), 1500);
+        } catch (error) {
+            console.error('Cleanup error:', error);
+            toast.error('Failed to delete subscriptions: ' + error.message);
+        }
     };
 
     const handleExportData = async () => {
@@ -326,6 +406,10 @@ const AdminDashboard = () => {
                     <Button variant="outline" size="sm" onClick={() => navigate('/admin/broadcast')}>
                         <Bell size={16} style={{ marginRight: 6 }} />
                         Broadcast
+                    </Button>
+                    <Button variant="outline" size="sm" onClick={handleCleanupSubscriptions} style={{ color: '#EF4444', borderColor: '#EF4444' }}>
+                        <Trash2 size={16} style={{ marginRight: 6 }} />
+                        Cleanup Subs
                     </Button>
                     <div style={{
                         padding: '8px 16px',

@@ -10,7 +10,8 @@ const ChatbotWidget = () => {
             id: 1,
             text: "Hi! I'm here to help answer questions about Indian Chess Academy. What would you like to know?",
             sender: 'bot',
-            timestamp: new Date()
+            timestamp: new Date(),
+            isError: false
         }
     ]);
     const [inputValue, setInputValue] = useState('');
@@ -33,19 +34,20 @@ const ChatbotWidget = () => {
             id: messages.length + 1,
             text: inputValue,
             sender: 'user',
-            timestamp: new Date()
+            timestamp: new Date(),
+            isError: false
         };
 
         setMessages(prev => [...prev, userMessage]);
         setInputValue('');
         setIsLoading(true);
 
-        // Build conversation history for API
+        // Build conversation history for LLM context
         const newHistory = [
             ...conversationHistory,
             {
                 role: 'user',
-                parts: [{ text: inputValue }]
+                content: inputValue
             }
         ];
 
@@ -53,13 +55,14 @@ const ChatbotWidget = () => {
             // Get response from Gemini
             const response = await chatWithGemini(inputValue, conversationHistory);
 
-            if (response.success) {
+            if (response && response.success) {
                 // Add bot response to UI
                 const botMessage = {
                     id: messages.length + 2,
-                    text: response.message,
+                    text: response.message || 'I received your message but couldn\'t generate a response.',
                     sender: 'bot',
-                    timestamp: new Date()
+                    timestamp: new Date(),
+                    isError: false
                 };
                 setMessages(prev => [...prev, botMessage]);
 
@@ -67,15 +70,15 @@ const ChatbotWidget = () => {
                 setConversationHistory([
                     ...newHistory,
                     {
-                        role: 'model',
-                        parts: [{ text: response.message }]
+                        role: 'assistant',
+                        content: response.message
                     }
                 ]);
             } else {
                 // Add error message
                 const errorMessage = {
                     id: messages.length + 2,
-                    text: response.message,
+                    text: response?.message || 'Sorry, I couldn\'t process your request. Please try again.',
                     sender: 'bot',
                     timestamp: new Date(),
                     isError: true
@@ -86,7 +89,7 @@ const ChatbotWidget = () => {
             console.error('Chat error:', error);
             const errorMessage = {
                 id: messages.length + 2,
-                text: 'Oops! Something went wrong. Please try again.',
+                text: 'Oops! Something went wrong. Please try again later.',
                 sender: 'bot',
                 timestamp: new Date(),
                 isError: true
@@ -103,7 +106,8 @@ const ChatbotWidget = () => {
                 id: 1,
                 text: "Hi! I'm here to help answer questions about Indian Chess Academy. What would you like to know?",
                 sender: 'bot',
-                timestamp: new Date()
+                timestamp: new Date(),
+                isError: false
             }
         ]);
         setConversationHistory([]);
@@ -119,9 +123,7 @@ const ChatbotWidget = () => {
                     className="chatbot-fab"
                     title="Chat with us"
                     aria-label="Open chat"
-                >
-                    💬
-                </button>
+                />
             )}
 
             {/* Chat Widget Modal */}
@@ -136,6 +138,8 @@ const ChatbotWidget = () => {
                         <button
                             onClick={() => setIsOpen(false)}
                             className="chatbot-close-btn"
+                            type="button"
+                            aria-label="Close chat"
                         >
                             <X size={20} />
                         </button>
@@ -151,7 +155,8 @@ const ChatbotWidget = () => {
                                 <span className="message-time">
                                     {msg.timestamp.toLocaleTimeString('en-US', {
                                         hour: '2-digit',
-                                        minute: '2-digit'
+                                        minute: '2-digit',
+                                        hour12: true
                                     })}
                                 </span>
                             </div>
@@ -159,7 +164,9 @@ const ChatbotWidget = () => {
                         {isLoading && (
                             <div className="chatbot-message bot">
                                 <div className="message-bubble typing">
-                                    <span></span><span></span><span></span>
+                                    <span></span>
+                                    <span></span>
+                                    <span></span>
                                 </div>
                             </div>
                         )}
@@ -167,10 +174,11 @@ const ChatbotWidget = () => {
                     </div>
 
                     {/* Reset Button */}
-                    {messages.length > 2 && (
+                    {messages.length > 1 && (
                         <button
                             onClick={resetChat}
                             className="chatbot-reset-btn"
+                            type="button"
                         >
                             Start New Chat
                         </button>
@@ -185,11 +193,13 @@ const ChatbotWidget = () => {
                             onChange={e => setInputValue(e.target.value)}
                             disabled={isLoading}
                             className="chatbot-input"
+                            autoComplete="off"
                         />
                         <button
                             type="submit"
                             disabled={isLoading || !inputValue.trim()}
                             className="chatbot-send-btn"
+                            aria-label="Send message"
                         >
                             <Send size={18} />
                         </button>

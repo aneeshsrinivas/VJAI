@@ -4,7 +4,7 @@
  */
 
 import { db } from '../lib/firebase';
-import { doc, getDoc, updateDoc, addDoc, collection, serverTimestamp, setDoc, query, where, getDocs } from 'firebase/firestore';
+import { doc, getDoc, updateDoc, addDoc, collection, serverTimestamp, setDoc, query, where, getDocs, arrayUnion } from 'firebase/firestore';
 import { emailService } from './emailService';
 import { createParentAuthAccount } from './adminAuthService';
 
@@ -220,6 +220,32 @@ export const conversionService = {
                 nextDueAt: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // +30 days
                 createdAt: serverTimestamp()
             });
+
+            // 5.5 Add student to batch's studentsId array if batch is assigned
+            if (assignmentData.coachId && assignmentData.batchId) {
+                try {
+                    const coachQuery = query(
+                        collection(db, 'coaches'),
+                        where('accountId', '==', assignmentData.coachId)
+                    );
+                    const coachSnap = await getDocs(coachQuery);
+
+                    let coachDocId = assignmentData.coachId; // Fallback to raw ID if not found
+                    if (!coachSnap.empty) {
+                        coachDocId = coachSnap.docs[0].id;
+                    }
+
+                    const batchRef = doc(db, 'coaches', coachDocId, 'batches', assignmentData.batchId);
+                    await updateDoc(batchRef, {
+                        studentsId: arrayUnion(studentRefId),
+                        updatedAt: serverTimestamp()
+                    });
+                    console.log(`✅ Added student ${studentRefId} to batch ${assignmentData.batchId}`);
+                } catch (batchErr) {
+                    console.warn('Warning: Could not add student to batch studentsId array:', batchErr);
+                    // Don't fail the entire approval if batch update fails
+                }
+            }
 
             // 6. Update Demo Status to CONVERTED
             await updateDoc(demoRef, {
